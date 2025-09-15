@@ -22,7 +22,7 @@
     "prepare": "simple-git-hooks",
     "lint": "eslint .",
     "mock": "apipost-mock-gen fixtures/mock/weila.md --output generated/mock/weila.ts",
-    "zip": "esno scripts/zip.ts",
+    "archive": "esno scripts/archive.ts",
     "test": "vitest",
     "release": "npx bumpp",
     "pack": "nr release && nr build && nr zip "

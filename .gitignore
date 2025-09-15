@@ -12,3 +12,4 @@ dist
 .vite-inspect
 .zip
 pkg
+.tar.gz
