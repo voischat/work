@@ -24,7 +24,7 @@
     "mock": "apipost-mock-gen fixtures/mock/weila.md --output generated/mock/weila.ts",
     "archive": "esno scripts/archive.ts",
     "test": "vitest",
-    "release": "npx bumpp",
+    "release": "esno scripts/release.ts",
     "pack": "nr release && nr build && nr zip "
   },
   "dependencies": {

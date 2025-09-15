@@ -35,6 +35,7 @@
     "eslint-plugin-format": "catalog:",
     "eslint-plugin-unimport": "catalog:",
     "lint-staged": "catalog:",
+    "octokit": "catalog:",
     "unbuild": "catalog:",
     "vite-plugin-dts": "catalog:"
   },

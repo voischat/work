@@ -100,6 +100,7 @@ catalog:
   nuxt-lucide-icons: 1.0.5
   nuxt-vite-legacy: ^2.0.0
   nuxt-zod-i18n: 1.11.5
+  octokit: ^5.0.3
   ofetch: ^1.4.1
   pinia: ^3.0.2
   postcss-html: ^1.8.0
