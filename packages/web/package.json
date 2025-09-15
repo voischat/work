@@ -1,7 +1,7 @@
 {
   "name": "微喇企业管理系统",
   "type": "module",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "description": "Arco Design Pro for Vue",
@@ -24,7 +24,7 @@
     "mock": "apipost-mock-gen fixtures/mock/weila.md --output generated/mock/weila.ts",
     "archive": "esno scripts/archive.ts",
     "test": "vitest",
-    "release": "esno scripts/release.ts",
+    "release": "npx bumpp && esno scripts/release.ts",
     "pack": "nr release && nr build && nr zip "
   },
   "dependencies": {
