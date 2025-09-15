@@ -33,6 +33,11 @@ binding-phone-form:
     phone: Please enter your phone number.
     sms-verifycode: SMS verification code
   title: Binding Phone
+binding-phone-hint: >-
+  A mobile phone number can only be linked to one account. After changing, you
+  can use the new phone number to log into this account. For phone numbers that
+  are already linked to other accounts, this operation will unbind them from the
+  original account.
 bracket:
   left: >-
     It seems that there is no text provided for translation. Please provide the
@@ -249,7 +254,7 @@ loc_share: location share
 location-detail: Location information
 login:
   __i18n_ally_root__:
-    android-download: Android APP download
+    android-download: Android app download
     cancel: Cancel
     confirm: Confirm
     form:

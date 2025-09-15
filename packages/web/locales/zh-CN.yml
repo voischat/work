@@ -33,6 +33,7 @@ binding-phone-form:
     phone: 请输入手机号
     sms-verifycode: 短信验证码
   title: 绑定手机号
+binding-phone-hint: 一个手机号只能绑定一个账号，更换后可使用新手机号登录此账号。对于已绑定其他账号的手机号，本次操作后将与原账号解绑。
 bracket:
   left: \[
   right: \]

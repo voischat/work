@@ -52,6 +52,10 @@ const { data: verifyImageData, refetch: refreshImageCode } = useWeilaFetch<{ id:
       <div>{{ t('binding-phone-form.title') }}</div>
     </template>
 
+    <p mx4 mb8 text-neutral>
+      {{ $t('binding-phone-hint') }}
+    </p>
+
     <a-form style="margin: 0 auto; width: fit-content;" :model="form" :rules layout="vertical" @submit="submit">
       <a-form-item field="phone" hide-label>
         <a-input-group>
