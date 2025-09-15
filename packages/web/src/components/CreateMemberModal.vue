@@ -18,11 +18,12 @@ const { data: depts } = useWeilaFetch('corp/address/get-all-dept', {}, {
 
 const { form, rules, handleSubmit, reset } = useForm(v.object({
   name: v.string(() => t('form.error.name-nonempty')),
+  phone: v.string(() => t('form.error.phone-nonempty')),
+  passwd: v.optional(v.string()),
   job_num: v.optional(v.string(), ''),
   dept_id: v.optional(v.number(), 0),
   sex: v.optional(v.number(), 0),
   avatar: v.optional(v.string(), ''),
-  phone: v.string(() => t('form.error.phone-nonempty')),
   is_admin: v.optional(v.number(), 0),
   loc_share: v.optional(v.number(), 1),
   track: v.optional(v.number(), 0),
@@ -74,13 +75,11 @@ const submit = handleSubmit(async (values: any) => {
         <a-form-item field="job_num" :label="t('member.form.job-num.label')">
           <a-input v-model="form.job_num" :max-length="12" show-word-limit />
         </a-form-item>
-        <a-form-item field="phone">
-          <template #label>
-            <RequiredLabel>
-              {{ t('member.form.phone.label') }}
-            </RequiredLabel>
-          </template>
+        <a-form-item field="phone" :label=" t('phone-number') ">
           <a-input v-model="form.phone" :max-length="11" show-word-limit />
+        </a-form-item>
+        <a-form-item field="passwd" :label="t('password')">
+          <a-input v-model="form.passwd" />
         </a-form-item>
         <a-form-item field="sex" :label="t('member.form.gender.label')">
           <a-radio-group v-model="form.sex">
