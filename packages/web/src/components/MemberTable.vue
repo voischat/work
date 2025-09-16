@@ -77,7 +77,7 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
         <a-table-column :title="t('member.state')">
           <template #cell="{ record: { state, user_id, type } }">
             <a-switch
-              v-if="type !== 255"
+              :disabled="type === 255"
               :default-checked="Boolean(!state)" :checked-value="0" :unchecked-value="1"
               :checked-color="themeColor" unchecked-color="#ddd" :before-change="(state) => toggleMemberState(
                 user_id,

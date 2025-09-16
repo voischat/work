@@ -92,9 +92,7 @@ const submit = handleSubmit(async (values) => {
       >
         <a-input v-model="form.job_num" :max-length="12" show-word-limit />
       </a-form-item>
-      <a-form-item
-        field="phone" :label="t('member.form.phone.label')"
-      >
+      <a-form-item field="phone" :label="t('phone-number')">
         <a-input v-model="form.phone" :max-length="11" show-word-limit />
       </a-form-item>
       <a-form-item field="sex" :label="t('member.form.gender.label')">

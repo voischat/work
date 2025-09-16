@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Message from '@arco-design/web-vue/es/message'
 import { useQueryClient } from '@tanstack/vue-query'
+import md5 from 'md5'
 import * as v from 'valibot'
 import { useForm } from 'zod-arco-rules/valibot'
 import { TrackType } from '~/api/contact'
@@ -18,8 +19,8 @@ const { data: depts } = useWeilaFetch('corp/address/get-all-dept', {}, {
 
 const { form, rules, handleSubmit, reset } = useForm(v.object({
   name: v.string(() => t('form.error.name-nonempty')),
-  phone: v.string(() => t('form.error.phone-nonempty')),
-  passwd: v.optional(v.string()),
+  phone: v.optional(v.string(() => t('form.error.phone-nonempty'))),
+  password: v.optional(v.string()),
   job_num: v.optional(v.string(), ''),
   dept_id: v.optional(v.number(), 0),
   sex: v.optional(v.number(), 0),
@@ -48,7 +49,10 @@ const submit = handleSubmit(async (values: any) => {
   if (form.value.avatar && !isRemoteImage(form.value.avatar))
     await upload()
 
-  createMember(values)
+  createMember({
+    ...values,
+    password: values.password ? md5(values?.password) : undefined,
+  })
 })
 </script>
 
@@ -78,8 +82,8 @@ const submit = handleSubmit(async (values: any) => {
         <a-form-item field="phone" :label=" t('phone-number') ">
           <a-input v-model="form.phone" :max-length="11" show-word-limit />
         </a-form-item>
-        <a-form-item field="passwd" :label="t('password')">
-          <a-input v-model="form.passwd" />
+        <a-form-item field="password" :label="t('password')">
+          <a-input v-model="form.password" />
         </a-form-item>
         <a-form-item field="sex" :label="t('member.form.gender.label')">
           <a-radio-group v-model="form.sex">

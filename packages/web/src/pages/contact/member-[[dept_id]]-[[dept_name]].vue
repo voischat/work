@@ -70,6 +70,7 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
             <a-button @click="isEditMemberModalOpen = true">
               {{ t('edit') }}
             </a-button>
+            <ResetMemberPasswordModal v-if="record.type !== 255" :member="selected" />
             <DeleteMemberModal v-if="record.type !== 255" :member="selected" />
           </a-space>
         </template>

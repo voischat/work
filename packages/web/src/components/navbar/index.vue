@@ -104,7 +104,7 @@ function reloadPage() {
               </div>
               <div class="flex items-center gap-2">
                 <a-tag color="blue" mxa>
-                  +{{ selfInfo.country_code }} {{ selfInfo.phone }}
+                  +{{ selfInfo.country_code }} {{ selfInfo.bind_phone }}
                 </a-tag>
               </div>
             </div>

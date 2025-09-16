@@ -61,4 +61,5 @@ export interface SelfInfo {
   track: number
   group_count: number
   created: number
+  bind_phone: number
 }

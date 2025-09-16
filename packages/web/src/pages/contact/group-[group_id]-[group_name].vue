@@ -97,7 +97,7 @@ function onSelect(member: Member, e: PointerEvent) {
               {{ user_num }}
             </template>
           </a-table-column>
-          <a-table-column :title="t('phone')">
+          <a-table-column :title="t('phone-number')">
             <template #cell="{ record: { phone } }">
               {{ phone }}
             </template>
