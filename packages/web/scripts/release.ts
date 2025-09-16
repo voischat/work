@@ -17,6 +17,7 @@ async function release() {
       client_payload: {
         unit: false,
         integration: true,
+        ref: 'publish-verify',
       },
       headers: {
         'X-GitHub-Api-Version': '2022-11-28',
