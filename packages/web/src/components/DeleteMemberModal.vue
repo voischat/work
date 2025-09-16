@@ -27,6 +27,7 @@ const { mutate, isPending } = useWeilaMutation<never, {
 
 <template>
   <ModalTrigger v-model:open="open" :trigger="{ status: 'danger' }" :title=" t('delete.modal.title') ">
+    <slot />
     <template #content>
       <p>
         {{ t('delete.modal.hint') }} {{ t('delete.modal.content') }}

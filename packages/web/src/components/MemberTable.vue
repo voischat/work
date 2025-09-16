@@ -13,6 +13,7 @@ withDefaults(defineProps<{
 const emits = defineEmits<{
   (e: 'select', member: Member, _: PointerEvent): void
 }>()
+
 const curPage = defineModel('page', { default: 0, required: true })
 
 const { t } = useI18n()
@@ -58,17 +59,12 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
   <div>
     <!-- @vue-expect-error type error when arco's row-click -->
     <a-table
-      :columns="cols"
       :data="members"
       :pagination="{
         pageSize: 10,
         total: count || 0,
       }"
       :column-resizable="true"
-      :scroll="{
-        x: 700,
-        y: 600,
-      }"
       :scrollbar="true"
       @page-change="(page) => curPage = page"
       @row-click="(...args) => onSelect(...args)"
@@ -94,7 +90,7 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
           </template>
         </a-table-column>
 
-        <a-table-column :title="t('avatar')">
+        <a-table-column :title="t('avatar')" width="80">
           <template #cell="{ record: { avatar } }">
             <a-avatar :image-url="avatar">
               <IconUser />
@@ -230,7 +226,7 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
           </template>
         </a-table-column>
 
-        <a-table-column v-if="actions" :title="t('controls')">
+        <a-table-column v-if="actions" :title="t('controls')" fixed="right">
           <template #cell="{ record }">
             <slot name="actions" v-bind="{ record, selected }" />
           </template>

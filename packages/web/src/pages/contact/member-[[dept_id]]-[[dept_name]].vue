@@ -66,13 +66,29 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
 
       <MemberTable v-model:page="curPage" v-model:selected-item="selectedItem" :members :count="data?.count || 0" @select="isEditMemberModalOpen = true">
         <template #actions="{ record, selected }">
-          <a-space>
+          <a-button-group>
             <a-button @click="isEditMemberModalOpen = true">
               {{ t('edit') }}
             </a-button>
-            <ResetMemberPasswordModal v-if="record.type !== 255" :member="selected" />
-            <DeleteMemberModal v-if="record.type !== 255" :member="selected" />
-          </a-space>
+
+            <a-dropdown v-if="record.type !== 255">
+              <a-button>
+                <template #icon>
+                  <icon-down />
+                </template>
+              </a-button>
+              <template #content>
+                <div flex="~ col" p0>
+                  <ResetMemberPasswordModal v-if="record.type !== 255" :member="selected">
+                  <!-- <a-doption>Option 1</a-doption> -->
+                  </ResetMemberPasswordModal>
+                  <DeleteMemberModal v-if="record.type !== 255" :member="selected">
+                  <!-- <a-doption>Option 1</a-doption> -->
+                  </DeleteMemberModal>
+                </div>
+              </template>
+            </a-dropdown>
+          </a-button-group>
         </template>
       </MemberTable>
 

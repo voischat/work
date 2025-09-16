@@ -38,6 +38,7 @@ const submit = handleSubmit((values: any) => {
 
 <template>
   <ModalTrigger v-model:open="open" :title=" t('reset-password.button') ">
+    <slot />
     <template #content>
       <a-form :model="form" :rules @submit="submit">
         <a-form-item field="password" :label="t('password')">
