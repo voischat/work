@@ -1,7 +1,7 @@
 {
-  "name": "weila-work-web_publish-verify",
+  "name": "weila-work-web",
   "type": "module",
-  "version": "2.1.3",
+  "version": "publish-verify_2.1.3",
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "description": "Arco Design Pro for Vue",
