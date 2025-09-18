@@ -26,17 +26,14 @@ const { mutate, isPending } = useWeilaMutation<never, {
 </script>
 
 <template>
-  <ModalTrigger v-model:open="open" :trigger="{ status: 'danger' }" :title=" t('delete.modal.title') ">
-    <slot />
-    <template #content>
-      <p>
-        {{ t('delete.modal.hint') }} {{ t('delete.modal.content') }}
-      </p>
-    </template>
+  <a-modal v-model:visible="open" :title="t('delete.modal.title')">
+    <p>
+      {{ t('delete.modal.hint') }} {{ t('delete.modal.content') }}
+    </p>
     <template #footer>
-      <a-button type="primary" :loading="isPending" @click="(e) => mutate({ user_id: member!.user_id })">
+      <a-button type="primary" :loading="isPending" @click="mutate({ user_id: member!.user_id })">
         {{ t('button.submit') }}
       </a-button>
     </template>
-  </ModalTrigger>
+  </a-modal>
 </template>

@@ -41,6 +41,8 @@ const members = computed(() => {
 })
 
 const isEditMemberModalOpen = shallowRef(false)
+const isResetPasswordModalOpen = shallowRef(false)
+const isDeleteMemberModalOpen = shallowRef(false)
 const selectedItem = shallowRef<Member | undefined>(undefined)
 </script>
 
@@ -71,7 +73,7 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
               {{ t('edit') }}
             </a-button>
 
-            <a-dropdown v-if="record.type !== 255">
+            <a-dropdown v-if="record.type !== 255" :hide-on-select="false">
               <a-button>
                 <template #icon>
                   <icon-down />
@@ -79,12 +81,12 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
               </a-button>
               <template #content>
                 <div flex="~ col" p0>
-                  <ResetMemberPasswordModal v-if="record.type !== 255" :member="selected">
-                  <!-- <a-doption>Option 1</a-doption> -->
-                  </ResetMemberPasswordModal>
-                  <DeleteMemberModal v-if="record.type !== 255" :member="selected">
-                  <!-- <a-doption>Option 1</a-doption> -->
-                  </DeleteMemberModal>
+                  <a-doption @click="isResetPasswordModalOpen = true">
+                    {{ t('reset-password.button') }}
+                  </a-doption>
+                  <a-doption @click="isDeleteMemberModalOpen = true">
+                    {{ t('delete.modal.title') }}
+                  </a-doption>
                 </div>
               </template>
             </a-dropdown>
@@ -93,6 +95,8 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
       </MemberTable>
 
       <EditMemberModal v-model:open="isEditMemberModalOpen" :member="selectedItem" />
+      <ResetMemberPasswordModal v-model:open="isResetPasswordModalOpen" :member="selectedItem" />
+      <DeleteMemberModal v-model:open="isDeleteMemberModalOpen" :member="selectedItem" />
     </a-card>
   </a-page-header>
 </template>

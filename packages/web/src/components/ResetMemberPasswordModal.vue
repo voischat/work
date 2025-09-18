@@ -37,19 +37,16 @@ const submit = handleSubmit((values: any) => {
 </script>
 
 <template>
-  <ModalTrigger v-model:open="open" :title=" t('reset-password.button') ">
-    <slot />
-    <template #content>
-      <a-form :model="form" :rules @submit="submit">
-        <a-form-item field="password" :label="t('password')">
-          <a-input v-model="form.password" :max-length="20" show-word-limit type="password" />
-        </a-form-item>
-        <a-form-item>
-          <a-button mla type="primary" :loading="isPending" html-type="submit">
-            {{ t('button.submit') }}
-          </a-button>
-        </a-form-item>
-      </a-form>
-    </template>
-  </ModalTrigger>
+  <a-modal v-model:visible="open" :title="t('reset-password.button')" :footer="false">
+    <a-form :model="form" :rules @submit="submit">
+      <a-form-item field="password" :label="t('password')">
+        <a-input v-model="form.password" :max-length="20" show-word-limit type="password" />
+      </a-form-item>
+      <a-form-item>
+        <a-button mla type="primary" :loading="isPending" html-type="submit">
+          {{ t('button.submit') }}
+        </a-button>
+      </a-form-item>
+    </a-form>
+  </a-modal>
 </template>
