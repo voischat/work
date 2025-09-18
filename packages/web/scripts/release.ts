@@ -11,7 +11,7 @@ const octokit = new Octokit({
 async function release() {
   try {
     await octokit.request('POST /repos/{owner}/{repo}/dispatches', {
-      owner: 'kvoon3',
+      owner: 'kvoon9',
       repo: 'weila-work-web-releases',
       event_type: 'on-demand-release',
       client_payload: {
