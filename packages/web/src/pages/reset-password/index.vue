@@ -4,6 +4,7 @@ import { Message } from '@arco-design/web-vue'
 import * as v from 'valibot'
 import { shallowRef } from 'vue'
 import { useForm } from 'zod-arco-rules/valibot'
+import md5 from 'md5'
 
 definePage({
   meta: {
@@ -39,8 +40,11 @@ let currentPhoneInfo: {
 
 const { mutate: resetPassword, isPending: isSubmiting } = useWeilaMutation('/corp/auth/reset-password')
 
-const submit = handleSubmit((values) => {
-  resetPassword(values)
+const submit = handleSubmit((values: any) => {
+  resetPassword({
+    ...values,
+    password: md5(values.password)
+  })
 })
 
 function handleSendSmsCode() {
