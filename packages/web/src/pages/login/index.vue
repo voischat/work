@@ -3,7 +3,6 @@ import type { SendVerifySmsBody } from '~/api/verify-sms'
 import type { AuthModel } from '~/stores/auth'
 import type { Corp } from '~/types'
 import { Message } from '@arco-design/web-vue'
-import { useIntervalFn } from '@vueuse/core'
 import md5 from 'md5'
 import * as v from 'valibot'
 import { shallowRef } from 'vue'
@@ -235,9 +234,9 @@ const loginBySms = handleSmsLogin((values: any) => {
             <a-input-group flex w-full>
               <a-select v-model="smsLoginForm.country_code" w-fit>
                 <a-option value="86" label="+86" />
-                <a-option value="852" label="+852" />
+                <!-- <a-option value="852" label="+852" />
                 <a-option value="853" label="+853" />
-                <a-option value="886" label="+886" />
+                <a-option value="886" label="+886" /> -->
               </a-select>
               <a-input
                 v-model="smsLoginForm.phone"
