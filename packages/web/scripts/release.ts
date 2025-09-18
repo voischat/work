@@ -12,7 +12,7 @@ async function release() {
   try {
     await octokit.request('POST /repos/{owner}/{repo}/dispatches', {
       owner: 'kvoon9',
-      repo: 'weila-work-web-releases',
+      repo: 'weila-work-releases',
       event_type: 'on-demand-release',
       client_payload: {
         unit: false,

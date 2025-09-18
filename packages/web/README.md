@@ -1,29 +1,3 @@
-# Weila Corp Manager
+## Release
 
-## Install Deps
-
-```sh
-npm install -g ni
-```
-
-```sh
-ni
-```
-
-or
-
-```sh
-pnpm install
-```
-
-## Pack
-
-```sh
-nr pack
-```
-
-it will run:
-
-1. `release`
-2. `build`
-3. `zip`
+https://github.com/kvoon9/weila-work-web-releases
