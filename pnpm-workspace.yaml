@@ -51,7 +51,7 @@ catalog:
   '@vee-validate/nuxt': ^4.15.0
   '@vee-validate/zod': ^4.15.0
   '@videojs-player/vue': ^1.0.0
-  '@vitejs/plugin-vue': ^5.2.3
+  '@vitejs/plugin-vue': ^6.0.1
   '@vuemap/unplugin-resolver': ^2.0.1
   '@vuemap/vue-amap': ^2.1.11
   '@vuemap/vue-amap-extra': ^2.1.5
@@ -150,7 +150,7 @@ catalog:
   vite-plugin-vue-layouts: ^0.11.0
   vite-svg-loader: ^5.1.0
   vitest: ^3.2.4
-  vue: ^3.5.13
+  vue: ^3.5.21
   vue-echarts: ^7.0.3
   vue-i18n: ^10.0.7
   vue-router: ^4.5.0
