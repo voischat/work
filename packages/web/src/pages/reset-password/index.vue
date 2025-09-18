@@ -38,7 +38,12 @@ let currentPhoneInfo: {
   countrycode: string
 } | null = null
 
-const { mutate: resetPassword, isPending: isSubmiting } = useWeilaMutation('/corp/auth/reset-password')
+const { mutate: resetPassword, isPending: isSubmiting } = useWeilaMutation('/corp/auth/reset-password', {
+  onSuccess() {
+    Message.success(t('message.success'))
+    router.push('/login')
+  }
+})
 
 const submit = handleSubmit((values: any) => {
   resetPassword({
