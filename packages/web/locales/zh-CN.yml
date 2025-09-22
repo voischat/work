@@ -111,7 +111,7 @@ corp:
   group-limit: 群数量上限
   group-member-limit: 群成员数上限
   member: 组织成员
-  member-limit: 部门数上限
+  member-limit: 成员数上限
   number: 企业号
 corp-info: 企业详情
 corp-number: 企业号
