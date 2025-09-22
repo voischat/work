@@ -20,7 +20,7 @@ const { data: depts } = useWeilaFetch('corp/address/get-all-dept', {}, {
 const { form, rules, handleSubmit, reset } = useForm(v.object({
   name: v.string(() => t('form.error.name-nonempty')),
   phone: v.optional(v.string(() => t('form.error.phone-nonempty'))),
-  password: v.optional(v.string()),
+  password: v.string(() => t('form.error.password-nonempty')),
   job_num: v.optional(v.string(), ''),
   dept_id: v.optional(v.number(), 0),
   sex: v.optional(v.number(), 0),
