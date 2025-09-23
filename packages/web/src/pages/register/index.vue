@@ -80,7 +80,6 @@ function handleSendSmsCode() {
   })
 }
 
-
 const submit = handleSubmit((values: any) => {
   if (!privacyAgreed.value) {
     Message.error(t('form.error.privacy-agreement-required'))

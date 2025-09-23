@@ -69,9 +69,9 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
       }"
       :column-resizable="true"
       :scrollbar="true"
+      :on-change="(...args) => emits('change', ...args)"
       @page-change="(page) => curPage = page"
       @row-click="(...args) => onSelect(...args)"
-      :onChange="(...args) => emits('change', ...args)"
     >
       <template #columns>
         <a-table-column :title="t('member.state')">

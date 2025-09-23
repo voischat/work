@@ -16,16 +16,14 @@ const filterInput = shallowRef('')
 const curPage = shallowRef(1)
 const pageSize = shallowRef(10)
 
-const filters = shallowRef<{[key: string]: any}>({})
+const filters = shallowRef<{ [key: string]: any }>({})
 
 const { data } = useWeilaFetch<{
   count: number
   members: Member[]
 }>(() => `corp/address/get-member-list?page=${curPage.value}&size=${pageSize.value}`, {
-  body: () => filters.value
+  body: () => filters.value,
 })
-
-
 
 const members = computed(() => {
   if (!data.value?.members)
@@ -72,11 +70,11 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
         </a-space>
       </template>
 
-      <MemberTable 
-        v-model:page="curPage" v-model:selected-item="selectedItem" :members :count="data?.count || 0" @select="isEditMemberModalOpen = true"
-        :filters="new Set(['member_types', 'dept_ids'])"
-        @change="(_: any, e: any)=> {
-          if(e.type=== 'filter') 
+      <MemberTable
+        v-model:page="curPage" v-model:selected-item="selectedItem" :members :count="data?.count || 0" :filters="new Set(['member_types', 'dept_ids'])"
+        @select="isEditMemberModalOpen = true"
+        @change="(_: any, e: any) => {
+          if (e.type === 'filter')
             filters = e.filters
         }"
       >
