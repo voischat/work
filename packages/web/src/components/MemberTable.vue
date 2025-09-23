@@ -118,8 +118,8 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
 
         <a-table-column
           :title="t('type')"
-          data-index="member_type"
-          :filterable="filters.has('member_type') && {
+          data-index="member_types"
+          :filterable="filters.has('member_types') && {
             filters: [{
               text: t('user-type.member'),
               value: 0,
@@ -163,13 +163,13 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
           </template>
         </a-table-column>
         <a-table-column
-          :title="t('dept.name')" data-index="dept_id"
-          :filterable="filters.has('dept_id') && {
+          :title="t('dept.name')" data-index="dept_ids"
+          :filterable="filters.has('dept_ids') && {
             filters: depts?.map((i) => ({
               text: i.name,
               value: i.id,
             })),
-            filter: ([value]: any, record: any) => record.dept_id === value,
+            filter: (values: any[], record: any) => values.some((i: any) => i === record.dept_id),
             multiple: true,
           }"
         >

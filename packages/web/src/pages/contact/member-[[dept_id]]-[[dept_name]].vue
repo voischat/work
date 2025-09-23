@@ -74,7 +74,7 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
 
       <MemberTable 
         v-model:page="curPage" v-model:selected-item="selectedItem" :members :count="data?.count || 0" @select="isEditMemberModalOpen = true"
-        :filters="new Set(['member_type', 'dept_id'])"
+        :filters="new Set(['member_types', 'dept_ids'])"
         @change="(_: any, e: any)=> {
           if(e.type=== 'filter') 
             filters = e.filters
