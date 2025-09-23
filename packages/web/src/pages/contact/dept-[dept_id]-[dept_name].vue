@@ -7,6 +7,8 @@ import { shallowRef } from 'vue'
 const curPage = shallowRef(1)
 const pageSize = shallowRef(10)
 
+const filters = shallowRef<{[key: string]: any}>({})
+
 const route = useRoute('/contact/dept-[dept_id]-[dept_name]')
 const { data, refetch } = useWeilaFetch<{
   count: number
@@ -16,6 +18,7 @@ const { data, refetch } = useWeilaFetch<{
   {
     body: () => ({
       dept_id: Number(route.params.dept_id),
+      ...filters.value,
     }),
   },
 )
@@ -89,7 +92,14 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
         </a-space>
       </template>
 
-      <MemberTable v-model:page="curPage" v-model:selected-item="selectedItem" :actions="!!Number(route.params.dept_id)" :members :count="data?.count || 0" @select="isEditMemberModalOpen = true">
+      <MemberTable
+        v-model:page="curPage" v-model:selected-item="selectedItem" :actions="!!Number(route.params.dept_id)" :members :count="data?.count || 0" @select="isEditMemberModalOpen = true"
+        :filters="new Set(['member_type'])"
+        @change="(_: any, e: any)=> {
+          if(e.type=== 'filter')
+            filters = e.filters
+        }"
+      >
         <template #actions="{ selected }">
           <a-space>
             <a-button @click="isEditMemberModalOpen = true">

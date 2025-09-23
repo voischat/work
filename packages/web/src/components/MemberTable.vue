@@ -6,12 +6,15 @@ withDefaults(defineProps<{
   members: Member[]
   count: number
   actions?: boolean
+  filters?: Set<string>
 }>(), {
   actions: true,
+  filters: () => new Set(),
 })
 
 const emits = defineEmits<{
   (e: 'select', member: Member, _: PointerEvent): void
+  (e: 'change', ...args: any[]): void
 }>()
 
 const curPage = defineModel('page', { default: 0, required: true })
@@ -68,6 +71,7 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
       :scrollbar="true"
       @page-change="(page) => curPage = page"
       @row-click="(...args) => onSelect(...args)"
+      :onChange="(...args) => emits('change', ...args)"
     >
       <template #columns>
         <a-table-column :title="t('member.state')">
@@ -90,7 +94,7 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
           </template>
         </a-table-column>
 
-        <a-table-column :title="t('avatar')" width="80">
+        <a-table-column :title="t('avatar')" :width="80">
           <template #cell="{ record: { avatar } }">
             <a-avatar :image-url="avatar">
               <IconUser />
@@ -114,8 +118,8 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
 
         <a-table-column
           :title="t('type')"
-
-          :filterable="{
+          data-index="member_type"
+          :filterable="filters.has('member_type') && {
             filters: [{
               text: t('user-type.member'),
               value: 0,
@@ -160,7 +164,7 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
         </a-table-column>
         <a-table-column
           :title="t('dept.name')" data-index="dept_id"
-          :filterable="{
+          :filterable="filters.has('dept_id') && {
             filters: depts?.map((i) => ({
               text: i.name,
               value: i.id,
