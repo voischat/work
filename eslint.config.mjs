@@ -3,7 +3,6 @@ import vueI18n from '@intlify/eslint-plugin-vue-i18n'
 import pluginQuery from '@tanstack/eslint-plugin-query'
 import { createSimplePlugin } from 'eslint-factory'
 import { createAutoInsert } from 'eslint-plugin-unimport'
-import nuxt from './packages/webview/.nuxt/eslint.config.mjs'
 
 const ignores = [
   '**/pages-deprecated/**',
@@ -77,6 +76,4 @@ export default antfu(
     },
     ignores,
   }),
-).append(nuxt({
-  ignores,
-}))
+)

@@ -85,7 +85,7 @@ const submit = handleSubmit(async (values: any) => {
         <a-form-item field="password">
           <template #label>
             <RequiredLabel>
-              {{t('password')}}
+              {{ t('password') }}
             </RequiredLabel>
           </template>
           <a-input v-model="form.password" />

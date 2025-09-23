@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { SendVerifySmsBody } from '~/api/verify-sms'
 import { Message } from '@arco-design/web-vue'
+import md5 from 'md5'
 import * as v from 'valibot'
 import { shallowRef } from 'vue'
 import { useForm } from 'zod-arco-rules/valibot'
-import md5 from 'md5'
 
 definePage({
   meta: {
@@ -42,13 +42,13 @@ const { mutate: resetPassword, isPending: isSubmiting } = useWeilaMutation('/cor
   onSuccess() {
     Message.success(t('message.success'))
     router.push('/login')
-  }
+  },
 })
 
 const submit = handleSubmit((values: any) => {
   resetPassword({
     ...values,
-    password: md5(values.password)
+    password: md5(values.password),
   })
 })
 
