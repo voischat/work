@@ -1,6 +1,7 @@
 import { writeFile } from 'node:fs/promises'
 import path, { resolve } from 'node:path'
 import ViteYaml from '@modyfi/vite-plugin-yaml'
+import { ArcoResolver } from 'unplugin-vue-components/resolvers'
 import Vue from '@vitejs/plugin-vue'
 import { VueAmapResolver } from '@vuemap/unplugin-resolver'
 import RadixVueResolver from 'radix-vue/resolver'
@@ -16,7 +17,7 @@ import mkcert from 'vite-plugin-mkcert'
 import { viteMockServe as ViteMockServe } from 'vite-plugin-mock'
 import Layouts from 'vite-plugin-vue-layouts'
 import SvgLoader from 'vite-svg-loader'
-import ConfigArcoStyleImportPlugin from './plugins/arcoStyleImport'
+import { vitePluginForArco as Arco } from '@arco-plugins/vite-vue'
 
 const now = Date.now()
 
@@ -144,6 +145,7 @@ export default defineConfig({
       resolvers: [
         RadixVueResolver(),
         VueAmapResolver(),
+        ArcoResolver()
       ],
     }),
 
@@ -159,7 +161,8 @@ export default defineConfig({
 
     SvgLoader({ svgoConfig: {} }),
 
-    ConfigArcoStyleImportPlugin(),
+    // https://github.com/arco-design/arco-plugins/blob/main/packages/plugin-vite-vue/README.md
+    Arco({}),
 
     mkcert(),
 
