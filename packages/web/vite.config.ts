@@ -23,14 +23,26 @@ const now = Date.now()
 
 export default defineConfig({
   base: './',
+
   build: {
     rollupOptions: {
       input: {
         'main': resolve(__dirname, 'index.html'),
         'corp-manager': resolve(__dirname, 'corp-manager/index.html'),
       },
+      output: {
+        advancedChunks: {
+          groups: [
+            {
+              test: '/node_modules\/browser-image-compression/',
+              name: 'browser-image-compression',
+            }
+          ]
+        },
+      },
     },
   },
+
   resolve: {
     alias: {
       '~/': `${path.resolve(__dirname, 'src')}/`,
