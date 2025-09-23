@@ -10,7 +10,7 @@ const visible = defineModel<boolean>('visible')
 
 const { t } = useI18n()
 
-const formRef = templateRef('formRef')
+const formRef = useTemplateRef('formRef')
 
 interface AddMemberPayload {
   group_id: number

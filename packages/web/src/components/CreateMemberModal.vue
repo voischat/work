@@ -8,7 +8,7 @@ import { TrackType } from '~/api/contact'
 
 const { t } = useI18n()
 const { themeColor } = useAppStore()
-const avatarUploaderRef = templateRef('avatarUploaderRef')
+const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
 const authStore = useAuthStore()
 
 const open = defineModel('open', { default: false })

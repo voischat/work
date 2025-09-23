@@ -14,7 +14,7 @@ const { t } = useI18n()
 
 const open = shallowRef(false)
 
-const avatarUploaderRef = templateRef('avatarUploaderRef')
+const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
 
 const { form, rules, handleSubmit, reset } = useForm(v.object({
   name: v.optional(v.string(), () => props.group?.name),

@@ -15,7 +15,7 @@ const props = defineProps<{
 const isEditBusinessPointModalOpen = defineModel<boolean>('open', { required: true })
 
 const form = deepRef(props.point)
-const avatarUploaderRef = templateRef('avatarUploaderRef')
+const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
 
 watchImmediate(() => props.point, () => {
   form.value = JSON.parse(JSON.stringify(props.point))

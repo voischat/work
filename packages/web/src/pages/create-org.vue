@@ -22,7 +22,7 @@ watchEffect(() => {
     router.push('/contact/org')
 })
 
-const avatarUploaderRef = templateRef('avatarUploaderRef')
+const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
 
 const open = defineModel('open', { default: false })
 

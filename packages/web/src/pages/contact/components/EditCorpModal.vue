@@ -13,7 +13,7 @@ const { data: corp } = useWeilaFetch<Corp>('corp/org/get-my-org', {}, {
   enabled: computed(() => open.value),
 })
 
-const avatarUploaderRef = templateRef('avatarUploaderRef')
+const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
 
 const { rules, form, reset, handleSubmit } = useForm(v.object({
   name: v.optional(v.string(), () => corp.value.name),
@@ -22,7 +22,7 @@ const { rules, form, reset, handleSubmit } = useForm(v.object({
   watch: [corp],
 })
 
-const formRef = templateRef('formRef')
+const formRef = useTemplateRef('formRef')
 
 const qc = useQueryClient()
 

@@ -14,7 +14,7 @@ const props = defineProps<{
 
 const { t } = useI18n()
 const { themeColor } = useAppStore()
-const avatarUploaderRef = templateRef('avatarUploaderRef')
+const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
 
 const open = defineModel('open', { default: false })
 const authStore = useAuthStore()

@@ -17,8 +17,8 @@ const emits = defineEmits(['success'])
 
 const { t } = useI18n()
 const { themeColor } = useAppStore()
-const formRef = templateRef('formRef')
-const avatarUploaderRef = templateRef('avatarUploaderRef')
+const formRef = useTemplateRef('formRef')
+const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
 
 const { data: corp } = useWeilaFetch<Corp>('corp/org/get-my-org')
 const org_num = computed(() => corp.value?.num)

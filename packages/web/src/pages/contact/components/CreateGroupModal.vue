@@ -11,7 +11,7 @@ const open = shallowRef(false)
 
 const qc = useQueryClient()
 
-const avatarUploaderRef = templateRef('avatarUploaderRef')
+const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
 
 // type BurstMode = 0 | 1 | 2
 
