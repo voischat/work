@@ -12,8 +12,8 @@
   },
   "scripts": {
     "dev": "vite --config vite.config.dev.ts",
-    "build:staging": "vite build --mode staging -c vite.config.prod.ts",
-    "build": "vite build -c vite.config.prod.ts",
+    "build:staging": "vite build --mode staging",
+    "build": "vite build",
     "report": "cross-env REPORT=true npm run build",
     "preview": "vite preview --host",
     "preview-https": "serve dist",
