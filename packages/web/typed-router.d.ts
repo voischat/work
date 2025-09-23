@@ -19,7 +19,7 @@ declare module 'vue-router/auto-routes' {
    */
   export interface RouteNamedMap {
     '/[...catch]': RouteRecordInfo<'/[...catch]', '/:catch(.*)', { catch: ParamValue<true> }, { catch: ParamValue<false> }>,
-    '/contact': RouteRecordInfo<'/contact', '/contact', Record<never, never>, Record<never, never>>,
+    '/contact': RouteRecordInfo<'/contact', '/contact', Record<never, never>, Record<never, never>, '/contact/dept' | '/contact/dept-[dept_id]-[dept_name]' | '/contact/group' | '/contact/group-[group_id]-[group_name]' | '/contact/legal' | '/contact/member-[[dept_id]]-[[dept_name]]' | '/contact/org'>,
     '/contact/dept': RouteRecordInfo<'/contact/dept', '/contact/dept', Record<never, never>, Record<never, never>>,
     '/contact/dept-[dept_id]-[dept_name]': RouteRecordInfo<'/contact/dept-[dept_id]-[dept_name]', '/contact/dept-:dept_id-:dept_name', { dept_id: ParamValue<true>, dept_name: ParamValue<true> }, { dept_id: ParamValue<false>, dept_name: ParamValue<false> }>,
     '/contact/group': RouteRecordInfo<'/contact/group', '/contact/group', Record<never, never>, Record<never, never>>,
@@ -29,7 +29,7 @@ declare module 'vue-router/auto-routes' {
     '/contact/org': RouteRecordInfo<'/contact/org', '/contact/org', Record<never, never>, Record<never, never>>,
     '/create-org': RouteRecordInfo<'/create-org', '/create-org', Record<never, never>, Record<never, never>>,
     '/login/': RouteRecordInfo<'/login/', '/login', Record<never, never>, Record<never, never>>,
-    '/message': RouteRecordInfo<'/message', '/message', Record<never, never>, Record<never, never>>,
+    '/message': RouteRecordInfo<'/message', '/message', Record<never, never>, Record<never, never>, '/message/[group_id]-[group_name]'>,
     '/message/[group_id]-[group_name]': RouteRecordInfo<'/message/[group_id]-[group_name]', '/message/:group_id-:group_name', { group_id: ParamValue<true>, group_name: ParamValue<true> }, { group_id: ParamValue<false>, group_name: ParamValue<false> }>,
     '/not-found/': RouteRecordInfo<'/not-found/', '/not-found', Record<never, never>, Record<never, never>>,
     '/redirect/': RouteRecordInfo<'/redirect/', '/redirect', Record<never, never>, Record<never, never>>,
@@ -37,7 +37,7 @@ declare module 'vue-router/auto-routes' {
     '/reset-password/': RouteRecordInfo<'/reset-password/', '/reset-password', Record<never, never>, Record<never, never>>,
     '/test': RouteRecordInfo<'/test', '/test', Record<never, never>, Record<never, never>>,
     '/workbench/': RouteRecordInfo<'/workbench/', '/workbench', Record<never, never>, Record<never, never>>,
-    '/workbench/service/[sid]-[ssid]': RouteRecordInfo<'/workbench/service/[sid]-[ssid]', '/workbench/service/:sid-:ssid', { sid: ParamValue<true>, ssid: ParamValue<true> }, { sid: ParamValue<false>, ssid: ParamValue<false> }>,
+    '/workbench/service/[sid]-[ssid]': RouteRecordInfo<'/workbench/service/[sid]-[ssid]', '/workbench/service/:sid-:ssid', { sid: ParamValue<true>, ssid: ParamValue<true> }, { sid: ParamValue<false>, ssid: ParamValue<false> }, '/workbench/service/[sid]-[ssid]/' | '/workbench/service/[sid]-[ssid]/detail' | '/workbench/service/[sid]-[ssid]/index1' | '/workbench/service/[sid]-[ssid]/point/' | '/workbench/service/[sid]-[ssid]/point/[pid]-[ppid]' | '/workbench/service/[sid]-[ssid]/staff'>,
     '/workbench/service/[sid]-[ssid]/': RouteRecordInfo<'/workbench/service/[sid]-[ssid]/', '/workbench/service/:sid-:ssid', { sid: ParamValue<true>, ssid: ParamValue<true> }, { sid: ParamValue<false>, ssid: ParamValue<false> }>,
     '/workbench/service/[sid]-[ssid]/detail': RouteRecordInfo<'/workbench/service/[sid]-[ssid]/detail', '/workbench/service/:sid-:ssid/detail', { sid: ParamValue<true>, ssid: ParamValue<true> }, { sid: ParamValue<false>, ssid: ParamValue<false> }>,
     '/workbench/service/[sid]-[ssid]/index1': RouteRecordInfo<'/workbench/service/[sid]-[ssid]/index1', '/workbench/service/:sid-:ssid/index1', { sid: ParamValue<true>, ssid: ParamValue<true> }, { sid: ParamValue<false>, ssid: ParamValue<false> }>,
@@ -48,4 +48,144 @@ declare module 'vue-router/auto-routes' {
     '/workbench/service-adt/': RouteRecordInfo<'/workbench/service-adt/', '/workbench/service-adt', Record<never, never>, Record<never, never>>,
     '/workbench/user-track': RouteRecordInfo<'/workbench/user-track', '/workbench/user-track', Record<never, never>, Record<never, never>>,
   }
+
+  /**
+   * Route file to route info map by unplugin-vue-router.
+   * Used by the volar plugin to automatically type useRoute()
+   *
+   * Each key is a file path relative to the project root with 2 properties:
+   * - routes: union of route names of the possible routes when in this page (passed to useRoute<...>())
+   * - views: names of nested views (can be passed to <RouterView name="...">)
+   *
+   * @internal
+   */
+  export interface _RouteFileInfoMap {
+    'src/pages/[...catch].vue': {
+      routes: '/[...catch]'
+      views: never
+    }
+    'src/pages/contact.vue': {
+      routes: '/contact' | '/contact/dept' | '/contact/dept-[dept_id]-[dept_name]' | '/contact/group' | '/contact/group-[group_id]-[group_name]' | '/contact/legal' | '/contact/member-[[dept_id]]-[[dept_name]]' | '/contact/org'
+      views: 'default'
+    }
+    'src/pages/contact/dept.vue': {
+      routes: '/contact/dept'
+      views: never
+    }
+    'src/pages/contact/dept-[dept_id]-[dept_name].vue': {
+      routes: '/contact/dept-[dept_id]-[dept_name]'
+      views: never
+    }
+    'src/pages/contact/group.vue': {
+      routes: '/contact/group'
+      views: never
+    }
+    'src/pages/contact/group-[group_id]-[group_name].vue': {
+      routes: '/contact/group-[group_id]-[group_name]'
+      views: never
+    }
+    'src/pages/contact/legal.vue': {
+      routes: '/contact/legal'
+      views: never
+    }
+    'src/pages/contact/member-[[dept_id]]-[[dept_name]].vue': {
+      routes: '/contact/member-[[dept_id]]-[[dept_name]]'
+      views: never
+    }
+    'src/pages/contact/org.vue': {
+      routes: '/contact/org'
+      views: never
+    }
+    'src/pages/create-org.vue': {
+      routes: '/create-org'
+      views: never
+    }
+    'src/pages/login/index.vue': {
+      routes: '/login/'
+      views: never
+    }
+    'src/pages/message.vue': {
+      routes: '/message' | '/message/[group_id]-[group_name]'
+      views: 'default'
+    }
+    'src/pages/message/[group_id]-[group_name].vue': {
+      routes: '/message/[group_id]-[group_name]'
+      views: never
+    }
+    'src/pages/not-found/index.vue': {
+      routes: '/not-found/'
+      views: never
+    }
+    'src/pages/redirect/index.vue': {
+      routes: '/redirect/'
+      views: never
+    }
+    'src/pages/register/index.vue': {
+      routes: '/register/'
+      views: never
+    }
+    'src/pages/reset-password/index.vue': {
+      routes: '/reset-password/'
+      views: never
+    }
+    'src/pages/test.vue': {
+      routes: '/test'
+      views: never
+    }
+    'src/pages/workbench/index.vue': {
+      routes: '/workbench/'
+      views: never
+    }
+    'src/pages/workbench/service/[sid]-[ssid].vue': {
+      routes: '/workbench/service/[sid]-[ssid]' | '/workbench/service/[sid]-[ssid]/' | '/workbench/service/[sid]-[ssid]/point/' | '/workbench/service/[sid]-[ssid]/point/[pid]-[ppid]' | '/workbench/service/[sid]-[ssid]/detail' | '/workbench/service/[sid]-[ssid]/index1' | '/workbench/service/[sid]-[ssid]/point' | '/workbench/service/[sid]-[ssid]/staff'
+      views: 'default'
+    }
+    'src/pages/workbench/service/[sid]-[ssid]/index.vue': {
+      routes: '/workbench/service/[sid]-[ssid]/'
+      views: never
+    }
+    'src/pages/workbench/service/[sid]-[ssid]/detail.vue': {
+      routes: '/workbench/service/[sid]-[ssid]/detail'
+      views: never
+    }
+    'src/pages/workbench/service/[sid]-[ssid]/index1.vue': {
+      routes: '/workbench/service/[sid]-[ssid]/index1'
+      views: never
+    }
+    'src/pages/workbench/service/[sid]-[ssid]/point/index.vue': {
+      routes: '/workbench/service/[sid]-[ssid]/point/'
+      views: never
+    }
+    'src/pages/workbench/service/[sid]-[ssid]/point/[pid]-[ppid].vue': {
+      routes: '/workbench/service/[sid]-[ssid]/point/[pid]-[ppid]'
+      views: never
+    }
+    'src/pages/workbench/service/[sid]-[ssid]/staff.vue': {
+      routes: '/workbench/service/[sid]-[ssid]/staff'
+      views: never
+    }
+    'src/pages/workbench/service/set-license.vue': {
+      routes: '/workbench/service/set-license'
+      views: never
+    }
+    'src/pages/workbench/service-adt/index.vue': {
+      routes: '/workbench/service-adt/'
+      views: never
+    }
+    'src/pages/workbench/user-track.vue': {
+      routes: '/workbench/user-track'
+      views: never
+    }
+  }
+
+  /**
+   * Get a union of possible route names in a certain route component file.
+   * Used by the volar plugin to automatically type useRoute()
+   *
+   * @internal
+   */
+  export type _RouteNamesForFilePath<FilePath extends string> =
+    _RouteFileInfoMap extends Record<FilePath, infer Info>
+      ? Info['routes']
+      : keyof RouteNamedMap
 }
