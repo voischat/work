@@ -39,7 +39,7 @@ const messageTypeComponentMap = {
 
 const route = useRoute('/message/[group_id]-[group_name]')
 
-const messageContainerEl = templateRef('messageContainerEl')
+const messageContainerEl = useTemplateRef('messageContainerEl')
 const { arrivedState } = useScroll(messageContainerEl)
 
 const INIT_ID = 0

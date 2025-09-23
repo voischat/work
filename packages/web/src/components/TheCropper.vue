@@ -16,7 +16,7 @@ const emits = defineEmits<{
 
 const { t } = useI18n()
 
-const imgRef = templateRef<HTMLImageElement>('imgRef')
+const imgRef = useTemplateRef<HTMLImageElement>('imgRef')
 const cropper = shallowRef<Cropper | undefined>(undefined)
 const state = shallowRef<'init' | 'idle' | 'cropping' | 'error'>('init')
 const isLoading = computed(() => state.value === 'cropping')

@@ -33,7 +33,7 @@ const form = reactive<ChangeBusinessPayload['business']['merchant']>({
 })
 
 const isUploadingAlbum = shallowRef(false)
-const avatarUploaderRef = templateRef('avatarUploaderRef')
+const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
 const isMapPickerModalOpen = shallowRef(false)
 
 // 检查图片是否为远程图片

@@ -7,12 +7,9 @@ import { TrackType } from '~/api/contact'
 
 const { t } = useI18n()
 const { themeColor } = useAppStore()
-const formRef = templateRef('formRef')
-const authStore = useAuthStore()
+const formRef = useTemplateRef('formRef')
 
-const open = defineModel('open', { default: false })
-
-const avatarUploaderRef = templateRef('avatarUploaderRef')
+const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
 
 const { data: depts } = useWeilaFetch('corp/address/get-all-dept', {}, {
   enabled: open,
