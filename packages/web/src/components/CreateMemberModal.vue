@@ -82,7 +82,12 @@ const submit = handleSubmit(async (values: any) => {
         <a-form-item field="phone" :label=" t('phone-number') ">
           <a-input v-model="form.phone" :max-length="11" show-word-limit />
         </a-form-item>
-        <a-form-item field="password" :label="t('password')">
+        <a-form-item field="password">
+          <template #label>
+            <RequiredLabel>
+              {{t('password')}}
+            </RequiredLabel>
+          </template>
           <a-input v-model="form.password" />
         </a-form-item>
         <a-form-item field="sex" :label="t('member.form.gender.label')">
