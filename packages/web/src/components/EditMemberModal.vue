@@ -20,7 +20,7 @@ const open = defineModel('open', { default: false })
 const authStore = useAuthStore()
 
 const { form, rules, handleSubmit, reset } = useForm(v.object({
-  user_num: v.optional(v.string(), () => props.member?.user_num),
+  user_id: v.optional(v.number(), () => props.member?.user_id),
   name: v.optional(v.pipe(v.string()), () => props.member?.name),
   job_num: v.optional(v.string(), () => props.member?.job_num),
   dept_id: v.optional(v.number(), () => props.member?.dept_id),
@@ -55,7 +55,7 @@ const { mutate: edit, isPending } = useWeilaMutation('corp/address/change-member
 
     qc.invalidateQueries({ queryKey: ['corp/address/get-member-list'] })
     qc.invalidateQueries({ queryKey: ['corp/address/get-dept-member-list'] })
-    if (form.value.user_num === selfInfo.value.user_num)
+    if (Number(form.value.user_id) === Number(selfInfo.value.user_id))
       qc.invalidateQueries({ queryKey: ['corp/user/get-selfinfo'] })
   },
 })
@@ -87,12 +87,10 @@ const submit = handleSubmit(async (values) => {
           <a-option v-for="{ name, id }, key in depts" :key :value="id" :label="name" />
         </a-select>
       </a-form-item>
-      <a-form-item field="job_num" :label="$t('weila-number')">
-        <a-input v-model="form.user_num" disabled />
+      <a-form-item field="user_id" :label="$t('weila-number')">
+        <a-input v-model="form.user_id" disabled />
       </a-form-item>
-      <a-form-item
-        field="job_num" :label="t('member.form.job-num.label')"
-      >
+      <a-form-item field="job_num" :label="t('member.form.job-num.label')">
         <a-input v-model="form.job_num" :max-length="12" show-word-limit />
       </a-form-item>
       <a-form-item field="phone" :label="t('phone-number')">
