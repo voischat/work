@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { DeptGetallModel } from 'generated/mock/weila'
 import type { RegeoModel, UserTrackModel } from '~/api/track'
 import type { TreeNodeData } from '~/types'
 import type { Member } from '~/types/api'
@@ -40,10 +39,10 @@ watchDebounced(() => tracks.value, (val) => {
   debounce: 500,
 })
 
-const { data: depts } = useWeilaFetch<DeptGetallModel['data']['depts']>('/corp/address/get-all-dept')
+const { data: depts } = useWeilaFetch<any>('/corp/address/get-all-dept')
 const treeData = deepRef<TreeNodeData[]>([])
 watchEffect(() => {
-  treeData.value = depts.value?.map((dept) => {
+  treeData.value = depts.value?.map((dept: any) => {
     return {
       title: `${dept.name} (${dept.user_count})`,
       key: `dept-${dept.id}`,

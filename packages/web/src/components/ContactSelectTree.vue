@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { DeptGetallModel } from 'generated/mock/weila'
 import type { TreeNodeData } from '~/types'
 import type { Member } from '~/types/api'
 import IconUser from '@arco-design/web-vue/es/icon/icon-user'
@@ -21,11 +20,11 @@ const treeRef = useTemplateRef('treeRef')
 
 const isVisible = useElementVisibility(treeRef)
 
-const { data: depts } = useWeilaFetch<DeptGetallModel['data']['depts']>('/corp/address/get-all-dept')
+const { data: depts } = useWeilaFetch<any>('/corp/address/get-all-dept')
 
 const treeData = deepRef<TreeNodeData[]>([])
 watchEffect(() => {
-  treeData.value = depts.value?.map((dept) => {
+  treeData.value = depts.value?.map((dept: any) => {
     return {
       title: `${dept.name} (${dept.user_count})`,
       icon: () => h(IconUserGroup),

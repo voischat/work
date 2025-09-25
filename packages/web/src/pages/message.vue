@@ -3,7 +3,6 @@ import type { Corp } from '~/types'
 import { useQuery } from '@tanstack/vue-query'
 import { UseImage } from '@vueuse/components'
 import { RouterLink } from 'vue-router'
-import { weilaApiUrl } from '~/api'
 
 definePage({
   meta: {
@@ -35,8 +34,8 @@ const { data: corp } = useWeilaFetch<Corp>('corp/org/get-my-org')
 
 const { data: groups } = useQuery<GroupModel[]>({
   enabled: computed(() => Boolean(corp.value)),
-  queryKey: ['groups', weilaApiUrl('/corp/web/group-getall'), corp],
-  queryFn: () => weilaFetch(weilaApiUrl('/corp/web/group-getall'), {
+  queryKey: ['groups', '/corp/web/group-getall', corp],
+  queryFn: () => weilaFetch('/corp/web/group-getall', {
     body: { org_num: String(corp.value!.num) },
   }).then(i => i.groups),
 })

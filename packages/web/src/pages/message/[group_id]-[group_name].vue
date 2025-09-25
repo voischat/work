@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import type { MessageGetGroupHistoryMessageModel, MessageGetGroupHistoryMessagePayload } from 'generated/mock/weila'
 import type { Reactive } from 'vue'
 import { useInfiniteQuery } from '@tanstack/vue-query'
 import { reactive, shallowRef } from 'vue'
-import { weilaApiUrl } from '~/api'
 
 import MessageFileContent from '~/components/MessageFileContent.vue'
 import MessageLocationContent from '~/components/MessageLocationContent.vue'
@@ -51,25 +49,23 @@ function getToday() {
 
 const date = shallowRef(getToday())
 
-const payload: Reactive<MessageGetGroupHistoryMessagePayload> = reactive({
+const payload: Reactive<any> = reactive({
   group_id: Number(route.params.group_id),
   msg_id: INIT_ID,
   msg_count: pageSize,
   date,
 })
 
-const users = reactive<Record<string, MessageGetGroupHistoryMessageModel['data']['users'][number]>>({})
+const users = reactive<Record<string, any['data']['users'][number]>>({})
 
 const { data, fetchNextPage } = useInfiniteQuery({
   enabled: computed(() => Boolean(date.value)),
   initialPageParam: INIT_ID,
-  queryKey: [weilaApiUrl('/corp/web/message-get-group-history-message'), date],
+  queryKey: ['/corp/web/message-get-group-history-message', date],
   queryFn: async ({ pageParam = INIT_ID }) => {
     payload.msg_id = pageParam
 
-    return await weilaFetch<
-      MessageGetGroupHistoryMessageModel['data']
-    >(weilaApiUrl('/corp/web/message-get-group-history-message'), {
+    return await weilaFetch<any>('/corp/web/message-get-group-history-message', {
       body: payload,
     })
       .then((i) => {
@@ -84,7 +80,7 @@ const { data, fetchNextPage } = useInfiniteQuery({
     if (lastPage.length < pageSize.value)
       return undefined
 
-    return Math.min(...lastPage.map(i => i.msg_id))
+    return Math.min(...lastPage.map((i: any) => i.msg_id))
   },
 })
 

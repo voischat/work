@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import type { ValidatedError } from '@arco-design/web-vue'
-import type { MemberChangePayload } from 'generated/mock/weila'
 import type { Corp } from '~/types'
 import type { Member } from '~/types/api'
 import { objectPick } from '@antfu/utils'
 import { Message } from '@arco-design/web-vue'
 import { useMutation } from '@tanstack/vue-query'
-import { weilaApiUrl } from '~/api'
 import { TrackType } from '~/api/contact'
 
 const props = defineProps<{
@@ -20,6 +18,7 @@ const { themeColor } = useAppStore()
 const formRef = useTemplateRef('formRef')
 const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
 
+const authStore = useAuthStore()
 const { data: corp } = useWeilaFetch<Corp>('corp/org/get-my-org')
 const org_num = computed(() => corp.value?.num)
 
@@ -29,7 +28,7 @@ const { data: depts } = useWeilaFetch('corp/address/get-dept-list', {
   pick: ['depts'],
 })
 
-let form = reactive<MemberChangePayload>({
+let form = reactive<any>({
   ...objectPick(props.member || {} as any, [
     'name',
     'dept_id',
@@ -71,9 +70,9 @@ watch(org_num, (value) => {
 })
 
 const { mutate: createMember } = useMutation({
-  mutationFn: (payload: MemberChangePayload) => {
+  mutationFn: (payload: any) => {
     const weilaApi = useWeilaApi()
-    return weilaApi.value.v2.request.post(weilaApiUrl('/corp/web/member-change'), {
+    return weilaApi.value.v2.request.post('/corp/web/member-change', {
       ...payload,
       tts: payload.tts ? 1 : 0,
       loc_share: payload.loc_share ? 1 : 0,
@@ -185,7 +184,7 @@ function handleSubmit() {
           <a-radio :value="TrackType.High">
             {{ t('track-type.high') }}
           </a-radio>
-          <a-radio v-disabled="!authStore.vip.vip_supports.find((i) => i.name === 'track')?.quick_suppport" :value="TrackType.Fast">
+          <a-radio v-disabled="!authStore?.vip.vip_supports.find((i) => i.name === 'track')?.quick_support" :value="TrackType.Fast">
             {{ t('track-type.fast') }}
           </a-radio>
         </a-radio-group>

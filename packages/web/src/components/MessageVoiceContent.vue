@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
 import { useSound } from '@vueuse/sound'
-import { weilaApiUrl } from '~/api'
 
 import { useSpeakerIcon } from '~/composables/useSpeakerIcon'
 
@@ -15,7 +14,7 @@ const props = defineProps<{
 
 const { data: mp3Url } = useQuery({
   queryKey: [props.content.url],
-  queryFn: () => weilaFetch(weilaApiUrl('/corp/web/ptturl-to-mp3url'), {
+  queryFn: () => weilaFetch('/corp/web/ptturl-to-mp3url', {
     body: {
       ptturl: props.content.url,
     },

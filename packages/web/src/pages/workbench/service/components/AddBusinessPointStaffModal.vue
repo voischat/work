@@ -6,7 +6,6 @@ import { Message } from '@arco-design/web-vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useAddBusinessPointStaffs, useGetBusinessPointStaffList } from '@weila/network'
 import { ref as deepRef, shallowRef } from 'vue'
-import { weilaApiUrl } from '~/api'
 
 const props = defineProps<{
   sid: number
@@ -23,8 +22,8 @@ const org_num = computed(() => corp.value?.num)
 
 const { data: members, isFetching: isFetchingMembers } = useQuery<Array<MemberModel>>({
   enabled: computed(() => Boolean(org_num.value)),
-  queryKey: [weilaApiUrl('/corp/web/member-getall'), org_num.value],
-  queryFn: () => weilaFetch(weilaApiUrl('/corp/web/member-getall'), {
+  queryKey: ['corp/web/member-getall', org_num.value],
+  queryFn: () => weilaFetch('/corp/web/member-getall', {
     body: {
       org_num: org_num.value,
     },

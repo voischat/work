@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { GroupGetallModel } from 'generated/mock/weila'
 import type { GroupModel } from '~/api/contact'
 import { ref as deepRef, shallowRef } from 'vue'
 
@@ -22,7 +21,7 @@ const pageSize = shallowRef(10)
 
 const { data, refetch } = useWeilaFetch(() => `corp/group/get-group-list?page=${curPage.value}&size=${pageSize.value}`)
 
-const selectedGroup = deepRef<GroupGetallModel['data']['groups'][number] | undefined>(undefined)
+const selectedGroup = deepRef<any>(undefined)
 
 const checkedGroupIds = deepRef<number[]>([])
 
