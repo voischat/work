@@ -9,6 +9,9 @@ const { t } = useI18n()
 const { themeColor } = useAppStore()
 const formRef = useTemplateRef('formRef')
 
+const open = defineModel('open', { default: false })
+const authStore = useAuthStore()
+
 const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
 
 const { data: depts } = useWeilaFetch('corp/address/get-all-dept', {}, {
