@@ -87,8 +87,8 @@ const submit = handleSubmit(async (values) => {
           <a-option v-for="{ name, id }, key in depts" :key :value="id" :label="name" />
         </a-select>
       </a-form-item>
-      <a-form-item field="user_id" :label="$t('weila-number')">
-        <a-input v-model="form.user_id" disabled />
+      <a-form-item :label="$t('weila-number')">
+        <a-input :model-value="member?.user_num" disabled />
       </a-form-item>
       <a-form-item field="job_num" :label="t('member.form.job-num.label')">
         <a-input v-model="form.job_num" :max-length="12" show-word-limit />
