@@ -7,6 +7,9 @@ import { shallowRef } from 'vue'
 const curPage = shallowRef(1)
 const pageSize = shallowRef(10)
 
+const filterInput = shallowRef('')
+const key = useDebounce(filterInput, 500)
+
 const filters = shallowRef<{ [key: string]: any }>({})
 
 const route = useRoute('/contact/dept-[dept_id]-[dept_name]')
@@ -19,13 +22,12 @@ const { data, refetch } = useWeilaFetch<{
     body: () => ({
       dept_id: Number(route.params.dept_id),
       ...filters.value,
+      key: key.value,
     }),
   },
 )
 
 const { t } = useI18n()
-
-const filterInput = shallowRef('')
 
 const members = computed(() => {
   if (!data.value?.members)

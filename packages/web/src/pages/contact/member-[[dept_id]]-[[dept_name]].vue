@@ -12,6 +12,7 @@ definePage({
 const { t } = useI18n()
 
 const filterInput = shallowRef('')
+const key = useDebounce(filterInput, 500)
 
 const curPage = shallowRef(1)
 const pageSize = shallowRef(10)
@@ -22,7 +23,10 @@ const { data } = useWeilaFetch<{
   count: number
   members: Member[]
 }>(() => `corp/address/get-member-list?page=${curPage.value}&size=${pageSize.value}`, {
-  body: () => filters.value,
+  body: () => ({
+    ...filters.value,
+    key: key.value,
+  }),
 })
 
 const members = computed(() => {
