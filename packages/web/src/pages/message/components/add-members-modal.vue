@@ -37,7 +37,7 @@ const { mutate, isPending } = useMutation({
 })
 
 function handleSubmit() {
-  return formRef.value?.validate((errors) => {
+  return formRef.value?.validate((errors: any) => {
     if (errors)
       return
 
@@ -67,7 +67,7 @@ function handleSubmit() {
     <a-form ref="formRef" :model="form" layout="vertical" @submit="handleSubmit">
       <a-form-item
         label="ID" name="member_ids" :rules="[{
-          validator(value, callback) {
+          validator(value: any, callback: any) {
             if (value.length === 0) {
               callback('at least one member ID')
               return

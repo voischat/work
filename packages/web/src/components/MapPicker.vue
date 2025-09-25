@@ -106,7 +106,7 @@ const { data: regeo, refetch } = useQuery({
         lat: pickedCenter.value![1],
         radius: radius.value,
       },
-    }).then(i => i.regeo)
+    }).then((i: any) => i.regeo)
   },
 })
 
