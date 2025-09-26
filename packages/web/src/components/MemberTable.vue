@@ -69,7 +69,7 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
       }"
       :column-resizable="true"
       :scrollbar="true"
-      :on-change="(...args) => emits('change', ...args)"
+      @change="(...args) => emits('change', ...args) "
       @page-change="(page) => curPage = page"
       @row-click="(...args) => onSelect(...args)"
     >
