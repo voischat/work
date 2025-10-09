@@ -123,9 +123,10 @@ crop:
   image-size: 裁剪图片尺寸
 delete:
   modal:
-    content: 您确定要删除吗？
+    content: 您确定要继续吗？
     hint: 此操作无法撤销
     title: 删除
+注销成员: 注销成员
 delete-account-form:
   title: 注销账号
 department-list: 部门列表

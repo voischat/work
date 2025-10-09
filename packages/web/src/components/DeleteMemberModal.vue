@@ -26,7 +26,7 @@ const { mutate, isPending } = useWeilaMutation<never, {
 </script>
 
 <template>
-  <a-modal v-model:visible="open" :title="t('delete.modal.title')">
+  <a-modal v-model:visible="open" :title="t('注销成员')">
     <p>
       {{ t('delete.modal.hint') }} {{ t('delete.modal.content') }}
     </p>

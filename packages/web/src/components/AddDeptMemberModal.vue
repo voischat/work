@@ -16,8 +16,10 @@ const open = shallowRef(false)
 const checkedKeys = deepRef<string[]>([])
 const checkedMemberKeys = computed(() => checkedKeys.value.filter(i => i.startsWith('member-')))
 
-const { data: deptMembers, refetch } = useWeilaFetch<Member[]>('corp/address/get-dept-all-member', {
+const { data, refetch } = useWeilaFetch<{ depts: Member[], count: number }>('corp/address/get-my-manage-dept-list', {
   body: { dept_id: props.deptId },
+}, {
+  enabled: open,
 })
 
 watchEffect(() => open.value && refetch())
@@ -35,12 +37,12 @@ const { mutate, isPending } = useWeilaMutation<never, {
 </script>
 
 <template>
-  <ModalTrigger v-model:open="open" title="添加部门成员" :trigger="{ type: 'primary' }">
+  <ModalTrigger v-model:open="open" :title="t('add-member')" :trigger="{ type: 'primary' }">
     <template #content>
       <div relative p4 min-w-100 max-h-60vh of-y-auto>
         <ContactSelectTree
           v-model:checked-keys="checkedKeys"
-          :uncheckable-ids="deptMembers.map(i => i.user_id)"
+          :uncheckable-ids="data?.depts?.map(i => i.user_id)"
         />
       </div>
     </template>

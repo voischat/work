@@ -5,7 +5,7 @@ import { shallowRef } from 'vue'
 definePage({
   alias: 'member',
   meta: {
-    name: 'submenu.member-manage',
+    // name: 'submenu.member-manage', // temporary disable
   },
 })
 
@@ -99,8 +99,8 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
                   <a-doption @click="isResetPasswordModalOpen = true">
                     {{ t('reset-password.button') }}
                   </a-doption>
-                  <a-doption @click="isDeleteMemberModalOpen = true">
-                    {{ t('delete.modal.title') }}
+                  <a-doption type="warning" @click="isDeleteMemberModalOpen = true">
+                    {{ t('注销成员') }}
                   </a-doption>
                 </div>
               </template>

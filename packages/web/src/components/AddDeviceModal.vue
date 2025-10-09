@@ -5,6 +5,12 @@ import * as v from 'valibot'
 import { useForm } from 'zod-arco-rules/valibot'
 import { TrackType } from '~/api/contact'
 
+interface Props {
+  deptId?: number
+}
+
+const props = defineProps<Props>()
+
 const { t } = useI18n()
 const { themeColor } = useAppStore()
 const formRef = useTemplateRef('formRef')
@@ -14,7 +20,7 @@ const authStore = useAuthStore()
 
 const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
 
-const { data: depts } = useWeilaFetch('corp/address/get-all-dept', {}, {
+const { data: depts } = useWeilaFetch<any>('corp/address/get-my-manage-all-dept', {}, {
   enabled: open,
 })
 
@@ -30,7 +36,14 @@ const { form, rules, handleSubmit, reset } = useForm(v.object({
   track: v.optional(v.number(), 0),
 }))
 
-watchEffect(() => open.value && reset())
+watchEffect(() => {
+  if (open.value) {
+    reset()
+
+    if (props.deptId)
+      form.value.dept_id = props.deptId
+  }
+})
 
 const qc = useQueryClient()
 
@@ -38,6 +51,7 @@ const { mutate, isPending } = useWeilaMutation('corp/address/add-device', {
   onSuccess() {
     Message.success(t('message.success'))
     qc.invalidateQueries({ queryKey: ['corp/address/get-member-list'] })
+    qc.invalidateQueries({ queryKey: ['corp/address/get-dept-member-list'] })
     open.value = false
     reset()
   },
@@ -77,9 +91,18 @@ const submit = handleSubmit(async (values: any) => {
           <a-input v-model="form.phone" :max-length="11" show-word-limit />
         </a-form-item>
         <a-form-item field="dept_id" :label="t('member.form.dept.label')">
-          <a-select allow-search :empty="t('no-data')" @change="(value: string) => form.dept_id = Number(value)">
+          <a-select
+            v-if="!props.deptId"
+            allow-search :empty="t('no-data')"
+            @change="(value: string) => form.dept_id = Number(value)"
+          >
             <a-option v-for="{ name, id }, key in depts" :key :value="id" :label="name" />
           </a-select>
+          <a-input
+            v-else
+            :model-value="depts?.find((d: any) => d.id === props.deptId)?.name || ''"
+            readonly
+          />
         </a-form-item>
 
         <a-form-item field="sex" :label="t('gender')">

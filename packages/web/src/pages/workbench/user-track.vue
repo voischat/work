@@ -39,7 +39,7 @@ watchDebounced(() => tracks.value, (val) => {
   debounce: 500,
 })
 
-const { data: depts } = useWeilaFetch<any>('/corp/address/get-all-dept')
+const { data: depts } = useWeilaFetch<any>('/corp/address/get-my-manage-all-dept')
 const treeData = deepRef<TreeNodeData[]>([])
 watchEffect(() => {
   treeData.value = depts.value?.map((dept: any) => {

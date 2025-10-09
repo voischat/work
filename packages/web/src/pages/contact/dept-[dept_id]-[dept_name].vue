@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import type { Member } from '~/types/api'
-import Message from '@arco-design/web-vue/es/message'
-import { useQueryClient } from '@tanstack/vue-query'
 import { shallowRef } from 'vue'
 
 const curPage = shallowRef(1)
@@ -49,21 +47,10 @@ const members = computed(() => {
 })
 
 // const isResetPasswordModalVisible = shallowRef(false)
+const isEditMemberModalOpen = shallowRef(false)
+const isResetPasswordModalOpen = shallowRef(false)
 const isDeleteMemberModalOpen = shallowRef(false)
 
-const qc = useQueryClient()
-const { mutate } = useWeilaMutation<never, {
-  dept_id: number
-  user_id: number
-}>('corp/address/delete-dept-member', {
-  onSuccess() {
-    isDeleteMemberModalOpen.value = false
-    qc.invalidateQueries({ queryKey: ['corp/address/get-dept-member-list'] })
-    Message.success(t('message.success'))
-  },
-})
-
-const isEditMemberModalOpen = shallowRef(false)
 const selectedItem = shallowRef<Member | undefined>(undefined)
 </script>
 
@@ -81,52 +68,58 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
     <a-card>
       <template #title>
         <a-space>
-          <AddDeptMemberModal :dept-id="Number(route.params.dept_id)" @success="refetch">
-            <a-button type="primary">
-              <i i-ph-plus inline-block /> {{ $t('button.add-member') }}
-            </a-button>
-          </AddDeptMemberModal>
+          <CreateMemberModal :dept-id="Number(route.params.dept_id)" />
+
+          <AddDeptMemberModal :dept-id="Number(route.params.dept_id)" @success="refetch" />
+
+          <AddDeviceModal :dept-id="Number(route.params.dept_id)" />
+
           <a-input
             v-model="filterInput" :max-length="20" show-word-limit
             :placeholder="`${t('name')}/${t('job-number')}/${t('weila-number')}/${t('phone-number')}`" allow-clear
-            max-w-80
+            w-100
           />
         </a-space>
       </template>
 
       <MemberTable
-        v-model:page="curPage" v-model:selected-item="selectedItem" :actions="!!Number(route.params.dept_id)" :members :count="data?.count || 0" :filters="new Set(['member_types'])"
+        v-model:page="curPage" v-model:selected-item="selectedItem" :members :count="data?.count || 0" :filters="new Set(['member_types'])"
         @select="isEditMemberModalOpen = true"
         @change="(_: any, e: any) => {
           if (e.type === 'filter')
             filters = e.filters
         }"
       >
-        <template #actions="{ selected }">
-          <a-space>
+        <template #actions="{ record }">
+          <a-button-group>
             <a-button @click="isEditMemberModalOpen = true">
               {{ t('edit') }}
             </a-button>
-            <ModalTrigger v-model:open="isDeleteMemberModalOpen" :trigger="{ status: 'danger' }" :title=" t('button.delete') ">
+
+            <a-dropdown v-if="record.type !== 255" :hide-on-select="false">
+              <a-button>
+                <template #icon>
+                  <icon-down />
+                </template>
+              </a-button>
               <template #content>
-                {{ t('delete.modal.hint') }} {{ t('delete.modal.content') }}
+                <div flex="~ col" p0>
+                  <a-doption @click="isResetPasswordModalOpen = true">
+                    {{ t('reset-password.button') }}
+                  </a-doption>
+                  <a-doption type="warning" @click="isDeleteMemberModalOpen = true">
+                    {{ t('注销成员') }}
+                  </a-doption>
+                </div>
               </template>
-              <template #footer>
-                <a-button
-                  type="primary" @click="mutate({
-                    dept_id: Number(route.params.dept_id),
-                    user_id: selected!.user_id,
-                  })"
-                >
-                  {{ t('button.submit') }}
-                </a-button>
-              </template>
-            </ModalTrigger>
-          </a-space>
+            </a-dropdown>
+          </a-button-group>
         </template>
       </MemberTable>
 
-      <EditMemberModal v-model:open="isEditMemberModalOpen" :member="selectedItem" />
+      <EditMemberModal v-model:open="isEditMemberModalOpen" :member="selectedItem" :dept-id="Number(route.params.dept_id)" />
+      <ResetMemberPasswordModal v-model:open="isResetPasswordModalOpen" :member="selectedItem" />
+      <DeleteMemberModal v-model:open="isDeleteMemberModalOpen" :member="selectedItem" />
     </a-card>
   </a-page-header>
 </template>

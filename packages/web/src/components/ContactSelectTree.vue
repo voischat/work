@@ -20,7 +20,7 @@ const treeRef = useTemplateRef('treeRef')
 
 const isVisible = useElementVisibility(treeRef)
 
-const { data: depts } = useWeilaFetch<any>('/corp/address/get-all-dept')
+const { data: depts } = useWeilaFetch<any>('/corp/address/get-my-manage-all-dept')
 
 const treeData = deepRef<TreeNodeData[]>([])
 watchEffect(() => {

@@ -137,6 +137,7 @@ delete:
     content: Are you sure your want to delete?
     hint: This action cannot be undone
     title: Delete
+注销成员: Deactivate Member
 delete-account-form:
   title: Deactivate Account
 department-list: Department List

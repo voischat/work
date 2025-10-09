@@ -8,9 +8,12 @@ import * as v from 'valibot'
 import { useForm } from 'zod-arco-rules/valibot'
 import { TrackType } from '~/api/contact'
 
-const props = defineProps<{
+interface Props {
   member?: Member
-}>()
+  deptId?: number
+}
+
+const props = defineProps<Props>()
 
 const { t } = useI18n()
 const { themeColor } = useAppStore()
@@ -38,7 +41,7 @@ const { data: depts } = useWeilaFetch<{
   id: number
   name: string
   user_count: number
-}[]>('corp/address/get-all-dept', {}, {
+}[]>('corp/address/get-my-manage-all-dept', {}, {
   enabled: open,
 })
 
@@ -54,7 +57,7 @@ const { mutate: edit, isPending } = useWeilaMutation('corp/address/change-member
     Message.success(t('message.success'))
 
     qc.invalidateQueries({ queryKey: ['corp/address/get-member-list'] })
-    qc.invalidateQueries({ queryKey: ['corp/address/get-dept-member-list'] })
+    qc.invalidateQueries({ queryKey: ['corp/address/get-my-manage-dept-list'] })
     if (Number(form.value.user_id) === Number(selfInfo.value.user_id))
       qc.invalidateQueries({ queryKey: ['corp/user/get-selfinfo'] })
   },
@@ -83,9 +86,19 @@ const submit = handleSubmit(async (values) => {
         <a-input disabled :default-value="member.imei" :max-length="20" show-word-limit />
       </a-form-item>
       <a-form-item field="dept_id" :label="t('member.form.dept.label')">
-        <a-select v-model:model-value="form.dept_id" allow-search :empty="t('no-data')">
+        <a-select
+          v-if="!props.deptId"
+          v-model:model-value="form.dept_id"
+          allow-search
+          :empty="t('no-data')"
+        >
           <a-option v-for="{ name, id }, key in depts" :key :value="id" :label="name" />
         </a-select>
+        <a-input
+          v-else
+          :model-value="depts?.find(d => d.id === props.deptId)?.name || ''"
+          readonly
+        />
       </a-form-item>
       <a-form-item :label="$t('weila-number')">
         <a-input :model-value="member?.user_num" disabled />

@@ -39,7 +39,7 @@ const { data: depts } = useWeilaFetch<{
   id: number
   name: string
   user_count: number
-}[]>('corp/address/get-all-dept')
+}[]>('corp/address/get-my-manage-all-dept')
 
 const { mutateAsync: changeMemberState } = useWeilaMutation<{ state: 0 | 1 }, {
   user_id: number
