@@ -18,7 +18,7 @@ const infoMap = {
   dept_member_limit: 'corp.dept-member-limit',
   group_limit: 'corp.group-limit',
   group_member_limit: 'corp.group-member-limit',
-  device_limit: 'corp.device-limit',
+  // device_limit: 'corp.device-limit', // temporary disabled
 }
 
 // const supports = computed(() => !vip.value ? {} : Object.groupBy(vip.value?.vip_supports, i => i.name))
@@ -143,11 +143,17 @@ function goTo(path: string) {
               :data="vip?.vip_supports?.flatMap((i) => {
                 const limits = objectKeys(i).filter(i => i.includes('limit'))
 
-                return limits.map(limit => ({
+                return limits.map(limit => {
                   // @ts-expect-error type error
-                  label: t(infoMap?.[limit]),
-                  value: i[limit],
-                }))
+                  if (!infoMap?.[limit])
+                    return false
+
+                  return {
+                    // @ts-expect-error type error
+                    label: t(infoMap?.[limit]),
+                    value: i[limit],
+                  }
+                }).filter(Boolean)
               })" bordered
             />
           </div>
