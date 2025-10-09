@@ -140,6 +140,7 @@ const submit = handleSubmit(async (values) => {
         <a-switch
           v-model="form.is_admin" :checked-value="1" :unchecked-value="0" :checked-color="themeColor"
           unchecked-color="#ddd"
+          :disabled="selfInfo?.type !== 255"
         />
       </a-form-item>
       <a-form-item v-if="authStore?.vip?.vip_supports?.find((i) => i.name === 'track')?.support" field="track" :label="t('change-member.form.track.label')">
