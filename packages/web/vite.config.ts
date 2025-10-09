@@ -1,13 +1,14 @@
 import { writeFile } from 'node:fs/promises'
 import path, { resolve } from 'node:path'
+import { vitePluginForArco as Arco } from '@arco-plugins/vite-vue'
 import ViteYaml from '@modyfi/vite-plugin-yaml'
-import { ArcoResolver } from 'unplugin-vue-components/resolvers'
 import Vue from '@vitejs/plugin-vue'
 import { VueAmapResolver } from '@vuemap/unplugin-resolver'
 import RadixVueResolver from 'radix-vue/resolver'
 import UnoCSS from 'unocss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Unused from 'unplugin-unused/vite'
+import { ArcoResolver } from 'unplugin-vue-components/resolvers'
 import Components from 'unplugin-vue-components/vite'
 import VueMacros from 'unplugin-vue-macros/vite'
 import { VueRouterAutoImports } from 'unplugin-vue-router'
@@ -17,7 +18,6 @@ import mkcert from 'vite-plugin-mkcert'
 import { viteMockServe as ViteMockServe } from 'vite-plugin-mock'
 import Layouts from 'vite-plugin-vue-layouts'
 import SvgLoader from 'vite-svg-loader'
-import { vitePluginForArco as Arco } from '@arco-plugins/vite-vue'
 
 const now = Date.now()
 
@@ -36,8 +36,8 @@ export default defineConfig({
             {
               test: '/node_modules\/browser-image-compression/',
               name: 'browser-image-compression',
-            }
-          ]
+            },
+          ],
         },
       },
     },
@@ -157,7 +157,7 @@ export default defineConfig({
       resolvers: [
         RadixVueResolver(),
         VueAmapResolver(),
-        ArcoResolver()
+        ArcoResolver(),
       ],
     }),
 
