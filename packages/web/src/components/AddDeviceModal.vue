@@ -79,17 +79,6 @@ const submit = handleSubmit(async (values: any) => {
           </template>
           <a-input v-model="form.name" :max-length="20" show-word-limit />
         </a-form-item>
-        <a-form-item field="verifycode">
-          <template #label>
-            <RequiredLabel>
-              {{ t('verify-code') }}
-            </RequiredLabel>
-          </template>
-          <a-input v-model="form.verifycode" :max-length="20" show-word-limit />
-        </a-form-item>
-        <a-form-item :label="t('phone-number')" field="phone">
-          <a-input v-model="form.phone" :max-length="11" show-word-limit />
-        </a-form-item>
         <a-form-item field="dept_id" :label="t('member.form.dept.label')">
           <a-select
             v-if="props.deptId === undefined"
@@ -103,6 +92,20 @@ const submit = handleSubmit(async (values: any) => {
             :model-value="depts?.find((d: any) => d?.id === props.deptId)?.name || ''"
             readonly
           />
+        </a-form-item>
+        <a-form-item field="job_num" :label="t('member.form.job-num.label')">
+          <a-input v-model="form.job_num" :max-length="12" show-word-limit />
+        </a-form-item>
+        <a-form-item field="verifycode">
+          <template #label>
+            <RequiredLabel>
+              {{ t('verify-code') }}
+            </RequiredLabel>
+          </template>
+          <a-input v-model="form.verifycode" :max-length="20" show-word-limit />
+        </a-form-item>
+        <a-form-item :label="t('phone-number')" field="phone">
+          <a-input v-model="form.phone" :max-length="11" show-word-limit />
         </a-form-item>
 
         <a-form-item field="sex" :label="t('gender')">
