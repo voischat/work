@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { DeptModel } from '~/api/contact'
 
-import type { SelfInfo } from '~/types'
 import CreateDeptModal from './components/CreateDeptModal.vue'
 import DeleteDeptModal from './components/DeleteDeptModal.vue'
 import EditDeptModal from './components/EditDeptModal.vue'
@@ -27,7 +26,7 @@ const { data, refetch } = useWeilaFetch<{
   dept: Dept
 }>('corp/address/get-my-manage-dept-list')
 
-const { data: selfInfo } = useWeilaFetch<SelfInfo>('corp/user/get-selfinfo')
+const selfInfoStore = useSelfInfoStore()
 
 function onSelect(dept: DeptModel, e: PointerEvent) {
   // @ts-expect-error type error
@@ -46,7 +45,7 @@ function onSelect(dept: DeptModel, e: PointerEvent) {
   >
     <a-card>
       <template #title>
-        <a-space v-if="selfInfo?.type === 255">
+        <a-space v-if="selfInfoStore.isOwner">
           <CreateDeptModal @success="refetch" />
         </a-space>
       </template>
@@ -72,7 +71,7 @@ function onSelect(dept: DeptModel, e: PointerEvent) {
           </a-table-column>
           <a-table-column :title="t('controls')">
             <template #cell="{ record }">
-              <div v-if="record.id && selfInfo?.type === 255" flex gap2>
+              <div v-if="record.id && selfInfoStore.isOwner" flex gap2>
                 <EditDeptModal :dept="record" />
                 <DeleteDeptModal :dept="record" />
               </div>

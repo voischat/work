@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { SelfInfo } from '~/types'
 import { useFullscreen } from '@vueuse/core'
 import { computed, inject, shallowRef } from 'vue'
 import { useBundleInfo } from '~/composables/useBundleInfo'
@@ -22,7 +21,7 @@ const toggleDrawerMenu = inject('toggleDrawerMenu') as () => void
 
 const { toggle: toggleLocales } = useToggleLocales()
 
-const { data: selfInfo } = useWeilaFetch<SelfInfo>('corp/user/get-selfinfo')
+const selfInfoStore = useSelfInfoStore()
 
 const resetPasswordModalVisible = shallowRef(false)
 const bindingPhoneModalVisible = shallowRef(false)
@@ -89,22 +88,22 @@ function reloadPage() {
       </a-tooltip>
 
       <a-dropdown trigger="click" :popup-max-height="false">
-        <a-avatar hover:op75 cursor-pointer :image-url="selfInfo?.avatar">
+        <a-avatar hover:op75 cursor-pointer :image-url="selfInfoStore.selfInfo?.avatar">
           <IconUser />
         </a-avatar>
 
         <template #content>
           <div class="p4 flex-col gap-[15px] text-center items-center justify-center">
-            <div v-if="selfInfo" class="flex flex-col gap-2">
+            <div v-if="selfInfoStore.selfInfo" class="flex flex-col gap-2">
               <div class="text-lg text-primary font-semibold">
-                {{ selfInfo.name }}
+                {{ selfInfoStore.selfInfo.name }}
               </div>
               <div class="text-secondary text-sm">
-                {{ t('weila-number') }}: {{ selfInfo.user_num }}
+                {{ t('weila-number') }}: {{ selfInfoStore.selfInfo.user_num }}
               </div>
               <div class="flex items-center gap-2">
                 <a-tag color="blue" mxa>
-                  +{{ selfInfo.country_code }} {{ selfInfo.bind_phone }}
+                  +{{ selfInfoStore.selfInfo.country_code }} {{ selfInfoStore.selfInfo.bind_phone }}
                 </a-tag>
               </div>
             </div>

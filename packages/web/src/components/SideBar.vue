@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { RouteRecordNormalized } from 'vue-router'
 import type { VipInfo } from '~/stores/auth'
-import type { Corp, SelfInfo } from '~/types'
+import type { Corp } from '~/types'
 import { objectEntries, objectKeys } from '@antfu/utils'
 
 const router = useRouter()
@@ -30,7 +30,7 @@ $inspect(disabledList)
 
 const { data: corp } = useWeilaFetch<Corp>('corp/org/get-my-org')
 
-const { data: selfInfo } = useWeilaFetch<SelfInfo>('corp/user/get-selfinfo')
+const selfInfoStore = useSelfInfoStore()
 
 interface Menu {
   [key: string]: {
@@ -63,7 +63,7 @@ const menu = computed<Menu>(() => {
       continue
 
     if (!route?.meta?.roles
-      || (route?.meta?.roles && route?.meta?.roles?.includes(selfInfo.value?.type))
+      || (route?.meta?.roles && route?.meta?.roles?.includes(selfInfoStore.selfInfo?.type))
     ) {
       menuItem.submenu.push(route)
     }
@@ -108,7 +108,7 @@ function goTo(path: string) {
               <div font-bold truncate>
                 {{ corp.name }}
               </div>
-              <CertificationTag v-if="selfInfo?.type === 255" />
+              <CertificationTag v-if="selfInfoStore.isOwner" />
             </div>
           </div>
           <IconRight />

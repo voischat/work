@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import type { SelfInfo } from '~/types'
 import type { Member } from '~/types/api'
 import { shallowRef } from 'vue'
 
-const { data: selfInfo } = useWeilaFetch<SelfInfo>('corp/user/get-selfinfo')
+const selfInfoStore = useSelfInfoStore()
 
 const curPage = shallowRef(1)
 const pageSize = shallowRef(10)
@@ -83,7 +82,7 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
         </a-space>
       </template>
       <template #extra>
-        <AddDeptMemberModal v-if="selfInfo?.type === 255" :dept-id="Number(route.params.dept_id)" @success="refetch" />
+        <AddDeptMemberModal v-if="selfInfoStore.isOwner" :dept-id="Number(route.params.dept_id)" @success="refetch" />
       </template>
 
       <MemberTable

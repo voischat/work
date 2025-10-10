@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { SelfInfo } from '~/types'
 import type { Member } from '~/types/api'
 
 import Message from '@arco-design/web-vue/es/message'
@@ -21,6 +20,7 @@ const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
 
 const open = defineModel('open', { default: false })
 const authStore = useAuthStore()
+const selfInfoStore = useSelfInfoStore()
 
 const { form, rules, handleSubmit, reset } = useForm(v.object({
   user_id: v.optional(v.number(), () => props.member?.user_id),
@@ -49,7 +49,6 @@ const qc = useQueryClient()
 
 watchEffect(() => open.value && reset())
 
-const { data: selfInfo } = useWeilaFetch<SelfInfo>('corp/user/get-selfinfo')
 
 const { mutate: edit, isPending } = useWeilaMutation('corp/address/change-member', {
   onSuccess() {
@@ -59,7 +58,7 @@ const { mutate: edit, isPending } = useWeilaMutation('corp/address/change-member
     qc.invalidateQueries({ queryKey: ['corp/address/get-member-list'] })
     qc.invalidateQueries({ queryKey: ['corp/address/get-dept-member-list'] })
     qc.invalidateQueries({ queryKey: ['corp/address/get-my-manage-dept-list'] })
-    if (Number(form.value.user_id) === Number(selfInfo.value.user_id))
+    if (selfInfoStore.isCurrentUser(Number(form.value.user_id)))
       qc.invalidateQueries({ queryKey: ['corp/user/get-selfinfo'] })
   },
 })
@@ -88,7 +87,7 @@ const submit = handleSubmit(async (values) => {
       </a-form-item>
       <a-form-item field="dept_id" :label="t('member.form.dept.label')">
         <a-select
-          v-if="!props.deptId && selfInfo?.type === 255"
+          v-if="!props.deptId && selfInfoStore.isOwner"
           v-model:model-value="form.dept_id"
           allow-search
           :empty="t('no-data')"
@@ -141,7 +140,7 @@ const submit = handleSubmit(async (values) => {
         <a-switch
           v-model="form.is_dept_admin" :checked-value="1" :unchecked-value="0" :checked-color="themeColor"
           unchecked-color="#ddd"
-          :disabled="selfInfo?.type !== 255"
+          :disabled="!selfInfoStore.isOwner"
         />
       </a-form-item>
       <a-form-item v-if="authStore?.vip?.vip_supports?.find((i) => i.name === 'track')?.support" field="track" :label="t('change-member.form.track.label')">

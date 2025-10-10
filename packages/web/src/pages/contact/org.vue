@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VipInfo } from '~/stores/auth'
-import type { Corp, SelfInfo } from '~/types'
+import type { Corp } from '~/types'
 import EditCorpModal from './components/EditCorpModal.vue'
 
 definePage({
@@ -18,7 +18,7 @@ watchEffect(() => {
     router.push('/create-org')
 })
 
-const { data: selfInfo } = useWeilaFetch<SelfInfo>('corp/user/get-selfinfo')
+const selfInfoStore = useSelfInfoStore()
 </script>
 
 <template>
@@ -44,7 +44,7 @@ const { data: selfInfo } = useWeilaFetch<SelfInfo>('corp/user/get-selfinfo')
                 </div>
               </h1>
               <div space-x-2>
-                <CertificationTag v-if="selfInfo?.type === 255" show-full-status />
+                <CertificationTag v-if="selfInfoStore.isOwner" show-full-status />
                 <a-tag>
                   {{ vip?.vip_name }} <span v-if="vip?.vip">({{ new Date(corp.vip_expired * 1000).toLocaleDateString() }})</span>
                 </a-tag>
@@ -52,7 +52,7 @@ const { data: selfInfo } = useWeilaFetch<SelfInfo>('corp/user/get-selfinfo')
             </div>
           </div>
 
-          <a-space v-if="selfInfo?.type === 255">
+          <a-space v-if="selfInfoStore.isOwner">
             <EditCorpModal />
             <a-button type="primary" @click="$router.push('/contact/legal')">
               {{ $t('org.auth') }}
