@@ -50,9 +50,9 @@ const submit = handleSubmit((values: any) => {
       bordered
       mb4
     />
-    <a-form :model="form" :rules @submit="submit">
-      <a-form-item field="password" :label="t('password')">
-        <a-input v-model="form.password" :max-length="20" show-word-limit type="password" />
+    <a-form :model="form" :rules layout="vertical" @submit="submit">
+      <a-form-item field="password">
+        <a-input v-model="form.password" :placeholder="t('password')" :max-length="20" show-word-limit type="password" />
       </a-form-item>
       <a-form-item>
         <a-button mla type="primary" :loading="isPending" html-type="submit">
