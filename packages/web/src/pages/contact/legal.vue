@@ -7,7 +7,9 @@ import { useForm } from 'zod-arco-rules/valibot'
 
 const weilaApi = useWeilaApi()
 
-const { data, isFetched, refetch } = useWeilaFetch<Legal>('corp/legal/get-legal')
+const { data, isFetched, refetch } = useWeilaFetch<Legal>('corp/legal/get-legal', {}, {
+  enabled: computed(() => storeToRefs(useSelfInfoStore()).isOwner.value),
+})
 
 // const isVerified = computed(() => data.value?.state === 8)
 

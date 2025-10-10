@@ -43,7 +43,7 @@ function onSelect(dept: DeptModel, e: PointerEvent) {
     :show-back="false"
     :title="$t($route.meta.name || '')"
   >
-    <a-card>
+    <a-card :header-style="selfInfoStore.isOwner ? {} : { display: 'none' }">
       <template #title>
         <a-space v-if="selfInfoStore.isOwner">
           <CreateDeptModal @success="refetch" />

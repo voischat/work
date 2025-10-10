@@ -6,7 +6,7 @@ export const useSelfInfoStore = defineStore('selfInfo', () => {
 
   // 权限判断
   const isOwner = computed(() => selfInfo.value?.type === 255)
-  const isAdmin = computed(() => selfInfo.value?.type === 1)
+  const isAdmin = computed(() => selfInfo.value?.type === 1 || selfInfo.value?.type === 2)
   const isDeptAdmin = computed(() => selfInfo.value?.is_dept_admin === 1)
 
   // 方法
