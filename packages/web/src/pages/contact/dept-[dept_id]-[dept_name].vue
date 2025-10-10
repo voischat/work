@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import type { SelfInfo } from '~/types'
 import type { Member } from '~/types/api'
 import { shallowRef } from 'vue'
+
+const { data: selfInfo } = useWeilaFetch<SelfInfo>('corp/user/get-selfinfo')
 
 const curPage = shallowRef(1)
 const pageSize = shallowRef(10)
@@ -70,8 +73,6 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
         <a-space>
           <CreateMemberModal :dept-id="Number(route.params.dept_id)" />
 
-          <AddDeptMemberModal :dept-id="Number(route.params.dept_id)" @success="refetch" />
-
           <AddDeviceModal :dept-id="Number(route.params.dept_id)" />
 
           <a-input
@@ -81,10 +82,12 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
           />
         </a-space>
       </template>
+      <template #extra>
+        <AddDeptMemberModal v-if="selfInfo?.type === 255" :dept-id="Number(route.params.dept_id)" @success="refetch" />
+      </template>
 
       <MemberTable
         v-model:page="curPage" v-model:selected-item="selectedItem" :members :count="data?.count || 0" :filters="new Set(['member_types'])"
-        @select="isEditMemberModalOpen = true"
         @change="(_: any, e: any) => {
           if (e.type === 'filter')
             filters = e.filters
@@ -107,7 +110,7 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
                   <a-doption @click="isResetPasswordModalOpen = true">
                     {{ t('reset-password.button') }}
                   </a-doption>
-                  <a-doption type="warning" @click="isDeleteMemberModalOpen = true">
+                  <a-doption @click="isDeleteMemberModalOpen = true">
                     {{ t('注销成员') }}
                   </a-doption>
                 </div>

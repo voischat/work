@@ -27,6 +27,18 @@ const { mutate, isPending } = useWeilaMutation<never, {
 
 <template>
   <a-modal v-model:visible="open" :title="t('注销成员')">
+    <a-descriptions
+      v-if="member"
+      :column="1"
+      :data="[
+        { label: t('name'), value: member.name },
+        { label: t('weila-number'), value: member.user_num },
+        { label: t('job-number'), value: member.job_num },
+        { label: t('phone-number'), value: member.phone },
+      ].filter(i => i.value)"
+      bordered
+      mb4
+    />
     <p>
       {{ t('delete.modal.hint') }} {{ t('delete.modal.content') }}
     </p>

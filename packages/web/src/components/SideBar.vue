@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { RouteRecordNormalized } from 'vue-router'
 import type { VipInfo } from '~/stores/auth'
-import type { Corp } from '~/types'
-import type { Legal } from '~/types/api'
+import type { Corp, SelfInfo } from '~/types'
 import { objectEntries, objectKeys } from '@antfu/utils'
 
 const router = useRouter()
@@ -18,7 +17,7 @@ const infoMap = {
   dept_member_limit: 'corp.dept-member-limit',
   group_limit: 'corp.group-limit',
   group_member_limit: 'corp.group-member-limit',
-  // device_limit: 'corp.device-limit', // temporary disabled
+  // device_limit: 'corp.device-limit',
 }
 
 // const supports = computed(() => !vip.value ? {} : Object.groupBy(vip.value?.vip_supports, i => i.name))
@@ -31,7 +30,7 @@ $inspect(disabledList)
 
 const { data: corp } = useWeilaFetch<Corp>('corp/org/get-my-org')
 
-const { data: legal } = useWeilaFetch<Legal>('corp/legal/get-legal')
+const { data: selfInfo } = useWeilaFetch<SelfInfo>('corp/user/get-selfinfo')
 
 interface Menu {
   [key: string]: {
@@ -63,7 +62,11 @@ const menu = computed<Menu>(() => {
     if (!menuItem)
       continue
 
-    menuItem.submenu.push(route)
+    if (!route?.meta?.roles
+      || (route?.meta?.roles && route?.meta?.roles?.includes(selfInfo.value?.type))
+    ) {
+      menuItem.submenu.push(route)
+    }
   }
 
   return data
@@ -105,15 +108,7 @@ function goTo(path: string) {
               <div font-bold truncate>
                 {{ corp.name }}
               </div>
-              <a-tag v-if="legal?.state === 8" color="orangered">
-                <template #icon>
-                  <icon-check-circle-fill />
-                </template>
-                {{ $t('auth.certified') }}
-              </a-tag>
-              <a-tag v-else>
-                {{ $t('org.unauth') }}
-              </a-tag>
+              <CertificationTag v-if="selfInfo?.type === 255" />
             </div>
           </div>
           <IconRight />

@@ -40,7 +40,7 @@ watchEffect(() => {
   if (open.value) {
     reset()
 
-    if (props.deptId)
+    if (props.deptId !== undefined)
       form.value.dept_id = props.deptId
   }
 })
@@ -92,7 +92,7 @@ const submit = handleSubmit(async (values: any) => {
         </a-form-item>
         <a-form-item field="dept_id" :label="t('member.form.dept.label')">
           <a-select
-            v-if="!props.deptId"
+            v-if="props.deptId === undefined"
             allow-search :empty="t('no-data')"
             @change="(value: string) => form.dept_id = Number(value)"
           >
@@ -100,7 +100,7 @@ const submit = handleSubmit(async (values: any) => {
           </a-select>
           <a-input
             v-else
-            :model-value="depts?.find((d: any) => d.id === props.deptId)?.name || ''"
+            :model-value="depts?.find((d: any) => d?.id === props.deptId)?.name || ''"
             readonly
           />
         </a-form-item>

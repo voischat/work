@@ -13,6 +13,7 @@ declare module 'vue' {
     AvatarUploader: typeof import('./components/AvatarUploader.vue')['default']
     BindingPhone: typeof import('./components/BindingPhone.vue')['default']
     Breadcrumb: typeof import('./components/breadcrumb/index.vue')['default']
+    CertificationTag: typeof import('./components/CertificationTag.vue')['default']
     ContactSelectTree: typeof import('./components/ContactSelectTree.vue')['default']
     CreateMemberModal: typeof import('./components/CreateMemberModal.vue')['default']
     DeleteAccount: typeof import('./components/DeleteAccount.vue')['default']

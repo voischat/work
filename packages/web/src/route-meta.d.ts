@@ -8,7 +8,7 @@ declare module 'vue-router' {
       icon: string
       order?: number
     }
-    roles?: string[] // Controls roles that have access to the page
+    roles?: number[] // Controls roles that have access to the page
     name?: string
     requiresAuth?: boolean // Whether login is required to access the current page (every route must declare)
     // icon?: string // The icon show in the side menu

@@ -29,7 +29,7 @@ const { form, rules, handleSubmit, reset } = useForm(v.object({
   dept_id: v.optional(v.number(), 0),
   sex: v.optional(v.number(), 0),
   avatar: v.optional(v.string(), ''),
-  is_admin: v.optional(v.number(), 0),
+  is_dept_admin: v.optional(v.number(), 0),
   loc_share: v.optional(v.number(), 1),
   track: v.optional(v.number(), 0),
 }))
@@ -38,7 +38,7 @@ watchEffect(() => {
   if (open.value) {
     reset()
 
-    if (props.deptId)
+    if (props.deptId !== undefined)
       form.value.dept_id = props.deptId
   }
 })
@@ -82,7 +82,7 @@ const submit = handleSubmit(async (values: any) => {
         </a-form-item>
         <a-form-item field="dept_id" :label="t('member.form.dept.label')">
           <a-select
-            v-if="!props.deptId"
+            v-if="props.deptId === undefined"
             allow-search :empty="t('no-data')"
             @change="(value: string) => form.dept_id = Number(value)"
           >
@@ -133,8 +133,8 @@ const submit = handleSubmit(async (values: any) => {
           <a-switch v-model="form.loc_share" :checked-value="1" :unchecked-value="0" :checked-color="themeColor" unchecked-color="#ddd" />
         </a-form-item>
 
-        <a-form-item field="is_admin" label="管理员">
-          <a-switch v-model="form.is_admin" :checked-value="1" :unchecked-value="0" :checked-color="themeColor" unchecked-color="#ddd" />
+        <a-form-item field="is_dept_admin" :label="t('dept-manager')">
+          <a-switch v-model="form.is_dept_admin" :checked-value="1" :unchecked-value="0" :checked-color="themeColor" unchecked-color="#ddd" />
         </a-form-item>
         <a-form-item v-if="authStore.vip.vip_supports.find((i) => i.name === 'track')?.support" field="track" :label="t('change-member.form.track.label')">
           <a-radio-group v-model="form.track" type="button">

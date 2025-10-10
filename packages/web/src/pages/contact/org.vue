@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import type { VipInfo } from '~/stores/auth'
-import type { Corp } from '~/types'
-import type { Legal } from '~/types/api'
+import type { Corp, SelfInfo } from '~/types'
 import EditCorpModal from './components/EditCorpModal.vue'
 
 definePage({
   alias: ['/'],
 })
-
-const { t } = useI18n()
 
 const router = useRouter()
 
@@ -16,12 +13,12 @@ const { data: corp, isSuccess } = useWeilaFetch<Corp>('corp/org/get-my-org')
 
 const { data: vip } = useWeilaFetch<VipInfo>('corp/org/get-my-vip')
 
-const { data } = useWeilaFetch<Legal>('corp/legal/get-legal')
-
 watchEffect(() => {
   if (isSuccess.value && !corp.value)
     router.push('/create-org')
 })
+
+const { data: selfInfo } = useWeilaFetch<SelfInfo>('corp/user/get-selfinfo')
 </script>
 
 <template>
@@ -47,18 +44,7 @@ watchEffect(() => {
                 </div>
               </h1>
               <div space-x-2>
-                <a-tag v-if="data?.state === 8" color="orangered">
-                  <template #icon>
-                    <icon-check-circle-fill />
-                  </template>
-                  {{ $t('adt', [data.category === 0 ? t('org.enterprise') : t('org.personal')]) }}
-                </a-tag>
-                <a-tag v-else-if="data?.state === 9">
-                  {{ $t('org.auth-failed') }}
-                </a-tag>
-                <a-tag v-else>
-                  {{ $t('org.unauth') }}
-                </a-tag>
+                <CertificationTag v-if="selfInfo?.type === 255" show-full-status />
                 <a-tag>
                   {{ vip?.vip_name }} <span v-if="vip?.vip">({{ new Date(corp.vip_expired * 1000).toLocaleDateString() }})</span>
                 </a-tag>
@@ -66,7 +52,7 @@ watchEffect(() => {
             </div>
           </div>
 
-          <a-space>
+          <a-space v-if="selfInfo?.type === 255">
             <EditCorpModal />
             <a-button type="primary" @click="$router.push('/contact/legal')">
               {{ $t('org.auth') }}

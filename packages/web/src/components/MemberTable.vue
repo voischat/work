@@ -137,8 +137,8 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
             multiple: false,
           }"
         >
-          <template #cell="{ record: { type, is_admin } }">
-            <a-tag :color="is_admin ? 'orange' : ''">
+          <template #cell="{ record: { type, is_dept_admin } }">
+            <a-tag :color="is_dept_admin ? 'orange' : ''">
               {{ {
                 0: t('user-type.member'),
                 1: t('user-type.device'),

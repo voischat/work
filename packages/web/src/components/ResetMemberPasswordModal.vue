@@ -38,6 +38,18 @@ const submit = handleSubmit((values: any) => {
 
 <template>
   <a-modal v-model:visible="open" :title="t('reset-password.button')" :footer="false">
+    <a-descriptions
+      v-if="member"
+      :column="1"
+      :data="[
+        { label: t('name'), value: member.name },
+        { label: t('weila-number'), value: member.user_num },
+        { label: t('job-number'), value: member.job_num },
+        { label: t('phone-number'), value: member.phone },
+      ].filter(i => i.value)"
+      bordered
+      mb4
+    />
     <a-form :model="form" :rules @submit="submit">
       <a-form-item field="password" :label="t('password')">
         <a-input v-model="form.password" :max-length="20" show-word-limit type="password" />

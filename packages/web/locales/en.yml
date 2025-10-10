@@ -150,6 +150,7 @@ dept:
       placeholder: name is required
   name: Dept
 dept-count: Number of departments
+dept-manager: Department Administrator
 device-count: Number of devices
 download-android-app: Android APP download
 edit: Edit

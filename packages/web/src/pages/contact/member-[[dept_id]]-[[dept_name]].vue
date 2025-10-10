@@ -5,7 +5,8 @@ import { shallowRef } from 'vue'
 definePage({
   alias: 'member',
   meta: {
-    // name: 'submenu.member-manage', // temporary disable
+    name: 'submenu.member-manage', // temporary disable
+    roles: [255, 1],
   },
 })
 
@@ -76,7 +77,6 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
 
       <MemberTable
         v-model:page="curPage" v-model:selected-item="selectedItem" :members :count="data?.count || 0" :filters="new Set(['member_types', 'dept_ids'])"
-        @select="isEditMemberModalOpen = true"
         @change="(_: any, e: any) => {
           if (e.type === 'filter')
             filters = e.filters

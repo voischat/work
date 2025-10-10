@@ -50,7 +50,7 @@ export interface SelfInfo {
   sex: number
   name: string
   avatar: string
-  is_admin: number
+  is_dept_admin: number
   dept_id: number
   phone: string
   country_code: string

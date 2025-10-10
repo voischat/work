@@ -30,7 +30,7 @@ const { form, rules, handleSubmit, reset } = useForm(v.object({
   sex: v.optional(v.number(), () => props.member?.sex),
   avatar: v.optional(v.string(), () => props.member?.avatar),
   phone: v.optional(v.string(), () => props.member?.phone),
-  is_admin: v.optional(v.number(), () => props.member?.is_admin),
+  is_dept_admin: v.optional(v.number(), () => props.member?.is_dept_admin),
   loc_share: v.optional(v.number(), () => props.member?.loc_share),
   track: v.optional(v.number(), () => props.member?.track),
 }), {
@@ -57,6 +57,7 @@ const { mutate: edit, isPending } = useWeilaMutation('corp/address/change-member
     Message.success(t('message.success'))
 
     qc.invalidateQueries({ queryKey: ['corp/address/get-member-list'] })
+    qc.invalidateQueries({ queryKey: ['corp/address/get-dept-member-list'] })
     qc.invalidateQueries({ queryKey: ['corp/address/get-my-manage-dept-list'] })
     if (Number(form.value.user_id) === Number(selfInfo.value.user_id))
       qc.invalidateQueries({ queryKey: ['corp/user/get-selfinfo'] })
@@ -87,7 +88,7 @@ const submit = handleSubmit(async (values) => {
       </a-form-item>
       <a-form-item field="dept_id" :label="t('member.form.dept.label')">
         <a-select
-          v-if="!props.deptId"
+          v-if="!props.deptId && selfInfo?.type === 255"
           v-model:model-value="form.dept_id"
           allow-search
           :empty="t('no-data')"
@@ -96,7 +97,7 @@ const submit = handleSubmit(async (values) => {
         </a-select>
         <a-input
           v-else
-          :model-value="depts?.find(d => d.id === props.deptId)?.name || ''"
+          :model-value="depts?.find(d => d.id === (props.deptId || form.dept_id))?.name || ''"
           readonly
         />
       </a-form-item>
@@ -136,9 +137,9 @@ const submit = handleSubmit(async (values) => {
           unchecked-color="#ddd"
         />
       </a-form-item>
-      <a-form-item v-if="member?.type !== 1" field="is_admin" label="管理员">
+      <a-form-item v-if="member?.type !== 1" field="is_dept_admin" :label="t('dept-manager')">
         <a-switch
-          v-model="form.is_admin" :checked-value="1" :unchecked-value="0" :checked-color="themeColor"
+          v-model="form.is_dept_admin" :checked-value="1" :unchecked-value="0" :checked-color="themeColor"
           unchecked-color="#ddd"
           :disabled="selfInfo?.type !== 255"
         />

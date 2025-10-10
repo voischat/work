@@ -138,6 +138,7 @@ dept:
       label: 名称
       placeholder: 名称是必需的
   name: 部门
+dept-manager: 部门管理员
 dept-count: 部门数量
 device-count: 设备数量
 download-android-app: 安卓 APP 下载
@@ -276,7 +277,7 @@ login.banner.subSlogan3: 实现灵活的区块式开发
 logout: 退出登录
 longitude: 经度
 male: 男
-manager: 管理员
+manager: 部门管理员
 map:
   confirm: 确认
   reset: 重置

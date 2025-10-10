@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DeptModel } from '~/api/contact'
 
+import type { SelfInfo } from '~/types'
 import CreateDeptModal from './components/CreateDeptModal.vue'
 import DeleteDeptModal from './components/DeleteDeptModal.vue'
 import EditDeptModal from './components/EditDeptModal.vue'
@@ -24,7 +25,9 @@ interface Dept {
 const { data, refetch } = useWeilaFetch<{
   count: number
   dept: Dept
-}>('corp/address/get-dept-list')
+}>('corp/address/get-my-manage-dept-list')
+
+const { data: selfInfo } = useWeilaFetch<SelfInfo>('corp/user/get-selfinfo')
 
 function onSelect(dept: DeptModel, e: PointerEvent) {
   // @ts-expect-error type error
@@ -43,7 +46,7 @@ function onSelect(dept: DeptModel, e: PointerEvent) {
   >
     <a-card>
       <template #title>
-        <a-space>
+        <a-space v-if="selfInfo?.type === 255">
           <CreateDeptModal @success="refetch" />
         </a-space>
       </template>
@@ -69,10 +72,12 @@ function onSelect(dept: DeptModel, e: PointerEvent) {
           </a-table-column>
           <a-table-column :title="t('controls')">
             <template #cell="{ record }">
-              <div v-if="record.id" flex gap2>
+              <div v-if="record.id && selfInfo?.type === 255" flex gap2>
                 <EditDeptModal :dept="record" />
                 <DeleteDeptModal :dept="record" />
               </div>
+              <!-- fix: height issue -->
+              <div v-else op0 h9 />
             </template>
           </a-table-column>
         </template>

@@ -19,7 +19,7 @@ const router = useRouter()
 const curPage = shallowRef(1)
 const pageSize = shallowRef(10)
 
-const { data, refetch } = useWeilaFetch(() => `corp/group/get-group-list?page=${curPage.value}&size=${pageSize.value}`)
+const { data, refetch } = useWeilaFetch(() => `corp/group/get-my-manage-group-list?page=${curPage.value}&size=${pageSize.value}`)
 
 const selectedGroup = deepRef<any>(undefined)
 

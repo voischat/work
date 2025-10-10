@@ -5,6 +5,10 @@ import * as v from 'valibot'
 import { shallowRef } from 'vue'
 import { useForm } from 'zod-arco-rules/valibot'
 
+const props = defineProps<{
+  deptId?: number
+}>()
+
 const { t } = useI18n()
 
 const open = shallowRef(false)
@@ -13,10 +17,15 @@ const qc = useQueryClient()
 
 const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
 
+const { data: depts } = useWeilaFetch<any[]>('corp/address/get-my-manage-all-dept', {}, {
+  enabled: open,
+})
+
 // type BurstMode = 0 | 1 | 2
 
 const { form, rules, handleSubmit, reset } = useForm(v.object({
   name: v.pipe(v.string(() => t('form.error.name-nonempty'))),
+  dept_id: v.optional(v.number(), 0),
   burst_mode: v.optional(v.number(), 0),
   avatar: v.optional(v.string(), ''),
 }))
@@ -27,12 +36,17 @@ const { mutate, isPending } = useWeilaMutation('corp/group/create-group', {
     open.value = false
     Message.success(t('message.success'))
     qc.invalidateQueries({ queryKey: ['corp/group/get-group-list'] })
+    qc.invalidateQueries({ queryKey: ['corp/address/get-my-manage-group-list'] })
   },
 })
 
 watchEffect(() => {
-  if (open.value)
+  if (open.value) {
     reset()
+
+    if (props.deptId !== undefined)
+      form.value.dept_id = props.deptId
+  }
 })
 
 const submit = handleSubmit(async (values) => {
@@ -57,6 +71,20 @@ const submit = handleSubmit(async (values) => {
     <a-form :rules :model="form" auto-label-width @submit="submit">
       <a-form-item field="name" :label="t('org-form.name.label')">
         <a-input v-model="form.name" :max-length="20" show-word-limit />
+      </a-form-item>
+      <a-form-item field="dept_id" :label="t('member.form.dept.label')">
+        <a-select
+          v-if="props.deptId === undefined"
+          allow-search :empty="t('no-data')"
+          @change="(value: string) => form.dept_id = Number(value)"
+        >
+          <a-option v-for="{ name, id }, key in depts" :key :value="id" :label="name" />
+        </a-select>
+        <a-input
+          v-else
+          :model-value="depts?.find(d => d.id === props.deptId)?.name || ''"
+          readonly
+        />
       </a-form-item>
       <a-form-item field="avatar" :label="t('avatar')">
         <AvatarUploader ref="avatarUploaderRef" v-model:src="form.avatar" />
