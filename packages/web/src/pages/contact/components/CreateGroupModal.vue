@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Message from '@arco-design/web-vue/es/message'
 import { useQueryClient } from '@tanstack/vue-query'
+import { mode } from 'crypto-js'
 import * as v from 'valibot'
 import { shallowRef } from 'vue'
 import { useForm } from 'zod-arco-rules/valibot'
@@ -25,7 +26,7 @@ const { data: depts } = useWeilaFetch<any[]>('corp/address/get-my-manage-all-dep
 
 const { form, rules, handleSubmit, reset } = useForm(v.object({
   name: v.pipe(v.string(() => t('form.error.name-nonempty'))),
-  dept_id: v.optional(v.number(), 0),
+  dept_id: v.optional(v.number(), () => depts.value?.[0]?.id || 0),
   burst_mode: v.optional(v.number(), 0),
   avatar: v.optional(v.string(), ''),
 }))
@@ -36,7 +37,7 @@ const { mutate, isPending } = useWeilaMutation('corp/group/create-group', {
     open.value = false
     Message.success(t('message.success'))
     qc.invalidateQueries({ queryKey: ['corp/group/get-group-list'] })
-    qc.invalidateQueries({ queryKey: ['corp/address/get-my-manage-group-list'] })
+    qc.invalidateQueries({ queryKey: ['corp/group/get-my-manage-group-list'] })
   },
 })
 
@@ -76,6 +77,7 @@ const submit = handleSubmit(async (values) => {
         <a-select
           v-if="props.deptId === undefined"
           allow-search :empty="t('no-data')"
+          :model-value="form.dept_id"
           @change="(value: string) => form.dept_id = Number(value)"
         >
           <a-option v-for="{ name, id }, key in depts" :key :value="id" :label="name" />
@@ -104,6 +106,9 @@ const submit = handleSubmit(async (values) => {
       </a-form-item>
 
       <a-form-item>
+        <a-button @click="reset">
+          reset
+        </a-button>
         <a-button mla html-type="submit" type="primary" :loading="isPending">
           {{ t('button.submit') }}
         </a-button>
