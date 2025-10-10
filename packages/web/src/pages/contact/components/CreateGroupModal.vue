@@ -105,9 +105,6 @@ const submit = handleSubmit(async (values) => {
       </a-form-item>
 
       <a-form-item>
-        <a-button @click="reset">
-          reset
-        </a-button>
         <a-button mla html-type="submit" type="primary" :loading="isPending">
           {{ t('button.submit') }}
         </a-button>
