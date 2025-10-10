@@ -1,7 +1,7 @@
 TTS: TTS
 account:
   txt: 账号
-add-device: 添加设备
+add-device: 新增设备
 add-member: 添加成员
 adt: '{0}认证'
 adt-message: 认证信息
@@ -50,7 +50,7 @@ burst-mode-1: 抢麦
 burst-mode-2: 抢断
 button:
   add: 添加
-  add-device: 添加设备
+  add-device: 新增设备
   add-group-member: 添加群成员
   add-member: 添加成员
   back: 返回
