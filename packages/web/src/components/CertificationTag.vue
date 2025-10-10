@@ -3,8 +3,10 @@ import type { Legal } from '~/types/api'
 
 const { t } = useI18n()
 
+const isOwner = computed(() => storeToRefs(useSelfInfoStore()).isOwner.value)
+
 const { data: legal } = useWeilaFetch<Legal>('corp/legal/get-legal', {}, {
-  enabled: computed(() => storeToRefs(useSelfInfoStore()).isOwner.value),
+  enabled: isOwner,
 })
 </script>
 

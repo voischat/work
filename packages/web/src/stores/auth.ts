@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/vue-query'
 import { autoLogin } from '~/shared/states'
 
 export interface AuthModel {
@@ -29,8 +30,6 @@ export interface VipSupport {
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  const router = useRouter()
-
   const refreshToken = useLocalStorage('refresh_token', '')
   const token = useLocalStorage('token', '')
   const expiresIn = useLocalStorage('expires_in', 7200)
@@ -43,7 +42,8 @@ export const useAuthStore = defineStore('auth', () => {
   function logout() {
     localStorage.removeItem('token')
     autoLogin.value = false
-    router.push('/login')
+
+    window.location.reload() // FIXME: query client clear 无效先这样处理
   }
 
   function needRefresh() {
