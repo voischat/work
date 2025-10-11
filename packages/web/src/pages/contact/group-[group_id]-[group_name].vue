@@ -12,6 +12,17 @@ const route = useRoute('/contact/group-[group_id]-[group_name]')
 const curPage = shallowRef(1)
 const pageSize = shallowRef(10)
 
+// 获取部门列表
+const { data: depts } = useWeilaFetch<{
+  id: number
+  name: string
+  user_count: number
+}[]>('corp/address/get-my-manage-all-dept')
+
+// 权限判断
+const selfInfoStore = useSelfInfoStore()
+const isDeptAdmin = computed(() => selfInfoStore.isDeptAdmin)
+
 const { data, refetch } = useWeilaFetch(() => `corp/group/get-group-member-list?page=${curPage.value}&size=${pageSize.value}`, {
   body: () => ({
     group_id: Number(route.params.group_id),
@@ -100,6 +111,21 @@ function onSelect(member: Member, e: PointerEvent) {
           <a-table-column :title="t('phone-number')">
             <template #cell="{ record: { phone } }">
               {{ phone }}
+            </template>
+          </a-table-column>
+          <a-table-column
+            :title="t('dept.name')" data-index="dept_ids"
+            :filterable="!isDeptAdmin && {
+              filters: depts?.map((i) => ({
+                text: i.name,
+                value: i.id,
+              })),
+              filter: (values: any[], record: any) => values.some((i: any) => i === record.dept_id),
+              multiple: true,
+            }"
+          >
+            <template #cell="{ record: { dept_id } }">
+              {{ depts?.find(d => d.id === dept_id)?.name || '' }}
             </template>
           </a-table-column>
           <a-table-column :title="t('loc_share')">

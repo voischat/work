@@ -19,6 +19,17 @@ const router = useRouter()
 const curPage = shallowRef(1)
 const pageSize = shallowRef(10)
 
+// 获取部门列表
+const { data: depts } = useWeilaFetch<{
+  id: number
+  name: string
+  user_count: number
+}[]>('corp/address/get-my-manage-all-dept')
+
+// 权限判断
+const selfInfoStore = useSelfInfoStore()
+const isDeptAdmin = computed(() => selfInfoStore.isDeptAdmin)
+
 const { data, refetch } = useWeilaFetch(() => `corp/group/get-my-manage-group-list?page=${curPage.value}&size=${pageSize.value}`)
 
 const selectedGroup = deepRef<any>(undefined)
@@ -92,6 +103,21 @@ function onSelect(group: GroupModel, e: PointerEvent) {
                   }[burst_mode as number]
                 }}
               </a-tag>
+            </template>
+          </a-table-column>
+          <a-table-column
+            :title="t('dept.name')" data-index="dept_ids"
+            :filterable="!isDeptAdmin && {
+              filters: depts?.map((i) => ({
+                text: i.name,
+                value: i.id,
+              })),
+              filter: (values: any[], record: any) => values.some((i: any) => i === record.dept_id),
+              multiple: true,
+            }"
+          >
+            <template #cell="{ record: { dept_id } }">
+              {{ depts?.find(d => d.id === dept_id)?.name || '' }}
             </template>
           </a-table-column>
           <!-- <a-table-column :title="t('shutup')">
