@@ -31,7 +31,7 @@ const selfInfoStore = useSelfInfoStore()
             <a-image
               height="70"
               width="70"
-              :src="corp.avatar || '/default-avatar.png'"
+              :src="corp.avatar"
               class="mr-4 rounded object-cover size-20"
             />
 

@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { useFullscreen } from '@vueuse/core'
 import { computed, inject, shallowRef } from 'vue'
-import { useBundleInfo } from '~/composables/useBundleInfo'
 import { useToggleLocales } from '~/composables/useToggleLocales'
 import { isDev } from '~/shared'
 import { useAuthStore } from '~/stores/auth'
@@ -32,14 +31,6 @@ function tryLogout() {
 }
 
 const buildTime = new Date(__BUILD_TIME__).toLocaleString()
-
-const { outdated, update } = useBundleInfo()
-
-useIntervalFn(() => update(), 36_000_000, { immediateCallback: true })
-
-function reloadPage() {
-  window.location.reload()
-}
 </script>
 
 <template>
@@ -56,9 +47,6 @@ function reloadPage() {
       <a-tag color="green" shape="round">
         {{ $t('v-version') }} {{ version }}
       </a-tag>
-      <a-button v-if="outdated" shape="round" size="mini" status="warning" space-x-2 @click="reloadPage">
-        <icon-refresh /> <span>{{ $t('navbar.system-update') }}</span>
-      </a-button>
       <a-tag shape="round" color="gray" space-x-2>
         <icon-code-sandbox /> <span>{{ $t('build-time') }} {{ buildTime }}</span>
       </a-tag>
