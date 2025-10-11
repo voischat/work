@@ -102,9 +102,15 @@ const { data: verifyImageData, refetch: refreshImageCode } = useWeilaFetch<{ id:
       </a-form-item>
 
       <a-form-item>
-        <a-button mla type="primary" html-type="submit" :loading="isPending">
-          {{ t('button.submit') }}
-        </a-button>
+        <a-popconfirm
+          :content="t('delete-account-form.confirm-content')"
+          type="warning"
+          @ok="submit"
+        >
+          <a-button mla type="primary" :loading="isPending">
+            {{ t('button.submit') }}
+          </a-button>
+        </a-popconfirm>
       </a-form-item>
     </a-form>
   </a-modal>

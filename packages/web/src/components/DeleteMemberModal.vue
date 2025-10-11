@@ -44,9 +44,15 @@ const { mutate, isPending } = useWeilaMutation<never, {
       {{ t('delete.modal.hint') }} {{ t('delete.modal.content') }}
     </p>
     <template #footer>
-      <a-button type="primary" :loading="isPending" @click="mutate({ user_id: member!.user_id })">
-        {{ t('button.submit') }}
-      </a-button>
+      <a-popconfirm
+        :content="t('delete-member-modal.confirm-content')"
+        type="warning"
+        @ok="mutate({ user_id: member!.user_id })"
+      >
+        <a-button type="primary" :loading="isPending">
+          {{ t('button.submit') }}
+        </a-button>
+      </a-popconfirm>
     </template>
   </a-modal>
 </template>

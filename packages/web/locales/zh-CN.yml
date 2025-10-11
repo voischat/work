@@ -127,7 +127,10 @@ delete:
     hint: 此操作无法撤销
     title: 删除
 注销成员: 注销成员
+delete-member-modal:
+  confirm-content: 确定要注销该成员吗？此操作无法撤销。
 delete-account-form:
+  confirm-content: 确定要注销账号吗？此操作无法撤销。
   title: 注销账号
 department-list: 部门列表
 dept:
