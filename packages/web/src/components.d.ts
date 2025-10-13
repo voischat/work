@@ -43,6 +43,7 @@ declare module 'vue' {
     MessageVoiceContent: typeof import('./components/MessageVoiceContent.vue')['default']
     ModalTrigger: typeof import('./components/ModalTrigger.vue')['default']
     Navbar: typeof import('./components/navbar/index.vue')['default']
+    PayPal: typeof import('./components/PayPal.vue')['default']
     RequiredLabel: typeof import('./components/RequiredLabel.vue')['default']
     ResetMemberPasswordModal: typeof import('./components/ResetMemberPasswordModal.vue')['default']
     ResetSelfPasswordModal: typeof import('./components/ResetSelfPasswordModal.vue')['default']
@@ -54,9 +55,5 @@ declare module 'vue' {
     TestTable: typeof import('./components/TestTable.vue')['default']
     TheCropper: typeof import('./components/TheCropper.vue')['default']
     TheModal: typeof import('./components/TheModal.vue')['default']
-    ToolbarButton: typeof import('radix-vue')['ToolbarButton']
-    ToolbarLink: typeof import('radix-vue')['ToolbarLink']
-    ToolbarRoot: typeof import('radix-vue')['ToolbarRoot']
-    ToolbarSeparator: typeof import('radix-vue')['ToolbarSeparator']
   }
 }
