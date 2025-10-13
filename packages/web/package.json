@@ -31,6 +31,8 @@
   "dependencies": {
     "@antfu/utils": "catalog:",
     "@arco-design/web-vue": "catalog:",
+    "@googlemaps/js-api-loader": "catalog:",
+    "@paypal/paypal-js": "catalog:",
     "@tanstack/vue-query": "catalog:",
     "@tanstack/vue-query-devtools": "catalog:",
     "@turf/helpers": "catalog:",
@@ -64,6 +66,7 @@
     "vue": "catalog:",
     "vue-echarts": "catalog:",
     "vue-i18n": "catalog:",
+    "vue3-google-map": "catalog:",
     "zod": "catalog:",
     "zod-arco-rules": "catalog:"
   },
