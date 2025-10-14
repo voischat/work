@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { Message } from '@arco-design/web-vue'
-import { ElAmap } from '@vuemap/vue-amap'
-import { ElAmapLoca, ElAmapLocaLine } from '@vuemap/vue-amap-loca'
+import { importLibrary, setOptions } from '@googlemaps/js-api-loader'
 import { useRouteQuery } from '@vueuse/router'
 import dayjs from 'dayjs'
 import { shallowRef } from 'vue'
-
+import { AdvancedMarker, GoogleMap, InfoWindow, Polyline } from 'vue3-google-map'
 import { useDeptTree } from '~/composables/useDeptTree'
 import { useMapInteraction } from '~/composables/useMapInteraction'
 import { useUserTrack } from '~/composables/useTrackData'
@@ -15,6 +14,16 @@ definePage({
     name: 'submenu.user-track',
   },
 })
+
+setOptions({
+  key: 'AIzaSyBi3EBDoHmPqYvNY24-twMd_3mYH721tS0',
+  v: 'weekly',
+})
+
+Promise.all([
+  importLibrary('maps'),
+  importLibrary('marker'), // Required for AdvancedMarker component
+])
 
 const { t } = useI18n()
 
@@ -33,12 +42,15 @@ const {
   map,
   markers,
   selectedMarker,
-  layerStyle,
+  polylinePath,
+  isInfoWindowOpen,
+  infoWindowPosition,
+  infoWindowContent,
 } = useMapInteraction(tracks)
 
 $inspect(trackFeatureCollection)
 
-function onMarkerSelected(marker: AMap.Marker) {
+function onClickMarker(marker: any) { // marker actually not GoogleMarker
   selectedMarker.value = marker
   triggerRef(selectedMarker)
 }
@@ -68,39 +80,73 @@ function onMarkerSelected(marker: AMap.Marker) {
     </a-tooltip>
   </div>
   <div h-full w-full>
-    <ElAmap :center="center" :zoom="zoom" relative h-full w-full @init="(m) => map = m">
-      <ElAmapLoca>
-        <ElAmapLocaLine :visible="trackVisible" :source-data="trackFeatureCollection" :layer-style="layerStyle" />
-      </ElAmapLoca>
+    <GoogleMap
+      api-key="AIzaSyBi3EBDoHmPqYvNY24-twMd_3mYH721tS0"
+      map-id="user-track"
+      relative
+      :center="center"
+      :zoom="zoom"
+      style="width: 100%; height: 100%"
+      @load="(m) => map = m"
+    >
+      <Polyline
+        v-if="trackVisible && polylinePath.length"
+        :options="{
+          path: polylinePath,
+          geodesic: true,
+          strokeColor: '#41ab5d',
+          strokeOpacity: 1.0,
+          strokeWeight: 2,
+        }"
+      />
+
+      <AdvancedMarker
+        v-for="marker in markers"
+        :key="marker.id"
+        :options="{
+          position: marker.position,
+          title: new Date(marker.created * 1000).toLocaleString(),
+        }"
+        @click="() => onClickMarker(marker)"
+      />
+
+      <InfoWindow
+        v-if="infoWindowPosition && selectedMarker"
+        v-model="isInfoWindowOpen"
+        :options="{
+          position: infoWindowPosition,
+          content: infoWindowContent,
+        }"
+      />
 
       <a-button
-        v-if="markers?.length" type="primary" shape="circle" class="absolute right-4 top-4"
+        v-if="markers?.length" type="primary" shape="circle" class="absolute right-4 top-20"
         @click="drawerVisible = true"
       >
         <template #icon>
           <icon-menu />
         </template>
       </a-button>
-    </ElAmap>
+    </GoogleMap>
 
     <a-drawer v-model:visible="drawerVisible" :width="340" unmount-on-close>
       <template #title>
         {{ t('user-track') }}
       </template>
       <a-list item-layout="horizontal">
-        <a-list-item v-for="marker, key in markers" :key>
+        <a-list-item v-for="marker in markers" :key="marker.id">
           <a-list-item-meta>
             <template #title>
-              {{ new Date(marker.getExtData().created * 1000).toLocaleString() }}
+              {{ new Date(marker.created * 1000).toLocaleString() }}
             </template>
             <template #description>
-              <span mr2>{{ t('longitude') }}</span> <span>{{ marker.getExtData().longitude }}</span>
+              <span mr2>{{ t('longitude') }}</span> <span>{{ marker.position.lng }}</span>
               <br>
-              <span mr2>{{ t('latitude') }}</span> <span>{{ marker.getExtData().latitude }}<br></span>
+              <span mr2>{{ t('latitude') }}</span> <span>{{ marker.position.lat }}<br></span>
             </template>
           </a-list-item-meta>
           <template #extra>
-            <a-button type="primary" size="small" @click="() => onMarkerSelected(marker)">
+            <a-button type="primary" size="small" @click="() => onClickMarker(marker)">
               {{ t('button.checkout') }}
             </a-button>
           </template>

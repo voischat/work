@@ -1,7 +1,15 @@
 import type { RegeoModel, UserTrackModel } from '~/api/track'
-import { isNull, isNumber, isUndefined } from '@antfu/utils'
 import { nanoid } from 'nanoid'
-import { ref as deepRef, nextTick, shallowRef, watch } from 'vue'
+import { nextTick, shallowRef, watch } from 'vue'
+
+interface GoogleMarker {
+  id: string
+  position: { lat: number, lng: number }
+  created: number
+  longitude: number
+  latitude: number
+  userId?: string
+}
 
 export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
   const { t } = useI18n()
@@ -10,171 +18,144 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
   const trackVisible = shallowRef(true)
   const drawerVisible = shallowRef(false)
   const zoom = shallowRef(12)
-  const center = shallowRef([121.59996, 31.197646])
-  const map = shallowRef<AMap.Map | null>(null)
-  const markers = shallowRef<AMap.Marker[]>([])
-  const infoWindow = shallowRef<AMap.InfoWindow | undefined>(undefined)
-  const selectedMarker = shallowRef<AMap.Marker | null>(null)
+  const center = shallowRef({ lat: 31.197646, lng: 121.59996 })
+  const map = shallowRef<any | null>(null)
+  const markers = shallowRef<GoogleMarker[]>([])
+  const selectedMarker = shallowRef<GoogleMarker | null>(null)
 
   // 逆地理编码相关
   const weilaApi = useWeilaApi()
   const regeoInfo = shallowRef<RegeoModel | undefined>(undefined)
 
-  // 图层样式
-  const layerStyle = deepRef({
-    color: '#41ab5d',
-    lineWidth: 2,
-    dashArray: [10, 0, 10, 0],
-  })
+  // 轨迹路径
+  const polylinePath = shallowRef<Array<{ lat: number, lng: number }>>([])
+
+  // InfoWindow 相关
+  const isInfoWindowOpen = shallowRef(false)
+  const infoWindowPosition = shallowRef<{ lat: number, lng: number } | null>(null)
+  const infoWindowContent = shallowRef<string>('')
 
   watch(selectedMarker, onMarkerSelected)
   watch(tracks, onTracksChange)
 
   function onTracksChange(val: UserTrackModel[] | undefined) {
     const newMarkers = genMarkers(val)
-    renderMarkers(newMarkers, markers.value)
     markers.value = newMarkers
+    updatePolylinePath(val)
+    fitMapBounds(newMarkers)
   }
 
-  async function onMarkerSelected(marker: AMap.Marker | null) {
-    focusToMarker(marker)
-    const regeo = regeoInfo.value = await fetchRegeo()
-    renderInfoWindow(regeo)
-  }
-
-  async function fetchRegeo() {
-    if (!selectedMarker.value)
+  async function onMarkerSelected(marker: GoogleMarker | null) {
+    if (!marker) {
+      infoWindowPosition.value = null
       return
+    }
 
-    const pos = selectedMarker.value?.getPosition()
-    if (!pos)
-      throw new Error('No position')
+    focusToMarker(marker)
+    const regeo = await fetchRegeo(marker)
+    regeoInfo.value = regeo
+    renderInfoWindow(marker, regeo)
+  }
 
+  async function fetchRegeo(marker: GoogleMarker) {
     return await weilaApi.value.v2.fetch<RegeoModel>('loc/regeo', {
       body: {
-        lon: pos?.getLng(),
-        lat: pos?.getLat(),
+        lon: marker.position.lng,
+        lat: marker.position.lat,
         radius: 300,
       },
     })
   }
 
-  function genMarkers(val: UserTrackModel[] | undefined): AMap.Marker[] {
+  function genMarkers(val: UserTrackModel[] | undefined): GoogleMarker[] {
     if (!val?.length) {
       return []
     }
 
     try {
       // 生成标记点
-      return val.map(({ lng, lat, created }) => {
-        const marker = new AMap.Marker({
-          position: [lng, lat],
-          extData: {
-            id: nanoid(),
-            userId: selectedMarker.value?.getExtData()?.userId || '',
-            created,
-            longitude: lng,
-            latitude: lat,
-          },
-        })
-
-        marker.on('click', () => {
-          selectedMarker.value = marker
-          triggerRef(selectedMarker)
-        })
-        return marker
-      })
+      return val.map(({ lng, lat, created }) => ({
+        id: nanoid(),
+        position: { lat, lng },
+        created,
+        longitude: lng,
+        latitude: lat,
+        userId: selectedMarker.value?.userId || '',
+      }))
     }
     catch (error) {
-      console.error('Error adding markers:', error)
+      console.error('Error generating markers:', error)
       return []
     }
   }
 
-  // 渲染标记点到地图
-
-  function renderMarkers(val: AMap.Marker[], oldVal: AMap.Marker[]) {
-    if (oldVal.length) {
-      oldVal?.forEach((marker) => {
-        map.value?.remove(marker)
-        marker.remove()
-      })
+  function updatePolylinePath(val: UserTrackModel[] | undefined) {
+    if (!val?.length) {
+      polylinePath.value = []
+      return
     }
 
-    const renderMarker = async (map: AMap.Map) => {
-      val.forEach(i => map.add(i))
+    polylinePath.value = val.map(track => ({
+      lat: track.lat,
+      lng: track.lng,
+    }))
+  }
 
-      if (val.length)
-        map.setFitView([...val, infoWindow.value].filter(i => !isUndefined(i) && !isNull(i)))
-
-      return true
+  function fitMapBounds(markers: GoogleMarker[]) {
+    if (!markers.length) {
+      return
     }
 
-    if (map.value) {
-      renderMarker(map.value)
+    // For Google Maps, we'll adjust the center and zoom instead of using bounds
+    // This is a simplified approach - in a real implementation you might want to
+    // calculate the appropriate center and zoom level based on all markers
+    if (markers.length === 1) {
+      center.value = markers[0].position
+      zoom.value = 15
     }
     else {
-      const { stop } = watch(map, (m) => {
-        if (m)
-          renderMarker(m).then(stop)
-      }, { immediate: true })
+      // Calculate center point for multiple markers
+      const avgLat = markers.reduce((sum, marker) => sum + marker.position.lat, 0) / markers.length
+      const avgLng = markers.reduce((sum, marker) => sum + marker.position.lng, 0) / markers.length
+      center.value = { lat: avgLat, lng: avgLng }
+      zoom.value = 12
     }
   }
 
-  function focusToMarker(marker: AMap.Marker | null) {
-    if (!marker)
-      return
-
-    const pos = marker.getPosition()
-    if (!pos)
-      return
-
-    const { lng, lat } = pos
-    if (!isNumber(lng) || !isNumber(lat))
-      return
-
+  function focusToMarker(marker: GoogleMarker) {
     drawerVisible.value = false
-    map.value?.setCenter([lng, lat])
+    center.value = marker.position
+    zoom.value = 15
   }
 
-  function renderInfoWindow(info?: RegeoModel) {
-    if (!info)
+  function renderInfoWindow(marker: GoogleMarker, info?: RegeoModel) {
+    if (!info) {
+      infoWindowPosition.value = null
       return
+    }
 
     const content = `
-      <div color-black>
-        <h3 class="text-lg font-semibold mb-2">${t('location-detail')}</h3>
-        <div class="mb-2 ">
+      <div style="color: black; max-width: 300px;">
+        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">${t('location-detail')}</h3>
+        <div style="margin-bottom: 8px;">
           ${info.province + info.city + info.district + info.township + info.Address}
         </div>
         <div>
-          <span mr2>${t('time')}</span> <span>${new Date(selectedMarker.value?.getExtData().created * 1000).toLocaleString()}</span>
+          <span style="margin-right: 8px;">${t('time')}</span> <span>${new Date(marker.created * 1000).toLocaleString()}</span>
         </div>
         <div>
-          <span mr2>${t('longitude')}</span> <span>${selectedMarker.value?.getExtData().longitude}</span>
+          <span style="margin-right: 8px;">${t('longitude')}</span> <span>${marker.longitude}</span>
         </div>
         <div>
-          <span mr2>${t('latitude')}</span> <span>${selectedMarker.value?.getExtData().latitude}<br></span>
+          <span style="margin-right: 8px;">${t('latitude')}</span> <span>${marker.latitude}</span>
         </div>
       </div>
     `
 
     nextTick(() => {
-      const pos = selectedMarker.value?.getPosition()
-      if (!pos)
-        return
-      const { lng, lat } = pos
-      if (!isNumber(lng) || !isNumber(lat))
-        return
-
-      if (!infoWindow.value) {
-        infoWindow.value = new AMap.InfoWindow({ offset: new AMap.Pixel(0, -30) })
-      }
-
-      infoWindow.value?.setContent(content)
-
-      if (map.value)
-        infoWindow.value.open(map.value, [lng, lat])
+      infoWindowPosition.value = marker.position
+      infoWindowContent.value = content
+      isInfoWindowOpen.value = true
     })
   }
 
@@ -186,6 +167,9 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
     map,
     markers,
     selectedMarker,
-    layerStyle,
+    polylinePath,
+    isInfoWindowOpen,
+    infoWindowPosition,
+    infoWindowContent,
   }
 }

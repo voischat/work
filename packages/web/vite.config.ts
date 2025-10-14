@@ -3,7 +3,6 @@ import path, { resolve } from 'node:path'
 import { vitePluginForArco as Arco } from '@arco-plugins/vite-vue'
 import ViteYaml from '@modyfi/vite-plugin-yaml'
 import Vue from '@vitejs/plugin-vue'
-import { VueAmapResolver } from '@vuemap/unplugin-resolver'
 import RadixVueResolver from 'radix-vue/resolver'
 import UnoCSS from 'unocss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
@@ -144,7 +143,6 @@ export default defineConfig({
         'src/api/shared',
       ],
       vueTemplate: true,
-      resolvers: [VueAmapResolver()],
     }),
 
     // https://github.com/antfu/unplugin-vue-components
@@ -156,7 +154,6 @@ export default defineConfig({
       dts: 'src/components.d.ts',
       resolvers: [
         RadixVueResolver(),
-        VueAmapResolver(),
         ArcoResolver(),
       ],
     }),
