@@ -15,8 +15,10 @@ definePage({
   },
 })
 
+const key = import.meta.env.VITE_GOOGLE_MAP_KEY
+
 setOptions({
-  key: 'AIzaSyBi3EBDoHmPqYvNY24-twMd_3mYH721tS0',
+  key,
   v: 'weekly',
 })
 
@@ -81,7 +83,7 @@ function onClickMarker(marker: any) { // marker actually not GoogleMarker
   </div>
   <div h-full w-full>
     <GoogleMap
-      api-key="AIzaSyBi3EBDoHmPqYvNY24-twMd_3mYH721tS0"
+      :api-key="key"
       map-id="user-track"
       relative
       :center="center"
