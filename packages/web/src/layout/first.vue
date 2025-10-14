@@ -3,10 +3,31 @@ import Footer from '~/components/footer/index.vue'
 import LoginBanner from '~/components/login-banner/index.vue'
 
 const { t } = useI18n()
+
+const { data: webGuideUrl } = useWeilaFetch<string>('common/guide', {
+  body: () => ({
+    type: 'corp-web',
+  }),
+})
+
+const { data: appGuideUrl } = useWeilaFetch<string>('common/guide', {
+  body: () => ({
+    type: 'corp-app',
+  }),
+})
 </script>
 
 <template>
-  <div class="container">
+  <div class="container" relative>
+    <a-space fixed right-4 top-4>
+      <a-link :href="webGuideUrl">
+        {{ t('web-guide') }}
+      </a-link>
+      <span v-mid text-neutral-300>|</span>
+      <a-link :href="appGuideUrl">
+        {{ t('app-guide') }}
+      </a-link>
+    </a-space>
     <div class="logo">
       <img
         alt="logo"

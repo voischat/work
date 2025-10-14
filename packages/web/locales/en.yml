@@ -532,3 +532,5 @@ workbench:
   type: Type
   type-colon: 'Type:'
   user-track: User trajectory
+web-guide: Web Guide
+app-guide: App Guide
