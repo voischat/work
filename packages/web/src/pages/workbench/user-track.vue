@@ -118,6 +118,10 @@ function onClickMarker(marker: any) { // marker actually not GoogleMarker
         :options="{
           position: infoWindowPosition,
           content: infoWindowContent,
+          pixelOffset: {
+            height: -50,
+          },
+
         }"
       />
 
