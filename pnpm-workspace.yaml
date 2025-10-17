@@ -6,7 +6,7 @@ overrides:
   vite: 'npm:rolldown-vite@latest'
 catalog:
   '@antfu/eslint-config': ^6.0.0
-  '@antfu/ni': ^26.1.0
+  '@antfu/ni': ^26.2.0
   '@antfu/utils': ^9.3.0
   '@arco-design/web-vue': ^2.57.0
   '@arco-plugins/vite-vue': ^1.4.6
@@ -16,16 +16,17 @@ catalog:
   '@intlify/eslint-plugin-vue-i18n': ^4.1.0
   '@kvoon/utils': latest
   '@modyfi/vite-plugin-yaml': ^1.1.1
-  '@tanstack/eslint-plugin-query': ^5.91.0
+  '@paypal/paypal-js': ^9.0.1
+  '@tanstack/eslint-plugin-query': ^5.91.2
   '@tanstack/vue-query': ^5.90.2
   '@tanstack/vue-query-devtools': ^5.90.2
   '@turf/helpers': ^7.2.0
   '@turf/turf': ^7.2.0
   '@types/crypto-js': ^4.2.2
   '@types/lodash': ^4.17.20
-  '@types/md5': ^2.3.5
+  '@types/md5': ^2.3.6
   '@types/mockjs': ^1.0.10
-  '@types/node': ^24.7.2
+  '@types/node': ^24.8.1
   '@types/nprogress': ^0.2.3
   '@types/sortablejs': ^1.15.8
   '@unhead/vue': ^2.0.19
@@ -73,9 +74,9 @@ catalog:
   radix-vue: ^1.9.17
   rehype-stringify: ^10.0.1
   rollup: ^4.52.4
-  rollup-plugin-visualizer: ^6.0.4
+  rollup-plugin-visualizer: ^6.0.5
   simple-git-hooks: ^2.13.1
-  taze: ^19.7.0
+  taze: ^19.8.0
   typescript: ^5.9.3
   ufo: ^1.6.1
   unbuild: ^3.6.1
