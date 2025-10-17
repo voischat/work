@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import Message from '@arco-design/web-vue/es/message'
 import { useRouteParams } from '@vueuse/router'
-import { delBusinessPoint, useBusinessPointList } from '@weila/network'
 import { shallowRef } from 'vue'
+import { delBusinessPoint, useBusinessPointList } from '~/api'
 import CreateBusinessPointModal from '../components/CreateBusinessPointModal.vue'
 
 // 定义服务点类型接口
@@ -20,7 +20,7 @@ const { t } = useI18n()
 const sid = useRouteParams('sid', 0, { transform: Number })
 // const ssid = useRouteParams('ssid', 0, { transform: Number })
 
-const { data, refetch } = useBusinessPointList($v2, computed(() => ({ sid: sid.value })))
+const { data, refetch } = useBusinessPointList(computed(() => ({ sid: sid.value })))
 
 // 用于编辑和删除服务点的状态管理
 const isEditServicePointModalVisible = shallowRef(false)
@@ -33,7 +33,7 @@ function openEdit(servicePoint: ServicePointModel) {
 }
 
 const isDelModalVisible = shallowRef(false)
-const { mutateAsync: del, isPending: isDelPending } = delBusinessPoint($v2, {
+const { mutateAsync: del, isPending: isDelPending } = delBusinessPoint({
   onSuccess() {
     Message.success('删除成功')
     refetch()

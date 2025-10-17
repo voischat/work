@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import Message from '@arco-design/web-vue/es/message'
-import { adtStateMap, useAuditLegal, useGetLegalList } from '@weila/network'
 import Viewer from 'viewerjs'
 import { shallowRef } from 'vue'
+import { adtStateMap, useAuditLegal, useGetLegalList } from '~/api'
 
 // 获取待审核的认证信息列表
-const { data, refetch } = useGetLegalList($v2, { state: 0 })
+const { data, refetch } = useGetLegalList({ state: 0 })
 const loading = shallowRef(false)
 const rejectReason = shallowRef('')
 const showRejectDialog = shallowRef(false)
@@ -23,7 +23,7 @@ const typeMap: TypeMap = {
 }
 
 // 审核操作
-const { mutate: auditLegal, isPending: isAuditing } = useAuditLegal($v2, {
+const { mutate: auditLegal, isPending: isAuditing } = useAuditLegal({
   onSuccess: () => {
     refetch()
     rejectReason.value = ''

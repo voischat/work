@@ -1,10 +1,10 @@
 import type { DefaultError, UseMutationOptions } from '@tanstack/vue-query'
-import type { $Fetch } from 'ofetch'
 import type { MaybeRefOrGetter } from 'vue'
-import { useMutation, useQuery } from '@tanstack/vue-query'
 import { createSharedComposable } from '@vueuse/core'
-import { computed, unref } from 'vue'
+import { computed } from 'vue'
 import * as z from 'zod'
+import { useWeilaFetch } from '../composables/useWeilaFetch'
+import { useWeilaMutation } from '../composables/useWeilaMutation'
 
 export enum ServiceState {
   Uncreated = '未创建',
@@ -37,10 +37,9 @@ export interface GetMyBusinessModel {
   }
 }
 
-export function useMyBusiness($v2: $Fetch) {
-  return useQuery({
-    queryKey: ['corp-busi-get-my-business'],
-    queryFn: () => $v2<GetMyBusinessModel>('corp/busi/get-my-business').then(i => i.business),
+export function useMyBusiness() {
+  return useWeilaFetch<GetMyBusinessModel['business']>('corp/busi/get-my-business', {
+    pick: ['business'],
   })
 }
 
@@ -54,12 +53,9 @@ interface ServiceLegal {
   state: 0 | 8 | 9 // 0 ~ 7 待审核 8 成功 9 失败
 }
 
-export const useServiceLegal = createSharedComposable(($v2: $Fetch) => {
-  return useQuery({
-    queryKey: ['service-license'],
-    queryFn: () => $v2<{
-      legal: ServiceLegal
-    }>('corp/busi/legal/get-my-legal').then(i => i.legal),
+export const useServiceLegal = createSharedComposable(() => {
+  return useWeilaFetch<ServiceLegal>('corp/busi/legal/get-my-legal', {
+    pick: ['legal'],
   })
 })
 
@@ -75,16 +71,13 @@ export interface ChangeLegalPayload {
 
 export type ChangeLegalModel = never
 
-export function useChangeLegal($v2: $Fetch, options?: UseMutationOptions<ChangeLegalModel, DefaultError, ChangeLegalPayload>) {
-  return useMutation<ChangeLegalModel, DefaultError, ChangeLegalPayload>({
-    mutationFn: body => $v2<ChangeLegalModel>('corp/busi/legal/change-legal', { body }),
-    ...options,
-  })
+export function useChangeLegal(options?: UseMutationOptions<ChangeLegalModel, DefaultError, ChangeLegalPayload>) {
+  return useWeilaMutation<ChangeLegalModel, ChangeLegalPayload>('corp/busi/legal/change-legal', options)
 }
 
-export const useService = createSharedComposable(($v2: $Fetch) => {
-  const myBusinessQuery = useMyBusiness($v2)
-  const serviceLegalQuery = useServiceLegal($v2)
+export const useService = createSharedComposable(() => {
+  const myBusinessQuery = useMyBusiness()
+  const serviceLegalQuery = useServiceLegal()
 
   const hasBusiness = computed(() => !!myBusinessQuery.data.value)
   const hasLicense = computed(() => !!serviceLegalQuery.data.value)
@@ -154,11 +147,8 @@ export interface ChangeBusinessPayload {
 
 export type ChangeBusinessModel = never
 
-export const useMutateBusiness = createSharedComposable(($v2: $Fetch, options?: UseMutationOptions<ChangeBusinessModel, DefaultError, ChangeBusinessPayload>) => {
-  return useMutation<ChangeBusinessModel, DefaultError, ChangeBusinessPayload>({
-    mutationFn: body => $v2<ChangeBusinessModel>('corp/busi/change-business', { body }),
-    ...options,
-  })
+export const useMutateBusiness = createSharedComposable((options?: UseMutationOptions<ChangeBusinessModel, DefaultError, ChangeBusinessPayload>) => {
+  return useWeilaMutation<ChangeBusinessModel, ChangeBusinessPayload>('corp/busi/change-business', options)
 })
 
 export interface GetBusinessPointListPayload {
@@ -182,21 +172,19 @@ export interface GetBusinessPointListModel {
   }[]
 }
 
-export const useBusinessPointList = createSharedComposable(($v2: $Fetch, payload: MaybeRefOrGetter<GetBusinessPointListPayload>) => {
-  const query = useQuery({
-    queryKey: ['corp-busi-get-business-point-list', payload],
-    queryFn: () => $v2<GetBusinessPointListModel>('corp/busi/get-business-point-list', { body: unref(payload) }),
+export const useBusinessPointList = createSharedComposable((payload: MaybeRefOrGetter<GetBusinessPointListPayload>) => {
+  return useWeilaFetch<GetBusinessPointListModel['points']>('corp/busi/get-business-point-list', {
+    body: payload,
+    pick: ['points'],
   })
-
-  return query
 })
 
-export const useBusinessPoint = createSharedComposable(($v2: $Fetch, sid: number, pid: number) => {
-  const query = useBusinessPointList($v2, { sid })
+export const useBusinessPoint = createSharedComposable((sid: number, pid: number) => {
+  const query = useBusinessPointList({ sid })
 
   return {
     ...query,
-    data: computed(() => query.data.value?.points.find(i => i.id === pid)),
+    data: computed(() => query.data.value?.find(i => i.id === pid)),
   }
 })
 
@@ -216,11 +204,8 @@ export const changeBusinessPointSchema = z.object({
 export type ChangeBusinessPointPayload = z.infer<typeof changeBusinessPointSchema>
 export type ChangeBusinessPointModel = never
 
-export function changeBusinessPoint($v2: $Fetch, options?: UseMutationOptions<ChangeBusinessPointModel, DefaultError, ChangeBusinessPointPayload>) {
-  return useMutation<ChangeBusinessPointModel, DefaultError, ChangeBusinessPointPayload>({
-    mutationFn: payload => $v2<ChangeBusinessPointModel>('corp/busi/change-business-point', { body: { point: payload } }),
-    ...options,
-  })
+export function changeBusinessPoint(options?: UseMutationOptions<ChangeBusinessPointModel, DefaultError, ChangeBusinessPointPayload>) {
+  return useWeilaMutation<ChangeBusinessPointModel, { point: ChangeBusinessPointPayload }>('corp/busi/change-business-point', options)
 }
 
 export const delBusinessPointSchema = z.object({
@@ -231,11 +216,8 @@ export type DelBusinessPoint = z.infer<typeof delBusinessPointSchema>
 
 export type DelBusinessPointModel = never
 
-export function delBusinessPoint($v2: $Fetch, options?: UseMutationOptions<DelBusinessPoint, DefaultError, DelBusinessPoint>) {
-  return useMutation<DelBusinessPoint, DefaultError, DelBusinessPoint>({
-    mutationFn: payload => $v2<DelBusinessPointModel>('corp/busi/del-business-point', { body: payload }),
-    ...options,
-  })
+export function delBusinessPoint(options?: UseMutationOptions<DelBusinessPointModel, DefaultError, DelBusinessPoint>) {
+  return useWeilaMutation<DelBusinessPointModel, DelBusinessPoint>('corp/busi/del-business-point', options)
 }
 
 export const createBusinessPointSchema = z.object({
@@ -257,11 +239,8 @@ export type CreateBusinessPointPayload = z.infer<typeof createBusinessPointSchem
 
 export type CreateBusinessPointModel = never
 
-export function createBusinessPoint($v2: $Fetch, options?: UseMutationOptions<CreateBusinessPointModel, DefaultError, CreateBusinessPointPayload>) {
-  return useMutation<CreateBusinessPointModel, DefaultError, CreateBusinessPointPayload>({
-    mutationFn: payload => $v2<CreateBusinessPointModel>('corp/busi/create-business-point', { body: { point: payload } }),
-    ...options,
-  })
+export function createBusinessPoint(options?: UseMutationOptions<CreateBusinessPointModel, DefaultError, CreateBusinessPointPayload>) {
+  return useWeilaMutation<CreateBusinessPointModel, { point: CreateBusinessPointPayload }>('corp/busi/create-business-point', options)
 }
 
 export const addBusinessStaffsSchema = z.object({
@@ -273,11 +252,8 @@ export type AddBusinessStaffs = z.infer<typeof addBusinessStaffsSchema>
 
 export type AddBusinessStaffsModel = never
 
-export const useAddBusinessStaffs = createSharedComposable(($v2: $Fetch, options?: UseMutationOptions<AddBusinessStaffs, DefaultError, AddBusinessStaffs>) => {
-  return useMutation<AddBusinessStaffs, DefaultError, AddBusinessStaffs>({
-    mutationFn: payload => $v2<AddBusinessStaffsModel>('corp/busi/add-business-staffs', { body: payload }),
-    ...options,
-  })
+export const useAddBusinessStaffs = createSharedComposable((options?: UseMutationOptions<AddBusinessStaffsModel, DefaultError, AddBusinessStaffs>) => {
+  return useWeilaMutation<AddBusinessStaffsModel, AddBusinessStaffs>('corp/busi/add-business-staffs', options)
 })
 
 export interface GetBusinessStaffListPayload {
@@ -296,10 +272,10 @@ export interface GetBusinessStaffListModel {
   }[]
 }
 
-export const useBusinessStaffList = createSharedComposable(($v2: $Fetch, body: MaybeRefOrGetter<GetBusinessStaffListPayload>) => {
-  return useQuery({
-    queryKey: ['corp/busi/get-business-staff-list', body],
-    queryFn: () => $v2<GetBusinessStaffListModel>('corp/busi/get-business-staff-list', { body: unref(body) }).then(i => i.staffs),
+export const useBusinessStaffList = createSharedComposable((body: MaybeRefOrGetter<GetBusinessStaffListPayload>) => {
+  return useWeilaFetch<GetBusinessStaffListModel['staffs']>('corp/busi/get-business-staff-list', {
+    body,
+    pick: ['staffs'],
   })
 })
 
@@ -311,11 +287,8 @@ export const delBusinessStaffSchema = z.object({
 export type DelBusinessStaffPayload = z.infer<typeof delBusinessStaffSchema>
 export type DelBusinessStaffModel = never
 
-export const useDelBusinessStaff = createSharedComposable(($v2: $Fetch, options?: UseMutationOptions<DelBusinessStaffPayload, DefaultError, DelBusinessStaffPayload>) => {
-  return useMutation<DelBusinessStaffPayload, DefaultError, DelBusinessStaffPayload>({
-    mutationFn: body => $v2<DelBusinessStaffModel>('corp/busi/del-business-staff', { body }),
-    ...options,
-  })
+export const useDelBusinessStaff = createSharedComposable((options?: UseMutationOptions<DelBusinessStaffModel, DefaultError, DelBusinessStaffPayload>) => {
+  return useWeilaMutation<DelBusinessStaffModel, DelBusinessStaffPayload>('corp/busi/del-business-staff', options)
 })
 
 export interface GetBusinessPointStaffListPayload {
@@ -337,10 +310,10 @@ export interface GetBusinessPointStaffListModel {
   staffs: Staff[]
 }
 
-export const useGetBusinessPointStaffList = createSharedComposable(($v2: $Fetch, body: MaybeRefOrGetter<GetBusinessPointStaffListPayload>) => {
-  return useQuery({
-    queryKey: ['corp-busi-get-business-point-staff-list', body],
-    queryFn: () => $v2<GetBusinessPointStaffListModel>('corp/busi/get-business-point-staff-list', { body: unref(body) }).then(i => i.staffs),
+export const useGetBusinessPointStaffList = createSharedComposable((body: MaybeRefOrGetter<GetBusinessPointStaffListPayload>) => {
+  return useWeilaFetch<GetBusinessPointStaffListModel['staffs']>('corp/busi/get-business-point-staff-list', {
+    body,
+    pick: ['staffs'],
   })
 })
 
@@ -351,11 +324,8 @@ export interface AddBusinessPointStaffsPayload {
 
 export type AddBusinessPointStaffsModel = never
 
-export const useAddBusinessPointStaffs = createSharedComposable(($v2: $Fetch, options?: UseMutationOptions<AddBusinessPointStaffsPayload, DefaultError, AddBusinessPointStaffsPayload>) => {
-  return useMutation<AddBusinessPointStaffsPayload, DefaultError, AddBusinessPointStaffsPayload>({
-    mutationFn: body => $v2<AddBusinessPointStaffsModel>('corp/busi/add-business-point-staffs', { body }),
-    ...options,
-  })
+export const useAddBusinessPointStaffs = createSharedComposable((options?: UseMutationOptions<AddBusinessPointStaffsModel, DefaultError, AddBusinessPointStaffsPayload>) => {
+  return useWeilaMutation<AddBusinessPointStaffsModel, AddBusinessPointStaffsPayload>('corp/busi/add-business-point-staffs', options)
 })
 
 export interface DelBusinessPointStaffPayload {
@@ -365,11 +335,8 @@ export interface DelBusinessPointStaffPayload {
 
 export type DelBusinessPointStaffModel = never
 
-export const useDelBusinessPointStaff = createSharedComposable(($v2: $Fetch, options?: UseMutationOptions<DelBusinessPointStaffPayload, DefaultError, DelBusinessPointStaffPayload>) => {
-  return useMutation<DelBusinessPointStaffPayload, DefaultError, DelBusinessPointStaffPayload>({
-    mutationFn: body => $v2<DelBusinessPointStaffModel>('corp/busi/del-business-point-staff', { body }),
-    ...options,
-  })
+export const useDelBusinessPointStaff = createSharedComposable((options?: UseMutationOptions<DelBusinessPointStaffModel, DefaultError, DelBusinessPointStaffPayload>) => {
+  return useWeilaMutation<DelBusinessPointStaffModel, DelBusinessPointStaffPayload>('corp/busi/del-business-point-staff', options)
 })
 
 export const createBusinessSchema = z.object({
@@ -394,9 +361,6 @@ export type CreateBusinessPayload = z.infer<typeof createBusinessSchema>
 
 export type CreateBusinessModel = never
 
-export function createBusiness($v2: $Fetch, options?: UseMutationOptions<CreateBusinessModel, DefaultError, CreateBusinessPayload>) {
-  return useMutation<CreateBusinessModel, DefaultError, CreateBusinessPayload>({
-    mutationFn: payload => $v2<CreateBusinessModel>('corp/busi/create-business', { body: { business: payload } }),
-    ...options,
-  })
+export function createBusiness(options?: UseMutationOptions<CreateBusinessModel, DefaultError, CreateBusinessPayload>) {
+  return useWeilaMutation<CreateBusinessModel, { business: CreateBusinessPayload }>('corp/busi/create-business', options)
 }

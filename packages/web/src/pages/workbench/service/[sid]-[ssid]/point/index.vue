@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { GetBusinessPointListModel } from '@weila/network'
+import type { GetBusinessPointListModel } from '~/api'
 import { useRouteParams } from '@vueuse/router'
-import { useBusinessPointList } from '@weila/network'
 import { shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
+import { useBusinessPointList } from '~/api'
 import CreateBusinessPointModal from '../../components/CreateBusinessPointModal.vue'
 import DelBusinessPointModal from '../../components/DelBusinessPointModal.vue'
 import EditBusinessPointModal from '../../components/EditBusinessPointModal.vue'
@@ -14,7 +14,7 @@ const router = useRouter()
 const sid = useRouteParams('sid', 0, { transform: Number })
 // const ssid = useRouteParams('ssid', 0, { transform: Number })
 
-const { data } = useBusinessPointList($v2, { sid: sid.value })
+const { data } = useBusinessPointList({ sid: sid.value })
 
 const currentPoint = shallowRef<GetBusinessPointListModel['points'][number] | null>(null)
 

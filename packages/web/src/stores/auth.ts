@@ -1,4 +1,3 @@
-import { useQueryClient } from '@tanstack/vue-query'
 import { autoLogin } from '~/shared/states'
 
 export interface AuthModel {

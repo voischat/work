@@ -370,7 +370,6 @@ declare module 'vue' {
   interface GlobalComponents {}
   interface ComponentCustomProperties {
     readonly $inspect: UnwrapRef<typeof import('./utils/inspect')['$inspect']>
-    readonly $weilaRequestV2: UnwrapRef<typeof import('./utils/api')['$weilaRequestV2']>
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
     readonly UseImage: UnwrapRef<typeof import('@vueuse/components')['UseImage']>
     readonly acceptHMRUpdate: UnwrapRef<typeof import('pinia')['acceptHMRUpdate']>
@@ -700,7 +699,6 @@ declare module 'vue' {
     readonly watchThrottled: UnwrapRef<typeof import('@vueuse/core')['watchThrottled']>
     readonly watchTriggerable: UnwrapRef<typeof import('@vueuse/core')['watchTriggerable']>
     readonly watchWithFilter: UnwrapRef<typeof import('@vueuse/core')['watchWithFilter']>
-    readonly weilaFetch: UnwrapRef<typeof import('./utils/api')['weilaFetch']>
     readonly whenever: UnwrapRef<typeof import('@vueuse/core')['whenever']>
   }
 }

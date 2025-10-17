@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { GetBusinessStaffListModel } from '@weila/network'
+import type { GetBusinessStaffListModel } from '~/api'
 import Message from '@arco-design/web-vue/es/message'
 import { useRouteParams } from '@vueuse/router'
-import { useBusinessStaffList, useDelBusinessStaff } from '@weila/network'
+import { useBusinessStaffList, useDelBusinessStaff } from '~/api'
 
 const props = defineProps<{
   staff: GetBusinessStaffListModel['staffs'][number]
@@ -12,11 +12,11 @@ const sid = useRouteParams('sid', 0, { transform: Number })
 
 const isDeleteBusinessStaffModalOpen = defineModel<boolean>('open', { required: true })
 
-const { mutateAsync, isPending: isDeletingBusinessStaff } = useDelBusinessStaff($v2, {
+const { mutateAsync, isPending: isDeletingBusinessStaff } = useDelBusinessStaff({
   onSuccess() {
     isDeleteBusinessStaffModalOpen.value = false
     Message.success('删除成功')
-    useBusinessStaffList($v2, { sid: sid.value }).refetch()
+    useBusinessStaffList({ sid: sid.value }).refetch()
   },
 })
 </script>

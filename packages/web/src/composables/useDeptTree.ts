@@ -1,5 +1,6 @@
 import type { TreeNodeData } from '~/types'
 import type { Member } from '~/types/api'
+import Message from '@arco-design/web-vue/es/message'
 import { ref as deepRef, watchEffect } from 'vue'
 
 export function useDeptTree() {
@@ -27,7 +28,7 @@ export function useDeptTree() {
       return
     }
 
-    nodeData.children = members.map((member) => ({
+    nodeData.children = members.map(member => ({
       key: `member-${member.user_id}`,
       title: member.name,
       isLeaf: true,

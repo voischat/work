@@ -1,7 +1,7 @@
 import type { DefaultError, UseMutationOptions } from '@tanstack/vue-query'
-import type { $Fetch } from 'ofetch'
 import type { Reactive } from 'vue'
-import { useMutation, useQuery } from '@tanstack/vue-query'
+import { useWeilaFetch } from '../composables/useWeilaFetch'
+import { useWeilaMutation } from '../composables/useWeilaMutation'
 
 export const adtStateMap = {
   0: '待审核',
@@ -25,10 +25,9 @@ export interface GetLegalListModel {
   }[]
 }
 
-export function useGetLegalList($v2: $Fetch, body: Reactive<GetLegalListPayload>) {
-  return useQuery({
-    queryKey: ['life-adt-get-legal-list', body],
-    queryFn: () => $v2<GetLegalListModel>('life/adt/get-legal-list', { body }),
+export function useGetLegalList(body: Reactive<GetLegalListPayload>) {
+  return useWeilaFetch<GetLegalListModel>('life/adt/get-legal-list', {
+    body,
   })
 }
 
@@ -53,9 +52,6 @@ export interface AuditLegalModel {
   }
 }
 
-export function useAuditLegal($v2: $Fetch, options?: UseMutationOptions<AuditLegalModel, DefaultError, AuditLegalPayload>) {
-  return useMutation<AuditLegalModel, DefaultError, AuditLegalPayload>({
-    mutationFn: body => $v2<AuditLegalModel>('life/adt/audit-legal', { body }),
-    ...options,
-  })
+export function useAuditLegal(options?: UseMutationOptions<AuditLegalModel, DefaultError, AuditLegalPayload>) {
+  return useWeilaMutation<AuditLegalModel, AuditLegalPayload>('life/adt/audit-legal', options)
 }

@@ -41,12 +41,15 @@ declare module 'vue' {
     ResetSelfPasswordModal: typeof import('./components/ResetSelfPasswordModal.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    SelfCard: typeof import('./components/SelfCard.vue')['default']
     SendSmsButton: typeof import('./components/SendSmsButton.vue')['default']
     SendSmsButtonV2: typeof import('./components/SendSmsButtonV2.vue')['default']
     SideBar: typeof import('./components/SideBar.vue')['default']
     TestTable: typeof import('./components/TestTable.vue')['default']
     TheCropper: typeof import('./components/TheCropper.vue')['default']
     TheModal: typeof import('./components/TheModal.vue')['default']
+    ToolbarButton: typeof import('radix-vue')['ToolbarButton']
+    ToolbarLink: typeof import('radix-vue')['ToolbarLink']
+    ToolbarRoot: typeof import('radix-vue')['ToolbarRoot']
+    ToolbarSeparator: typeof import('radix-vue')['ToolbarSeparator']
   }
 }

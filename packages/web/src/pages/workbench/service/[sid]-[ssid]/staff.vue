@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { GetBusinessStaffListModel } from '@weila/network'
+import type { GetBusinessStaffListModel } from '~/api'
 import { useRouteParams } from '@vueuse/router'
-import { useBusinessStaffList } from '@weila/network'
 import { shallowRef } from 'vue'
+import { useBusinessStaffList } from '~/api'
 import AddBusinessStaffModal from '../components/AddBusinessStaffModal.vue'
 import DelBusinessStaffModal from '../components/DelBusinessStaffModal.vue'
 
@@ -11,7 +11,7 @@ const { t } = useI18n()
 const sid = useRouteParams('sid', 0, { transform: Number })
 // const ssid = useRouteParams('ssid', 0, { transform: Number })
 
-const { data } = useBusinessStaffList($v2, { sid: sid.value })
+const { data } = useBusinessStaffList({ sid: sid.value })
 
 const currentStaff = shallowRef<GetBusinessStaffListModel['staffs'][number] | null>(null)
 

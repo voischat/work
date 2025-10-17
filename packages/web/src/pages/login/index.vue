@@ -59,12 +59,10 @@ const [isRememberPassword, toggleRememberPassword] = useToggle(false)
 const privacyAgreed = shallowRef(false)
 
 const { mutateAsync: passwordLogin, isPending: passwordPending } = useWeilaMutation('/corp/auth/login', {
-  // @ts-expect-error type error
   onSuccess,
 })
 
 const { mutateAsync: smsLogin, isPending: smsPending } = useWeilaMutation('/corp/auth/login-by-sms', {
-  // @ts-expect-error type error
   onSuccess,
 })
 

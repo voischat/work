@@ -37,7 +37,7 @@ const { data: groups } = useQuery<GroupModel[]>({
   queryKey: ['groups', '/corp/web/group-getall', corp],
   queryFn: () => weilaFetch('/corp/web/group-getall', {
     body: { org_num: String(corp.value!.num) },
-  }).then(i => i.groups),
+  }).then((i: any) => i.groups),
 })
 
 // const defaultSelectedKeys = ref<number[]>([groups.value?.[0].id || -1])

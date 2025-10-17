@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { GetBusinessPointStaffListModel } from '@weila/network'
+import type { GetBusinessPointStaffListModel } from '~/api'
 import { useRouteParams } from '@vueuse/router'
-import { useGetBusinessPointStaffList } from '@weila/network'
 import { shallowRef } from 'vue'
+import { useGetBusinessPointStaffList } from '~/api'
 import AddBusinessPointStaffModal from '~/pages/workbench/service/components/AddBusinessPointStaffModal.vue'
 import DelBusinessPointStaffModal from '~/pages/workbench/service/components/DelBusinessPointStaffModal.vue'
 
@@ -12,7 +12,7 @@ const sid = useRouteParams('sid', 0, { transform: Number })
 const ssid = useRouteParams('ssid', 0, { transform: Number })
 const pid = useRouteParams('pid', 0, { transform: Number })
 
-const { data } = useGetBusinessPointStaffList($v2, { pid: pid.value })
+const { data } = useGetBusinessPointStaffList({ pid: pid.value })
 
 const currentStaff = shallowRef<GetBusinessPointStaffListModel['staffs'][number] | null>(null)
 const isDelModalOpen = shallowRef(false)

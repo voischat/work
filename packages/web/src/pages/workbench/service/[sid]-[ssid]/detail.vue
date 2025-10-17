@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { useMyBusiness, useServiceLegal } from '@weila/network'
 import { computed } from 'vue'
+import { useMyBusiness, useServiceLegal } from '~/api'
 import EditBusinessModal from '../components/EditBusinessModal.vue'
 import EditLegalModal from '../components/EditLegalModal.vue'
 
 const { t } = useI18n()
 
-const { data: businessData } = useMyBusiness($v2)
-const { data: legalData } = useServiceLegal($v2)
+const { data: businessData } = useMyBusiness()
+const { data: legalData } = useServiceLegal()
 
 // const ssid = useRouteParams('ssid', 0, { transform: Number })
 // const sid = useRouteParams('sid', 0, { transform: Number })

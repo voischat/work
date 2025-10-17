@@ -4,8 +4,8 @@ import type { MemberModel } from '~/api/contact'
 import type { Corp } from '~/types'
 import { Message } from '@arco-design/web-vue'
 import { useQuery } from '@tanstack/vue-query'
-import { useAddBusinessPointStaffs, useGetBusinessPointStaffList } from '@weila/network'
 import { ref as deepRef, shallowRef } from 'vue'
+import { useAddBusinessPointStaffs, useGetBusinessPointStaffList } from '~/api'
 
 const props = defineProps<{
   sid: number
@@ -15,7 +15,7 @@ const props = defineProps<{
 const { t } = useI18n()
 const selectedIds = deepRef<string[]>([])
 const open = shallowRef(false)
-const { data: staffList, refetch: refetchStaffList, isFetching: isFetchingStaffList } = useGetBusinessPointStaffList($v2, { pid: props.pid })
+const { data: staffList, refetch: refetchStaffList, isFetching: isFetchingStaffList } = useGetBusinessPointStaffList({ pid: props.pid })
 
 const { data: corp } = useWeilaFetch<Corp>('corp/org/get-my-org')
 const org_num = computed(() => corp.value?.num)
@@ -30,7 +30,7 @@ const { data: members, isFetching: isFetchingMembers } = useQuery<Array<MemberMo
   }).then(i => i.members),
 })
 
-const { mutate: addStaffs, isPending: isAddingStaffs } = useAddBusinessPointStaffs($v2, {
+const { mutate: addStaffs, isPending: isAddingStaffs } = useAddBusinessPointStaffs({
   onSuccess() {
     Message.success(t('message.success') || '添加成功')
     refetchStaffList()

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useMyBusiness, useServiceLegal } from '@weila/network'
 import { shallowRef } from 'vue'
+import { useMyBusiness, useServiceLegal } from '~/api'
 import CreateBusinessModal from './service/components/CreateBusinessModal.vue'
 
 const { t } = useI18n()
@@ -15,8 +15,8 @@ definePage({
   },
 })
 
-const { data: myBusiness, isPending: isFetchingBusiness } = useMyBusiness($v2)
-const { data: myLegal, isPending: isFetchingLegal } = useServiceLegal($v2)
+const { data: myBusiness, isPending: isFetchingBusiness } = useMyBusiness()
+const { data: myLegal, isPending: isFetchingLegal } = useServiceLegal()
 
 const isFetchingService = computed(() => isFetchingBusiness.value || isFetchingLegal.value)
 

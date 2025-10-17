@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Message from '@arco-design/web-vue/es/message'
-import { useChangeLegal, useServiceLegal } from '@weila/network'
 import { reactive, shallowRef } from 'vue'
+import { useChangeLegal, useServiceLegal } from '~/api'
 import FileUploader from '~/components/FileUploader.vue'
 
 const { t } = useI18n()
@@ -14,8 +14,8 @@ const adtStateMap = {
 
 const isUploadingFile = shallowRef(false)
 
-const { data: legalData, refetch: refetchLegalData } = useServiceLegal($v2)
-const { mutateAsync: changeLegal, isPending } = useChangeLegal($v2, {
+const { data: legalData, refetch: refetchLegalData } = useServiceLegal()
+const { mutateAsync: changeLegal, isPending } = useChangeLegal({
   onSuccess() {
     Message.success(t('message.success'))
     refetchLegalData()

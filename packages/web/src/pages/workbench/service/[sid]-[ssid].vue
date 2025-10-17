@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { objectKeys } from '@antfu/utils'
 import { useRouteParams } from '@vueuse/router'
-import { useMyBusiness } from '@weila/network'
 import { ref as deepRef } from 'vue'
+import { useMyBusiness } from '~/api'
 
-const { data: myBusiness } = useMyBusiness($v2)
+const { data: myBusiness } = useMyBusiness()
 
 const sid = useRouteParams('sid', 0, { transform: Number })
 const ssid = useRouteParams('ssid', 0, { transform: Number })

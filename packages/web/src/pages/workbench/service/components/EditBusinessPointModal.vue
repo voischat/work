@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { GetBusinessPointListModel } from '@weila/network'
+import type { GetBusinessPointListModel } from '~/api'
 import Message from '@arco-design/web-vue/es/message'
-import { changeBusinessPoint, useBusinessPointList } from '@weila/network'
 import { ref as deepRef, shallowRef } from 'vue'
+import { changeBusinessPoint, useBusinessPointList } from '~/api'
 import AvatarUploader from '~/components/AvatarUploader.vue'
 import FileUploader from '~/components/FileUploader.vue'
 import MapPicker from '~/components/MapPicker.vue'
@@ -24,11 +24,11 @@ watchImmediate(() => props.point, () => {
 const isUploadingAlbum = shallowRef(false)
 const isMapPickerModalOpen = shallowRef(false)
 
-const { mutateAsync, isPending: isChangingBusinessPoint } = changeBusinessPoint($v2, {
+const { mutateAsync, isPending: isChangingBusinessPoint } = changeBusinessPoint({
   onSuccess() {
     isEditBusinessPointModalOpen.value = false
     Message.success('修改成功')
-    useBusinessPointList($v2, { sid: props.point.sid }).refetch()
+    useBusinessPointList({ sid: props.point.sid }).refetch()
   },
 })
 

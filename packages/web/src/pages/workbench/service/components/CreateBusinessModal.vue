@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import type { CreateBusinessPayload } from '@weila/network'
+import type { CreateBusinessPayload } from '~/api'
 import Message from '@arco-design/web-vue/es/message'
-import { createBusiness } from '@weila/network'
 import { reactive, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { createBusiness } from '~/api'
 import AvatarUploader from '~/components/AvatarUploader.vue'
 import FileUploader from '~/components/FileUploader.vue'
 import { isRemoteImage } from '~/utils/is'
 
 const isCreateBusinessModalOpen = shallowRef(false)
-const { mutateAsync: create, isPending: isCreating } = createBusiness($v2, {
+const { mutateAsync: create, isPending: isCreating } = createBusiness({
   onSuccess() {
     isCreateBusinessModalOpen.value = false
     Message.success('创建成功')
-    // useMyBusiness($v2).refetch()
-    // useServiceLegal($v2).refetch()
+    // useMyBusiness().refetch()
+    // useServiceLegal().refetch()
   },
 })
 

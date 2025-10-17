@@ -18,7 +18,7 @@ const { data: mp3Url } = useQuery({
     body: {
       ptturl: props.content.url,
     },
-  }).then(i => i.url as string),
+  }).then((i: any) => i.url as string),
 })
 
 const { play: playVoice, isPlaying: isVoicePlaying, pause: pauseVoice, duration } = useSound(computed(() => mp3Url.value || ''))

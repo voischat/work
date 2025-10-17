@@ -68,13 +68,13 @@ const { data, fetchNextPage } = useInfiniteQuery({
     return await weilaFetch<any>('/corp/web/message-get-group-history-message', {
       body: payload,
     })
-      .then((i) => {
+      .then((i: any) => {
         for (const user of i.users) {
           users[user.user_id] = user
         }
         return i
       })
-      .then(i => i.messages)
+      .then((i: any) => i.messages)
   },
   getNextPageParam: (lastPage) => {
     if (lastPage.length < pageSize.value)

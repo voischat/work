@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import type { ChangeBusinessPayload } from '@weila/network'
+import type { ChangeBusinessPayload } from '~/api'
 import Message from '@arco-design/web-vue/es/message'
-import { useMutateBusiness, useMyBusiness } from '@weila/network'
 import { reactive, shallowRef } from 'vue'
+import { useMutateBusiness, useMyBusiness } from '~/api'
 
 const { t } = useI18n()
 
 const isEditBusinessModalOpen = shallowRef(false)
 
-const { data: businessData, refetch: refetchBusinessData } = useMyBusiness($v2)
-const { mutateAsync: changeBusiness, isPending: isChangingBusiness } = useMutateBusiness($v2, {
+const { data: businessData, refetch: refetchBusinessData } = useMyBusiness()
+const { mutateAsync: changeBusiness, isPending: isChangingBusiness } = useMutateBusiness({
   onSuccess() {
     isEditBusinessModalOpen.value = false
     Message.success('修改成功')

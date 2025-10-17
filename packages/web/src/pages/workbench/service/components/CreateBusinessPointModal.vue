@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { CreateBusinessPointPayload } from '@weila/network'
+import type { CreateBusinessPointPayload } from '~/api'
 import Message from '@arco-design/web-vue/es/message'
 import { useRouteParams } from '@vueuse/router'
-import { createBusinessPoint, useBusinessPointList } from '@weila/network'
 import { reactive, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { createBusinessPoint, useBusinessPointList } from '~/api'
 import AvatarUploader from '~/components/AvatarUploader.vue'
 import FileUploader from '~/components/FileUploader.vue'
 import { isRemoteImage } from '~/utils/is'
@@ -12,11 +12,11 @@ import { isRemoteImage } from '~/utils/is'
 const sid = useRouteParams('sid', 0, { transform: Number })
 
 const isCreateBusinessPointModalOpen = shallowRef(false)
-const { mutateAsync: create, isPending: isCreating } = createBusinessPoint($v2, {
+const { mutateAsync: create, isPending: isCreating } = createBusinessPoint({
   onSuccess() {
     isCreateBusinessPointModalOpen.value = false
     Message.success('创建成功')
-    useBusinessPointList($v2, { sid: sid.value }).refetch()
+    useBusinessPointList({ sid: sid.value }).refetch()
   },
 })
 
