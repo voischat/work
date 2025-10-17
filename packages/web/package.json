@@ -87,7 +87,6 @@
     "@vuemap/vue-amap": "catalog:",
     "@vuemap/vue-amap-extra": "catalog:",
     "@vuemap/vue-amap-loca": "catalog:",
-    "@weila/network": "workspace:*",
     "@wl/network": "catalog:",
     "apipost-mock-gen": "catalog:",
     "bumpp": "catalog:",
