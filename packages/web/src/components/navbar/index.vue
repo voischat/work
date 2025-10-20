@@ -52,7 +52,7 @@ const buildTime = new Date(__BUILD_TIME__).toLocaleString()
       </a-tag>
     </a-space>
     <a-space size="large">
-      <li v-if="isDev">
+      <li>
         <a-tooltip :content="t('settings.language')">
           <a-button class="nav-btn" type="outline" shape="circle" @click="toggleLocales">
             <template #icon>

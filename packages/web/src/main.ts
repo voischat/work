@@ -9,7 +9,6 @@ import { vDisabled } from './directives/v-disabled'
 import { vVip } from './directives/v-vip'
 
 import { setup } from './setup'
-import '@valibot/i18n/zh-CN'
 // Styles are imported via arco-plugin. See config/plugin/arcoStyleImport.ts in the directory for details
 // 样式通过 arco-plugin 插件导入。详见目录文件 config/plugin/arcoStyleImport.ts
 // https://arco.design/docs/designlab/use-theme-package
@@ -57,5 +56,5 @@ setup(
 )
 
 v.setGlobalConfig({
-  lang: 'zh-CN',
+  lang: 'en',
 })
