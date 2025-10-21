@@ -307,6 +307,7 @@ member:
     track:
       label: 轨迹
   state: 状态
+  online-status: 在线状态
 member-count: 成员数量
 member-list: 成员列表
 member-state:

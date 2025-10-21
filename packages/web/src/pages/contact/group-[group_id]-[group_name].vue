@@ -98,6 +98,14 @@ function onSelect(member: Member, e: PointerEvent) {
               </a-avatar>
             </template>
           </a-table-column>
+
+          <a-table-column :title="t('member.online-status')" :width="100">
+            <template #cell="{ record: { online_status } }">
+              <a-tag :color="online_status === 1 ? 'green' : 'gray'">
+                {{ online_status === 1 ? t('online') : t('offline') }}
+              </a-tag>
+            </template>
+          </a-table-column>
           <a-table-column :title="t('name')">
             <template #cell="{ record: { name } }">
               {{ name }}

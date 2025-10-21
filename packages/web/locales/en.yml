@@ -320,6 +320,7 @@ member:
     track:
       label: Track
   state: State
+  online-status: Online Status
 member-count: Number of members
 member-list: Member List
 member-state:

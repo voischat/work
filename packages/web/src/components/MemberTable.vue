@@ -101,6 +101,14 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
             </a-avatar>
           </template>
         </a-table-column>
+
+        <a-table-column :title="t('member.online-status')" :width="100">
+          <template #cell="{ record: { online_status } }">
+            <a-tag :color="online_status === 1 ? 'green' : 'gray'">
+              {{ online_status === 1 ? t('online') : t('offline') }}
+            </a-tag>
+          </template>
+        </a-table-column>
         <a-table-column
           :title="t('name')" :sortable="{
             sortDirections: ['ascend', 'descend'],
