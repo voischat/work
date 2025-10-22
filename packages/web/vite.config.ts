@@ -23,6 +23,10 @@ const now = Date.now()
 export default defineConfig({
   base: './',
 
+  optimizeDeps: {
+    exclude: ['gcoord'],
+  },
+
   build: {
     rollupOptions: {
       input: {

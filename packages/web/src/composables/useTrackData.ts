@@ -1,5 +1,6 @@
 import type { UserTrackModel } from '~/api/track'
 import Message from '@arco-design/web-vue/es/message'
+import gcoord from 'gcoord'
 import { computed } from 'vue'
 
 export function useUserTrack(selectedUserKeys: Ref<string>, selectedDate: Ref<string>) {
@@ -7,7 +8,7 @@ export function useUserTrack(selectedUserKeys: Ref<string>, selectedDate: Ref<st
 
   const enabled = computed(() => Boolean(selectedUserKeys.value && selectedDate.value))
 
-  const { data: tracks, refetch } = useWeilaFetch<UserTrackModel[]>('corp/loc/get-track', {
+  const { data: _tracks, refetch } = useWeilaFetch<UserTrackModel[]>('corp/loc/get-track', {
     body: () => ({
       user_id: Number(selectedUserKeys.value.replace('member-', '')),
       date: selectedDate.value,
@@ -16,6 +17,15 @@ export function useUserTrack(selectedUserKeys: Ref<string>, selectedDate: Ref<st
   }, {
     enabled,
   })
+
+  const tracks = computed(() => _tracks.value?.map((track) => {
+    const [lng, lat] = gcoord.transform([track.lng, track.lat], gcoord.GCJ02, gcoord.WGS84)
+    return ({
+      ...track,
+      lng,
+      lat,
+    })
+  }))
 
   // 监听轨迹数据变化，无数据时提示
   watchDebounced(() => tracks.value, (val) => {
