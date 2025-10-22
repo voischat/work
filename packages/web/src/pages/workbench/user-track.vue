@@ -34,6 +34,11 @@ const {
 } = useMapInteraction(tracks)
 
 $inspect(trackFeatureCollection)
+
+function onMarkerSelected(marker: AMap.Marker) {
+  selectedMarker.value = marker
+  triggerRef(selectedMarker)
+}
 </script>
 
 <template>
@@ -82,7 +87,7 @@ $inspect(trackFeatureCollection)
             </template>
           </a-list-item-meta>
           <template #extra>
-            <a-button type="primary" size="small" @click="selectedMarker = marker">
+            <a-button type="primary" size="small" @click="() => onMarkerSelected(marker)">
               {{ t('button.checkout') }}
             </a-button>
           </template>
