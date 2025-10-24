@@ -17,7 +17,7 @@
     "up": "nlx taze -I major"
   },
   "dependencies": {
-    "dayjs": "^1.11.13",
+    "dayjs": "catalog:",
     "valibot": "catalog:"
   },
   "devDependencies": {
@@ -32,6 +32,7 @@
     "eslint-plugin-unimport": "catalog:",
     "lint-staged": "catalog:",
     "octokit": "catalog:",
+    "simple-git-hooks": "catalog:",
     "unbuild": "catalog:",
     "vite-plugin-dts": "catalog:"
   },

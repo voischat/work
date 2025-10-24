@@ -3,7 +3,7 @@ packages:
 
 overrides:
   '@intlify/message-compiler': ^11.1.12
-  vite: 'npm:rolldown-vite@latest'
+  vite: npm:rolldown-vite@latest
 catalog:
   '@antfu/eslint-config': ^6.0.0
   '@antfu/ni': ^26.2.0
@@ -16,7 +16,6 @@ catalog:
   '@intlify/eslint-plugin-vue-i18n': ^4.1.0
   '@kvoon/utils': latest
   '@modyfi/vite-plugin-yaml': ^1.1.1
-  '@paypal/paypal-js': ^9.0.1
   '@tanstack/eslint-plugin-query': ^5.91.2
   '@tanstack/vue-query': ^5.90.2
   '@tanstack/vue-query-devtools': ^5.90.2
@@ -52,6 +51,7 @@ catalog:
   cropperjs: ^1.6.2
   cross-env: ^10.1.0
   crypto-js: ^4.2.0
+  dayjs: ^1.11.13
   dotenv: ^17.2.3
   eslint: ^9.37.0
   eslint-factory: ^0.1.2
@@ -60,7 +60,7 @@ catalog:
   esno: ^4.8.0
   jiti: ^2.6.1
   less: ^4.4.2
-  lint-staged: ^16.2.4
+  lint-staged: 16.2.4
   lodash: ^4.17.21
   md5: ^2.3.0
   mockjs: ^1.1.0
@@ -75,7 +75,7 @@ catalog:
   rehype-stringify: ^10.0.1
   rollup: ^4.52.4
   rollup-plugin-visualizer: ^6.0.5
-  simple-git-hooks: ^2.13.1
+  simple-git-hooks: 2.13.1
   taze: ^19.8.0
   typescript: ^5.9.3
   ufo: ^1.6.1
