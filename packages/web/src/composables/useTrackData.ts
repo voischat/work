@@ -7,7 +7,7 @@ export function useUserTrack(selectedUserKeys: Ref<string>, selectedDate: Ref<st
 
   const enabled = computed(() => Boolean(selectedUserKeys.value && selectedDate.value))
 
-  const { data: tracks } = useWeilaFetch<UserTrackModel[]>('corp/loc/get-track', {
+  const { data: tracks, refetch } = useWeilaFetch<UserTrackModel[]>('corp/loc/get-track', {
     body: () => ({
       user_id: Number(selectedUserKeys.value.replace('member-', '')),
       date: selectedDate.value,
@@ -43,5 +43,6 @@ export function useUserTrack(selectedUserKeys: Ref<string>, selectedDate: Ref<st
   return {
     tracks,
     trackFeatureCollection,
+    refetch,
   }
 }

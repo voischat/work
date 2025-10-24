@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { Message } from '@arco-design/web-vue'
 import { ElAmap } from '@vuemap/vue-amap'
 import { ElAmapLoca, ElAmapLocaLine } from '@vuemap/vue-amap-loca'
+import { useRouteQuery } from '@vueuse/router'
 import { shallowRef } from 'vue'
 
 import { useDeptTree } from '~/composables/useDeptTree'
@@ -17,11 +19,11 @@ const { t } = useI18n()
 
 // 用户选择状态
 const selectedUserKeys = shallowRef('')
-const selectedDate = shallowRef('')
+const selectedDate = useRouteQuery('date', new Date().toISOString().split('T')[0])
 
 // 使用composables
 const { treeData, loadMore } = useDeptTree()
-const { tracks, trackFeatureCollection } = useUserTrack(selectedUserKeys, selectedDate)
+const { tracks, trackFeatureCollection, refetch } = useUserTrack(selectedUserKeys, selectedDate)
 const {
   trackVisible,
   drawerVisible,
@@ -53,6 +55,14 @@ function onMarkerSelected(marker: AMap.Marker) {
       grow-1
     />
     <a-date-picker v-model="selectedDate" max-w-40 grow-1 />
+    <a-button
+      v-if="tracks?.length" shape="circle"
+      @click="() => refetch().then(() => {
+        Message.success(t('message.refresh-success'))
+      })"
+    >
+      <icon-refresh />
+    </a-button>
   </div>
   <div h-full w-full>
     <ElAmap :center="center" :zoom="zoom" relative h-full w-full @init="(m) => map = m">
