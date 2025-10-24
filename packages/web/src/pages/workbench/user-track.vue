@@ -3,6 +3,7 @@ import { Message } from '@arco-design/web-vue'
 import { ElAmap } from '@vuemap/vue-amap'
 import { ElAmapLoca, ElAmapLocaLine } from '@vuemap/vue-amap-loca'
 import { useRouteQuery } from '@vueuse/router'
+import dayjs from 'dayjs'
 import { shallowRef } from 'vue'
 
 import { useDeptTree } from '~/composables/useDeptTree'
@@ -54,7 +55,7 @@ function onMarkerSelected(marker: AMap.Marker) {
       max-w-60
       grow-1
     />
-    <a-date-picker v-model="selectedDate" max-w-40 grow-1 />
+    <a-date-picker v-model="selectedDate" max-w-40 grow-1 :disabled-date="(current: any) => dayjs(current).isAfter(dayjs())" />
     <a-button
       v-if="tracks?.length" shape="circle"
       @click="() => refetch().then(() => {
