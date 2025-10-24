@@ -328,6 +328,7 @@ message:
   please-enter-phone-number: 请输入手机号
   revoke: 消息已撤回
   success: 成功
+  refresh-success: 刷新成功
   verify-code-error: 图形验证码异常
 name: 名称
 navbar:

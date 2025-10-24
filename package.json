@@ -17,6 +17,7 @@
     "up": "nlx taze -I major"
   },
   "dependencies": {
+    "dayjs": "^1.11.13",
     "valibot": "catalog:"
   },
   "devDependencies": {
