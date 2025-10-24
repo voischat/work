@@ -85,6 +85,7 @@ button:
   save: Save
   send: Send
   submit: Submit
+  refresh: Refresh
 change-member:
   form:
     avatar:

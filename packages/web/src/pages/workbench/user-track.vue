@@ -56,14 +56,16 @@ function onMarkerSelected(marker: AMap.Marker) {
       grow-1
     />
     <a-date-picker v-model="selectedDate" max-w-40 grow-1 :disabled-date="(current: any) => dayjs(current).isAfter(dayjs())" />
-    <a-button
-      v-if="tracks?.length" shape="circle"
-      @click="() => refetch().then(() => {
-        Message.success(t('message.refresh-success'))
-      })"
-    >
-      <icon-refresh />
-    </a-button>
+    <a-tooltip :content="t('button.refresh')">
+      <a-button
+        v-if="tracks?.length" shape="circle"
+        @click="() => refetch().then(() => {
+          Message.success(t('message.refresh-success'))
+        })"
+      >
+        <icon-refresh />
+      </a-button>
+    </a-tooltip>
   </div>
   <div h-full w-full>
     <ElAmap :center="center" :zoom="zoom" relative h-full w-full @init="(m) => map = m">

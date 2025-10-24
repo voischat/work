@@ -77,6 +77,7 @@ button:
   save: 保存
   send: 发送
   submit: 提交
+  refresh: 刷新
 change-member:
   form:
     avatar:
