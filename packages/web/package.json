@@ -50,6 +50,7 @@
     "browser-image-compression": "catalog:",
     "cropperjs": "catalog:",
     "crypto-js": "catalog:",
+    "gcoord": "catalog:",
     "md5": "catalog:",
     "nanoid": "catalog:",
     "nprogress": "catalog:",

@@ -189,6 +189,7 @@ declare global {
   const useDebounce: typeof import('@vueuse/core')['useDebounce']
   const useDebounceFn: typeof import('@vueuse/core')['useDebounceFn']
   const useDebouncedRefHistory: typeof import('@vueuse/core')['useDebouncedRefHistory']
+  const useDeptList: typeof import('./composables/useDeptList')['useDeptList']
   const useDeptTree: typeof import('./composables/useDeptTree')['useDeptTree']
   const useDeviceMotion: typeof import('@vueuse/core')['useDeviceMotion']
   const useDeviceOrientation: typeof import('@vueuse/core')['useDeviceOrientation']
@@ -218,6 +219,7 @@ declare global {
   const useFullscreen: typeof import('@vueuse/core')['useFullscreen']
   const useGamepad: typeof import('@vueuse/core')['useGamepad']
   const useGeolocation: typeof import('@vueuse/core')['useGeolocation']
+  const useGroupList: typeof import('./composables/useGroupList')['useGroupList']
   const useHead: typeof import('@vueuse/head')['useHead']
   const useI18n: typeof import('vue-i18n')['useI18n']
   const useId: typeof import('vue')['useId']
@@ -267,6 +269,8 @@ declare global {
   const usePreferredReducedTransparency: typeof import('@vueuse/core')['usePreferredReducedTransparency']
   const usePrevious: typeof import('@vueuse/core')['usePrevious']
   const useRafFn: typeof import('@vueuse/core')['useRafFn']
+  const useRealtimeLocation: typeof import('./composables/useRealtimeLocation')['useRealtimeLocation']
+  const useRealtimeMapInteraction: typeof import('./composables/useRealtimeMapInteraction')['useRealtimeMapInteraction']
   const useRefHistory: typeof import('@vueuse/core')['useRefHistory']
   const useResizeObserver: typeof import('@vueuse/core')['useResizeObserver']
   const useRoute: typeof import('vue-router')['useRoute']
@@ -315,6 +319,7 @@ declare global {
   const useTrackData: typeof import('./composables/useTrackData')['useTrackData']
   const useTransition: typeof import('@vueuse/core')['useTransition']
   const useUrlSearchParams: typeof import('@vueuse/core')['useUrlSearchParams']
+  const useUserInfoStore: typeof import('./composables/useUserInfoStore')['useUserInfoStore']
   const useUserMedia: typeof import('@vueuse/core')['useUserMedia']
   const useUserStore: typeof import('./stores/user')['useUserStore']
   const useUserTrack: typeof import('./composables/useTrackData')['useUserTrack']
@@ -543,6 +548,7 @@ declare module 'vue' {
     readonly useDebounce: UnwrapRef<typeof import('@vueuse/core')['useDebounce']>
     readonly useDebounceFn: UnwrapRef<typeof import('@vueuse/core')['useDebounceFn']>
     readonly useDebouncedRefHistory: UnwrapRef<typeof import('@vueuse/core')['useDebouncedRefHistory']>
+    readonly useDeptList: UnwrapRef<typeof import('./composables/useDeptList')['useDeptList']>
     readonly useDeptTree: UnwrapRef<typeof import('./composables/useDeptTree')['useDeptTree']>
     readonly useDeviceMotion: UnwrapRef<typeof import('@vueuse/core')['useDeviceMotion']>
     readonly useDeviceOrientation: UnwrapRef<typeof import('@vueuse/core')['useDeviceOrientation']>
@@ -571,6 +577,7 @@ declare module 'vue' {
     readonly useFullscreen: UnwrapRef<typeof import('@vueuse/core')['useFullscreen']>
     readonly useGamepad: UnwrapRef<typeof import('@vueuse/core')['useGamepad']>
     readonly useGeolocation: UnwrapRef<typeof import('@vueuse/core')['useGeolocation']>
+    readonly useGroupList: UnwrapRef<typeof import('./composables/useGroupList')['useGroupList']>
     readonly useHead: UnwrapRef<typeof import('@vueuse/head')['useHead']>
     readonly useI18n: UnwrapRef<typeof import('vue-i18n')['useI18n']>
     readonly useId: UnwrapRef<typeof import('vue')['useId']>
@@ -619,6 +626,8 @@ declare module 'vue' {
     readonly usePreferredReducedTransparency: UnwrapRef<typeof import('@vueuse/core')['usePreferredReducedTransparency']>
     readonly usePrevious: UnwrapRef<typeof import('@vueuse/core')['usePrevious']>
     readonly useRafFn: UnwrapRef<typeof import('@vueuse/core')['useRafFn']>
+    readonly useRealtimeLocation: UnwrapRef<typeof import('./composables/useRealtimeLocation')['useRealtimeLocation']>
+    readonly useRealtimeMapInteraction: UnwrapRef<typeof import('./composables/useRealtimeMapInteraction')['useRealtimeMapInteraction']>
     readonly useRefHistory: UnwrapRef<typeof import('@vueuse/core')['useRefHistory']>
     readonly useResizeObserver: UnwrapRef<typeof import('@vueuse/core')['useResizeObserver']>
     readonly useRoute: UnwrapRef<typeof import('vue-router')['useRoute']>
@@ -666,6 +675,7 @@ declare module 'vue' {
     readonly useToggleLocales: UnwrapRef<typeof import('./composables/useToggleLocales')['useToggleLocales']>
     readonly useTransition: UnwrapRef<typeof import('@vueuse/core')['useTransition']>
     readonly useUrlSearchParams: UnwrapRef<typeof import('@vueuse/core')['useUrlSearchParams']>
+    readonly useUserInfoStore: UnwrapRef<typeof import('./composables/useUserInfoStore')['useUserInfoStore']>
     readonly useUserMedia: UnwrapRef<typeof import('@vueuse/core')['useUserMedia']>
     readonly useUserTrack: UnwrapRef<typeof import('./composables/useTrackData')['useUserTrack']>
     readonly useVModel: UnwrapRef<typeof import('@vueuse/core')['useVModel']>

@@ -37,6 +37,7 @@ declare module 'vue-router/auto-routes' {
     '/reset-password/': RouteRecordInfo<'/reset-password/', '/reset-password', Record<never, never>, Record<never, never>>,
     '/test': RouteRecordInfo<'/test', '/test', Record<never, never>, Record<never, never>>,
     '/workbench/': RouteRecordInfo<'/workbench/', '/workbench', Record<never, never>, Record<never, never>>,
+    '/workbench/realtime-location': RouteRecordInfo<'/workbench/realtime-location', '/workbench/realtime-location', Record<never, never>, Record<never, never>>,
     '/workbench/service/[sid]-[ssid]': RouteRecordInfo<'/workbench/service/[sid]-[ssid]', '/workbench/service/:sid-:ssid', { sid: ParamValue<true>, ssid: ParamValue<true> }, { sid: ParamValue<false>, ssid: ParamValue<false> }, '/workbench/service/[sid]-[ssid]/' | '/workbench/service/[sid]-[ssid]/detail' | '/workbench/service/[sid]-[ssid]/index1' | '/workbench/service/[sid]-[ssid]/point/' | '/workbench/service/[sid]-[ssid]/point/[pid]-[ppid]' | '/workbench/service/[sid]-[ssid]/staff'>,
     '/workbench/service/[sid]-[ssid]/': RouteRecordInfo<'/workbench/service/[sid]-[ssid]/', '/workbench/service/:sid-:ssid', { sid: ParamValue<true>, ssid: ParamValue<true> }, { sid: ParamValue<false>, ssid: ParamValue<false> }>,
     '/workbench/service/[sid]-[ssid]/detail': RouteRecordInfo<'/workbench/service/[sid]-[ssid]/detail', '/workbench/service/:sid-:ssid/detail', { sid: ParamValue<true>, ssid: ParamValue<true> }, { sid: ParamValue<false>, ssid: ParamValue<false> }>,
@@ -134,6 +135,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/workbench/index.vue': {
       routes: '/workbench/'
+      views: never
+    }
+    'src/pages/workbench/realtime-location.vue': {
+      routes: '/workbench/realtime-location'
       views: never
     }
     'src/pages/workbench/service/[sid]-[ssid].vue': {

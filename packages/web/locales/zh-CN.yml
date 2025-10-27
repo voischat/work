@@ -178,6 +178,7 @@ form-placeholder:
 gender: 性别
 get-sms-code: 获取短信验证码
 group:
+  name: 群组
   create: 创建群组
   member: 群成员
   my-groups: 我的群组
@@ -192,6 +193,7 @@ home: 主页
 i-have-read-and-agree: 我已阅读并同意
 img-verify-code: 图形验证码
 job-number: 工号
+user-id: 用户ID
 latitude: 纬度
 lega-form:
   step:
@@ -441,8 +443,11 @@ submenu:
   group-manage: 群组管理
   member-manage: 成员管理
   user-track: 轨迹
+  realtime-location: 实时位置
 time: 时间
 track: 轨迹
+speed: 速度
+direction: 方向
 track-type:
   close: 关闭
   fast: 快速
@@ -457,6 +462,7 @@ user:
 user-count: 用户数量
 user-info-loading: Loading user information...
 user-track: 用户轨迹
+realtime-location: 实时位置
 user-type:
   device: 设备
   member: 成员

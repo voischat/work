@@ -189,6 +189,7 @@ form-placeholder:
 gender: Gender
 get-sms-code: Get SMS verification code.
 group:
+  name: Group
   create: Create Group
   member: Group members
   my-groups: My Groups
@@ -203,6 +204,7 @@ home: Home
 i-have-read-and-agree: I have read and agree.
 img-verify-code: Graphic verification code
 job-number: Job ID
+user-id: User ID
 latitude: latitude
 lega-form:
   step:

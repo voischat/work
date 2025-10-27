@@ -39,13 +39,14 @@ export function useWeilaFetch<T>(
 
   const { refetch } = res
 
-  if (body && (isRef(body) || isFunction(body))) {
-    watch(body, () => {
-      // @ts-expect-error type error
-      if (toValue(tanstackOptions?.enabled) !== false)
-        refetch()
-    }, { deep: true })
-  }
+  // FIXME: maybe bug - call twice
+  // if (body && (isRef(body) || isFunction(body))) {
+  //   watch(body, () => {
+  //     // @ts-expect-error type error
+  //     if (toValue(tanstackOptions?.enabled) !== false)
+  //       refetch()
+  //   }, { deep: true })
+  // }
   if (isRef(url) || isFunction(url)) {
     watch(url, () => {
       // @ts-expect-error type error

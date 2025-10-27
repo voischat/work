@@ -58,6 +58,7 @@ catalog:
   eslint-plugin-format: ^1.0.2
   eslint-plugin-unimport: ^0.1.2
   esno: ^4.8.0
+  gcoord: ^1.0.7
   jiti: ^2.6.1
   less: ^4.4.2
   lint-staged: 16.2.4
