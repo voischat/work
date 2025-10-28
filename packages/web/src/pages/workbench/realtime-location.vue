@@ -80,11 +80,12 @@ watch([selectedType, selectedId], async ([type, id]) => {
       </a-button>
     </ElAmap>
 
-    <a-drawer v-model:visible="drawerVisible" :width="720" unmount-on-close>
+    <a-drawer v-model:visible="drawerVisible" :width="720" unmount-on-close :footer="false">
       <template #title>
         {{ t('realtime-location') }}
       </template>
-      <a-list item-layout="horizontal">
+      <a-empty v-if="!markers?.length" />
+      <a-list v-else item-layout="horizontal">
         <a-list-item v-for="marker in markers" :key="marker.getExtData().id">
           <a-list-item-meta>
             <template #avatar>
@@ -113,7 +114,7 @@ watch([selectedType, selectedId], async ([type, id]) => {
                   },
                   {
                     label: t('time'),
-                    value: new Date(marker.getExtData().ts).toLocaleString(),
+                    value: new Date(marker.getExtData().ts * 1000).toLocaleString(),
                   },
                   {
                     label: t('longitude'),
