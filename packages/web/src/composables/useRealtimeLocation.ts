@@ -155,7 +155,7 @@ export function useRealtimeLocation(
 
   // 当API返回空数据时使用mock数据
   const useMockData = computed(() => {
-    return apiLocations.value?.length === 0 && import.meta.env.DEV
+    return !apiLocations.value?.length && import.meta.env.DEV
   })
 
   const mockLocations = shallowRef<RealtimeLocationModel[]>([])
