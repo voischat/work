@@ -1,5 +1,4 @@
 import type { RealtimeLocationModel } from '~/api/realtime-location'
-import Message from '@arco-design/web-vue/es/message'
 import { shallowRef } from 'vue'
 
 // Mock用户数据
@@ -134,8 +133,6 @@ export function useRealtimeLocation(
   selectedType: Ref<'dept' | 'group'>,
   selectedId: Ref<number | undefined>,
 ) {
-  const { t } = useI18n()
-
   const enabled = computed(() => selectedId.value !== undefined)
 
   watch(selectedType, () => selectedId.value = undefined)
@@ -179,7 +176,7 @@ export function useRealtimeLocation(
     if (enabled.value) {
       refetch()
     }
-  }, 3000)
+  }, 5000)
 
   // 初始化时获取数据
   watch([enabled, selectedId], () => {
@@ -187,18 +184,6 @@ export function useRealtimeLocation(
       refetch()
     }
   }, { immediate: true })
-
-  watchDebounced(() => locations.value, (val) => {
-    if (val?.length === 0) {
-      Message.info(t('no-data'))
-      pause()
-    }
-    else {
-      resume()
-    }
-  }, {
-    debounce: 500,
-  })
 
   return {
     locations,
