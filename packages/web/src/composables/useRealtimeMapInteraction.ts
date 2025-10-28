@@ -70,22 +70,22 @@ export function useRealtimeMapInteraction(
         // 创建自定义内容
         const content = avatarUrl
           ? `<div style="
-            width: 32px;
-            height: 32px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             overflow: hidden;
-            border: 2px solid #fff;
+            border: 4px solid #00DC82;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             background-image: url('${avatarUrl}');
             background-size: cover;
             background-position: center;
           "></div>`
           : `<div style="
-            width: 32px;
-            height: 32px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             overflow: hidden;
-            border: 2px solid #fff;
+            border: 4px solid #00DC82;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             background: #fff;
             display: flex;
