@@ -36,6 +36,23 @@ const currentOptions = computed(() => {
   return selectedType.value === 'dept' ? deptOptions.value : groupOptions.value
 })
 
+// 新的 computed data，包含用户信息和标记点，按用户名排序
+const sortedMarkersWithUserInfo = computed(() => {
+  if (!markers.value?.length)
+    return []
+
+  return markers.value
+    .map((marker) => {
+      const userInfo = getUserInfo(marker.getExtData().uid)
+      return {
+        marker,
+        userInfo,
+        userName: userInfo?.name || `用户${marker.getExtData().uid}`,
+      }
+    })
+    .sort((a, b) => a.userName.localeCompare(b.userName))
+})
+
 // 监听选择变化，预加载成员信息
 watch([selectedType, selectedId], async ([type, id]) => {
   if (id !== undefined) {
@@ -84,17 +101,17 @@ watch([selectedType, selectedId], async ([type, id]) => {
       <template #title>
         {{ t('realtime-location') }}
       </template>
-      <a-empty v-if="!markers?.length" />
+      <a-empty v-if="!sortedMarkersWithUserInfo?.length" />
       <a-list v-else item-layout="horizontal">
-        <a-list-item v-for="marker in markers" :key="marker.getExtData().id">
+        <a-list-item v-for="item in sortedMarkersWithUserInfo" :key="item.marker.getExtData().id">
           <a-list-item-meta>
             <template #avatar>
-              <a-avatar :image-url="getUserInfo(marker.getExtData().uid)?.avatar?.replace(/^https?:/, '')">
+              <a-avatar :image-url="item.userInfo?.avatar?.replace(/^https?:/, '')">
                 <IconUser />
               </a-avatar>
             </template>
             <template #title>
-              {{ getUserInfo(marker.getExtData().uid)?.name || `用户${marker.getExtData().uid}` }}
+              {{ item.userName }}
             </template>
             <template #description>
               <a-descriptions
@@ -102,31 +119,31 @@ watch([selectedType, selectedId], async ([type, id]) => {
                 :data="[
                   {
                     label: t('user-id'),
-                    value: marker.getExtData().uid,
+                    value: item.marker.getExtData().uid,
                   },
                   {
                     label: t('phone'),
-                    value: getUserInfo(marker.getExtData().uid)?.phone || '-',
+                    value: item.userInfo?.phone || '-',
                   },
                   {
                     label: t('weila-number'),
-                    value: getUserInfo(marker.getExtData().uid)?.user_num || '-',
+                    value: item.userInfo?.user_num || '-',
                   },
                   {
                     label: t('time'),
-                    value: new Date(marker.getExtData().ts * 1000).toLocaleString(),
+                    value: new Date(item.marker.getExtData().ts * 1000).toLocaleString(),
                   },
                   {
                     label: t('longitude'),
-                    value: (marker.getExtData().longitude as number).toFixed(2),
+                    value: (item.marker.getExtData().longitude as number).toFixed(2),
                   },
                   {
                     label: t('latitude'),
-                    value: (marker.getExtData().latitude as number).toFixed(2),
+                    value: (item.marker.getExtData().latitude as number).toFixed(2),
                   },
                   {
                     label: t('speed'),
-                    value: `${(marker.getExtData().spd as number).toFixed(2)} km/h`,
+                    value: `${(item.marker.getExtData().spd as number).toFixed(2)} km/h`,
                   },
                 ].filter(item => item.value)"
                 bordered
@@ -135,7 +152,7 @@ watch([selectedType, selectedId], async ([type, id]) => {
             </template>
           </a-list-item-meta>
           <template #actions>
-            <a-button type="primary" size="small" @click="selectedMarker = marker">
+            <a-button type="primary" size="small" @click="selectedMarker = item.marker">
               {{ t('button.checkout') }}
             </a-button>
           </template>
