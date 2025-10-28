@@ -16,7 +16,7 @@ definePage({
 
 const { t } = useI18n()
 
-const selectedType = shallowRef<'dept' | 'group'>('dept')
+const selectedType = shallowRef<'dept' | 'group'>('group')
 const selectedId = shallowRef<number | undefined>(undefined)
 
 const { deptOptions } = useDeptList()
@@ -48,11 +48,11 @@ watch([selectedType, selectedId], async ([type, id]) => {
   <div flex gap2 p4 bg-base>
     <!-- 类型选择 -->
     <a-radio-group v-model="selectedType" type="button">
-      <a-radio value="dept">
-        {{ t('dept.name') }}
-      </a-radio>
       <a-radio value="group">
         {{ t('group.name') }}
+      </a-radio>
+      <a-radio value="dept">
+        {{ t('dept.name') }}
       </a-radio>
     </a-radio-group>
 
