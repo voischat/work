@@ -68,9 +68,9 @@ watch([selectedType, selectedId], async ([type, id]) => {
       <a-radio value="group">
         {{ t('group.name') }}
       </a-radio>
-      <!-- <a-radio value="dept">
+      <a-radio value="dept">
         {{ t('dept.name') }}
-      </a-radio> -->
+      </a-radio>
     </a-radio-group>
 
     <!-- 部门/群组选择 -->
