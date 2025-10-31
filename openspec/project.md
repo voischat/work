@@ -8,7 +8,8 @@ Weila Work Unity (微喇企业版) is an enterprise management platform for Chin
 - **State Management**: Pinia, @tanstack/vue-query
 - **Routing**: Vue Router with file-based routing
 - **Styling**: UnoCSS
-- **Internationalization**: Vue I18n (Chinese/English)
+- **UI Framework**: Arco Design
+- **Internationalization**: Vue I18n (English/Simplified Chinese/Traditional Chinese)
 - **Build Tool**: Vite
 - **Package Manager**: pnpm with workspace support
 - **Testing**: Vitest
