@@ -1,0 +1,219 @@
+# API
+
+这是关于微喇 api 的文档说明
+
+## 示例
+
+http://localhost:8090/v2/corp/auth/login?appid=102036&et=1741491127&sign=e056a1e5
+{
+	"email": "weila@qq.com",
+	"verifycode": "412604",
+	"password": "e10adc3949ba59abbe56e057f20f883e"
+}
+{
+	"errcode": 0,
+	"errmsg": "请求成功",
+	"data": {
+		"country_code": "0",
+		"password": "85afb53b4f60110b3eac365e5cd76d75",
+		"user_number": "70012122"
+	}
+}
+
+### 分类
+
+这段示例内容有三个部分: 
+
+1. 请求 url (必有)
+2. 请求参数 (可无)
+3. 返回内容 (可无)
+
+你需要自行判断是内容有哪几部分
+
+### 使用
+
+1. url: 文档提供的 url 为完整 url，在实际使用中需要将 baseURL 和 query 参数去掉 -> corp/auth/login
+2. 请求参数：正常传递
+3. 返回内容：由于我们用到了响应拦截器。我们收到的数据会不同，请根据不同情况生成合理的return type interface
+
+返回内容情况一：
+
+{
+	"errcode": 0,
+	"errmsg": "请求成功",
+	"data": {
+		"user": {
+			"name": "Alex",
+			"age": 18
+		}
+	}
+}
+
+由于 data 中只有一个 user 字段，我们将得到 user 字段的值
+
+返回内容情况二：
+
+{
+	"errcode": 0,
+	"errmsg": "请求成功",
+	"data": {
+		"users": [
+			{
+				"name": "Alex",
+				"age": 18
+			},
+			{
+				"name": "Jack",
+				"age": 20
+			}
+		],
+		"count": 2
+	}
+}
+
+由于 data 返回的对象有两个及以上的字段，我们将得到 data 字段的值
+
+## 接口合集
+
+http://localhost:8090/v2/corp/auth/regist-by-email?appid=102036&et=1741491127&sign=e056a1e5
+{
+	"email": "weila@qq.com",
+	"verifycode": "412604",
+	"password": "e10adc3949ba59abbe56e057f20f883e"
+}
+{
+	"errcode": 0,
+	"errmsg": "请求成功",
+	"data": {
+		"country_code": "0",
+		"password": "85afb53b4f60110b3eac365e5cd76d75",
+		"user_number": "70012122"
+	}
+}
+
+http://localhost:8090/v2/corp/auth/login-by-email?appid=102036&et=1756088507&sign=7892cd37
+{
+	"email": "18675500568@qq.com",
+	"verifycode": "123456"
+}
+{
+	"errcode": 0,
+	"errmsg": "请求成功",
+	"data": {
+		"access_token": "682051719b6b0e94c89b961b827b0f88",
+		"account": {
+			"country_code": "0",
+			"password": "bd92fdffff87a91179b03c278d11d933",
+			"user_number": "70011594"
+		},
+		"expires_in": 3650000000,
+		"refresh_token": "398e2988a71840cd5899669c38c0fd9d",
+		"user": {
+			"user_id": 1253913,
+			"user_num": "70011594",
+			"job_num": "",
+			"product": "",
+			"imei": "",
+			"sex": 0,
+			"name": "企业主175203",
+			"avatar": "http://weilacorp.oss-cn-shenzhen.aliyuncs.com/default/user.png",
+			"is_admin": 1,
+			"dept_id": 0,
+			"phone": "18675500568",
+			"country_code": "86",
+			"state": 0,
+			"type": 255,
+			"tts": 1,
+			"loc_share": 0,
+			"track": 0,
+			"grp_cnt": 0,
+			"grp_lmt": 5,
+			"created": 1756175203,
+			"bind_phone": "18675500568",
+			"bind_email": "18675500568@qq.com"
+		}
+	}
+}
+
+http://localhost:8090/v2/corp/auth/reset-password-by-email?appid=102036&et=1741491127&sign=e056a1e5
+{
+	"email": "18675500568",
+	"verifycode": "123456",
+	"password": "e10adc3949ba59abbe56e057f20f883e"
+}
+{
+	"errcode": 0,
+	"errmsg": "请求成功"
+}
+
+http://localhost:8090/v2/corp/user/bind-email?appid=102036&et=1741491127&sign=e056a1e5&token=aff536aa6d8f83751537ea65d51a2b0d
+{
+	"email": "13353236155@email",
+	"verifycode": "412604"
+}
+{
+	"errcode": 0,
+	"errmsg": "请求成功",
+	"data": {
+		"member": {
+			"user_id": 1253744,
+			"user_num": "70011604",
+			"job_num": "",
+			"sex": 0,
+			"name": "ent244480",
+			"avatar": "http://weilacorp.oss-cn-shenzhen.aliyuncs.com/default/user.png",
+			"is_admin": 1,
+			"dept_id": 0,
+			"phone": "13353236155",
+			"country_code": "86",
+			"state": 0,
+			"type": 255,
+			"tts": 1,
+			"loc_share": 0,
+			"track": 0,
+			"group_count": 0,
+			"created": 1753244480
+		}
+	}
+}
+
+http://localhost:8090/v2/corp/user/unregist-by-email?appid=102036&et=1757303011&sign=57305b2b&token=e2b5fbb3e02d572af498b847d8c5c71a
+{
+	"email": "15600000001@qq.com",
+	"country_code": "86",
+	"verifycode": "123456"
+}
+{
+	"errcode": 0,
+	"errmsg": "请求成功",
+	"data": {
+		"member": {
+			"user_id": 1253744,
+			"user_num": "70011604",
+			"job_num": "",
+			"sex": 0,
+			"name": "ent244480",
+			"avatar": "http://weilacorp.oss-cn-shenzhen.aliyuncs.com/default/user.png",
+			"is_admin": 1,
+			"dept_id": 0,
+			"phone": "13353236155",
+			"country_code": "86",
+			"state": 0,
+			"type": 255,
+			"tts": 1,
+			"loc_share": 0,
+			"track": 0,
+			"group_count": 0,
+			"created": 1753244480
+		}
+	}
+}
+
+// 邮箱注册同样适用 work-regist
+localhost:8090/v2/common/send-email-verifycode?appid=102036&et=1741491127&sign=e056a1e5
+{
+	"email": "215154317@qq.com",
+	"verify_id": "Rsc1jdehQ7ytHdof04Re", //验证码Id
+	"verify_answer": "JTsv", //验证码回答
+	"smstype": "work-regist" //work-regist 企业账号注册 work-login 企业账号登录 work-bind 企业版手机绑定 work-unbind 企业版手机号解绑
+}
