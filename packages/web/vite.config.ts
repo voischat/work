@@ -86,7 +86,7 @@ export default defineConfig({
       '/v2': {
         target: 'http://demo.weila.hk',
         timeout: 20 * 1000,
-        // target: 'http://192.168.0.125:8090',
+        // target: 'http://192.168.0.103:8090',
         changeOrigin: true,
         secure: false,
       },

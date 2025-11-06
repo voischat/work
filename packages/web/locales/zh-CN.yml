@@ -159,6 +159,7 @@ footer:
 form:
   error:
     account-nonempty: 账号不能为空
+    email-nonempty: 邮箱不能为空
     name-nonempty: 名称不能为空
     new-password-nonempty: 新密码不能为空
     old-password-nonempty: 旧密码不能为空
@@ -167,6 +168,8 @@ form:
     phone-minLength: 手机号至少11位
     phone-nonempty: 手机号不能为空
     verify-code-nonempty: 验证码不能为空
+  placeholder:
+    email: 请输入邮箱地址
 form-error:
   password-required: 密码不能为空
   phone-max-length: 手机号长度不能超过11位
@@ -177,6 +180,7 @@ form-placeholder:
   please-enter-new-password: 请设置新密码
 gender: 性别
 get-sms-code: 获取短信验证码
+get-email-code: 获取邮箱验证码
 group:
   name: 群组
   create: 创建群组
@@ -267,6 +271,8 @@ login:
     userName:
       errMsg: 用户名未填写
       placeholder: 用户名/手机号
+    account:
+      placeholder: 账号/手机号/邮箱
   get-sms-code: 获取短信验证码
   type:
     phone: 手机号
@@ -274,6 +280,7 @@ login:
   weila-enterprise: 微喇企业版
 login-by-password: 账号密码登录
 login-by-phone: 手机号登录
+login-by-email: 邮箱登录
 login.banner.slogan1: 开箱即用的高质量模板
 login.banner.slogan2: 内置了常见问题的解决方案
 login.banner.slogan3: 接入可视化增强工具AUX
@@ -331,6 +338,7 @@ message:
   payment:
     success: 支付成功
   please-enter-phone-number: 请输入手机号
+  please-enter-email: 请输入邮箱地址
   revoke: 消息已撤回
   success: 成功
   refresh-success: 刷新成功
@@ -522,3 +530,25 @@ workbench:
   user-track: 用户轨迹
 web-guide: 管理台用户手册
 app-guide: App 用户手册
+binding-email: 绑定邮箱
+binding-email-form:
+  title: 绑定邮箱
+  err-msg:
+    email-required: 邮箱不能为空
+    email-format: 邮箱格式不正确
+    verifycode-required: 验证码不能为空
+    verifycode-min: 验证码至少4位
+    verifycode-max: 验证码最多6位
+  placeholder:
+    email: 请输入邮箱地址
+    verifycode: 邮箱验证码
+binding-email-hint: 一个邮箱只能绑定一个账号，更换后可使用新邮箱登录此账号。对于已绑定其他账号的邮箱，本次操作后将与原账号解绑。
+unbinding-email: 解绑邮箱
+unbinding-email-form:
+  title: 解绑邮箱
+  err-msg:
+    email-required: 邮箱不能为空
+    verifycode-required: 验证码不能为空
+  placeholder:
+    verifycode: 邮箱验证码
+unbinding-email-hint: 解绑邮箱后，将无法使用该邮箱登录此账号。

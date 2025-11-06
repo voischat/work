@@ -7,8 +7,8 @@ import md5 from 'md5'
 import * as v from 'valibot'
 import { shallowRef } from 'vue'
 import { useForm } from 'zod-arco-rules/valibot'
+import { useCountDown } from '~/composables/useCountDown'
 import { useLocalCrypto } from '~/composables/useLocalCrypto'
-import { useSmsCountdown } from '~/composables/useSmsCountdown'
 import { autoLogin } from '~/shared/states'
 
 definePage({
@@ -24,7 +24,7 @@ const accountHistoryRecord = useLocalCrypto('account-history-record')
 const tempAccount = useLocalCrypto('temp-account')
 
 const { t } = useI18n()
-const activeTab = shallowRef<'password' | 'sms'>('password')
+const activeTab = shallowRef<'password' | 'sms' | 'email'>('password')
 
 const { form: loginForm, rules: loginRules, handleSubmit: handleLogin } = useForm(v.object({
   account: v.string(() => t('form.error.account-nonempty')),
@@ -37,21 +37,36 @@ const { form: smsLoginForm, rules: smsLoginRules, handleSubmit: handleSmsLogin }
   verifycode: v.string(() => t('form.error.verify-code-nonempty')),
 }))
 
+const { form: emailLoginForm, rules: emailLoginRules, handleSubmit: handleEmailLogin } = useForm(v.object({
+  email: v.pipe(
+    v.string(() => t('form.error.email-nonempty')),
+    v.email(() => t('form.error.email-format')),
+  ),
+  verifycode: v.string(() => t('form.error.verify-code-nonempty')),
+}))
+
 $inspect(activeTab)
 
 const { data, refetch: refreshImageCode } = useWeilaFetch<{ id: string, image: string }>(
   'common/get-image-verifycode?width=160&height=80',
   {},
   {
-    enabled: () => activeTab.value === 'sms',
+    enabled: () => activeTab.value === 'sms' || activeTab.value === 'email',
   },
 )
 
 const { mutateAsync: sendSmsVerifyCode } = useWeilaMutation<never, SendVerifySmsBody>('common/send-sms-verifycode')
+const { mutateAsync: sendEmailVerifyCode } = useWeilaMutation<never, {
+  email: string
+  verify_id: string
+  verify_answer: string
+  smstype: string
+}>('common/send-email-verifycode')
 
 const imageCodeModalVisible = shallowRef(false)
 const imageCode = shallowRef('')
-const { countdown, isCounting: isActive, updateSendTime } = useSmsCountdown('sms-login')
+const { countdown: smsCountdown, isCounting: isSmsActive, updateSendTime: updateSmsSendTime } = useCountDown('sms-login')
+const { countdown: emailCountdown, isCounting: isEmailActive, updateSendTime: updateEmailSendTime } = useCountDown('email-login')
 
 watchEffect(() => imageCodeModalVisible.value && refreshImageCode())
 
@@ -63,6 +78,10 @@ const { mutateAsync: passwordLogin, isPending: passwordPending } = useWeilaMutat
 })
 
 const { mutateAsync: smsLogin, isPending: smsPending } = useWeilaMutation('/corp/auth/login-by-sms', {
+  onSuccess,
+})
+
+const { mutateAsync: emailLogin, isPending: emailPending } = useWeilaMutation('/corp/auth/login-by-email', {
   onSuccess,
 })
 
@@ -135,7 +154,37 @@ function handleSendSmsCode() {
     onSuccess: () => {
       Message.success(t('message.success'))
       // 更新发送时间，启动倒计时
-      updateSendTime()
+      updateSmsSendTime()
+    },
+  })
+}
+
+function handleSendEmailCode() {
+  if (!data.value?.id) {
+    Message.error(t('message.verify-code-error'))
+    return
+  }
+
+  if (!imageCode.value.trim()) {
+    Message.warning(t('binding-phone-form.placeholder.image-verifycode'))
+    return
+  }
+
+  if (!emailLoginForm.value.email) {
+    Message.warning(t('message.please-enter-email'))
+    return
+  }
+
+  sendEmailVerifyCode({
+    email: emailLoginForm.value.email,
+    verify_id: data.value.id,
+    verify_answer: imageCode.value.trim(),
+    smstype: 'work-login',
+  }, {
+    onSuccess: () => {
+      Message.success(t('message.success'))
+      // 更新发送时间，启动倒计时
+      updateEmailSendTime()
     },
   })
 }
@@ -154,6 +203,14 @@ const loginBySms = handleSmsLogin((values: any) => {
     return
   }
   smsLogin(values)
+})
+
+const loginByEmail = handleEmailLogin((values: any) => {
+  if (!privacyAgreed.value) {
+    Message.error(t('form.error.privacy-agreement-required'))
+    return
+  }
+  emailLogin({ ...values, password: md5(values.password) })
 })
 
 // onMounted(async () => {
@@ -176,7 +233,7 @@ const loginBySms = handleSmsLogin((values: any) => {
           <a-form-item field="account" hide-label>
             <a-auto-complete
               v-model="loginForm.account" :data="Array.from(accountHistoryRecord.keys())"
-              :placeholder="t('login.form.userName.placeholder')" allow-clear relative
+              :placeholder="t('login.form.account.placeholder')" allow-clear relative
               @select="(account: string) => loginForm.password = accountHistoryRecord.get(account) || loginForm.password"
             >
               <template #option="{ data: { label } }">
@@ -261,10 +318,10 @@ const loginBySms = handleSmsLogin((values: any) => {
                 <a-button
                   type="text"
                   :loading="false"
-                  :disabled="!(smsLoginForm.phone && imageCode) || isActive"
+                  :disabled="!(smsLoginForm.phone && imageCode) || isSmsActive"
                   @click="handleSendSmsCode"
                 >
-                  {{ isActive ? `${countdown}s` : $t('get-sms-code') }}
+                  {{ isSmsActive ? `${smsCountdown}s` : $t('get-sms-code') }}
                 </a-button>
               </template>
             </a-input>
@@ -280,6 +337,60 @@ const loginBySms = handleSmsLogin((values: any) => {
               </a-link>
             </div>
             <a-button type="primary" html-type="submit" long :loading="smsPending" :disabled="!privacyAgreed">
+              {{ t('login.form.login') }}
+            </a-button>
+          </a-space>
+        </a-form>
+      </a-tab-pane>
+      <a-tab-pane key="email" :title="t('login-by-email')">
+        <a-form :model="emailLoginForm" :rules="emailLoginRules" class="login-form" layout="vertical" @submit="loginByEmail">
+          <a-form-item field="email" hide-label>
+            <a-input
+              v-model="emailLoginForm.email"
+              :placeholder="t('form.placeholder.email')"
+              allow-clear
+            >
+              <template #prefix>
+                <icon-email />
+              </template>
+            </a-input>
+          </a-form-item>
+          <a-form-item>
+            <a-space>
+              <a-input
+                v-model="imageCode"
+                allow-clear
+                :max-length="6"
+                :placeholder="t('binding-phone-form.placeholder.image-verifycode')"
+              />
+              <img v-if="data?.image" :src="data.image" min-w-30 @click="() => refreshImageCode()">
+            </a-space>
+          </a-form-item>
+          <a-form-item field="verifycode" hide-label>
+            <a-input v-model="emailLoginForm.verifycode" allow-clear pr0>
+              <template #suffix>
+                <a-button
+                  type="text"
+                  :loading="false"
+                  :disabled="!(emailLoginForm.email && imageCode) || isEmailActive"
+                  @click="handleSendEmailCode"
+                >
+                  {{ isEmailActive ? `${emailCountdown}s` : $t('get-email-code') }}
+                </a-button>
+              </template>
+            </a-input>
+          </a-form-item>
+          <a-space :size="16" direction="vertical">
+            <div flex="~ justify-between">
+              <a-checkbox v-model="privacyAgreed">
+                {{ $t('i-have-read-and-agree') }}
+              </a-checkbox>
+
+              <a-link href="https://www.voiswork.cn/common/corp-web/privacy">
+                {{ t('privacy-agreement') }}
+              </a-link>
+            </div>
+            <a-button type="primary" html-type="submit" long :loading="emailPending" :disabled="!privacyAgreed">
               {{ t('login.form.login') }}
             </a-button>
           </a-space>

@@ -2,9 +2,9 @@
 import { useFullscreen } from '@vueuse/core'
 import { computed, inject, shallowRef } from 'vue'
 import { useToggleLocales } from '~/composables/useToggleLocales'
-import { isDev } from '~/shared'
 import { useAuthStore } from '~/stores/auth'
 import { version } from '../../../package.json'
+import BindingEmail from '../BindingEmail.vue'
 import BindingPhone from '../BindingPhone.vue'
 import DeleteAccount from '../DeleteAccount.vue'
 
@@ -24,6 +24,7 @@ const selfInfoStore = useSelfInfoStore()
 
 const resetPasswordModalVisible = shallowRef(false)
 const bindingPhoneModalVisible = shallowRef(false)
+const bindingEmailModalVisible = shallowRef(false)
 const deleteAccountModalVisible = shallowRef(false)
 
 function tryLogout() {
@@ -89,15 +90,23 @@ const buildTime = new Date(__BUILD_TIME__).toLocaleString()
               <div class="text-secondary text-sm">
                 {{ t('weila-number') }}: {{ selfInfoStore.selfInfo.user_num }}
               </div>
-              <div class="flex items-center gap-2">
+              <div v-if="selfInfoStore.selfInfo.bind_phone" class="flex items-center gap-2">
                 <a-tag color="blue" mxa>
                   +{{ selfInfoStore.selfInfo.country_code }} {{ selfInfoStore.selfInfo.bind_phone }}
+                </a-tag>
+              </div>
+              <div v-if="selfInfoStore.selfInfo.bind_email" class="flex items-center gap-2">
+                <a-tag color="green" mxa>
+                  {{ selfInfoStore.selfInfo.bind_email }}
                 </a-tag>
               </div>
             </div>
             <div flex="~ col" mt6 gap2>
               <a-button @click="bindingPhoneModalVisible = true">
                 {{ t('binding-phone') }}
+              </a-button>
+              <a-button @click="bindingEmailModalVisible = true">
+                {{ t('binding-email') }}
               </a-button>
               <a-button @click="resetPasswordModalVisible = true">
                 {{ t('button.reset-password') }}
@@ -117,5 +126,6 @@ const buildTime = new Date(__BUILD_TIME__).toLocaleString()
 
   <ResetSelfPasswordModal v-model:open="resetPasswordModalVisible" />
   <BindingPhone v-model:open="bindingPhoneModalVisible" />
+  <BindingEmail v-model:open="bindingEmailModalVisible" />
   <DeleteAccount v-model:open="deleteAccountModalVisible" />
 </template>

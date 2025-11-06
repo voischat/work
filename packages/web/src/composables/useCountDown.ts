@@ -1,6 +1,6 @@
 import { timestamp } from '~/shared/states'
 
-export function useSmsCountdown(storageKey: string) {
+export function useCountDown(storageKey: string) {
   const lastSendTime = useLocalStorage(storageKey, -1)
 
   const countdown = computed(() => {

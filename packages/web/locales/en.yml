@@ -170,6 +170,7 @@ footer:
 form:
   error:
     account-nonempty: The account cannot be empty.
+    email-nonempty: The email cannot be empty.
     name-nonempty: The name cannot be empty.
     new-password-nonempty: The new password cannot be empty.
     old-password-nonempty: The old password cannot be empty.
@@ -178,6 +179,8 @@ form:
     phone-minLength: The phone number must be at least 11 digits.
     phone-nonempty: The phone number cannot be empty.
     verify-code-nonempty: The verification code cannot be empty.
+  placeholder:
+    email: Please enter your email address
 form-error:
   password-required: The password cannot be empty.
   phone-max-length: The phone number length cannot exceed 11 digits.
@@ -188,6 +191,7 @@ form-placeholder:
   please-enter-new-password: Please set a new password.
 gender: Gender
 get-sms-code: Get SMS verification code.
+get-email-code: Get Code
 group:
   name: Group
   create: Create Group
@@ -282,11 +286,14 @@ login:
     userName:
       errMsg: username is not filled in
       placeholder: username
+    account:
+      placeholder: Account/Phone/Email
   type:
     phone: phone
     username: account
 login-by-password: Account
 login-by-phone: Phone
+login-by-email: Email
 login.banner.slogan1: Out-of-the-box high-quality template
 login.banner.slogan2: Built-in solutions to common problems
 login.banner.slogan3: Access visualization enhancement tool AUX
@@ -342,6 +349,7 @@ message:
   get-phone-error: Failed to obtain phone number, please try again.
   not-support: Not Supported Message
   please-enter-phone-number: Please enter your phone number.
+  please-enter-email: Please enter your email address.
   revoke: The message has been recalled.
   success: Success
   verify-code-error: Abnormal graphic verification code
@@ -406,7 +414,7 @@ register:
   cancel: Cancel
   confirm: Confirm
   form:
-    getSMS: Get SMS
+    getSMS: Get Code
     imgVerifyCode:
       errMsg: image verify code is needed
       placeholder: image verify code
@@ -538,3 +546,25 @@ workbench:
   user-track: User trajectory
 web-guide: Web Guide
 app-guide: App Guide
+binding-email: Bind Email
+binding-email-form:
+  title: Bind Email
+  err-msg:
+    email-required: Email cannot be empty
+    email-format: Email format is incorrect
+    verifycode-required: Verification code cannot be empty
+    verifycode-min: Verification code must be at least 4 digits
+    verifycode-max: Verification code can be up to 6 digits
+  placeholder:
+    email: Please enter email address
+    verifycode: Email verification code
+binding-email-hint: An email address can only be linked to one account. After changing, you can use the new email to log into this account. For email addresses that are already linked to other accounts, this operation will unbind them from the original account.
+unbinding-email: Unbind Email
+unbinding-email-form:
+  title: Unbind Email
+  err-msg:
+    email-required: Email cannot be empty
+    verifycode-required: Verification code cannot be empty
+  placeholder:
+    verifycode: Email verification code
+unbinding-email-hint: After unbinding the email, you will not be able to use this email to log into this account.
