@@ -178,7 +178,8 @@ declare global {
   const useConfirmDialog: typeof import('@vueuse/core')['useConfirmDialog']
   const useContactStore: typeof import('./stores/contact')['useContactStore']
   const useCorpStore: typeof import('./stores/corp')['useCorpStore']
-  const useCountdown: typeof import('@vueuse/core')['useCountdown']
+  const useCountDown: typeof import('./composables/useCountDown')['useCountDown']
+  const useCountDown: typeof import('@vueuse/core')['useCountDown']
   const useCounter: typeof import('@vueuse/core')['useCounter']
   const useCssModule: typeof import('vue')['useCssModule']
   const useCssVar: typeof import('@vueuse/core')['useCssVar']
@@ -287,7 +288,6 @@ declare global {
   const useSessionStorage: typeof import('@vueuse/core')['useSessionStorage']
   const useShare: typeof import('@vueuse/core')['useShare']
   const useSlots: typeof import('vue')['useSlots']
-  const useSmsCountdown: typeof import('./composables/useSmsCountdown')['useSmsCountdown']
   const useSorted: typeof import('@vueuse/core')['useSorted']
   const useSpeakerIcon: typeof import('./composables/useSpeakerIcon')['useSpeakerIcon']
   const useSpeechRecognition: typeof import('@vueuse/core')['useSpeechRecognition']
@@ -538,7 +538,8 @@ declare module 'vue' {
     readonly useCloned: UnwrapRef<typeof import('@vueuse/core')['useCloned']>
     readonly useColorMode: UnwrapRef<typeof import('@vueuse/core')['useColorMode']>
     readonly useConfirmDialog: UnwrapRef<typeof import('@vueuse/core')['useConfirmDialog']>
-    readonly useCountdown: UnwrapRef<typeof import('@vueuse/core')['useCountdown']>
+    readonly useCountDown: UnwrapRef<typeof import('./composables/useCountDown')['useCountDown']>
+    readonly useCountDown: UnwrapRef<typeof import('@vueuse/core')['useCountDown']>
     readonly useCounter: UnwrapRef<typeof import('@vueuse/core')['useCounter']>
     readonly useCssModule: UnwrapRef<typeof import('vue')['useCssModule']>
     readonly useCssVar: UnwrapRef<typeof import('@vueuse/core')['useCssVar']>
@@ -645,7 +646,6 @@ declare module 'vue' {
     readonly useSessionStorage: UnwrapRef<typeof import('@vueuse/core')['useSessionStorage']>
     readonly useShare: UnwrapRef<typeof import('@vueuse/core')['useShare']>
     readonly useSlots: UnwrapRef<typeof import('vue')['useSlots']>
-    readonly useSmsCountdown: UnwrapRef<typeof import('./composables/useSmsCountdown')['useSmsCountdown']>
     readonly useSorted: UnwrapRef<typeof import('@vueuse/core')['useSorted']>
     readonly useSpeakerIcon: UnwrapRef<typeof import('./composables/useSpeakerIcon')['useSpeakerIcon']>
     readonly useSpeechRecognition: UnwrapRef<typeof import('@vueuse/core')['useSpeechRecognition']>

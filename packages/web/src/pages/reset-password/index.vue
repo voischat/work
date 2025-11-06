@@ -5,6 +5,7 @@ import md5 from 'md5'
 import * as v from 'valibot'
 import { shallowRef } from 'vue'
 import { useForm } from 'zod-arco-rules/valibot'
+import { useCountDown } from '~/composables/useCountDown'
 
 definePage({
   meta: {
@@ -16,6 +17,8 @@ definePage({
 const { t } = useI18n()
 const router = useRouter()
 
+const activeTab = shallowRef<'phone' | 'email'>('phone')
+
 const { form, rules, handleSubmit } = useForm(v.object({
   phone: v.pipe(
     v.string(() => t('form-error.phone-required')),
@@ -26,17 +29,26 @@ const { form, rules, handleSubmit } = useForm(v.object({
   verifycode: v.pipe(v.string(() => t('form-error.verifycode-required'))),
   password: v.string(() => t('form-error.password-required')),
 }))
+
+const { form: emailForm, rules: emailRules, handleSubmit: handleEmailSubmit } = useForm(v.object({
+  email: v.pipe(
+    v.string(() => t('form.error.email-nonempty')),
+    v.email(() => t('form.error.email-format')),
+  ),
+  verifycode: v.pipe(v.string(() => t('form-error.verifycode-required'))),
+  password: v.string(() => t('form-error.password-required')),
+}))
 const { data, refetch: refreshImageCode } = useWeilaFetch<{ id: string, image: string }>('common/get-image-verifycode?width=160&height=80')
 
 const { mutate: sendSmsVerifyCode } = useWeilaMutation<never, SendVerifySmsBody>('common/send-sms-verifycode')
+const { mutateAsync: sendEmailVerifyCode } = useWeilaMutation<never, {
+  email: string
+  verify_id: string
+  verify_answer: string
+  smstype: string
+}>('common/send-email-verifycode')
 
-const imageCodeModalVisible = shallowRef(false)
 const imageCode = shallowRef('')
-
-let currentPhoneInfo: {
-  phone: string
-  countrycode: string
-} | null = null
 
 const { mutate: resetPassword, isPending: isSubmiting } = useWeilaMutation('/corp/auth/reset-password', {
   onSuccess() {
@@ -44,6 +56,16 @@ const { mutate: resetPassword, isPending: isSubmiting } = useWeilaMutation('/cor
     router.push('/login')
   },
 })
+
+const { mutate: resetPasswordByEmail, isPending: isEmailSubmiting } = useWeilaMutation('/corp/auth/reset-password-by-email', {
+  onSuccess() {
+    Message.success(t('message.success'))
+    router.push('/login')
+  },
+})
+
+const { countdown, isCounting: isActive, updateSendTime } = useCountDown('sms-reset-password')
+const { countdown: emailCountdown, isCounting: isEmailActive, updateSendTime: updateEmailSendTime } = useCountDown('email-reset-password')
 
 const submit = handleSubmit((values: any) => {
   resetPassword({
@@ -53,23 +75,6 @@ const submit = handleSubmit((values: any) => {
 })
 
 function handleSendSmsCode() {
-  if (!form.value.phone) {
-    Message.warning(t('message.please-enter-phone-number'))
-    return
-  }
-
-  currentPhoneInfo = {
-    phone: form.value.phone,
-    countrycode: form.value.country_code || '86',
-  }
-
-  if (data.value) {
-    imageCodeModalVisible.value = true
-    imageCode.value = ''
-  }
-}
-
-function handleImageCodeConfirm() {
   if (!data.value?.id) {
     Message.error(t('message.verify-code-error'))
     return
@@ -80,29 +85,62 @@ function handleImageCodeConfirm() {
     return
   }
 
-  if (!currentPhoneInfo) {
+  if (!form.value.phone) {
     Message.error(t('message.get-phone-error'))
     return
   }
 
   sendSmsVerifyCode({
-    phone: currentPhoneInfo.phone,
-    countrycode: currentPhoneInfo.countrycode,
+    phone: form.value.phone,
+    countrycode: form.value.country_code || '86',
     verify_id: data.value.id,
     verify_answer: imageCode.value.trim(),
     smstype: 'work-reset-password',
   }, {
     onSuccess: () => {
-      imageCodeModalVisible.value = false
-      imageCode.value = ''
       Message.success(t('message.success'))
+      // 更新发送时间，启动倒计时
+      updateSendTime()
     },
   })
 }
 
-function handleImageCodeCancel() {
-  imageCodeModalVisible.value = false
-  imageCode.value = ''
+const emailSubmit = handleEmailSubmit((values: any) => {
+  resetPasswordByEmail({
+    email: values.email,
+    verifycode: values.verifycode,
+    password: md5(values.password),
+  })
+})
+
+function handleSendEmailCode() {
+  if (!data.value?.id) {
+    Message.error(t('message.verify-code-error'))
+    return
+  }
+
+  if (!imageCode.value.trim()) {
+    Message.warning(t('binding-phone-form.placeholder.image-verifycode'))
+    return
+  }
+
+  if (!emailForm.value.email) {
+    Message.warning(t('message.please-enter-email'))
+    return
+  }
+
+  sendEmailVerifyCode({
+    email: emailForm.value.email,
+    verify_id: data.value.id,
+    verify_answer: imageCode.value.trim(),
+    smstype: 'work-reset-password',
+  }, {
+    onSuccess: () => {
+      Message.success(t('message.success'))
+      // 更新发送时间，启动倒计时
+      updateEmailSendTime()
+    },
+  })
 }
 </script>
 
@@ -112,85 +150,136 @@ function handleImageCodeCancel() {
       {{ t('reset-password-form.title') }}
     </div>
 
-    <a-form :model="form" :rules layout="vertical" @submit="submit">
-      <a-form-item field="phone" hide-label>
-        <a-input-group>
-          <a-select v-model="form.country_code" style="width: 90px" :placeholder="t('binding-phone-form.placeholder.country-code')">
-            <a-option value="86" label="+86" />
-            <a-option value="852" label="+852" />
-            <a-option value="853" label="+853" />
-            <a-option value="886" label="+886" />
-          </a-select>
-          <a-input
-            v-model="form.phone"
-            :placeholder="t('phone')"
-            allow-clear
-          />
-        </a-input-group>
-      </a-form-item>
+    <a-tabs v-model:active-key="activeTab">
+      <a-tab-pane key="phone" :title="t('login-by-phone')">
+        <a-form :model="form" :rules="rules" layout="vertical" @submit="submit">
+          <a-form-item field="phone" hide-label>
+            <a-input-group>
+              <a-select v-model="form.country_code" style="width: 90px" :placeholder="t('binding-phone-form.placeholder.country-code')">
+                <a-option value="86" label="+86" />
+                <a-option value="852" label="+852" />
+                <a-option value="853" label="+853" />
+                <a-option value="886" label="+886" />
+              </a-select>
+              <a-input
+                v-model="form.phone"
+                :placeholder="t('phone')"
+                allow-clear
+              />
+            </a-input-group>
+          </a-form-item>
 
-      <a-form-item field="verifycode" hide-label>
-        <a-input
-          v-model="form.verifycode"
-          :placeholder="$t('verify-code')"
-          allow-clear
-        >
-          <template #suffix>
-            <a-button
-              type="text"
-              :loading="false"
-              :disabled="!form.phone"
-              @click="handleSendSmsCode"
+          <a-form-item>
+            <a-space>
+              <a-input
+                v-model="imageCode"
+                allow-clear
+                :max-length="6"
+                :placeholder="t('binding-phone-form.placeholder.image-verifycode')"
+              />
+              <img v-if="data?.image" :src="data.image" min-w-30 @click="() => refreshImageCode()">
+            </a-space>
+          </a-form-item>
+
+          <a-form-item field="verifycode" hide-label>
+            <a-input
+              v-model="form.verifycode"
+              :placeholder="$t('verify-code')"
+              allow-clear
+              pr0
             >
-              {{ $t('get-sms-code') }}
-            </a-button>
-          </template>
-        </a-input>
-      </a-form-item>
+              <template #suffix>
+                <a-button
+                  type="text"
+                  :loading="false"
+                  :disabled="!(form.phone && imageCode) || isActive"
+                  @click="handleSendSmsCode"
+                >
+                  {{ isActive ? `${countdown}s` : $t('get-sms-code') }}
+                </a-button>
+              </template>
+            </a-input>
+          </a-form-item>
 
-      <a-form-item field="password" hide-label>
-        <a-input-password
-          v-model="form.password"
-          :placeholder="t('form-placeholder.please-enter-new-password')"
-          allow-clear
-        />
-      </a-form-item>
+          <a-form-item field="password" hide-label>
+            <a-input-password
+              v-model="form.password"
+              :placeholder="t('form-placeholder.please-enter-new-password')"
+              allow-clear
+            />
+          </a-form-item>
 
-      <a-button type="primary" html-type="submit" :loading="isSubmiting" long>
-        {{ t('button.submit') }}
-      </a-button>
-      <a-button type="text" long mt-4 @click="() => router.go(-1)">
-        {{ t('button.login') }}
-      </a-button>
-    </a-form>
-
-    <a-modal
-      v-model:visible="imageCodeModalVisible"
-      :title="t('img-verify-code')"
-      :footer="false"
-      @cancel="handleImageCodeCancel"
-    >
-      <div space-y-8>
-        <div flex gap2>
-          <a-input
-            v-model="imageCode"
-            :placeholder="t('binding-phone-form.placeholder.image-verifycode')"
-            allow-clear
-            :max-length="6"
-          />
-          <img v-if="data?.image" :src="data.image" @click="() => refreshImageCode()">
-        </div>
-        <div flex gap4>
-          <div flex-1 />
-          <a-button @click="handleImageCodeCancel">
-            {{ $t('button.cancel') }}
+          <a-button type="primary" html-type="submit" :loading="isSubmiting" long>
+            {{ t('button.submit') }}
           </a-button>
-          <a-button type="primary" @click="handleImageCodeConfirm">
-            {{ $t('button.ok') }}
+          <a-button type="text" long mt-4 @click="() => router.go(-1)">
+            {{ t('button.login') }}
           </a-button>
-        </div>
-      </div>
-    </a-modal>
+        </a-form>
+      </a-tab-pane>
+      <a-tab-pane key="email" :title="t('login-by-email')">
+        <a-form :model="emailForm" :rules="emailRules" layout="vertical" @submit="emailSubmit">
+          <a-form-item field="email" hide-label>
+            <a-input
+              v-model="emailForm.email"
+              :placeholder="t('form.placeholder.email')"
+              allow-clear
+            >
+              <template #prefix>
+                <icon-email />
+              </template>
+            </a-input>
+          </a-form-item>
+
+          <a-form-item>
+            <a-space>
+              <a-input
+                v-model="imageCode"
+                allow-clear
+                :max-length="6"
+                :placeholder="t('binding-phone-form.placeholder.image-verifycode')"
+              />
+              <img v-if="data?.image" :src="data.image" min-w-30 @click="() => refreshImageCode()">
+            </a-space>
+          </a-form-item>
+
+          <a-form-item field="verifycode" hide-label>
+            <a-input
+              v-model="emailForm.verifycode"
+              :placeholder="$t('verify-code')"
+              allow-clear
+              pr0
+            >
+              <template #suffix>
+                <a-button
+                  type="text"
+                  :loading="false"
+                  :disabled="!(emailForm.email && imageCode) || isEmailActive"
+                  @click="handleSendEmailCode"
+                >
+                  {{ isEmailActive ? `${emailCountdown}s` : $t('get-email-code') }}
+                </a-button>
+              </template>
+            </a-input>
+          </a-form-item>
+
+          <a-form-item field="password" hide-label>
+            <a-input-password
+              v-model="emailForm.password"
+              :placeholder="t('form-placeholder.please-enter-new-password')"
+              allow-clear
+            />
+          </a-form-item>
+
+          <a-button type="primary" html-type="submit" :loading="isEmailSubmiting" long>
+            {{ t('button.submit') }}
+          </a-button>
+          <a-button type="text" long mt-4 @click="() => router.go(-1)">
+            {{ t('button.login') }}
+          </a-button>
+        </a-form>
+      </a-tab-pane>
+    </a-tabs>
   </div>
 </template>
 

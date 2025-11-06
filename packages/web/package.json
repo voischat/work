@@ -40,6 +40,7 @@
     "@unocss/reset": "catalog:",
     "@valibot/i18n": "catalog:",
     "@videojs-player/vue": "catalog:",
+    "@vuemap/unplugin-resolver": "catalog:",
     "@vuemap/vue-amap": "catalog:",
     "@vuemap/vue-amap-extra": "catalog:",
     "@vuemap/vue-amap-loca": "catalog:",

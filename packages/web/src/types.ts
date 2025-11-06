@@ -62,4 +62,5 @@ export interface SelfInfo {
   group_count: number
   created: number
   bind_phone: number
+  bind_email?: string
 }
