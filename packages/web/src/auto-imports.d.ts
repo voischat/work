@@ -179,7 +179,7 @@ declare global {
   const useContactStore: typeof import('./stores/contact')['useContactStore']
   const useCorpStore: typeof import('./stores/corp')['useCorpStore']
   const useCountDown: typeof import('./composables/useCountDown')['useCountDown']
-  const useCountDown: typeof import('@vueuse/core')['useCountDown']
+  const useCountdown: typeof import('@vueuse/core')['useCountdown']
   const useCounter: typeof import('@vueuse/core')['useCounter']
   const useCssModule: typeof import('vue')['useCssModule']
   const useCssVar: typeof import('@vueuse/core')['useCssVar']
@@ -271,6 +271,7 @@ declare global {
   const usePreferredReducedTransparency: typeof import('@vueuse/core')['usePreferredReducedTransparency']
   const usePrevious: typeof import('@vueuse/core')['usePrevious']
   const useRafFn: typeof import('@vueuse/core')['useRafFn']
+  const useRealtimeGoogleMapInteraction: typeof import('./composables/useRealtimeGoogleMapInteraction')['useRealtimeGoogleMapInteraction']
   const useRealtimeLocation: typeof import('./composables/useRealtimeLocation')['useRealtimeLocation']
   const useRealtimeMapInteraction: typeof import('./composables/useRealtimeMapInteraction')['useRealtimeMapInteraction']
   const useRefHistory: typeof import('@vueuse/core')['useRefHistory']
@@ -365,6 +366,9 @@ declare global {
   // @ts-ignore
   export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
+  // @ts-ignore
+  export type { GoogleRealtimeMarker } from './composables/useRealtimeGoogleMapInteraction'
+  import('./composables/useRealtimeGoogleMapInteraction')
   // @ts-ignore
   export type { AuthModel, VipInfo, VipSupport } from './stores/auth'
   import('./stores/auth')
@@ -539,7 +543,7 @@ declare module 'vue' {
     readonly useColorMode: UnwrapRef<typeof import('@vueuse/core')['useColorMode']>
     readonly useConfirmDialog: UnwrapRef<typeof import('@vueuse/core')['useConfirmDialog']>
     readonly useCountDown: UnwrapRef<typeof import('./composables/useCountDown')['useCountDown']>
-    readonly useCountDown: UnwrapRef<typeof import('@vueuse/core')['useCountDown']>
+    readonly useCountdown: UnwrapRef<typeof import('@vueuse/core')['useCountdown']>
     readonly useCounter: UnwrapRef<typeof import('@vueuse/core')['useCounter']>
     readonly useCssModule: UnwrapRef<typeof import('vue')['useCssModule']>
     readonly useCssVar: UnwrapRef<typeof import('@vueuse/core')['useCssVar']>
@@ -629,6 +633,7 @@ declare module 'vue' {
     readonly usePreferredReducedTransparency: UnwrapRef<typeof import('@vueuse/core')['usePreferredReducedTransparency']>
     readonly usePrevious: UnwrapRef<typeof import('@vueuse/core')['usePrevious']>
     readonly useRafFn: UnwrapRef<typeof import('@vueuse/core')['useRafFn']>
+    readonly useRealtimeGoogleMapInteraction: UnwrapRef<typeof import('./composables/useRealtimeGoogleMapInteraction')['useRealtimeGoogleMapInteraction']>
     readonly useRealtimeLocation: UnwrapRef<typeof import('./composables/useRealtimeLocation')['useRealtimeLocation']>
     readonly useRealtimeMapInteraction: UnwrapRef<typeof import('./composables/useRealtimeMapInteraction')['useRealtimeMapInteraction']>
     readonly useRefHistory: UnwrapRef<typeof import('@vueuse/core')['useRefHistory']>
