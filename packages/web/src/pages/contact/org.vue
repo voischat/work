@@ -75,6 +75,6 @@ const selfInfoStore = useSelfInfoStore()
         </RouterLink>
       </div>
     </div>
-    <PayPal />
+    <!-- <PayPal /> -->
   </div>
 </template>
