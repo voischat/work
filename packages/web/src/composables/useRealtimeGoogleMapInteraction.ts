@@ -2,6 +2,7 @@ import type { RealtimeLocationModel } from '~/api/realtime-location'
 import type { RegeoModel } from '~/api/track'
 import { nanoid } from 'nanoid'
 import { nextTick, shallowRef, watch } from 'vue'
+import { fitMapBounds, focusToMarker } from '~/utils/map'
 
 export interface GoogleRealtimeMarker {
   id: string
@@ -44,7 +45,7 @@ export function useRealtimeGoogleMapInteraction(
   function onLocationsChange(val: RealtimeLocationModel[] | undefined) {
     const newMarkers = genMarkers(val)
     markers.value = newMarkers
-    fitMapBounds(newMarkers)
+    fitMapBounds(newMarkers, center, zoom, map.value)
   }
 
   async function onMarkerSelected(marker: GoogleRealtimeMarker | null) {
@@ -53,7 +54,8 @@ export function useRealtimeGoogleMapInteraction(
       return
     }
 
-    focusToMarker(marker)
+    drawerVisible.value = false
+    focusToMarker(marker, center, zoom)
     const regeo = await fetchRegeo(marker)
     regeoInfo.value = regeo
     renderInfoWindow(marker, regeo)
@@ -136,33 +138,6 @@ export function useRealtimeGoogleMapInteraction(
       console.error('Error generating markers:', error)
       return []
     }
-  }
-
-  function fitMapBounds(markers: GoogleRealtimeMarker[]) {
-    if (!markers.length) {
-      return
-    }
-
-    // For Google Maps, we'll adjust the center and zoom instead of using bounds
-    // This is a simplified approach - in a real implementation you might want to
-    // calculate the appropriate center and zoom level based on all markers
-    if (markers.length === 1) {
-      center.value = markers[0].position
-      zoom.value = 15
-    }
-    else {
-      // Calculate center point for multiple markers
-      const avgLat = markers.reduce((sum, marker) => sum + marker.position.lat, 0) / markers.length
-      const avgLng = markers.reduce((sum, marker) => sum + marker.position.lng, 0) / markers.length
-      center.value = { lat: avgLat, lng: avgLng }
-      zoom.value = 12
-    }
-  }
-
-  function focusToMarker(marker: GoogleRealtimeMarker) {
-    drawerVisible.value = false
-    center.value = marker.position
-    zoom.value = 15
   }
 
   function renderInfoWindow(marker: GoogleRealtimeMarker, info?: RegeoModel) {
