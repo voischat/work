@@ -25,6 +25,7 @@
     "@antfu/ni": "catalog:",
     "@intlify/eslint-plugin-vue-i18n": "catalog:",
     "@tanstack/eslint-plugin-query": "catalog:",
+    "@types/google.maps": "catalog:",
     "@unocss/eslint-plugin": "catalog:",
     "eslint": "catalog:",
     "eslint-factory": "catalog:",

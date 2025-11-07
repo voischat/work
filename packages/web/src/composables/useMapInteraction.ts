@@ -1,6 +1,7 @@
 import type { RegeoModel, UserTrackModel } from '~/api/track'
 import { nanoid } from 'nanoid'
 import { nextTick, shallowRef, watch } from 'vue'
+import { fitMapBounds, focusToMarker } from '~/utils/map'
 
 interface GoogleMarker {
   id: string
@@ -42,7 +43,7 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
     const newMarkers = genMarkers(val)
     markers.value = newMarkers
     updatePolylinePath(val)
-    fitMapBounds(newMarkers)
+    fitMapBounds(newMarkers, center, zoom, map.value)
   }
 
   async function onMarkerSelected(marker: GoogleMarker | null) {
@@ -51,7 +52,8 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
       return
     }
 
-    focusToMarker(marker)
+    drawerVisible.value = false
+    focusToMarker(marker, center, zoom)
     const regeo = await fetchRegeo(marker)
     regeoInfo.value = regeo
     renderInfoWindow(marker, regeo)
@@ -99,33 +101,6 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
       lat: track.lat,
       lng: track.lng,
     }))
-  }
-
-  function fitMapBounds(markers: GoogleMarker[]) {
-    if (!markers.length) {
-      return
-    }
-
-    // For Google Maps, we'll adjust the center and zoom instead of using bounds
-    // This is a simplified approach - in a real implementation you might want to
-    // calculate the appropriate center and zoom level based on all markers
-    if (markers.length === 1) {
-      center.value = markers[0].position
-      zoom.value = 15
-    }
-    else {
-      // Calculate center point for multiple markers
-      const avgLat = markers.reduce((sum, marker) => sum + marker.position.lat, 0) / markers.length
-      const avgLng = markers.reduce((sum, marker) => sum + marker.position.lng, 0) / markers.length
-      center.value = { lat: avgLat, lng: avgLng }
-      zoom.value = 12
-    }
-  }
-
-  function focusToMarker(marker: GoogleMarker) {
-    drawerVisible.value = false
-    center.value = marker.position
-    zoom.value = 15
   }
 
   function renderInfoWindow(marker: GoogleMarker, info?: RegeoModel) {
