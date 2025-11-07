@@ -49,7 +49,6 @@ declare global {
   const emojify: typeof import('./utils/emoji')['emojify']
   const extendRef: typeof import('@vueuse/core')['extendRef']
   const fitMapBounds: typeof import('./utils/map')['fitMapBounds']
-  const focusToMarker: typeof import('./utils/map')['focusToMarker']
   const getActivePinia: typeof import('pinia')['getActivePinia']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
@@ -418,7 +417,6 @@ declare module 'vue' {
     readonly emojify: UnwrapRef<typeof import('./utils/emoji')['emojify']>
     readonly extendRef: UnwrapRef<typeof import('@vueuse/core')['extendRef']>
     readonly fitMapBounds: UnwrapRef<typeof import('./utils/map')['fitMapBounds']>
-    readonly focusToMarker: UnwrapRef<typeof import('./utils/map')['focusToMarker']>
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>

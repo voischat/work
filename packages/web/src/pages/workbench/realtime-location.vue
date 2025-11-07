@@ -16,6 +16,14 @@ definePage({
 
 const key = import.meta.env.VITE_GOOGLE_MAP_KEY
 
+const mapRef = shallowRef<InstanceType<typeof GoogleMap> | null>(null)
+
+watch(() => mapRef.value?.ready, () => {
+  const map = mapRef.value?.map
+  if (map)
+    onMapLoaded(map)
+}, { immediate: true })
+
 setOptions({
   key,
   v: 'weekly',
@@ -74,6 +82,10 @@ watch([selectedType, selectedId], async ([type, id]) => {
     await preloadMembers(type, id)
   }
 })
+
+function onMapLoaded(value: google.maps.Map) {
+  map.value = value
+}
 </script>
 
 <template>
@@ -100,13 +112,13 @@ watch([selectedType, selectedId], async ([type, id]) => {
 
   <div h-full w-full>
     <GoogleMap
+      ref="mapRef"
       :api-key="key"
       map-id="realtime-location"
       relative
       :center="center"
       :zoom="zoom"
       style="width: 100%; height: 100%"
-      @load="(m) => map = m"
     >
       <AdvancedMarker
         v-for="marker in markers"
@@ -125,6 +137,7 @@ watch([selectedType, selectedId], async ([type, id]) => {
         :options="{
           position: infoWindowPosition,
           content: infoWindowContent,
+          // @ts-expect-error type error
           pixelOffset: {
             height: -50,
           },

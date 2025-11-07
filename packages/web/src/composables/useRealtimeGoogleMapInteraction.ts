@@ -2,7 +2,7 @@ import type { RealtimeLocationModel } from '~/api/realtime-location'
 import type { RegeoModel } from '~/api/track'
 import { nanoid } from 'nanoid'
 import { nextTick, shallowRef, watch } from 'vue'
-import { fitMapBounds, focusToMarker } from '~/utils/map'
+import { fitMapBounds } from '~/utils/map'
 
 export interface GoogleRealtimeMarker {
   id: string
@@ -45,7 +45,8 @@ export function useRealtimeGoogleMapInteraction(
   function onLocationsChange(val: RealtimeLocationModel[] | undefined) {
     const newMarkers = genMarkers(val)
     markers.value = newMarkers
-    fitMapBounds(newMarkers, center, zoom, map.value)
+    if (map.value)
+      fitMapBounds(newMarkers, map.value)
   }
 
   async function onMarkerSelected(marker: GoogleRealtimeMarker | null) {
@@ -55,7 +56,8 @@ export function useRealtimeGoogleMapInteraction(
     }
 
     drawerVisible.value = false
-    focusToMarker(marker, center, zoom)
+    center.value = marker.position
+    zoom.value = 15
     const regeo = await fetchRegeo(marker)
     regeoInfo.value = regeo
     renderInfoWindow(marker, regeo)

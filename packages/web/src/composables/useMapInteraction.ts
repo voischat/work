@@ -1,7 +1,7 @@
 import type { RegeoModel, UserTrackModel } from '~/api/track'
 import { nanoid } from 'nanoid'
 import { nextTick, shallowRef, watch } from 'vue'
-import { fitMapBounds, focusToMarker } from '~/utils/map'
+import { fitMapBounds } from '~/utils/map'
 
 interface GoogleMarker {
   id: string
@@ -43,7 +43,7 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
     const newMarkers = genMarkers(val)
     markers.value = newMarkers
     updatePolylinePath(val)
-    fitMapBounds(newMarkers, center, zoom, map.value)
+    fitMapBounds(newMarkers, map.value)
   }
 
   async function onMarkerSelected(marker: GoogleMarker | null) {
@@ -53,7 +53,8 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
     }
 
     drawerVisible.value = false
-    focusToMarker(marker, center, zoom)
+    center.value = marker.position
+    zoom.value = 15
     const regeo = await fetchRegeo(marker)
     regeoInfo.value = regeo
     renderInfoWindow(marker, regeo)
