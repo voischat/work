@@ -1,7 +1,7 @@
 {
   "name": "weila-crop-mgr",
   "version": "1.0.0",
-  "packageManager": "pnpm@10.18.3",
+  "packageManager": "pnpm@10.20.0",
   "description": "",
   "author": "",
   "license": "ISC",
