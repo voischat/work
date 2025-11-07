@@ -1,7 +1,7 @@
 {
   "name": "weila-work-web-intl",
   "type": "module",
-  "version": "2.5.4-intl",
+  "version": "2.6.0-intl.1",
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "description": "Arco Design Pro for Vue",
