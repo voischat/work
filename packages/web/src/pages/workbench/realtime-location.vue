@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ElAmap } from '@vuemap/vue-amap'
+import { importLibrary, setOptions } from '@googlemaps/js-api-loader'
 import { shallowRef } from 'vue'
-
+import { AdvancedMarker, GoogleMap, InfoWindow } from 'vue3-google-map'
 import { useDeptList } from '~/composables/useDeptList'
 import { useGroupList } from '~/composables/useGroupList'
+import { useRealtimeGoogleMapInteraction } from '~/composables/useRealtimeGoogleMapInteraction'
 import { useRealtimeLocation } from '~/composables/useRealtimeLocation'
-import { useRealtimeMapInteraction } from '~/composables/useRealtimeMapInteraction'
 import { useUserInfoStore } from '~/composables/useUserInfoStore'
 
 definePage({
@@ -13,6 +13,18 @@ definePage({
     name: 'submenu.realtime-location',
   },
 })
+
+const key = import.meta.env.VITE_GOOGLE_MAP_KEY
+
+setOptions({
+  key,
+  v: 'weekly',
+})
+
+Promise.all([
+  importLibrary('maps'),
+  importLibrary('marker'), // Required for AdvancedMarker component
+])
 
 const { t } = useI18n()
 
@@ -30,7 +42,10 @@ const {
   map,
   markers,
   selectedMarker,
-} = useRealtimeMapInteraction(locations)
+  isInfoWindowOpen,
+  infoWindowPosition,
+  infoWindowContent,
+} = useRealtimeGoogleMapInteraction(locations)
 
 const currentOptions = computed(() => {
   return selectedType.value === 'dept' ? deptOptions.value : groupOptions.value
@@ -43,11 +58,11 @@ const sortedMarkersWithUserInfo = computed(() => {
 
   return markers.value
     .map((marker) => {
-      const userInfo = getUserInfo(marker.getExtData().uid)
+      const userInfo = getUserInfo(marker.uid)
       return {
         marker,
         userInfo,
-        userName: userInfo?.name || `用户${marker.getExtData().uid}`,
+        userName: userInfo?.name || `用户${marker.uid}`,
       }
     })
     .sort((a, b) => a.userName.localeCompare(b.userName))
@@ -84,8 +99,37 @@ watch([selectedType, selectedId], async ([type, id]) => {
   </div>
 
   <div h-full w-full>
-    <ElAmap :center="center" :zoom="zoom" relative h-full w-full @init="(m) => map = m">
-      <!-- 标记点会自动通过 composable 渲染 -->
+    <GoogleMap
+      :api-key="key"
+      map-id="realtime-location"
+      relative
+      :center="center"
+      :zoom="zoom"
+      style="width: 100%; height: 100%"
+      @load="(m) => map = m"
+    >
+      <AdvancedMarker
+        v-for="marker in markers"
+        :key="marker.id"
+        :options="{
+          position: marker.position,
+          title: getUserInfo(marker.uid)?.name || `用户${marker.uid}`,
+          content: marker.content,
+        }"
+        @click="() => selectedMarker = marker"
+      />
+
+      <InfoWindow
+        v-if="infoWindowPosition && selectedMarker"
+        v-model="isInfoWindowOpen"
+        :options="{
+          position: infoWindowPosition,
+          content: infoWindowContent,
+          pixelOffset: {
+            height: -50,
+          },
+        }"
+      />
 
       <a-button
         v-if="markers?.length" type="primary" shape="circle" class="absolute right-4 top-4"
@@ -95,7 +139,7 @@ watch([selectedType, selectedId], async ([type, id]) => {
           <icon-menu />
         </template>
       </a-button>
-    </ElAmap>
+    </GoogleMap>
 
     <a-drawer v-model:visible="drawerVisible" :width="720" unmount-on-close :footer="false">
       <template #title>
@@ -103,7 +147,7 @@ watch([selectedType, selectedId], async ([type, id]) => {
       </template>
       <a-empty v-if="!sortedMarkersWithUserInfo?.length" />
       <a-list v-else item-layout="horizontal">
-        <a-list-item v-for="item in sortedMarkersWithUserInfo" :key="item.marker.getExtData().id">
+        <a-list-item v-for="item in sortedMarkersWithUserInfo" :key="item.marker.id">
           <a-list-item-meta>
             <template #avatar>
               <a-avatar :image-url="item.userInfo?.avatar?.replace(/^https?:/, '')">
@@ -119,7 +163,7 @@ watch([selectedType, selectedId], async ([type, id]) => {
                 :data="[
                   {
                     label: t('user-id'),
-                    value: item.marker.getExtData().uid,
+                    value: item.marker.uid,
                   },
                   {
                     label: t('phone'),
@@ -131,19 +175,19 @@ watch([selectedType, selectedId], async ([type, id]) => {
                   },
                   {
                     label: t('time'),
-                    value: new Date(item.marker.getExtData().ts * 1000).toLocaleString(),
+                    value: new Date(item.marker.ts * 1000).toLocaleString(),
                   },
                   {
                     label: t('longitude'),
-                    value: (item.marker.getExtData().longitude as number).toFixed(2),
+                    value: item.marker.longitude.toFixed(2),
                   },
                   {
                     label: t('latitude'),
-                    value: (item.marker.getExtData().latitude as number).toFixed(2),
+                    value: item.marker.latitude.toFixed(2),
                   },
                   {
                     label: t('speed'),
-                    value: `${(item.marker.getExtData().spd as number).toFixed(2)} km/h`,
+                    value: `${item.marker.spd.toFixed(2)} km/h`,
                   },
                 ].filter(item => item.value)"
                 bordered
