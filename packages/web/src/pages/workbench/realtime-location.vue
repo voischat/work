@@ -132,7 +132,7 @@ watch([selectedType, selectedId], async ([type, id]) => {
       />
 
       <a-button
-        v-if="markers?.length" type="primary" shape="circle" class="absolute right-4 top-4"
+        v-if="markers?.length" type="primary" shape="circle" class="absolute right-4 top-20"
         @click="drawerVisible = true"
       >
         <template #icon>
