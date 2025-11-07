@@ -473,6 +473,7 @@ submenu:
   group-manage: Group Management
   member-manage: Member Management
   user-track: Track
+  realtime-location: Real-time Location
 time: Time
 track: Track
 track-type:
