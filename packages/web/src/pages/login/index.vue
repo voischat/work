@@ -292,7 +292,7 @@ const loginByEmail = handleEmailLogin((values: any) => {
           </a-space>
         </a-form>
       </a-tab-pane>
-      <a-tab-pane key="sms" :title="t('login-by-phone')">
+      <a-tab-pane v-if="false" key="sms" :title="t('login-by-phone')">
         <a-form :model="smsLoginForm" :rules="smsLoginRules" class="login-form" layout="vertical" @submit="loginBySms">
           <a-form-item field="phone" hide-label>
             <a-input-group flex w-full>
