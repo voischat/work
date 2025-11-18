@@ -161,6 +161,7 @@ form:
   error:
     account-nonempty: 账号不能为空
     email-nonempty: 邮箱不能为空
+    email-format: 邮箱格式不正确
     name-nonempty: 名称不能为空
     new-password-nonempty: 新密码不能为空
     old-password-nonempty: 旧密码不能为空
@@ -168,6 +169,7 @@ form:
     phone-maxLength: 手机号最多11位
     phone-minLength: 手机号至少11位
     phone-nonempty: 手机号不能为空
+    privacy-agreement-required: 请同意隐私政策
     verify-code-nonempty: 验证码不能为空
   placeholder:
     email: 请输入邮箱地址

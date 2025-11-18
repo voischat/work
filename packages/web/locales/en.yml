@@ -172,6 +172,7 @@ form:
   error:
     account-nonempty: The account cannot be empty.
     email-nonempty: The email cannot be empty.
+    email-format: The email format is incorrect.
     name-nonempty: The name cannot be empty.
     new-password-nonempty: The new password cannot be empty.
     old-password-nonempty: The old password cannot be empty.
@@ -179,6 +180,7 @@ form:
     phone-maxLength: ''
     phone-minLength: The phone number must be at least 11 digits.
     phone-nonempty: The phone number cannot be empty.
+    privacy-agreement-required: Please agree to the privacy policy.
     verify-code-nonempty: The verification code cannot be empty.
   placeholder:
     email: Please enter your email address
