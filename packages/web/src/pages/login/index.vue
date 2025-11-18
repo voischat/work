@@ -219,7 +219,7 @@ const loginByEmail = handleEmailLogin((values: any) => {
     Message.error(t('form.error.privacy-agreement-required'))
     return
   }
-  emailLogin({ ...values, password: md5(values.password) })
+  emailLogin(values)
 })
 
 // onMounted(async () => {
