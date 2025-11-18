@@ -275,7 +275,7 @@ login:
       errMsg: 用户名未填写
       placeholder: 用户名/手机号
     account:
-      placeholder: 账号/手机号/邮箱
+      placeholder: 账号/邮箱
   get-sms-code: 获取短信验证码
   type:
     phone: 手机号

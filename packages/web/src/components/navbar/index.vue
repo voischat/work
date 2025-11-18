@@ -90,11 +90,11 @@ const buildTime = new Date(__BUILD_TIME__).toLocaleString()
               <div class="text-secondary text-sm">
                 {{ t('weila-number') }}: {{ selfInfoStore.selfInfo.user_num }}
               </div>
-              <div v-if="selfInfoStore.selfInfo.bind_phone" class="flex items-center gap-2">
+              <!-- <div v-if="selfInfoStore.selfInfo.bind_phone" class="flex items-center gap-2">
                 <a-tag color="blue" mxa>
                   +{{ selfInfoStore.selfInfo.country_code }} {{ selfInfoStore.selfInfo.bind_phone }}
                 </a-tag>
-              </div>
+              </div> -->
               <div v-if="selfInfoStore.selfInfo.bind_email" class="flex items-center gap-2">
                 <a-tag color="green" mxa>
                   {{ selfInfoStore.selfInfo.bind_email }}
@@ -102,9 +102,9 @@ const buildTime = new Date(__BUILD_TIME__).toLocaleString()
               </div>
             </div>
             <div flex="~ col" mt6 gap2>
-              <a-button @click="bindingPhoneModalVisible = true">
+              <!-- <a-button @click="bindingPhoneModalVisible = true">
                 {{ t('binding-phone') }}
-              </a-button>
+              </a-button> -->
               <a-button @click="bindingEmailModalVisible = true">
                 {{ t('binding-email') }}
               </a-button>

@@ -290,7 +290,7 @@ login:
       errMsg: username is not filled in
       placeholder: username
     account:
-      placeholder: Account/Phone/Email
+      placeholder: Account/Email
   type:
     phone: phone
     username: account
