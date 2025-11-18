@@ -17,7 +17,7 @@ const { toggle: toggleLocales } = useToggleLocales()
         </a-button>
       </a-tooltip>
     </p>
-    <p>
+    <!-- <p>
       <span m0 border-0 p0 text-center text-12px class="ff">Copyright © 2025-2026 Voistech All Rights
         Reserved.&nbsp;</span>
       <span m0 border-0 p0 text-center text-12px class="ff">
@@ -26,7 +26,7 @@ const { toggle: toggleLocales } = useToggleLocales()
     </p>
     <a href="https://szcert.ebs.org.cn/f304db7f-36b3-427e-88fe-9ae1ab58a192">
       <img size-8 src="https://szcert.ebs.org.cn/Images/govIcon.gif" title="深圳市市场监督管理局企业主体身份公示" alt="深圳市市场监督管理局企业主体身份公示">
-    </a>
+    </a> -->
   </a-layout-footer>
 </template>
 
