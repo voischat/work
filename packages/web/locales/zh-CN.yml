@@ -342,6 +342,7 @@ message:
     success: 支付成功
   please-enter-phone-number: 请输入手机号
   please-enter-email: 请输入邮箱地址
+  please-enter-image-verifycode: 请输入图形验证码
   revoke: 消息已撤回
   success: 成功
   refresh-success: 刷新成功
@@ -542,9 +543,11 @@ binding-email-form:
     verifycode-required: 验证码不能为空
     verifycode-min: 验证码至少4位
     verifycode-max: 验证码最多6位
+    verify-image-code: 图形验证码为必选项
   placeholder:
     email: 请输入邮箱地址
     verifycode: 邮箱验证码
+    image-verifycode: 请输入图形验证码
 binding-email-hint: 一个邮箱只能绑定一个账号，更换后可使用新邮箱登录此账号。对于已绑定其他账号的邮箱，本次操作后将与原账号解绑。
 unbinding-email: 解绑邮箱
 unbinding-email-form:

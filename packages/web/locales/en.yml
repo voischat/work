@@ -353,6 +353,7 @@ message:
   not-support: Not Supported Message
   please-enter-phone-number: Please enter your phone number.
   please-enter-email: Please enter your email address.
+  please-enter-image-verifycode: Please enter the graphic verification code.
   revoke: The message has been recalled.
   success: Success
   verify-code-error: Abnormal graphic verification code
@@ -559,9 +560,11 @@ binding-email-form:
     verifycode-required: Verification code cannot be empty
     verifycode-min: Verification code must be at least 4 digits
     verifycode-max: Verification code can be up to 6 digits
+    verify-image-code: verify image code required
   placeholder:
     email: Please enter email address
     verifycode: Email verification code
+    image-verifycode: Please enter the graphic verification code.
 binding-email-hint: An email address can only be linked to one account. After changing, you can use the new email to log into this account. For email addresses that are already linked to other accounts, this operation will unbind them from the original account.
 unbinding-email: Unbind Email
 unbinding-email-form:

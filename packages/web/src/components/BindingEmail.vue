@@ -2,6 +2,7 @@
 import Message from '@arco-design/web-vue/es/message'
 import { useQueryClient } from '@tanstack/vue-query'
 import * as v from 'valibot'
+import { shallowRef } from 'vue'
 import { useForm } from 'zod-arco-rules/valibot'
 import { useCountDown } from '~/composables/useCountDown'
 
@@ -38,6 +39,15 @@ const submit = handleSubmit((values: any) => {
   mutate(values)
 })
 
+const verifyImageAnswer = shallowRef('')
+const { data: verifyImageData, refetch: refreshImageCode } = useWeilaFetch<{ id: string, image: string }>(
+  'common/get-image-verifycode?width=160&height=80',
+  {},
+  {
+    enabled: open,
+  },
+)
+
 const { countdown: emailCountdown, isCounting: isEmailActive, updateSendTime: updateEmailSendTime } = useCountDown('email-bind')
 
 const { mutate: sendEmailVerifyCode, isPending: isSendingEmail } = useWeilaMutation('common/send-email-verifycode', {
@@ -53,10 +63,15 @@ function handleSendEmailCode() {
     return
   }
 
+  if (!verifyImageAnswer.value) {
+    Message.warning(t('message.please-enter-image-verifycode'))
+    return
+  }
+
   sendEmailVerifyCode({
     email: form.value.email,
-    verify_id: '', // Email verification doesn't require image verification
-    verify_answer: '', // Email verification doesn't require image verification
+    verify_id: verifyImageData.value?.id || '',
+    verify_answer: verifyImageAnswer.value,
     smstype: 'work-bind',
   })
 }
@@ -85,6 +100,18 @@ function handleSendEmailCode() {
         </a-input>
       </a-form-item>
 
+      <a-form-item>
+        <div flex gap2>
+          <a-input
+            v-model="verifyImageAnswer"
+            :placeholder="t('binding-email-form.placeholder.image-verifycode')"
+            allow-clear
+            :max-length="6"
+          />
+          <img v-if="verifyImageData?.image" :src="verifyImageData.image" w-30 @click="() => refreshImageCode()">
+        </div>
+      </a-form-item>
+
       <a-form-item field="verifycode">
         <div flex gap2>
           <a-input
@@ -95,7 +122,7 @@ function handleSendEmailCode() {
           <a-button
             type="primary"
             :loading="isSendingEmail"
-            :disabled="!form.email || isEmailActive"
+            :disabled="!form.email || !verifyImageAnswer || isEmailActive"
             min-w-30
             @click="handleSendEmailCode"
           >
