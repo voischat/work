@@ -297,6 +297,10 @@ login:
 login-by-password: Account
 login-by-phone: Phone
 login-by-email: Email
+register-by-phone: Phone Registration
+register-by-email: Email Registration
+reset-password-by-phone: Reset Password by Phone
+reset-password-by-email: Reset Password by Email
 login.banner.slogan1: Out-of-the-box high-quality template
 login.banner.slogan2: Built-in solutions to common problems
 login.banner.slogan3: Access visualization enhancement tool AUX

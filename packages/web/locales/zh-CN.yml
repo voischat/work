@@ -284,6 +284,10 @@ login:
 login-by-password: 账号密码登录
 login-by-phone: 手机号登录
 login-by-email: 邮箱登录
+register-by-phone: 手机注册
+register-by-email: 邮箱注册
+reset-password-by-phone: 手机重置密码
+reset-password-by-email: 邮箱重置密码
 login.banner.slogan1: 开箱即用的高质量模板
 login.banner.slogan2: 内置了常见问题的解决方案
 login.banner.slogan3: 接入可视化增强工具AUX

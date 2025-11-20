@@ -176,7 +176,7 @@ const emailSubmit = handleEmailSubmit((values: any) => {
       {{ t('register.form.title') }}
     </div>
     <a-tabs v-model:active-key="activeTab">
-      <a-tab-pane v-if="false" key="phone" :title="t('login-by-phone')">
+      <a-tab-pane v-if="false" key="phone" :title="t('register-by-phone')">
         <a-form :model="form" :rules="rules" class="login-form" layout="vertical" @submit="submit">
           <a-form-item field="phone" hide-label>
             <a-input
@@ -248,7 +248,7 @@ const emailSubmit = handleEmailSubmit((values: any) => {
           </a-space>
         </a-form>
       </a-tab-pane>
-      <a-tab-pane key="email" :title="t('login-by-email')">
+      <a-tab-pane key="email" :title="t('register-by-email')">
         <a-form :model="emailForm" :rules="emailRules" class="login-form" layout="vertical" @submit="emailSubmit">
           <a-form-item field="email" hide-label>
             <a-input

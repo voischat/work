@@ -151,7 +151,7 @@ function handleSendEmailCode() {
     </div>
 
     <a-tabs v-model:active-key="activeTab">
-      <a-tab-pane v-if="false" key="phone" :title="t('login-by-phone')">
+      <a-tab-pane v-if="false" key="phone" :title="t('reset-password-by-phone')">
         <a-form :model="form" :rules="rules" layout="vertical" @submit="submit">
           <a-form-item field="phone" hide-label>
             <a-input-group>
@@ -217,7 +217,7 @@ function handleSendEmailCode() {
           </a-button>
         </a-form>
       </a-tab-pane>
-      <a-tab-pane key="email" :title="t('login-by-email')">
+      <a-tab-pane key="email" :title="t('reset-password-by-email')">
         <a-form :model="emailForm" :rules="emailRules" layout="vertical" @submit="emailSubmit">
           <a-form-item field="email" hide-label>
             <a-input
