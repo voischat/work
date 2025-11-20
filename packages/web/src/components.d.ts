@@ -14,6 +14,7 @@ declare module 'vue' {
     BindingPhone: typeof import('./components/BindingPhone.vue')['default']
     Breadcrumb: typeof import('./components/breadcrumb/index.vue')['default']
     CertificationTag: typeof import('./components/CertificationTag.vue')['default']
+    ConfirmButtonGroup: typeof import('./components/ConfirmButtonGroup.vue')['default']
     ContactSelectTree: typeof import('./components/ContactSelectTree.vue')['default']
     CreateMemberModal: typeof import('./components/CreateMemberModal.vue')['default']
     DeleteAccount: typeof import('./components/DeleteAccount.vue')['default']

@@ -143,6 +143,7 @@ delete-member-modal:
   confirm-content: Are you sure you want to deactivate this member? This action cannot be undone.
 delete-account-form:
   confirm-content: Are you sure you want to deactivate your account? This action cannot be undone.
+  confirm-submit: Confirm Deactivation
   title: Deactivate Account
 department-list: Department List
 dept:
