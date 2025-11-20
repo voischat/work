@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import { useFullscreen } from '@vueuse/core'
 import { computed, inject, shallowRef } from 'vue'
-import { useToggleLocales } from '~/composables/useToggleLocales'
 import { useAuthStore } from '~/stores/auth'
 import { version } from '../../../package.json'
 import BindingEmail from '../BindingEmail.vue'
 import BindingPhone from '../BindingPhone.vue'
 import DeleteAccount from '../DeleteAccount.vue'
+import LanguageSelector from '../LanguageSelector.vue'
 
 const { t } = useI18n()
 
@@ -17,8 +17,6 @@ const topMenu = computed(() => appStore.topMenu && appStore.menu)
 // const toggleTheme = useToggle(isDark)
 
 const toggleDrawerMenu = inject('toggleDrawerMenu') as () => void
-
-const { toggle: toggleLocales } = useToggleLocales()
 
 const selfInfoStore = useSelfInfoStore()
 
@@ -53,15 +51,7 @@ const buildTime = new Date(__BUILD_TIME__).toLocaleString()
       </a-tag>
     </a-space>
     <a-space size="large">
-      <li>
-        <a-tooltip :content="t('settings.language')">
-          <a-button class="nav-btn" type="outline" shape="circle" @click="toggleLocales">
-            <template #icon>
-              <icon-language />
-            </template>
-          </a-button>
-        </a-tooltip>
-      </li>
+      <LanguageSelector />
       <a-tooltip
         :content="isFullscreen
           ? t('settings.navbar.screen.toExit')

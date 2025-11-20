@@ -26,6 +26,7 @@ declare module 'vue' {
     EditMemberModal: typeof import('./components/EditMemberModal.vue')['default']
     FileUploader: typeof import('./components/FileUploader.vue')['default']
     Footer: typeof import('./components/footer/index.vue')['default']
+    LanguageSelector: typeof import('./components/LanguageSelector.vue')['default']
     LoadingMask: typeof import('./components/LoadingMask.vue')['default']
     LoginBanner: typeof import('./components/login-banner/index.vue')['default']
     MapPicker: typeof import('./components/MapPicker.vue')['default']
