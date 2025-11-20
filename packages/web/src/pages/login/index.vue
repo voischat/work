@@ -60,13 +60,22 @@ const privacyAgreed = shallowRef(false)
 
 const { mutateAsync: passwordLogin, isPending: passwordPending } = useWeilaMutation('/corp/auth/login', {
   onSuccess,
+  onError: () => {
+    // 帐号密码登录失败后，清除自动登录相关缓存，防止无限重试
+    autoLogin.value = false
+    tempAccount.value.clear()
+  },
 })
 
 const { mutateAsync: smsLogin, isPending: smsPending } = useWeilaMutation('/corp/auth/login-by-sms', {
   onSuccess,
 })
 
-if (autoLogin.value && tempAccount.value.size) {
+// 自动登录尝试标志，确保只尝试一次
+const autoLoginAttempted = shallowRef(false)
+
+if (autoLogin.value && tempAccount.value.size && !autoLoginAttempted.value) {
+  autoLoginAttempted.value = true
   passwordLogin({
     account: tempAccount.value.get('account'),
     password: tempAccount.value.get('password'),

@@ -7,6 +7,7 @@ import { isWeilaRes, v2Query } from '@wl/network'
 import { stringifyQuery } from 'ufo'
 import { computed } from 'vue'
 import { appid, appkey } from './shared/const'
+import { autoLogin } from './shared/states'
 
 const { locale } = useI18n()
 
@@ -39,6 +40,8 @@ weilaApi.value.hook('request:prepare', async (ctx) => {
     refreshToken.value = ''
     expiresIn.value = -1
     loginTime.value = -1
+    // 清除自动登录相关缓存，防止无限重试
+    autoLogin.value = false
     // window.location.reload()
   }
 
