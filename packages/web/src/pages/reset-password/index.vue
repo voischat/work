@@ -17,7 +17,7 @@ definePage({
 const { t } = useI18n()
 const router = useRouter()
 
-const activeTab = shallowRef<'phone' | 'email'>('phone')
+const activeTab = shallowRef<'phone' | 'email'>('email')
 
 const { form, rules, handleSubmit } = useForm(v.object({
   phone: v.pipe(
@@ -151,7 +151,7 @@ function handleSendEmailCode() {
     </div>
 
     <a-tabs v-model:active-key="activeTab">
-      <a-tab-pane key="phone" :title="t('login-by-phone')">
+      <a-tab-pane v-if="false" key="phone" :title="t('login-by-phone')">
         <a-form :model="form" :rules="rules" layout="vertical" @submit="submit">
           <a-form-item field="phone" hide-label>
             <a-input-group>
