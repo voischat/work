@@ -44,8 +44,8 @@ const { form: emailForm, rules: emailRules, handleSubmit: handleEmailSubmit } = 
 
 const { data, refetch: refreshImageCode } = useWeilaFetch<{ id: string, image: string }>('common/get-image-verifycode?width=160&height=80')
 
-const { mutateAsync: sendSmsVerifyCode } = useWeilaMutation<never, SendVerifySmsBody>('common/send-sms-verifycode')
-const { mutateAsync: sendEmailVerifyCode } = useWeilaMutation<never, {
+const { mutateAsync: sendSmsVerifyCode, isPending: isSendingSms } = useWeilaMutation<never, SendVerifySmsBody>('common/send-sms-verifycode')
+const { mutateAsync: sendEmailVerifyCode, isPending: isSendingEmail } = useWeilaMutation<never, {
   email: string
   verify_id: string
   verify_answer: string
@@ -208,7 +208,7 @@ const emailSubmit = handleEmailSubmit((values: any) => {
               <template #suffix>
                 <a-button
                   type="text"
-                  :loading="false"
+                  :loading="isSendingSms"
                   :disabled="!(form.phone && imageCode) || isActive"
                   @click="handleSendSmsCode"
                 >
@@ -279,7 +279,7 @@ const emailSubmit = handleEmailSubmit((values: any) => {
               <template #suffix>
                 <a-button
                   type="text"
-                  :loading="false"
+                  :loading="isSendingEmail"
                   :disabled="!(emailForm.email && imageCode) || isEmailActive"
                   @click="handleSendEmailCode"
                 >
