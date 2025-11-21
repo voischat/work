@@ -72,7 +72,7 @@ function handleSendEmailCode() {
     email: form.value.email,
     verify_id: verifyImageData.value?.id || '',
     verify_answer: verifyImageAnswer.value,
-    smstype: 'work-bind',
+    smstype: 'work-bind-email',
   })
 }
 </script>
