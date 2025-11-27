@@ -133,3 +133,12 @@ export async function hasNewBundle() {
 }
 
 export const autoLogin = useLocalStorage('auto_login', false)
+
+/**
+ * International version detection
+ * 判断是否为国际版（海外版）
+ * 国际版包括：包含 'intl' 的模式，如 'intl'、'staging-intl' 等
+ */
+export const isIntlVersion = computed(() => {
+  return import.meta.env.DEV || import.meta.env.MODE.includes('intl')
+})

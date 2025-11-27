@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { isDev } from '~/shared'
+import { isIntlVersion } from '~/shared'
 import LanguageSelector from '../LanguageSelector.vue'
 </script>
 
 <template>
   <a-layout-footer flex="~ col center" p4 gap2 text-center>
-    <p v-if="isDev">
+    <p v-if="isIntlVersion">
       <LanguageSelector />
     </p>
     <!-- <p>
