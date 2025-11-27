@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 // import bannerImage from '~/assets/images/login-banner.png'
 import bannerIntro from '~/assets/images/login-intro.png'
-import bannerIntroEn from '~/assets/images/login-intro_en.png'
+import bannerIntroEn from '~/assets/images/login-intro_en25.png'
 
 const { t, locale } = useI18n()
 const carouselItem = computed(() => [
