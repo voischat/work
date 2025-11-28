@@ -55,7 +55,7 @@ weilaApi.value.hook('request:prepare', async (ctx) => {
 
     if (!refreshing) {
       refreshing = fetch(`/v2/corp/auth/refresh?${stringifyQuery({
-        ...v2Query(appid.value, appkey.value),
+        ...v2Query(appname, appid.value, appkey.value),
       })}`, {
         method: 'POST',
         headers: {

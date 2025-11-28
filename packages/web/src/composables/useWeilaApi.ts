@@ -3,6 +3,8 @@ import { WeilaApi } from '@wl/network'
 import { shallowRef } from 'vue'
 import { appid, appkey } from '~/shared/const'
 
+export const appname = 'weila-work-web'
+
 const weilaApi = shallowRef(new WeilaApi(
   // demo server
   'weila-work-web',

@@ -16,6 +16,7 @@ declare global {
   const UseImage: typeof import('@vueuse/components')['UseImage']
   const acceptHMRUpdate: typeof import('pinia')['acceptHMRUpdate']
   const addEventListen: typeof import('./utils/event')['addEventListen']
+  const appname: typeof import('./composables/useWeilaApi')['appname']
   const asyncComputed: typeof import('@vueuse/core')['asyncComputed']
   const autoResetRef: typeof import('@vueuse/core')['autoResetRef']
   const clsx: typeof import('clsx')['clsx']
@@ -379,6 +380,7 @@ declare module 'vue' {
     readonly UseImage: UnwrapRef<typeof import('@vueuse/components')['UseImage']>
     readonly acceptHMRUpdate: UnwrapRef<typeof import('pinia')['acceptHMRUpdate']>
     readonly addEventListen: UnwrapRef<typeof import('./utils/event')['addEventListen']>
+    readonly appname: UnwrapRef<typeof import('./composables/useWeilaApi')['appname']>
     readonly asyncComputed: UnwrapRef<typeof import('@vueuse/core')['asyncComputed']>
     readonly autoResetRef: UnwrapRef<typeof import('@vueuse/core')['autoResetRef']>
     readonly clsx: UnwrapRef<typeof import('clsx')['clsx']>
