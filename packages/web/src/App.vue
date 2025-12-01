@@ -5,11 +5,10 @@ import Message from '@arco-design/web-vue/es/message'
 import { VueQueryDevtools } from '@tanstack/vue-query-devtools'
 import { isWeilaRes, v2Query } from '@wl/network'
 import { stringifyQuery } from 'ufo'
-import { computed } from 'vue'
 import { appid, appkey } from './shared/const'
 import { autoLogin } from './shared/states'
 
-const { locale } = useI18n()
+const { locale, t } = useI18n()
 
 const arcoLang = computed(() => ({
   'zh-CN': zhCN,
@@ -120,6 +119,11 @@ function onError(error: any) {
     Message.error(`${error?.response?.status}:${error?.response?.statusText}`)
   }
 }
+
+watch(locale, () => {
+  const title = t('project-name')
+  document.title = title
+}, { immediate: true })
 </script>
 
 <template>
