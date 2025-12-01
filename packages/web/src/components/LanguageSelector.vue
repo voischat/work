@@ -16,10 +16,14 @@ async function handleLanguageChange(lang: string) {
 
 <template>
   <a-dropdown trigger="click" position="bl">
-    <a-button class="nav-btn" type="outline" shape="circle">
+    <a-button class="nav-btn" type="outline" shape="round">
       <template #icon>
         <icon-language />
       </template>
+      {{ {
+        'zh-CN': '简体中文',
+        "en": 'English',
+      }[locale] || 'English' }}
     </a-button>
     <template #content>
       <a-doption
