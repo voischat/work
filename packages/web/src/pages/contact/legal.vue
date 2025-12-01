@@ -180,9 +180,9 @@ async function uploadFile(option: any) {
           <a-radio :value="0">
             {{ $t('legal.enterprise') }}
           </a-radio>
-          <a-radio :value="1">
+          <!-- <a-radio :value="1">
             {{ $t('legal.type.personal') }}
-          </a-radio>
+          </a-radio> -->
         </a-radio-group>
       </div>
       <div>
