@@ -47,7 +47,7 @@ const { data, refetch: refreshImageCode } = useWeilaFetch<{ id: string, image: s
   },
 )
 
-const { mutateAsync: sendSmsVerifyCode } = useWeilaMutation<never, SendVerifySmsBody>('common/send-sms-verifycode')
+const { mutateAsync: sendSmsVerifyCode, isPending: isSendingMessage } = useWeilaMutation<never, SendVerifySmsBody>('common/send-sms-verifycode')
 
 const imageCodeModalVisible = shallowRef(false)
 const imageCode = shallowRef('')
@@ -269,7 +269,7 @@ const loginBySms = handleSmsLogin((values: any) => {
               <template #suffix>
                 <a-button
                   type="text"
-                  :loading="false"
+                  :loading="isSendingMessage"
                   :disabled="!(smsLoginForm.phone && imageCode) || isActive"
                   @click="handleSendSmsCode"
                 >

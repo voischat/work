@@ -30,7 +30,7 @@ const { form, rules, handleSubmit } = useForm(v.object({
 }))
 const { data, refetch: refreshImageCode } = useWeilaFetch<{ id: string, image: string }>('common/get-image-verifycode?width=160&height=80')
 
-const { mutateAsync: sendSmsVerifyCode } = useWeilaMutation<never, SendVerifySmsBody>('common/send-sms-verifycode')
+const { mutateAsync: sendSmsVerifyCode, isPending: isSendingMessage } = useWeilaMutation<never, SendVerifySmsBody>('common/send-sms-verifycode')
 
 const router = useRouter()
 const privacyAgreed = shallowRef(false)
@@ -133,7 +133,7 @@ const submit = handleSubmit((values: any) => {
           <template #suffix>
             <a-button
               type="text"
-              :loading="false"
+              :loading="isSendingMessage"
               :disabled="!(form.phone && imageCode) || isActive"
               @click="handleSendSmsCode"
             >

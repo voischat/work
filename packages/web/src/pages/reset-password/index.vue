@@ -28,7 +28,7 @@ const { form, rules, handleSubmit } = useForm(v.object({
 }))
 const { data, refetch: refreshImageCode } = useWeilaFetch<{ id: string, image: string }>('common/get-image-verifycode?width=160&height=80')
 
-const { mutate: sendSmsVerifyCode } = useWeilaMutation<never, SendVerifySmsBody>('common/send-sms-verifycode')
+const { mutate: sendSmsVerifyCode, isPending: isSendingMessage } = useWeilaMutation<never, SendVerifySmsBody>('common/send-sms-verifycode')
 
 const imageCodeModalVisible = shallowRef(false)
 const imageCode = shallowRef('')
@@ -138,7 +138,7 @@ function handleImageCodeCancel() {
           <template #suffix>
             <a-button
               type="text"
-              :loading="false"
+              :loading="isSendingMessage"
               :disabled="!form.phone"
               @click="handleSendSmsCode"
             >
