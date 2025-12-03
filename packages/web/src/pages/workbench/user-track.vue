@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Message } from '@arco-design/web-vue'
-import { importLibrary, setOptions } from '@googlemaps/js-api-loader'
+import { importLibrary } from '@googlemaps/js-api-loader'
 import { useRouteQuery } from '@vueuse/router'
 import dayjs from 'dayjs'
 import { shallowRef } from 'vue'
 import { AdvancedMarker, GoogleMap, InfoWindow, Polyline } from 'vue3-google-map'
 import { useDeptTree } from '~/composables/useDeptTree'
 import { useMapInteraction } from '~/composables/useMapInteraction'
+import { useMapOptions } from '~/composables/useMapOptions'
 import { useUserTrack } from '~/composables/useTrackData'
 
 definePage({
@@ -17,10 +18,14 @@ definePage({
 
 const key = import.meta.env.VITE_GOOGLE_MAP_KEY
 
-setOptions({
+const { locale } = useI18n()
+
+useMapOptions(() => ({
   key,
   v: 'weekly',
-})
+  language: locale.value,
+  region: locale.value,
+}))
 
 Promise.all([
   importLibrary('maps'),

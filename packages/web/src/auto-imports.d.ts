@@ -239,6 +239,7 @@ declare global {
   const useMagicKeys: typeof import('@vueuse/core')['useMagicKeys']
   const useManualRefHistory: typeof import('@vueuse/core')['useManualRefHistory']
   const useMapInteraction: typeof import('./composables/useMapInteraction')['useMapInteraction']
+  const useMapOptions: typeof import('./composables/useMapOptions')['useMapOptions']
   const useMediaControls: typeof import('@vueuse/core')['useMediaControls']
   const useMediaQuery: typeof import('@vueuse/core')['useMediaQuery']
   const useMemoize: typeof import('@vueuse/core')['useMemoize']
@@ -603,6 +604,7 @@ declare module 'vue' {
     readonly useMagicKeys: UnwrapRef<typeof import('@vueuse/core')['useMagicKeys']>
     readonly useManualRefHistory: UnwrapRef<typeof import('@vueuse/core')['useManualRefHistory']>
     readonly useMapInteraction: UnwrapRef<typeof import('./composables/useMapInteraction')['useMapInteraction']>
+    readonly useMapOptions: UnwrapRef<typeof import('./composables/useMapOptions')['useMapOptions']>
     readonly useMediaControls: UnwrapRef<typeof import('@vueuse/core')['useMediaControls']>
     readonly useMediaQuery: UnwrapRef<typeof import('@vueuse/core')['useMediaQuery']>
     readonly useMemoize: UnwrapRef<typeof import('@vueuse/core')['useMemoize']>

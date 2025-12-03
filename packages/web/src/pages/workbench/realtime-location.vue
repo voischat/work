@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { importLibrary, setOptions } from '@googlemaps/js-api-loader'
+import { importLibrary } from '@googlemaps/js-api-loader'
 import { shallowRef } from 'vue'
 import { AdvancedMarker, GoogleMap, InfoWindow } from 'vue3-google-map'
 import { useDeptList } from '~/composables/useDeptList'
 import { useGroupList } from '~/composables/useGroupList'
+import { useMapOptions } from '~/composables/useMapOptions'
 import { useRealtimeGoogleMapInteraction } from '~/composables/useRealtimeGoogleMapInteraction'
 import { useRealtimeLocation } from '~/composables/useRealtimeLocation'
 import { useUserInfoStore } from '~/composables/useUserInfoStore'
@@ -24,10 +25,14 @@ watch(() => mapRef.value?.ready, () => {
     onMapLoaded(map)
 }, { immediate: true })
 
-setOptions({
+const { locale } = useI18n()
+
+useMapOptions(() => ({
   key,
   v: 'weekly',
-})
+  language: locale.value,
+  region: locale.value,
+}))
 
 Promise.all([
   importLibrary('maps'),
