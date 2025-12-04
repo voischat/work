@@ -19,7 +19,7 @@ const { data: appGuideUrl } = useWeilaFetch<string>('common/guide', {
 
 <template>
   <div class="container" relative>
-    <a-space fixed right-4 top-4>
+    <a-space v-if="false" fixed right-4 top-4>
       <a-link :href="webGuideUrl">
         {{ t('web-guide') }}
       </a-link>
