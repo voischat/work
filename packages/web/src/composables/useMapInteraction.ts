@@ -1,7 +1,6 @@
 import type { RegeoModel, UserTrackModel } from '~/api/track'
 import { nanoid } from 'nanoid'
 import { nextTick, shallowRef, triggerRef, watch } from 'vue'
-import { fitMapBounds } from '~/utils/map'
 
 interface GoogleMarker {
   id: string
@@ -43,7 +42,7 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
     const newMarkers = genMarkers(val)
     markers.value = newMarkers
     updatePolylinePath(val)
-    fitMapBounds(newMarkers, map.value)
+    // fitMapBounds(newMarkers, map.value)
   }
 
   async function onMarkerSelected(marker: GoogleMarker | null) {

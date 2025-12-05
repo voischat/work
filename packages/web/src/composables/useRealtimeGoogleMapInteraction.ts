@@ -2,7 +2,6 @@ import type { RealtimeLocationModel } from '~/api/realtime-location'
 import type { RegeoModel } from '~/api/track'
 import { nanoid } from 'nanoid'
 import { nextTick, shallowRef, triggerRef, watch } from 'vue'
-import { fitMapBounds } from '~/utils/map'
 
 export interface GoogleRealtimeMarker {
   id: string
@@ -45,8 +44,8 @@ export function useRealtimeGoogleMapInteraction(
   function onLocationsChange(val: RealtimeLocationModel[] | undefined) {
     const newMarkers = genMarkers(val)
     markers.value = newMarkers
-    if (map.value)
-      fitMapBounds(newMarkers, map.value)
+    // if (map.value)
+    // fitMapBounds(newMarkers, map.value)
   }
 
   async function onMarkerSelected(marker: GoogleRealtimeMarker | null) {
