@@ -53,13 +53,13 @@ const {
   isInfoWindowOpen,
   infoWindowPosition,
   infoWindowContent,
+  updateSelectedMarker,
 } = useMapInteraction(tracks)
 
 $inspect(trackFeatureCollection)
 
 function onClickMarker(marker: any) { // marker actually not GoogleMarker
-  selectedMarker.value = marker
-  triggerRef(selectedMarker)
+  updateSelectedMarker(marker)
 }
 </script>
 

@@ -58,6 +58,7 @@ const {
   isInfoWindowOpen,
   infoWindowPosition,
   infoWindowContent,
+  updateSelectedMarker,
 } = useRealtimeGoogleMapInteraction(locations)
 
 const currentOptions = computed(() => {
@@ -90,6 +91,10 @@ watch([selectedType, selectedId], async ([type, id]) => {
 
 function onMapLoaded(value: google.maps.Map) {
   map.value = value
+}
+
+function onClickMarker(marker: any) {
+  updateSelectedMarker(marker)
 }
 </script>
 
@@ -133,7 +138,7 @@ function onMapLoaded(value: google.maps.Map) {
           title: getUserInfo(marker.uid)?.name || `用户${marker.uid}`,
           content: marker.content,
         }"
-        @click="() => selectedMarker = marker"
+        @click="() => onClickMarker(marker)"
       />
 
       <InfoWindow
@@ -214,7 +219,7 @@ function onMapLoaded(value: google.maps.Map) {
             </template>
           </a-list-item-meta>
           <template #actions>
-            <a-button type="primary" size="small" @click="selectedMarker = item.marker">
+            <a-button type="primary" size="small" @click="() => onClickMarker(item.marker)">
               {{ t('button.checkout') }}
             </a-button>
           </template>

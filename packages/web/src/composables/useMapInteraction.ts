@@ -1,6 +1,6 @@
 import type { RegeoModel, UserTrackModel } from '~/api/track'
 import { nanoid } from 'nanoid'
-import { nextTick, shallowRef, watch } from 'vue'
+import { nextTick, shallowRef, triggerRef, watch } from 'vue'
 import { fitMapBounds } from '~/utils/map'
 
 interface GoogleMarker {
@@ -135,6 +135,11 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
     })
   }
 
+  function updateSelectedMarker(marker: GoogleMarker | null) {
+    selectedMarker.value = marker
+    triggerRef(selectedMarker)
+  }
+
   return {
     trackVisible,
     drawerVisible,
@@ -147,5 +152,6 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
     isInfoWindowOpen,
     infoWindowPosition,
     infoWindowContent,
+    updateSelectedMarker,
   }
 }

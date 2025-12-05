@@ -1,7 +1,7 @@
 import type { RealtimeLocationModel } from '~/api/realtime-location'
 import type { RegeoModel } from '~/api/track'
 import { nanoid } from 'nanoid'
-import { nextTick, shallowRef, watch } from 'vue'
+import { nextTick, shallowRef, triggerRef, watch } from 'vue'
 import { fitMapBounds } from '~/utils/map'
 
 export interface GoogleRealtimeMarker {
@@ -190,6 +190,11 @@ export function useRealtimeGoogleMapInteraction(
     })
   }
 
+  function updateSelectedMarker(marker: GoogleRealtimeMarker | null) {
+    selectedMarker.value = marker
+    triggerRef(selectedMarker)
+  }
+
   return {
     drawerVisible,
     zoom,
@@ -200,5 +205,6 @@ export function useRealtimeGoogleMapInteraction(
     isInfoWindowOpen,
     infoWindowPosition,
     infoWindowContent,
+    updateSelectedMarker,
   }
 }

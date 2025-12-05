@@ -2,7 +2,7 @@ import type { RealtimeLocationModel } from '~/api/realtime-location'
 import type { RegeoModel } from '~/api/track'
 import { isNumber } from '@antfu/utils'
 import { nanoid } from 'nanoid'
-import { nextTick, shallowRef, watch } from 'vue'
+import { nextTick, shallowRef, triggerRef, watch } from 'vue'
 
 export function useRealtimeMapInteraction(
   locations: Ref<RealtimeLocationModel[] | undefined>,
@@ -114,8 +114,7 @@ export function useRealtimeMapInteraction(
         })
 
         marker.on('click', () => {
-          selectedMarker.value = marker
-          triggerRef(selectedMarker)
+          updateSelectedMarker(marker)
         })
         return marker
       })
@@ -244,6 +243,11 @@ export function useRealtimeMapInteraction(
     })
   }
 
+  function updateSelectedMarker(marker: AMap.Marker | null) {
+    selectedMarker.value = marker
+    triggerRef(selectedMarker)
+  }
+
   return {
     drawerVisible,
     zoom,
@@ -251,5 +255,6 @@ export function useRealtimeMapInteraction(
     map,
     markers,
     selectedMarker,
+    updateSelectedMarker,
   }
 }
