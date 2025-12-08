@@ -44,7 +44,7 @@ function isRemoteImage(url: string) {
 // 处理提交
 async function handleSubmit() {
   // 如果头像不是远程图片，需要先上传
-  if (form.avatar && !isRemoteImage(form.avatar)) {
+  if (form.avatar !== businessData.value?.merchant?.avatar && !isRemoteImage(form.avatar || '')) {
     // @ts-expect-error type error: `defineExpose` no type declare find
     const { upload } = avatarUploaderRef.value
     if (upload) {

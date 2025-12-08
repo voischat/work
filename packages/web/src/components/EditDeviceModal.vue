@@ -92,7 +92,7 @@ function handleSubmit() {
 
     // @ts-expect-error type error: `defineExpose` no type declare find
     const { upload } = avatarUploaderRef.value
-    if (!isRemoteImage(form.avatar)) {
+    if (form.avatar !== props.member?.avatar && !isRemoteImage(form.avatar || '')) {
       await upload()
     }
 

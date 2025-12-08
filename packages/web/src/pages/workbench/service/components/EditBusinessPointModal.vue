@@ -35,7 +35,7 @@ const { mutateAsync, isPending: isChangingBusinessPoint } = changeBusinessPoint(
 async function handleSubmit() {
   // @ts-expect-error type error: `defineExpose` no type declare find
   const { upload } = avatarUploaderRef.value
-  if (upload && form.value.avatar && !isRemoteImage(form.value.avatar)) {
+  if (upload && form.value.avatar !== props.point?.avatar && !isRemoteImage(form.value.avatar || '')) {
     await upload()
   }
 
