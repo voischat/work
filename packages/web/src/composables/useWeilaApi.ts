@@ -1,6 +1,7 @@
 import { getRootUrl } from '@kvoon/utils'
 import { v2Query, WeilaApi } from '@wl/network'
 import { shallowRef } from 'vue'
+import { cashedLocaleName } from '~/modules/i18n'
 import { appid, appkey } from '~/shared/const'
 
 export const appname = 'weila-work-web'
@@ -18,7 +19,7 @@ const weilaApi = shallowRef(new WeilaApi(
     query: () => {
       return {
         ...v2Query(appname, appid.value, appkey.value),
-        lang: usePreferredLanguages().value[0],
+        lang: cashedLocaleName.value,
       }
     },
   },
