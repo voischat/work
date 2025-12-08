@@ -36,7 +36,7 @@ const { mutateAsync: change, isPending } = useWeilaMutation('corp/group/change-g
 const submit = handleSubmit(async (values) => {
   // @ts-expect-error type error: `defineExpose` no type declare find
   const { upload } = avatarUploaderRef.value
-  if (form.value.avatar && !isRemoteImage(form.value.avatar)) {
+  if (form.value.avatar !== props.group?.avatar && !isRemoteImage(form.value.avatar || '')) {
     await upload()
   }
 
