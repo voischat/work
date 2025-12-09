@@ -416,8 +416,8 @@ plus: >-
 priority: Priority
 privacy-agreement: Privacy Policy
 project:
-  name: Weila Enterprise Manager
-project-name: Weila Enterprise Edition
+  name: VoisWork
+project-name: VoisWork
 register:
   cancel: Cancel
   confirm: Confirm
@@ -440,7 +440,7 @@ register:
       errMsg: verify code is needed
       placeholder: verify code
   get-sms-code: Get SMS verification code.
-  weila-enterprise: Weila Enterprise Edition
+  weila-enterprise: VoisWork
 reset-password:
   button: Reset Password
   cancel: Cancel

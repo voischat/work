@@ -412,7 +412,7 @@ const loginByEmail = handleEmailLogin((values: any) => {
           {{ $t('register.form.title') }}
         </a-button>
       </router-link>
-      <a href="http://static.voischat.cn/common/app-download?type=corp-normal">
+      <a href="https://play.google.com/store/apps/details?id=com.voistech.work">
         <a-button type="text" long class="login-form-register-btn">
           {{ $t('download-android-app') }}
         </a-button>
