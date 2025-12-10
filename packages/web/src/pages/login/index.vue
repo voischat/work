@@ -5,7 +5,7 @@ import type { Corp } from '~/types'
 import { Message } from '@arco-design/web-vue'
 import md5 from 'md5'
 import * as v from 'valibot'
-import { shallowRef } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { useForm } from 'zod-arco-rules/valibot'
 import { useCountDown } from '~/composables/useCountDown'
 import { useLocalCrypto } from '~/composables/useLocalCrypto'
@@ -23,7 +23,10 @@ const router = useRouter()
 const accountHistoryRecord = useLocalCrypto('account-history-record')
 const tempAccount = useLocalCrypto('temp-account')
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+
+const privacyLink = computed(() => `https://www.voiswork.com/common/intl/web/corp/privacy_${locale.value}`)
+
 const activeTab = shallowRef<'password' | 'sms' | 'email'>('password')
 
 const { form: loginForm, rules: loginRules, handleSubmit: handleLogin } = useForm(v.object({
@@ -282,7 +285,7 @@ const loginByEmail = handleEmailLogin((values: any) => {
                 {{ $t('i-have-read-and-agree') }}
               </a-checkbox>
 
-              <a-link href="https://www.voiswork.com/common/corp-web/privacy-en">
+              <a-link :href="privacyLink">
                 {{ t('privacy-agreement') }}
               </a-link>
             </div>
@@ -341,7 +344,7 @@ const loginByEmail = handleEmailLogin((values: any) => {
                 {{ $t('i-have-read-and-agree') }}
               </a-checkbox>
 
-              <a-link href="https://www.voiswork.com/common/corp-web/privacy-en">
+              <a-link :href="privacyLink">
                 {{ t('privacy-agreement') }}
               </a-link>
             </div>
@@ -395,7 +398,7 @@ const loginByEmail = handleEmailLogin((values: any) => {
                 {{ $t('i-have-read-and-agree') }}
               </a-checkbox>
 
-              <a-link href="https://www.voiswork.com/common/corp-web/privacy-en">
+              <a-link :href="privacyLink">
                 {{ t('privacy-agreement') }}
               </a-link>
             </div>

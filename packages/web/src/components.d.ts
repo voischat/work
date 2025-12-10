@@ -22,13 +22,6 @@ declare module 'vue' {
     DeleteAccountEmail: typeof import('./components/DeleteAccountEmail.vue')['default']
     DeleteAccountPhone: typeof import('./components/DeleteAccountPhone.vue')['default']
     DeleteMemberModal: typeof import('./components/DeleteMemberModal.vue')['default']
-    DialogClose: typeof import('radix-vue')['DialogClose']
-    DialogContent: typeof import('radix-vue')['DialogContent']
-    DialogDescription: typeof import('radix-vue')['DialogDescription']
-    DialogOverlay: typeof import('radix-vue')['DialogOverlay']
-    DialogPortal: typeof import('radix-vue')['DialogPortal']
-    DialogRoot: typeof import('radix-vue')['DialogRoot']
-    DialogTitle: typeof import('radix-vue')['DialogTitle']
     EditDeviceModal: typeof import('./components/EditDeviceModal.vue')['default']
     EditMemberModal: typeof import('./components/EditMemberModal.vue')['default']
     FileUploader: typeof import('./components/FileUploader.vue')['default']
@@ -60,9 +53,5 @@ declare module 'vue' {
     TestTable: typeof import('./components/TestTable.vue')['default']
     TheCropper: typeof import('./components/TheCropper.vue')['default']
     TheModal: typeof import('./components/TheModal.vue')['default']
-    ToolbarButton: typeof import('radix-vue')['ToolbarButton']
-    ToolbarLink: typeof import('radix-vue')['ToolbarLink']
-    ToolbarRoot: typeof import('radix-vue')['ToolbarRoot']
-    ToolbarSeparator: typeof import('radix-vue')['ToolbarSeparator']
   }
 }

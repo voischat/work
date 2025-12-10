@@ -3,7 +3,7 @@ import type { SendVerifySmsBody } from '~/api/verify-sms'
 import { Message } from '@arco-design/web-vue'
 import md5 from 'md5'
 import * as v from 'valibot'
-import { shallowRef } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { useForm } from 'zod-arco-rules/valibot'
 import { useCountDown } from '~/composables/useCountDown'
 
@@ -14,7 +14,9 @@ definePage({
   },
 })
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+
+const privacyLink = computed(() => `https://www.voiswork.com/common/intl/web/corp/privacy_${locale.value}`)
 
 const activeTab = shallowRef<'phone' | 'email'>('email')
 
@@ -232,7 +234,7 @@ const emailSubmit = handleEmailSubmit((values: any) => {
                 {{ $t('i-have-read-and-agree') }}
               </a-checkbox>
 
-              <a-link href="https://www.voiswork.com/common/corp-web/privacy-en">
+              <a-link :href="privacyLink">
                 {{ t('privacy-agreement') }}
               </a-link>
             </div>
@@ -303,7 +305,7 @@ const emailSubmit = handleEmailSubmit((values: any) => {
                 {{ $t('i-have-read-and-agree') }}
               </a-checkbox>
 
-              <a-link href="https://www.voiswork.com/common/corp-web/privacy-en">
+              <a-link :href="privacyLink">
                 {{ t('privacy-agreement') }}
               </a-link>
             </div>
