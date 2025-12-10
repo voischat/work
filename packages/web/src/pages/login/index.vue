@@ -282,7 +282,7 @@ const loginByEmail = handleEmailLogin((values: any) => {
                 {{ $t('i-have-read-and-agree') }}
               </a-checkbox>
 
-              <a-link href="https://www.voiswork.cn/common/corp-web/privacy">
+              <a-link href="https://www.voiswork.cn/common/corp-web/privacy-en">
                 {{ t('privacy-agreement') }}
               </a-link>
             </div>
@@ -341,7 +341,7 @@ const loginByEmail = handleEmailLogin((values: any) => {
                 {{ $t('i-have-read-and-agree') }}
               </a-checkbox>
 
-              <a-link href="https://www.voiswork.cn/common/corp-web/privacy">
+              <a-link href="https://www.voiswork.cn/common/corp-web/privacy-en">
                 {{ t('privacy-agreement') }}
               </a-link>
             </div>
@@ -395,7 +395,7 @@ const loginByEmail = handleEmailLogin((values: any) => {
                 {{ $t('i-have-read-and-agree') }}
               </a-checkbox>
 
-              <a-link href="https://www.voiswork.cn/common/corp-web/privacy">
+              <a-link href="https://www.voiswork.cn/common/corp-web/privacy-en">
                 {{ t('privacy-agreement') }}
               </a-link>
             </div>
