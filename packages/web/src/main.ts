@@ -6,6 +6,7 @@ import { createWebHashHistory } from 'vue-router'
 import { routes } from 'vue-router/auto-routes'
 import App from './App.vue'
 import { vDisabled } from './directives/v-disabled'
+import { vTips } from './directives/v-tips'
 import { vVip } from './directives/v-vip'
 
 import { setup } from './setup'
@@ -52,6 +53,7 @@ setup(
 
     app.directive('vip', vVip)
     app.directive('disabled', vDisabled)
+    app.directive('tips', vTips)
   },
 )
 

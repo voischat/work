@@ -56,7 +56,7 @@ export function useDisableEl(el: DisableElement) {
     removeKillerEvent(el)
   }
 
-  const disable = (hintText?: string) => {
+  const disable = () => {
     elUIStatesMap.set(el, {
       title: el.title,
       styles: {},
@@ -72,8 +72,9 @@ export function useDisableEl(el: DisableElement) {
     styles.cursor = el.style.cursor
     el.style.cursor = 'not-allowed'
 
-    if (hintText)
-      el.title = hintText
+    // Title handling removed - use v-tips directive for tooltips
+    // if (hintText)
+    //   el.title = hintText
 
     // TODO
     // el.setAttribute('popovertarget', 'test')

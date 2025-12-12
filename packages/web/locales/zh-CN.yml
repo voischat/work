@@ -468,11 +468,10 @@ speed: 速度
 direction: 方向
 track-type:
   close: 关闭
-  fast: 快速
-  high: 高频
-  keep: 保持
-  low: 低频
-  medium: 中频
+  fast: 1 分钟
+  high: 5 分钟
+  medium: 15 分钟
+  low: 1 小时
 type: 类型
 user:
   gender: 性别
@@ -538,6 +537,10 @@ workbench:
   user-track: 用户轨迹
 web-guide: 管理台用户手册
 app-guide: App 用户手册
+tooltips:
+  track:
+    power-warning: 该频率设备耗电大，请慎重
+    flagship-feature: 旗舰版功能
 binding-email: 绑定邮箱
 binding-email-form:
   title: 绑定邮箱

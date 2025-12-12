@@ -4,6 +4,7 @@ import type { Member } from '~/types/api'
 import Message from '@arco-design/web-vue/es/message'
 import { useQueryClient } from '@tanstack/vue-query'
 import * as v from 'valibot'
+import { computed } from 'vue'
 import { useForm } from 'zod-arco-rules/valibot'
 import { TrackType } from '~/api/contact'
 
@@ -70,6 +71,20 @@ const submit = handleSubmit(async (values) => {
   }
   edit(values)
 })
+
+// Computed property for fast radio disabled state
+const isFastTrackDisabled = computed(() =>
+  !authStore?.vip?.vip_supports?.find(i => i.name === 'track')?.quick_support,
+)
+
+// Computed functions for tooltips
+const getPowerWarningTooltip = () => t('tooltips.track.power-warning')
+const getFlagshipFeatureTooltip = () => t('tooltips.track.flagship-feature')
+
+// Conditional tooltip for fast radio
+const getFastTrackTooltip = computed(() => () =>
+  isFastTrackDisabled.value ? getFlagshipFeatureTooltip() : getPowerWarningTooltip(),
+)
 </script>
 
 <template>
@@ -153,14 +168,16 @@ const submit = handleSubmit(async (values) => {
           <a-radio :value="TrackType.Medium">
             {{ t('track-type.medium') }}
           </a-radio>
-          <a-radio :value="TrackType.High">
+          <a-radio
+            v-tips="getPowerWarningTooltip"
+            :value="TrackType.High"
+          >
             {{ t('track-type.high') }}
           </a-radio>
           <a-radio
-            v-disabled="{
-              value: !authStore?.vip?.vip_supports?.find((i) => i.name === 'track')?.quick_support,
-              title: '专业版功能',
-            }" :value="TrackType.Fast"
+            v-disabled="isFastTrackDisabled"
+            v-tips="getFastTrackTooltip"
+            :value="TrackType.Fast"
           >
             {{ t('track-type.fast') }}
           </a-radio>

@@ -53,5 +53,9 @@ declare module 'vue' {
     TestTable: typeof import('./components/TestTable.vue')['default']
     TheCropper: typeof import('./components/TheCropper.vue')['default']
     TheModal: typeof import('./components/TheModal.vue')['default']
+    ToolbarButton: typeof import('radix-vue')['ToolbarButton']
+    ToolbarLink: typeof import('radix-vue')['ToolbarLink']
+    ToolbarRoot: typeof import('radix-vue')['ToolbarRoot']
+    ToolbarSeparator: typeof import('radix-vue')['ToolbarSeparator']
   }
 }

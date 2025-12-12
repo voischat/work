@@ -486,11 +486,11 @@ time: Time
 track: Track
 track-type:
   close: Close
-  fast: Fast
-  high: High
+  fast: 1 min
+  high: 5 min
   keep: Keep
-  low: Low
-  medium: Medium
+  low: 1 hr
+  medium: 15 min
 type: Type
 user:
   gender: Gender
@@ -555,6 +555,10 @@ workbench:
   user-track: User trajectory
 web-guide: Web Guide
 app-guide: App Guide
+tooltips:
+  track:
+    power-warning: This frequency consumes high device power, please use with caution
+    flagship-feature: Flagship feature
 binding-email: Bind Email
 binding-email-form:
   title: Bind Email
