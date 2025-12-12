@@ -25,7 +25,7 @@ function goTo(url: string) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <!-- 导航栏 -->
     <nav class="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
       <div class="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -113,7 +113,7 @@ function goTo(url: string) {
           <a
             :href="androidUrl"
             target="_blank"
-            class="flex items-center justify-center w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95"
+            class="flex items-center justify-center w-full bg-green-500 text-white hover:bg-green-600 font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95"
             @click="goTo(androidUrl)"
           >
             <i i-ph-android-logo class="mr-3 text-xl" />
@@ -123,7 +123,7 @@ function goTo(url: string) {
           <a
             :href="iosUrl"
             target="_blank"
-            class="flex items-center justify-center w-full bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95"
+            class="flex items-center justify-center w-full bg-orange-500 text-white hover:bg-orange-600 font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95"
             @click="goTo(iosUrl)"
           >
             <i i-ph-apple-logo class="mr-3 text-xl" />
@@ -134,7 +134,7 @@ function goTo(url: string) {
         <!-- Desktop: Full card layout -->
         <div class="hidden md:grid grid-cols-2 gap-6">
           <!-- Android 下载 -->
-          <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-xl overflow-hidden" hover:cursor-pointer @click="goTo(androidUrl)">
+          <div class="bg-green-500 rounded-2xl shadow-xl overflow-hidden" hover:cursor-pointer @click="goTo(androidUrl)">
             <div class="p-6 md:p-8">
               <div class="flex items-center mb-4">
                 <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4">
@@ -144,13 +144,13 @@ function goTo(url: string) {
                   <h3 class="text-xl font-bold text-white">
                     {{ t('mobile.android.title') }}
                   </h3>
-                  <p class="text-green-100">
+                  <p class="text-white/90">
                     {{ t('mobile.android.subtitle') }}
                   </p>
                 </div>
               </div>
 
-              <p class="text-green-50 mb-6">
+              <p class="text-white/80 mb-6">
                 {{ t('mobile.android.description') }}
               </p>
 
@@ -163,7 +163,7 @@ function goTo(url: string) {
                 {{ t('mobile.android.button') }}
               </a>
 
-              <div class="mt-4 text-green-100 text-sm flex items-center">
+              <div class="mt-4 text-white/90 text-sm flex items-center">
                 <i i-ph-info class="mr-2" />
                 {{ t('mobile.android.version') }}
               </div>
@@ -171,7 +171,7 @@ function goTo(url: string) {
           </div>
 
           <!-- iOS 下载 -->
-          <div class="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl shadow-xl overflow-hidden" hover:cursor-pointer @click="goTo(iosUrl)">
+          <div class="bg-orange-500 rounded-2xl shadow-xl overflow-hidden" hover:cursor-pointer @click="goTo(iosUrl)">
             <div class="p-6 md:p-8">
               <div class="flex items-center mb-4">
                 <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4">
@@ -181,13 +181,13 @@ function goTo(url: string) {
                   <h3 class="text-xl font-bold text-white">
                     {{ t('mobile.ios.title') }}
                   </h3>
-                  <p class="text-orange-100">
+                  <p class="text-white/90">
                     {{ t('mobile.ios.subtitle') }}
                   </p>
                 </div>
               </div>
 
-              <p class="text-orange-50 mb-6">
+              <p class="text-white/80 mb-6">
                 {{ t('mobile.ios.description') }}
               </p>
 
@@ -200,7 +200,7 @@ function goTo(url: string) {
                 {{ t('mobile.ios.button') }}
               </a>
 
-              <div class="mt-4 text-orange-100 text-sm flex items-center">
+              <div class="mt-4 text-white/90 text-sm flex items-center">
                 <i i-ph-info class="mr-2" />
                 {{ t('mobile.ios.version') }}
               </div>
