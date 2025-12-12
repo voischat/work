@@ -18,6 +18,8 @@ declare module 'vue' {
     ContactSelectTree: typeof import('./components/ContactSelectTree.vue')['default']
     CreateMemberModal: typeof import('./components/CreateMemberModal.vue')['default']
     DeleteAccount: typeof import('./components/DeleteAccount.vue')['default']
+    DeleteAccountEmail: typeof import('./components/DeleteAccountEmail.vue')['default']
+    DeleteAccountPhone: typeof import('./components/DeleteAccountPhone.vue')['default']
     DeleteMemberModal: typeof import('./components/DeleteMemberModal.vue')['default']
     EditDeviceModal: typeof import('./components/EditDeviceModal.vue')['default']
     EditMemberModal: typeof import('./components/EditMemberModal.vue')['default']
