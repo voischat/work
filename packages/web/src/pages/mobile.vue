@@ -59,50 +59,47 @@ function goTo(url: string) {
 
       <div class="max-w-4xl mx-auto">
         <!-- 二维码区域 -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8 mb-8">
-          <div class="flex flex-col md:flex-row items-center gap-8">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 md:p-6 mb-6">
+          <div class="flex flex-col md:flex-row items-center gap-4 md:gap-6">
             <div class="flex-shrink-0">
-              <div class="bg-white p-4 rounded-xl shadow-inner relative">
+              <div class="bg-white p-3 rounded-lg shadow-inner relative">
                 <img
                   :src="qrcode"
                   alt="Website QR Code"
-                  class="w-48 h-48 md:w-56 md:h-56"
+                  class="size-40"
                 >
                 <!-- Logo overlay in center of QR code -->
                 <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <div class="bg-white rounded-lg p1 shadow-lg">
+                  <div class="bg-white rounded-md p-0.5 shadow-sm">
                     <img
                       :src="LogoURL"
                       alt="Logo"
-                      class="size-8 object-contain"
+                      class="size-6 object-contain"
                     >
                   </div>
                 </div>
               </div>
-              <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-3">
+              <p class="text-center text-xs text-gray-500 dark:text-gray-400 mt-2">
                 {{ t('mobile.qr-code-label') }}
               </p>
             </div>
 
             <div class="flex-1">
-              <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">
-                {{ t('mobile.qr-code-title') }}
-              </h2>
-              <ul class="space-y-3 text-gray-600 dark:text-gray-300">
+              <ul class="space-y-2 text-gray-600 dark:text-gray-300 text-sm">
                 <li class="flex items-start">
-                  <i i-ph-check-circle class="text-green-500 mt-1 mr-2 flex-shrink-0" />
+                  <i i-ph-check-circle class="text-green-500 mt-0.5 mr-2 flex-shrink-0 text-sm" />
                   <span>{{ t('mobile.qr-code-benefit-1') }}</span>
                 </li>
                 <!-- <li class="flex items-start">
-                  <i i-ph-check-circle class="text-green-500 mt-1 mr-2 flex-shrink-0" />
+                  <i i-ph-check-circle class="text-green-500 mt-0.5 mr-2 flex-shrink-0 text-sm" />
                   <span>{{ t('mobile.qr-code-benefit-2') }}</span>
                 </li>
                 <li class="flex items-start">
-                  <i i-ph-check-circle class="text-green-500 mt-1 mr-2 flex-shrink-0" />
+                  <i i-ph-check-circle class="text-green-500 mt-0.5 mr-2 flex-shrink-0 text-sm" />
                   <span>{{ t('mobile.qr-code-benefit-3') }}</span>
                 </li>
                 <li class="flex items-start">
-                  <i i-ph-check-circle class="text-green-500 mt-1 mr-2 flex-shrink-0" />
+                  <i i-ph-check-circle class="text-green-500 mt-0.5 mr-2 flex-shrink-0 text-sm" />
                   <span>{{ t('mobile.qr-code-benefit-4') }}</span>
                 </li> -->
               </ul>
@@ -111,7 +108,31 @@ function goTo(url: string) {
         </div>
 
         <!-- 下载按钮区域 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Mobile: Simple buttons only -->
+        <div class="md:hidden space-y-4 mb-6">
+          <a
+            :href="androidUrl"
+            target="_blank"
+            class="flex items-center justify-center w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95"
+            @click="goTo(androidUrl)"
+          >
+            <i i-ph-android-logo class="mr-3 text-xl" />
+            {{ t('mobile.android.button') }}
+          </a>
+
+          <a
+            :href="iosUrl"
+            target="_blank"
+            class="flex items-center justify-center w-full bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95"
+            @click="goTo(iosUrl)"
+          >
+            <i i-ph-apple-logo class="mr-3 text-xl" />
+            {{ t('mobile.ios.button') }}
+          </a>
+        </div>
+
+        <!-- Desktop: Full card layout -->
+        <div class="hidden md:grid grid-cols-2 gap-6">
           <!-- Android 下载 -->
           <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-xl overflow-hidden" hover:cursor-pointer @click="goTo(androidUrl)">
             <div class="p-6 md:p-8">
