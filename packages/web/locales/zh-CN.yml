@@ -383,6 +383,42 @@ privacy-agreement: 隐私政策
 project:
   name: 微喇企业管理系统
 project-name: 微喇企业版
+mobile:
+  app-download: App下载
+  title: 软件下载
+  description: 扫描下方二维码或点击按钮下载微喇企业版APP，随时随地管理您的企业事务
+  qr-code-title: 移动端访问
+  qr-code-label: 微喇企业版
+  qr-code-benefit-1: 使用手机浏览器扫描二维码直接访问
+  qr-code-benefit-2: 无需下载，随时随地使用
+  qr-code-benefit-3: 自动适配移动端界面
+  qr-code-benefit-4: 实时同步数据
+  android:
+    title: Android下载
+    subtitle: 适用于Android设备
+    description: 下载微喇企业版Android应用，享受更流畅的移动办公体验
+    button: 立即下载Android版
+    version: 支持Android5.0及以上版本
+  ios:
+    title: iOS下载
+    subtitle: 适用于iPhone和iPad
+    description: 在AppStore下载微喇企业版iOS应用，专为苹果设备优化
+    button: 前往AppStore下载
+    version: 支持iOS12.0及以上版本
+  instructions:
+    title: 使用说明
+    scan-qr:
+      title: 扫描二维码
+      description: 使用手机相机或扫码工具扫描上方二维码
+    click-download:
+      title: 点击下载
+      description: 根据您的设备类型点击相应的下载按钮
+    start-using:
+      title: 开始使用
+      description: 安装完成后登录账号即可开始使用
+  footer:
+    copyright: '©{year}{projectName}.Allrightsreserved.'
+    contact: 如有问题，请联系技术支持
 register:
   cancel: 取消
   confirm: 确认

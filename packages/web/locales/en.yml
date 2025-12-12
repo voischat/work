@@ -403,6 +403,42 @@ privacy-agreement: Privacy Policy
 project:
   name: Weila Enterprise Manager
 project-name: Weila Enterprise Edition
+mobile:
+  app-download: App Download
+  title: Software Download
+  description: Scan the QR code below or click the button to download the Weila Enterprise Edition APP, manage your business affairs anytime, anywhere
+  qr-code-title: Mobile Access
+  qr-code-label: Weila Enterprise Edition
+  qr-code-benefit-1: Use your mobile browser to scan the QR code for direct access
+  qr-code-benefit-2: No download required, use anytime, anywhere
+  qr-code-benefit-3: Automatically adapts to mobile interface
+  qr-code-benefit-4: Real-time data synchronization
+  android:
+    title: Android Download
+    subtitle: For Android devices
+    description: Download the Weila Enterprise Edition Android app for a smoother mobile office experience
+    button: Download Android Version Now
+    version: Supports Android 5.0 and above
+  ios:
+    title: iOS Download
+    subtitle: For iPhone and iPad
+    description: Download the Weila Enterprise Edition iOS app from the App Store, optimized for Apple devices
+    button: Go to App Store to Download
+    version: Supports iOS 12.0 and above
+  instructions:
+    title: Instructions
+    scan-qr:
+      title: Scan QR Code
+      description: Use your phone camera or scanning tool to scan the QR code above
+    click-download:
+      title: Click to Download
+      description: Click the corresponding download button based on your device type
+    start-using:
+      title: Start Using
+      description: Log in to your account after installation to start using
+  footer:
+    copyright: '©{year}{projectName}.Allrightsreserved.'
+    contact: If you have any questions, please contact technical support
 register:
   cancel: Cancel
   confirm: Confirm
