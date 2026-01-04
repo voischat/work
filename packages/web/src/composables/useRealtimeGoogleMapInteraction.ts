@@ -30,7 +30,6 @@ export function useRealtimeGoogleMapInteraction(
   const selectedMarker = shallowRef<GoogleRealtimeMarker | null>(null)
 
   // 逆地理编码相关
-  const weilaApi = useWeilaApi()
   const regeoInfo = shallowRef<RegeoModel | undefined>(undefined)
 
   // InfoWindow 相关
@@ -62,14 +61,17 @@ export function useRealtimeGoogleMapInteraction(
     renderInfoWindow(marker, regeo)
   }
 
-  async function fetchRegeo(marker: GoogleRealtimeMarker) {
-    return await weilaApi.value.v2.fetch<RegeoModel>('loc/regeo', {
-      body: {
-        lon: marker.position.lng,
-        lat: marker.position.lat,
-        radius: 300,
-      },
-    })
+  async function fetchRegeo(_marker: GoogleRealtimeMarker) {
+    // 临时禁用逆地理编码，返回mock空数据
+    return {
+      province: '',
+      city: '',
+      citycode: '',
+      district: '',
+      adcode: '',
+      township: '',
+      Address: '',
+    } as RegeoModel
   }
 
   function genMarkers(val: RealtimeLocationModel[] | undefined): GoogleRealtimeMarker[] {

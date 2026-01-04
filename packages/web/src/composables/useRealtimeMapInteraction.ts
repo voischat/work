@@ -21,7 +21,7 @@ export function useRealtimeMapInteraction(
   const boundsFitted = shallowRef(false)
 
   // 逆地理编码相关
-  const weilaApi = useWeilaApi()
+  // const weilaApi = useWeilaApi()
   const regeoInfo = shallowRef<RegeoModel | undefined>(undefined)
 
   watch(selectedMarker, onMarkerSelected)
@@ -40,20 +40,16 @@ export function useRealtimeMapInteraction(
   }
 
   async function fetchRegeo() {
-    if (!selectedMarker.value)
-      return
-
-    const pos = selectedMarker.value?.getPosition()
-    if (!pos)
-      throw new Error('No position')
-
-    return await weilaApi.value.v2.fetch<RegeoModel>('loc/regeo', {
-      body: {
-        lon: pos?.getLng(),
-        lat: pos?.getLat(),
-        radius: 300,
-      },
-    })
+    // 临时禁用逆地理编码，返回mock空数据
+    return {
+      province: '',
+      city: '',
+      citycode: '',
+      district: '',
+      adcode: '',
+      township: '',
+      Address: '',
+    } as RegeoModel
   }
 
   function genMarkers(val: RealtimeLocationModel[] | undefined): AMap.Marker[] {

@@ -24,7 +24,6 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
   const selectedMarker = shallowRef<GoogleMarker | null>(null)
 
   // 逆地理编码相关
-  const weilaApi = useWeilaApi()
   const regeoInfo = shallowRef<RegeoModel | undefined>(undefined)
 
   // 轨迹路径
@@ -59,14 +58,17 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
     renderInfoWindow(marker, regeo)
   }
 
-  async function fetchRegeo(marker: GoogleMarker) {
-    return await weilaApi.value.v2.fetch<RegeoModel>('loc/regeo', {
-      body: {
-        lon: marker.position.lng,
-        lat: marker.position.lat,
-        radius: 300,
-      },
-    })
+  async function fetchRegeo(_marker: GoogleMarker) {
+    // 临时禁用逆地理编码，返回mock空数据
+    return {
+      province: '',
+      city: '',
+      citycode: '',
+      district: '',
+      adcode: '',
+      township: '',
+      Address: '',
+    } as RegeoModel
   }
 
   function genMarkers(val: UserTrackModel[] | undefined): GoogleMarker[] {

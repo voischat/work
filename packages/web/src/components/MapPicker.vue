@@ -100,13 +100,16 @@ const { data: regeo, refetch } = useQuery({
   enabled: !!pickedCenter.value,
   queryKey: ['regeo', radius, pickedCenter],
   queryFn: async () => {
-    return $v2<{ regeo: RegeoV2 }>('loc/regeo', {
-      body: {
-        lon: pickedCenter.value![0],
-        lat: pickedCenter.value![1],
-        radius: radius.value,
-      },
-    }).then((i: any) => i.regeo)
+    // 临时禁用逆地理编码，返回mock空数据
+    return {
+      province: '',
+      city: '',
+      citycode: '',
+      district: '',
+      adcode: '',
+      township: '',
+      Address: '',
+    } as RegeoV2
   },
 })
 
