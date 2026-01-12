@@ -151,10 +151,10 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
           <span mr2>${t('time')}</span> <span>${new Date(selectedMarker.value?.getExtData().created * 1000).toLocaleString()}</span>
         </div>
         <div>
-          <span mr2>${t('longitude')}</span> <span>${selectedMarker.value?.getExtData().longitude}</span>
+          <span mr2>${t('longitude')}</span> <span>${(selectedMarker.value?.getExtData().longitude as number).toFixed(6)}</span>
         </div>
         <div>
-          <span mr2>${t('latitude')}</span> <span>${selectedMarker.value?.getExtData().latitude}<br></span>
+          <span mr2>${t('latitude')}</span> <span>${(selectedMarker.value?.getExtData().latitude as number).toFixed(6)}<br></span>
         </div>
       </div>
     `

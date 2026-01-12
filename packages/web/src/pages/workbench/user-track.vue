@@ -94,9 +94,9 @@ function onMarkerSelected(marker: AMap.Marker) {
               {{ new Date(marker.getExtData().created * 1000).toLocaleString() }}
             </template>
             <template #description>
-              <span mr2>{{ t('longitude') }}</span> <span>{{ marker.getExtData().longitude }}</span>
+              <span mr2>{{ t('longitude') }}</span> <span>{{ (marker.getExtData().longitude as number).toFixed(6) }}</span>
               <br>
-              <span mr2>{{ t('latitude') }}</span> <span>{{ marker.getExtData().latitude }}<br></span>
+              <span mr2>{{ t('latitude') }}</span> <span>{{ (marker.getExtData().latitude as number).toFixed(6) }}<br></span>
             </template>
           </a-list-item-meta>
           <template #extra>

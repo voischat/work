@@ -135,11 +135,11 @@ watch([selectedType, selectedId], async ([type, id]) => {
                   },
                   {
                     label: t('longitude'),
-                    value: (item.marker.getExtData().longitude as number).toFixed(2),
+                    value: (item.marker.getExtData().longitude as number).toFixed(6),
                   },
                   {
                     label: t('latitude'),
-                    value: (item.marker.getExtData().latitude as number).toFixed(2),
+                    value: (item.marker.getExtData().latitude as number).toFixed(6),
                   },
                   {
                     label: t('speed'),
