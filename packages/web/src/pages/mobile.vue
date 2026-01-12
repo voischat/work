@@ -17,7 +17,7 @@ const qrcode = useQRCode(baseUrl)
 
 // 下载链接
 const androidUrl = 'https://fir.xcxwo.com/tkdgb9yj'
-const iosUrl = 'https://apps.apple.com/cn/app/%E5%BE%AE%E5%96%87%E4%BC%81%E4%B8%9A%E7%89%88/id6751869184'
+const iosUrl = 'https://apps.apple.com/app/voiswork/id6756286685'
 
 function goTo(url: string) {
   window.open(url, '_blank')
