@@ -16,7 +16,7 @@ const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
 const qrcode = useQRCode(baseUrl)
 
 // 下载链接
-const androidUrl = 'https://fir.xcxwo.com/tkdgb9yj'
+const androidUrl = 'https://play.google.com/store/apps/details?id=com.voistech.work'
 const iosUrl = 'https://apps.apple.com/app/voiswork/id6756286685'
 
 function goTo(url: string) {
