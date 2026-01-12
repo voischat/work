@@ -61,17 +61,36 @@ export function useRealtimeGoogleMapInteraction(
     renderInfoWindow(marker, regeo)
   }
 
-  async function fetchRegeo(_marker: GoogleRealtimeMarker) {
-    // 临时禁用逆地理编码，返回mock空数据
-    return {
-      province: '',
-      city: '',
-      citycode: '',
-      district: '',
-      adcode: '',
-      township: '',
-      Address: '',
-    } as RegeoModel
+  async function fetchRegeo(marker: GoogleRealtimeMarker) {
+    try {
+      const { data } = await useWeilaFetch<RegeoModel>('corp/loc/regeo', {
+        body: {
+          lat: marker.latitude,
+          lng: marker.longitude,
+        },
+      })
+      return data.value || {
+        province: '',
+        city: '',
+        citycode: '',
+        district: '',
+        adcode: '',
+        township: '',
+        Address: '',
+      } as RegeoModel
+    }
+    catch (error) {
+      console.error('Failed to fetch regeo:', error)
+      return {
+        province: '',
+        city: '',
+        citycode: '',
+        district: '',
+        adcode: '',
+        township: '',
+        Address: '',
+      } as RegeoModel
+    }
   }
 
   function genMarkers(val: RealtimeLocationModel[] | undefined): GoogleRealtimeMarker[] {
