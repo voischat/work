@@ -86,7 +86,7 @@ export default defineConfig({
       '/v2': {
         // target: 'http://demo.weila.hk',
         timeout: 20 * 1000,
-        target: 'http://192.168.1.12:8090',
+        target: 'https://www.voiswork.com',
         changeOrigin: true,
         secure: false,
       },
