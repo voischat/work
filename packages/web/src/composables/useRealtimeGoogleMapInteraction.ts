@@ -189,10 +189,10 @@ export function useRealtimeGoogleMapInteraction(
           <span style="margin-right: 8px;">${t('time')}</span> <span>${new Date(marker.ts * 1000).toLocaleString()}</span>
         </div>
         <div>
-          <span style="margin-right: 8px;">${t('longitude')}</span> <span>${marker.longitude.toFixed(2)}</span>
+          <span style="margin-right: 8px;">${t('longitude')}</span> <span>${marker.longitude.toFixed(6)}</span>
         </div>
         <div>
-          <span style="margin-right: 8px;">${t('latitude')}</span> <span>${marker.latitude.toFixed(2)}</span>
+          <span style="margin-right: 8px;">${t('latitude')}</span> <span>${marker.latitude.toFixed(6)}</span>
         </div>
         <div>
           <span style="margin-right: 8px;">${t('speed')}</span> <span>${marker.spd.toFixed(2)} km/h</span>

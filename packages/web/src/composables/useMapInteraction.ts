@@ -121,10 +121,10 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
           <span style="margin-right: 8px;">${t('time')}</span> <span>${new Date(marker.created * 1000).toLocaleString()}</span>
         </div>
         <div>
-          <span style="margin-right: 8px;">${t('longitude')}</span> <span>${marker.longitude}</span>
+          <span style="margin-right: 8px;">${t('longitude')}</span> <span>${marker.longitude.toFixed(6)}</span>
         </div>
         <div>
-          <span style="margin-right: 8px;">${t('latitude')}</span> <span>${marker.latitude}</span>
+          <span style="margin-right: 8px;">${t('latitude')}</span> <span>${marker.latitude.toFixed(6)}</span>
         </div>
       </div>
     `

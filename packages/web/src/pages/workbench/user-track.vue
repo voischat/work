@@ -151,9 +151,9 @@ function onClickMarker(marker: any) { // marker actually not GoogleMarker
               {{ new Date(marker.created * 1000).toLocaleString() }}
             </template>
             <template #description>
-              <span mr2>{{ t('longitude') }}</span> <span>{{ marker.position.lng }}</span>
+              <span mr2>{{ t('longitude') }}</span> <span>{{ marker.longitude.toFixed(6) }}</span>
               <br>
-              <span mr2>{{ t('latitude') }}</span> <span>{{ marker.position.lat }}<br></span>
+              <span mr2>{{ t('latitude') }}</span> <span>{{ marker.latitude.toFixed(6) }}<br></span>
             </template>
           </a-list-item-meta>
           <template #extra>

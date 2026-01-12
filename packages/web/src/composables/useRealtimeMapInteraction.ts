@@ -206,10 +206,10 @@ export function useRealtimeMapInteraction(
           <span mr2>${t('time')}</span> <span>${new Date(extData.ts * 1000).toLocaleString()}</span>
         </div>
         <div>
-          <span mr2>${t('longitude')}</span> <span>${(extData.longitude as number).toFixed(2)}</span>
+          <span mr2>${t('longitude')}</span> <span>${(extData.longitude as number).toFixed(6)}</span>
         </div>
         <div>
-          <span mr2>${t('latitude')}</span> <span>${(extData.latitude as number).toFixed(2)}</span>
+          <span mr2>${t('latitude')}</span> <span>${(extData.latitude as number).toFixed(6)}</span>
         </div>
         <div>
           <span mr2>${t('speed')}</span> <span>${(extData.spd as number).toFixed(2)} km/h</span>

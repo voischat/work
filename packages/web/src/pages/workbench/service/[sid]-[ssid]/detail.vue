@@ -100,7 +100,7 @@ const typeMap: TypeMap = {
                   <div class="text-sm text-gray-500">
                     <div>区域: {{ serviceInfo?.citycode }} {{ serviceInfo?.adcode }}</div>
                     <div>街道: {{ serviceInfo?.township || '未知' }}</div>
-                    <div>经纬度: {{ serviceInfo?.lat }}, {{ serviceInfo?.lon }}</div>
+                    <div>经纬度: {{ serviceInfo?.lat?.toFixed(6) }}, {{ serviceInfo?.lon?.toFixed(6) }}</div>
                   </div>
                 </a-space>
               </div>
@@ -147,8 +147,8 @@ const typeMap: TypeMap = {
               <a-col :span="12">
                 <a-descriptions
                   :data="[
-                    { label: '纬度', value: serviceInfo.lat },
-                    { label: '经度', value: serviceInfo.lon },
+                    { label: '纬度', value: serviceInfo.lat?.toFixed(6) },
+                    { label: '经度', value: serviceInfo.lon?.toFixed(6) },
                     { label: '区域', value: `${serviceInfo.citycode} ${serviceInfo.adcode}` },
                     { label: '地址', value: serviceInfo.address },
                     { label: '街道', value: serviceInfo.township || '未知' },
@@ -160,7 +160,7 @@ const typeMap: TypeMap = {
                   <icon-loading />
                   <p>地图加载中...</p>
                   <p class="text-xs">
-                    经纬度: {{ serviceInfo.lat }}, {{ serviceInfo.lon }}
+                    经纬度: {{ serviceInfo.lat?.toFixed(6) }}, {{ serviceInfo.lon?.toFixed(6) }}
                   </p>
                 </div>
               </a-col>

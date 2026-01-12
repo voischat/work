@@ -31,6 +31,7 @@ declare module 'vue-router/auto-routes' {
     '/login/': RouteRecordInfo<'/login/', '/login', Record<never, never>, Record<never, never>>,
     '/message': RouteRecordInfo<'/message', '/message', Record<never, never>, Record<never, never>, '/message/[group_id]-[group_name]'>,
     '/message/[group_id]-[group_name]': RouteRecordInfo<'/message/[group_id]-[group_name]', '/message/:group_id-:group_name', { group_id: ParamValue<true>, group_name: ParamValue<true> }, { group_id: ParamValue<false>, group_name: ParamValue<false> }>,
+    '/mobile': RouteRecordInfo<'/mobile', '/mobile', Record<never, never>, Record<never, never>>,
     '/not-found/': RouteRecordInfo<'/not-found/', '/not-found', Record<never, never>, Record<never, never>>,
     '/redirect/': RouteRecordInfo<'/redirect/', '/redirect', Record<never, never>, Record<never, never>>,
     '/register/': RouteRecordInfo<'/register/', '/register', Record<never, never>, Record<never, never>>,
@@ -111,6 +112,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/message/[group_id]-[group_name].vue': {
       routes: '/message/[group_id]-[group_name]'
+      views: never
+    }
+    'src/pages/mobile.vue': {
+      routes: '/mobile'
       views: never
     }
     'src/pages/not-found/index.vue': {

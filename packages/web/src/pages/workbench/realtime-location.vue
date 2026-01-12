@@ -202,11 +202,11 @@ function onClickMarker(marker: any) {
                   },
                   {
                     label: t('longitude'),
-                    value: item.marker.longitude.toFixed(2),
+                    value: item.marker.longitude.toFixed(6),
                   },
                   {
                     label: t('latitude'),
-                    value: item.marker.latitude.toFixed(2),
+                    value: item.marker.latitude.toFixed(6),
                   },
                   {
                     label: t('speed'),
