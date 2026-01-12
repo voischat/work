@@ -280,7 +280,7 @@ login:
   type:
     phone: 手机号
     username: 账号
-  weila-enterprise: 微喇企业版
+  weila-enterprise: VoisWork
 login-by-password: 账号密码登录
 login-by-phone: 手机号登录
 login-by-email: 邮箱登录
@@ -399,13 +399,13 @@ priority: 优先级
 privacy-agreement: 隐私政策
 project:
   name: 微喇企业管理系统
-project-name: 微喇企业版
+project-name: VoisWork
 mobile:
   app-download: App下载
   title: 软件下载
-  description: 扫描下方二维码或点击按钮下载微喇企业版APP，随时随地管理您的企业事务
+  description: 扫描下方二维码或点击按钮下载 VoisWork APP，随时随地管理您的企业事务
   qr-code-title: 移动端访问
-  qr-code-label: 微喇企业版
+  qr-code-label: VoisWork
   qr-code-benefit-1: 使用手机浏览器扫描二维码直接访问
   qr-code-benefit-2: 无需下载，随时随地使用
   qr-code-benefit-3: 自动适配移动端界面
@@ -413,13 +413,13 @@ mobile:
   android:
     title: Android下载
     subtitle: 适用于Android设备
-    description: 下载微喇企业版Android应用，享受更流畅的移动办公体验
+    description: 下载 VoisWork Android应用，享受更流畅的移动办公体验
     button: 立即下载Android版
     version: 支持Android5.0及以上版本
   ios:
     title: iOS下载
     subtitle: 适用于iPhone和iPad
-    description: 在AppStore下载微喇企业版iOS应用，专为苹果设备优化
+    description: 在AppStore下载 VoisWork iOS应用，专为苹果设备优化
     button: 前往AppStore下载
     version: 支持iOS12.0及以上版本
   instructions:
@@ -458,7 +458,7 @@ register:
       errMsg: 验证码为必填项
       placeholder: 验证码
   get-sms-code: 获取短信验证码
-  weila-enterprise: 微喇企业版
+  weila-enterprise: VoisWork
 reset-password:
   button: 重置密码
   cancel: 取消
