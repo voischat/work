@@ -222,7 +222,7 @@ legal:
   label:
     audit-category: Certification Category
     audit-status: Review status
-    business-license: Business license
+    business-license: Business Registration Certificate (Certificate No.)
     cert-number: Document number
     corp-name: Company Name
     id-card-front: Front of the ID card
@@ -232,8 +232,8 @@ legal:
     update-time: Update time
   personal: Personal certification
   placeholder:
-    corp-identify: Please enter the 18-digit unified social credit code.
-    corp-name: Please enter the company name.
+    corp-identify: Certificate Number on Business Registration Certificate
+    corp-name: Company Name on Business Registration Certificate
   type:
     corp: Enterprise Certification
     personal: Personal certification
@@ -247,8 +247,8 @@ legal:
     personal: Personal
 legal-form:
   error:
-    business-license: Please upload a photo of the business license.
-    corp-identify: The unified social credit code must be 18 digits.
+    business-license: Please upload a photo of the business registration certificate.
+    corp-identify: The certificate number must be 31 characters.
     identify: The ID number must be 18 digits.
     identify-card-front: Please upload a photo of the front of your ID card.
     identify-card-reverse: Please upload a photo of the back of your ID card.
@@ -516,7 +516,7 @@ workbench:
   add-customer-service: Add customer service.
   area: Region
   auth-info: Certification Information
-  business-license: Business license
+  business-license: Business Registration Certificate
   category: Category
   confirm: Sure.
   confirm-delete-point: Are you sure you want to delete this service point?

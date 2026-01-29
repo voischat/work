@@ -211,7 +211,7 @@ legal:
   label:
     audit-category: 认证类别
     audit-status: 审核状态
-    business-license: 营业执照
+    business-license: 商业登记证(Certificate No.)
     cert-number: 证件号码
     corp-name: 企业名称
     id-card-front: 身份证正面
@@ -221,8 +221,8 @@ legal:
     update-time: 更新时间
   personal: 个人认证
   placeholder:
-    corp-identify: 请输入 18 位统一社会信用代码
-    corp-name: 请输入企业名称
+    corp-identify: 商业登记证上号码(Certificate No.)
+    corp-name: 商业登记证上的公司名称
   type:
     corp: 企业认证
     personal: 个人认证
@@ -236,8 +236,8 @@ legal:
     personal: 个人
 legal-form:
   error:
-    business-license: 请上传营业执照照片
-    corp-identify: 统一社会信用代码必须为 18 位
+    business-license: 请上传商业登记证照片
+    corp-identify: 商业登记证号码必须为 31 位
     identify: 身份证号码必须为 18 位
     identify-card-front: 请上传身份证正面照片
     identify-card-reverse: 请上传身份证反面照片
@@ -534,7 +534,7 @@ workbench:
   add-customer-service: 添加客服
   area: 区域
   auth-info: 认证信息
-  business-license: 营业执照
+  business-license: 商业登记证
   category: 类别
   confirm: 确定
   confirm-delete-point: 确定删除该服务点吗？

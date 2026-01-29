@@ -47,7 +47,7 @@ const { form: corpForm, rules: corpRules, handleSubmit: handleCorpSubmit } = use
   name: v.optional(v.string(), () => (data.value as CorpLegal)?.name ?? ''),
   identify: v.optional(v.pipe(
     v.string(),
-    v.length(18, () => t('legal-form.error.corp-identify')),
+    v.length(31, () => t('legal-form.error.corp-identify')),
   ), () => (data.value as CorpLegal)?.identify ?? ''),
   business_license: v.optional(v.pipe(
     v.string(),
@@ -205,8 +205,8 @@ async function uploadFile(option: any) {
           <a-form-item :label="$t('legal.identify-number')" field="identify">
             <a-input
               v-model="userForm.identify"
-              :max-length="18"
-              show-word-limit
+              :max-length="31"
+              :show-word-limit="false"
               :placeholder="$t('legal-form.placeholder.identify')"
               allow-clear
               style="width: 450px"
@@ -269,8 +269,7 @@ async function uploadFile(option: any) {
           <a-form-item :label="$t('legal.label.cert-number')" field="identify">
             <a-input
               v-model="corpForm.identify"
-              :max-length="18"
-              show-word-limit
+              :max-length="31"
               :placeholder="$t('legal.placeholder.corp-identify')"
               allow-clear
               style="width: 450px"
@@ -278,17 +277,24 @@ async function uploadFile(option: any) {
           </a-form-item>
 
           <a-form-item :label="$t('legal.label.business-license')" field="business_license">
-            <a-upload
-              :multiple="false"
-              :default-file-list="[]"
-              :file-list="[{ url: corpForm.business_license }].filter(i => i.url)"
-              :limit="1"
-              list-type="picture-card"
-              image-preview
-              :custom-request="(options: any) => uploadFile(options).then(url => {
-                corpForm.business_license = url
-              })"
-            />
+            <div style="border: 1px dashed #d9d9d9; border-radius: 4px; padding: 16px; background-color: #fafafa;">
+              <a-upload
+                :multiple="false"
+                :default-file-list="[]"
+                :file-list="[{ url: corpForm.business_license }].filter(i => i.url)"
+                :limit="1"
+                list-type="picture-card"
+                image-preview
+                :custom-request="(options: any) => uploadFile(options).then(url => {
+                  corpForm.business_license = url
+                })"
+              />
+              <div style="margin-top: 12px; color: #666; font-size: 12px; line-height: 1.8;">
+                <div>1. 文件最大不超过 5M</div>
+                <div>2. 文件格式建议为 JPG, JPEG, PNG</div>
+                <div>3. 文件需是清晰完整的证件原件拍摄或彩色扫描件</div>
+              </div>
+            </div>
           </a-form-item>
 
           <!-- 提交按钮 -->
