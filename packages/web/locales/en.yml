@@ -248,12 +248,16 @@ legal:
 legal-form:
   error:
     business-license: Please upload a photo of the business registration certificate.
-    corp-identify: The certificate number must be 31 characters.
+    corp-identify: The certificate number can be up to 31 characters.
     identify: The ID number must be 18 digits.
     identify-card-front: Please upload a photo of the front of your ID card.
     identify-card-reverse: Please upload a photo of the back of your ID card.
   placeholder:
     identify: Please enter an 18-digit ID number.
+  upload-hints:
+    max-size: Maximum file size is 5MB
+    format: Supported formats are JPG, JPEG, PNG
+    requirement: File must be a clear and complete photo or color scan of the original document
   step:
     description:
       failed: Review not approved, please resubmit for review.

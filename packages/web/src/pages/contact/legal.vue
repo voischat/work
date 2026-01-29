@@ -47,7 +47,7 @@ const { form: corpForm, rules: corpRules, handleSubmit: handleCorpSubmit } = use
   name: v.optional(v.string(), () => (data.value as CorpLegal)?.name ?? ''),
   identify: v.optional(v.pipe(
     v.string(),
-    v.length(31, () => t('legal-form.error.corp-identify')),
+    v.maxLength(31, () => t('legal-form.error.corp-identify')),
   ), () => (data.value as CorpLegal)?.identify ?? ''),
   business_license: v.optional(v.pipe(
     v.string(),
@@ -290,9 +290,9 @@ async function uploadFile(option: any) {
                 })"
               />
               <div style="margin-top: 12px; color: #666; font-size: 12px; line-height: 1.8;">
-                <div>1. 文件最大不超过 5M</div>
-                <div>2. 文件格式建议为 JPG, JPEG, PNG</div>
-                <div>3. 文件需是清晰完整的证件原件拍摄或彩色扫描件</div>
+                <div>1. {{ $t('legal-form.upload-hints.max-size') }}</div>
+                <div>2. {{ $t('legal-form.upload-hints.format') }}</div>
+                <div>3. {{ $t('legal-form.upload-hints.requirement') }}</div>
               </div>
             </div>
           </a-form-item>

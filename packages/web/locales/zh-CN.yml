@@ -237,12 +237,16 @@ legal:
 legal-form:
   error:
     business-license: 请上传商业登记证照片
-    corp-identify: 商业登记证号码必须为 31 位
+    corp-identify: 商业登记证号码最多 31 位
     identify: 身份证号码必须为 18 位
     identify-card-front: 请上传身份证正面照片
     identify-card-reverse: 请上传身份证反面照片
   placeholder:
     identify: 请输入 18 位身份证号
+  upload-hints:
+    max-size: 文件最大不超过 5M
+    format: 文件格式建议为 JPG, JPEG, PNG
+    requirement: 文件需是清晰完整的证件原件拍摄或彩色扫描件
   step:
     description:
       failed: 审核未通过，请重新提交审核

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DeptModel } from '~/api/contact'
 
+import { isNumber } from '@antfu/utils'
 import CreateDeptModal from './components/CreateDeptModal.vue'
 import DeleteDeptModal from './components/DeleteDeptModal.vue'
 import EditDeptModal from './components/EditDeptModal.vue'
@@ -71,9 +72,9 @@ function onSelect(dept: DeptModel, e: PointerEvent) {
           </a-table-column>
           <a-table-column :title="t('controls')">
             <template #cell="{ record }">
-              <div v-if="record.id && selfInfoStore.isOwner" flex gap2>
+              <div v-if="isNumber(record.id) && selfInfoStore.isOwner" flex gap2>
                 <EditDeptModal :dept="record" />
-                <DeleteDeptModal :dept="record" />
+                <DeleteDeptModal v-if="record.id" :dept="record" />
               </div>
               <!-- fix: height issue -->
               <div v-else op0 h9 />
