@@ -9,6 +9,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "pnpm -C packages/web run dev",
+    "dev:prod": "pnpm -C packages/web run dev:prod",
     "build": "pnpm -C packages/web run build",
     "build:staging": "pnpm -C packages/web run build:staging",
     "lint": "eslint .",
