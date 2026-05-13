@@ -1,5 +1,6 @@
 import { writeFile } from 'node:fs/promises'
 import path, { resolve } from 'node:path'
+import process from 'node:process'
 import { vitePluginForArco as Arco } from '@arco-plugins/vite-vue'
 import ViteYaml from '@modyfi/vite-plugin-yaml'
 import Vue from '@vitejs/plugin-vue'
@@ -21,10 +22,17 @@ import SvgLoader from 'vite-svg-loader'
 
 const now = Date.now()
 
-export default defineConfig(({ mode }) => {
-  const isDev = mode === 'development'
-  const proxyTargetV1 = isDev ? 'http://localhost:8088' : 'https://voiswork.cn'
-  const proxyTargetV2 = isDev ? 'http://localhost:8090' : 'https://voiswork.cn'
+export default defineConfig(() => {
+  const isDev = process.env.NODE_ENV !== 'production'
+  const proxyTargetV1 = isDev
+    // ? 'http://localhost:8088'
+    ? 'http://demo.weila.hk'
+    : 'https://voiswork.cn'
+
+  const proxyTargetV2 = isDev
+    // ? 'http://demo.weila.hk'
+    ? 'http://localhost:8090'
+    : 'https://voiswork.cn'
 
   return {
     base: './',

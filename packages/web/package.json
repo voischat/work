@@ -11,8 +11,8 @@
     "node": ">=14.0.0"
   },
   "scripts": {
-    "dev": "vite --config vite.config.dev.ts",
-    "dev:prod": "NODE_ENV=production vite --config vite.config.dev.ts",
+    "dev": "vite",
+    "dev:prod": "NODE_ENV=production vite",
     "build:staging": "vite build --mode staging",
     "build": "vite build",
     "report": "cross-env REPORT=true npm run build",
