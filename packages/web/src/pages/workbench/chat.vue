@@ -12,6 +12,8 @@ definePage({
 })
 
 const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
 
 // ── SDK 初始化 ──
 const { core: weilaCore, userInfo, init: initSdk } = useWeilaCore()
@@ -22,9 +24,44 @@ onMounted(() => {
 })
 
 // ── 会话列表 ──
-const sessionState = useSessions(() => weilaCore.value)
+const sessionState = useSessions(() => weilaCore.value ?? null)
+const sessions = computed(() => sessionState.sessions.value)
+const sessionsLoading = computed(() => sessionState.loading.value)
+const sessionsError = computed(() => sessionState.error.value)
 
 const selectedSession = shallowRef<WL_IDbSession>()
+
+function selectSession(session: WL_IDbSession) {
+  selectedSession.value = session
+  void router.replace({
+    query: {
+      ...route.query,
+      sessionId: session.sessionId,
+    },
+  })
+}
+
+watch(
+  [sessions, () => route.query.sessionId],
+  ([currentSessions, sessionId]) => {
+    if (typeof sessionId !== 'string')
+      return
+
+    const session = currentSessions.find(s => s.sessionId === sessionId)
+    if (!session)
+      return
+
+    if (
+      selectedSession.value?.sessionId === session.sessionId
+      && selectedSession.value?.sessionType === session.sessionType
+    ) {
+      return
+    }
+
+    selectedSession.value = session
+  },
+  { immediate: true },
+)
 
 // ── 消息历史 ──
 const { messages, senderInfos, hasMore, loading: messagesLoading, loadMore } = useMessageHistory(weilaCore, selectedSession)
@@ -118,10 +155,11 @@ async function handleSend() {
       </div>
       <SessionList
         v-else
-        :sessions="sessionState.sessions"
-        :loading="sessionState.loading"
-        :error="sessionState.error"
-        @select="s => selectedSession = s"
+        :sessions="sessions"
+        :active-session-id="selectedSession?.sessionId"
+        :loading="sessionsLoading"
+        :error="sessionsError"
+        @select="selectSession"
         @refresh="sessionState.refresh"
       />
     </aside>

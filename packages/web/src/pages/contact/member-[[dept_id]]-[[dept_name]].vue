@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { Member } from '~/types/api'
+import Message from '@arco-design/web-vue/es/message'
+import { WL_IDbSessionType } from '@weilasdk/core'
 import { shallowRef } from 'vue'
 
 definePage({
@@ -11,6 +13,9 @@ definePage({
 })
 
 const { t } = useI18n()
+const router = useRouter()
+const selfInfoStore = useSelfInfoStore()
+const { core: weilaCore, init: initSdk } = useWeilaCore()
 
 const filterInput = shallowRef('')
 const key = useDebounce(filterInput, 500)
@@ -53,6 +58,47 @@ const isEditMemberModalOpen = shallowRef(false)
 const isResetPasswordModalOpen = shallowRef(false)
 const isDeleteMemberModalOpen = shallowRef(false)
 const selectedItem = shallowRef<Member | undefined>(undefined)
+const startingSessionUserId = shallowRef<number>()
+
+async function handleSendMessage(member: Member) {
+  selectedItem.value = member
+
+  if (selfInfoStore.isCurrentUser(member.user_id))
+    return
+
+  if (!member.user_id) {
+    Message.error('成员缺少用户 ID')
+    return
+  }
+
+  startingSessionUserId.value = member.user_id
+
+  try {
+    const core = weilaCore.value ?? await initSdk()
+
+    if (!core) {
+      Message.error('SDK 初始化失败，请重新登录后再试')
+      return
+    }
+
+    const session = await core.weila_startNewSession(
+      String(member.user_id),
+      WL_IDbSessionType.SESSION_INDIVIDUAL_TYPE,
+    )
+
+    await router.push({
+      path: '/workbench/chat',
+      query: { sessionId: session.sessionId },
+    })
+  }
+  catch (err) {
+    console.error('[Member] Failed to start session:', err)
+    Message.error('发送消息失败')
+  }
+  finally {
+    startingSessionUserId.value = undefined
+  }
+}
 </script>
 
 <template>
@@ -84,7 +130,15 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
       >
         <template #actions="{ record }">
           <a-button-group>
-            <a-button @click="isEditMemberModalOpen = true">
+            <a-button
+              v-if="!selfInfoStore.isCurrentUser(record.user_id)"
+              :loading="startingSessionUserId === record.user_id"
+              @click="handleSendMessage(record)"
+            >
+              {{ t('button.send-message') }}
+            </a-button>
+
+            <a-button @click="selectedItem = record; isEditMemberModalOpen = true">
               {{ t('edit') }}
             </a-button>
 
@@ -96,10 +150,10 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
               </a-button>
               <template #content>
                 <div flex="~ col" p0>
-                  <a-doption @click="isResetPasswordModalOpen = true">
+                  <a-doption @click="selectedItem = record; isResetPasswordModalOpen = true">
                     {{ t('reset-password.button') }}
                   </a-doption>
-                  <a-doption type="warning" @click="isDeleteMemberModalOpen = true">
+                  <a-doption type="warning" @click="selectedItem = record; isDeleteMemberModalOpen = true">
                     {{ t('注销成员') }}
                   </a-doption>
                 </div>

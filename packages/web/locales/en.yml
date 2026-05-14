@@ -84,6 +84,7 @@ button:
   reset-password: Reset Password
   save: Save
   send: Send
+  send-message: Send Message
   submit: Submit
   refresh: Refresh
 change-member:
