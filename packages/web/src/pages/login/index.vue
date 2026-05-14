@@ -99,6 +99,7 @@ function onSuccess({ access_token, expires_in, refresh_token, org, account }: Au
 
   tempAccount.value.set('account', account.user_number)
   tempAccount.value.set('password', account.password)
+  tempAccount.value.set('country_code', account.country_code)
   autoLogin.value = true
 
   if (activeTab.value === 'password' && isRememberPassword.value) {

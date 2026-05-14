@@ -95,6 +95,10 @@ change-member:
       label: 轨迹
 change-member-settings-form:
   title: Edit Member Info
+chat:
+  placeholder: 输入消息...
+  sdk-loading: SDK 初始化中...
+  select-session: 选择一个会话开始聊天
 close: 关闭
 colon: ':'
 confirm-password: 确认密码
@@ -476,11 +480,12 @@ sms-verify-code: 短信验证码
 state:
   online: 在线
 submenu:
+  chat: 聊天
   dept-manage: 部门管理
   group-manage: 群组管理
   member-manage: 成员管理
-  user-track: 轨迹
   realtime-location: 实时位置
+  user-track: 轨迹
 time: 时间
 track: 轨迹
 speed: 速度

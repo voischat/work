@@ -78,6 +78,18 @@ const isCreateBusinessModalOpen = shallowRef(false)
         </div>
       </RouterLink>
 
+      <RouterLink
+        to="/workbench/chat"
+        class="rounded-lg bg-white p-6 shadow-md transition-shadow duration-300 dark:bg-neutral-800 hover:shadow-lg"
+      >
+        <div class="mb-4 flex items-center">
+          <i class="i-carbon-chat mr-3 text-2xl text-primary-600 dark:text-primary-400" />
+          <h3 class="text-xl text-gray-900 font-semibold dark:text-gray-100">
+            {{ t('submenu.chat') }}
+          </h3>
+        </div>
+      </RouterLink>
+
       <button
         :disabled="isFetchingService"
         class="rounded-lg bg-white p-6 shadow-md transition-shadow duration-300 dark:bg-neutral-800 hover:shadow-lg"

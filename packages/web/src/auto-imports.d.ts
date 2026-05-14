@@ -241,6 +241,7 @@ declare global {
   const useMediaQuery: typeof import('@vueuse/core')['useMediaQuery']
   const useMemoize: typeof import('@vueuse/core')['useMemoize']
   const useMemory: typeof import('@vueuse/core')['useMemory']
+  const useMessageHistory: typeof import('./composables/useMessageHistory')['useMessageHistory']
   const useModel: typeof import('vue')['useModel']
   const useMounted: typeof import('@vueuse/core')['useMounted']
   const useMouse: typeof import('@vueuse/core')['useMouse']
@@ -334,6 +335,7 @@ declare global {
   const useWebWorker: typeof import('@vueuse/core')['useWebWorker']
   const useWebWorkerFn: typeof import('@vueuse/core')['useWebWorkerFn']
   const useWeilaApi: typeof import('./composables/useWeilaApi')['useWeilaApi']
+  const useWeilaCore: typeof import('./composables/useWeilaCore')['useWeilaCore']
   const useWeilaFetch: typeof import('./composables/useWeilaFetch')['useWeilaFetch']
   const useWeilaMutation: typeof import('./composables/useWeilaMutation')['useWeilaMutation']
   const useWindowFocus: typeof import('@vueuse/core')['useWindowFocus']
@@ -600,6 +602,7 @@ declare module 'vue' {
     readonly useMediaQuery: UnwrapRef<typeof import('@vueuse/core')['useMediaQuery']>
     readonly useMemoize: UnwrapRef<typeof import('@vueuse/core')['useMemoize']>
     readonly useMemory: UnwrapRef<typeof import('@vueuse/core')['useMemory']>
+    readonly useMessageHistory: UnwrapRef<typeof import('./composables/useMessageHistory')['useMessageHistory']>
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
     readonly useMounted: UnwrapRef<typeof import('@vueuse/core')['useMounted']>
     readonly useMouse: UnwrapRef<typeof import('@vueuse/core')['useMouse']>
@@ -690,6 +693,7 @@ declare module 'vue' {
     readonly useWebWorker: UnwrapRef<typeof import('@vueuse/core')['useWebWorker']>
     readonly useWebWorkerFn: UnwrapRef<typeof import('@vueuse/core')['useWebWorkerFn']>
     readonly useWeilaApi: UnwrapRef<typeof import('./composables/useWeilaApi')['useWeilaApi']>
+    readonly useWeilaCore: UnwrapRef<typeof import('./composables/useWeilaCore')['useWeilaCore']>
     readonly useWeilaFetch: UnwrapRef<typeof import('./composables/useWeilaFetch')['useWeilaFetch']>
     readonly useWeilaMutation: UnwrapRef<typeof import('./composables/useWeilaMutation')['useWeilaMutation']>
     readonly useWindowFocus: UnwrapRef<typeof import('@vueuse/core')['useWindowFocus']>

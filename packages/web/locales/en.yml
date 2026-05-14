@@ -103,6 +103,10 @@ change-member:
       label: track
 change-member-settings-form:
   title: Edit Member Info
+chat:
+  placeholder: Type a message...
+  sdk-loading: Initializing SDK...
+  select-session: Select a session to start chatting
 close: close
 colon: >-
   It seems there is no text provided for translation. Please provide the text
@@ -498,6 +502,7 @@ sms-verify-code: SMS verification code
 state:
   online: Online status
 submenu:
+  chat: Chat
   dept-manage: Dept Management
   group-manage: Group Management
   member-manage: Member Management
