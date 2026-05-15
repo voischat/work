@@ -100,6 +100,10 @@ async function handleSendMessage(member: Member) {
     const session = await core.weila_startNewSession(
       String(member.user_id),
       WL_IDbSessionType.SESSION_CORP_INDIVIDUAL_TYPE,
+      {
+        sessionName: member.name,
+        sessionAvatar: member.avatar,
+      },
     )
 
     await router.push({
