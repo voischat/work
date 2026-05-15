@@ -15,7 +15,16 @@ definePage({
 const { t } = useI18n()
 const router = useRouter()
 const selfInfoStore = useSelfInfoStore()
-const { core: weilaCore, init: initSdk } = useWeilaCore()
+const weilaStore = useWeilaStore()
+const { core: weilaCore, userInfo } = storeToRefs(weilaStore)
+
+async function initSdk() {
+  if (weilaCore.value && userInfo.value)
+    return weilaCore.value
+
+  const loggedIn = await weilaStore.autoLogin()
+  return loggedIn ? weilaCore.value : null
+}
 
 const filterInput = shallowRef('')
 const key = useDebounce(filterInput, 500)
@@ -81,9 +90,16 @@ async function handleSendMessage(member: Member) {
       return
     }
 
+    console.log(
+      'start new session',
+      String(member.user_id),
+      WL_IDbSessionType.SESSION_CORP_INDIVIDUAL_TYPE,
+    )
+
+
     const session = await core.weila_startNewSession(
       String(member.user_id),
-      WL_IDbSessionType.SESSION_INDIVIDUAL_TYPE,
+      WL_IDbSessionType.SESSION_CORP_INDIVIDUAL_TYPE,
     )
 
     await router.push({
@@ -102,10 +118,7 @@ async function handleSendMessage(member: Member) {
 </script>
 
 <template>
-  <a-page-header
-    :show-back="false"
-    :title="$t($route.meta.name || '')"
-  >
+  <a-page-header :show-back="false" :title="$t($route.meta.name || '')">
     <a-card>
       <template #title>
         <a-space>
@@ -113,28 +126,21 @@ async function handleSendMessage(member: Member) {
 
           <AddDeviceModal />
 
-          <a-input
-            v-model="filterInput" :max-length="20" show-word-limit
+          <a-input v-model="filterInput" :max-length="20" show-word-limit
             :placeholder="`${t('name')}/${t('job-number')}/${t('weila-number')}/${t('phone-number')}`" allow-clear
-            w-100
-          />
+            w-100 />
         </a-space>
       </template>
 
-      <MemberTable
-        v-model:page="curPage" v-model:selected-item="selectedItem" :members :count="data?.count || 0" :filters="new Set(['member_types', 'dept_ids'])"
-        @change="(_: any, e: any) => {
+      <MemberTable v-model:page="curPage" v-model:selected-item="selectedItem" :members :count="data?.count || 0"
+        :filters="new Set(['member_types', 'dept_ids'])" @change="(_: any, e: any) => {
           if (e.type === 'filter')
             filters = e.filters
-        }"
-      >
+        }">
         <template #actions="{ record }">
           <a-button-group>
-            <a-button
-              v-if="!selfInfoStore.isCurrentUser(record.user_id)"
-              :loading="startingSessionUserId === record.user_id"
-              @click="handleSendMessage(record)"
-            >
+            <a-button v-if="!selfInfoStore.isCurrentUser(record.user_id)"
+              :loading="startingSessionUserId === record.user_id" @click="handleSendMessage(record)">
               {{ t('button.send-message') }}
             </a-button>
 
