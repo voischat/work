@@ -1,5 +1,6 @@
 import type { WL_ExtEventCallback, WL_IDbUserInfo } from '@weilasdk/core'
 import {
+  createWeilaAudioInitController,
   initLogger,
   setConfigData,
   setLoggerEnabled,
@@ -20,63 +21,18 @@ export const useWeilaStore = defineStore('weila', () => {
   const kickoutReason = shallowRef('')
   const kickoutReasonText = shallowRef('')
   const audioInitialized = shallowRef(false)
-  let audioInitPromise: Promise<boolean> | null = null
-  let audioInitListenerArmed = false
-
-  function disarmAudioInitListener() {
-    if (!audioInitListenerArmed || typeof window === 'undefined')
-      return
-
-    audioInitListenerArmed = false
-    window.removeEventListener('pointerdown', handleDeferredAudioInit)
-    window.removeEventListener('keydown', handleDeferredAudioInit)
-    window.removeEventListener('touchstart', handleDeferredAudioInit)
-  }
-
-  async function ensureAudioInitialized(): Promise<boolean> {
-    if (!core.value)
-      return false
-    if (audioInitialized.value)
-      return true
-    if (audioInitPromise)
-      return audioInitPromise
-
-    audioInitPromise = core.value
-      .weila_audioInit()
-      .then((result) => {
-        audioInitialized.value = Boolean(result)
-        if (audioInitialized.value) {
-          disarmAudioInitListener()
-        }
-        return result
-      })
-      .catch((error) => {
-        audioInitialized.value = false
-        throw error
-      })
-      .finally(() => {
-        audioInitPromise = null
-      })
-
-    return audioInitPromise
-  }
-
-  function armAudioInitListener() {
-    if (audioInitialized.value || audioInitListenerArmed || typeof window === 'undefined')
-      return
-
-    audioInitListenerArmed = true
-    window.addEventListener('pointerdown', handleDeferredAudioInit, { once: true })
-    window.addEventListener('keydown', handleDeferredAudioInit, { once: true })
-    window.addEventListener('touchstart', handleDeferredAudioInit, { once: true })
-  }
-
-  function handleDeferredAudioInit() {
-    void ensureAudioInitialized().catch((error) => {
-      console.warn('[Weila] Deferred audio init failed:', error)
-      armAudioInitListener()
-    })
-  }
+  const audioInitController = createWeilaAudioInitController({
+    getCore: () => core.value,
+    setInitialized: (initialized) => {
+      audioInitialized.value = initialized
+    },
+    onDeferredInitError: error => console.warn('[Weila] Deferred audio init failed:', error),
+    onInitialInitError: error =>
+      console.warn(
+        '[Weila] Audio init requires a user gesture, retrying on next interaction:',
+        error,
+      ),
+  })
 
   async function init() {
     if (core.value)
@@ -89,8 +45,8 @@ export const useWeilaStore = defineStore('weila', () => {
     setConfigData([
       {
         id: WL_ConfigID.WL_RES_DATA_OPUS_WASM_ID,
-        url: '/opuslibs.wasm',
-        version: 2,
+        url: `${import.meta.env.BASE_URL}opuslibs.wasm`,
+        version: 3,
       },
     ])
 
@@ -112,13 +68,7 @@ export const useWeilaStore = defineStore('weila', () => {
     instance.weila_onEvent(kickoutHandler)
 
     core.value = instance
-    void ensureAudioInitialized().catch((error) => {
-      console.warn(
-        '[Weila] Audio init requires a user gesture, retrying on next interaction:',
-        error,
-      )
-      armAudioInitListener()
-    })
+    audioInitController.initializeWithUserGestureRetry()
 
     return instance
   }
@@ -133,6 +83,10 @@ export const useWeilaStore = defineStore('weila', () => {
     return userInfo.value
   }
 
+  function ensureAudioInitialized(): Promise<boolean> {
+    return audioInitController.ensureInitialized()
+  }
+
   function clearKickoutState() {
     kickoutReason.value = ''
     kickoutReasonText.value = ''
@@ -142,9 +96,7 @@ export const useWeilaStore = defineStore('weila', () => {
     if (core.value) {
       await core.value.weila_logout()
     }
-    disarmAudioInitListener()
-    audioInitialized.value = false
-    audioInitPromise = null
+    audioInitController.reset()
     core.value = null
     userInfo.value = null
     tempAccount.value.clear()
