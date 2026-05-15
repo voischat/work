@@ -23,6 +23,8 @@ import 'viewerjs/dist/viewer.css'
 import '@unocss/reset/tailwind.css'
 import 'virtual:uno.css'
 
+import '@weilasdk/ui/index.css'
+
 installWeilaAudioRuntimePatch()
 
 setup(
