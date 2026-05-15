@@ -64,6 +64,7 @@ button:
   back: Return
   cancel: cancel
   checkout: View
+  confirm: Confirm
   copied: Copy successful.
   copy: Copy
   create: Create
@@ -105,6 +106,10 @@ change-member:
 change-member-settings-form:
   title: Edit Member Info
 chat:
+  delete-session:
+    content: Delete session {name}?
+    success: Deleted successfully
+    title: Delete Session
   placeholder: Type a message...
   sdk-loading: Initializing SDK...
   select-session: Select a session to start chatting

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { WL_ExtEventCallback, WL_IDbMsgData, WL_IDbSession } from '@weilasdk/core'
-import { WL_ExtEventID } from '@weilasdk/core'
-import { SessionList, useSessions, WlMsgList } from '@weilasdk/ui'
-import { computed, shallowRef, toRaw, watch } from 'vue'
+import type { WL_IDbSession } from '@weilasdk/core'
+import Message from '@arco-design/web-vue/es/message'
+import { WlChatPanel } from '@weilasdk/ui'
+import { computed, shallowRef, watch } from 'vue'
 import '@weilasdk/ui/dist/index.css'
 
 definePage({
@@ -16,185 +16,119 @@ const route = useRoute()
 const router = useRouter()
 
 // ── SDK 初始化 ──
-const { core: weilaCore, userInfo, init: initSdk } = useWeilaCore()
+const weilaStore = useWeilaStore()
+const { core: weilaCore, userInfo } = storeToRefs(weilaStore)
+
+async function initSdk() {
+  if (weilaCore.value && userInfo.value)
+    return weilaCore.value
+
+  const loggedIn = await weilaStore.autoLogin()
+  return loggedIn ? weilaCore.value : null
+}
 
 // 页面挂载时自动初始化 SDK
 onMounted(() => {
   void initSdk()
 })
 
-// ── 会话列表 ──
-const sessionState = useSessions(() => weilaCore.value ?? null)
-const sessions = computed(() => sessionState.sessions.value)
-const sessionsLoading = computed(() => sessionState.loading.value)
-const sessionsError = computed(() => sessionState.error.value)
-
-const selectedSession = shallowRef<WL_IDbSession>()
-
-function selectSession(session: WL_IDbSession) {
-  selectedSession.value = session
-  void router.replace({
-    query: {
-      ...route.query,
-      sessionId: session.sessionId,
-    },
-  })
-}
-
-watch(
-  [sessions, () => route.query.sessionId],
-  ([currentSessions, sessionId]) => {
-    if (typeof sessionId !== 'string')
-      return
-
-    const session = currentSessions.find(s => s.sessionId === sessionId)
-    if (!session)
-      return
-
-    if (
-      selectedSession.value?.sessionId === session.sessionId
-      && selectedSession.value?.sessionType === session.sessionType
-    ) {
-      return
-    }
-
-    selectedSession.value = session
-  },
-  { immediate: true },
-)
-
-// ── 消息历史 ──
-const { messages, senderInfos, hasMore, loading: messagesLoading, loadMore } = useMessageHistory(weilaCore, selectedSession)
-
 // ── 当前用户 ID ──
 const currentUserId = computed(() => userInfo.value?.userId ?? 0)
 
-// ── 音频播放状态 ──
-const playingAudioId = shallowRef<string | null>(null)
+const selectedSessionId = shallowRef(typeof route.query.sessionId === 'string' ? route.query.sessionId : '')
+const chatPanelRef = shallowRef<InstanceType<typeof WlChatPanel>>()
+const pendingDeleteSession = shallowRef<WL_IDbSession>()
+const isDeleteSessionModalOpen = shallowRef(false)
+const isDeletingSession = shallowRef(false)
 
-async function handleAudioPlay(msg: WL_IDbMsgData) {
-  if (!weilaCore.value)
-    return
-  await weilaCore.value.weila_stopSingle()
-  const plainMsg = toRaw(msg)
-  await weilaCore.value.weila_playSingle(plainMsg)
-  playingAudioId.value = msg.combo_id
-}
-
-function handleAudioPause() {
-  playingAudioId.value = null
-  weilaCore.value?.weila_stopSingle()
-}
-
-// ── 实时消息监听 ──
-const handleMessageEvent: WL_ExtEventCallback = (eventId, eventData) => {
-  if (
-    eventId !== WL_ExtEventID.WL_EXT_NEW_MSG_RECV_IND
-    && eventId !== WL_ExtEventID.WL_EXT_MSG_SEND_IND
-  ) {
-    return
-  }
-
-  const msgData = eventData as WL_IDbMsgData
-  const session = selectedSession.value
-  if (
-    !session
-    || msgData.sessionId !== session.sessionId
-    || msgData.sessionType !== session.sessionType
-  ) {
-    return
-  }
-
-  // 去重
-  if (messages.value.some((m: WL_IDbMsgData) => m.combo_id === msgData.combo_id))
-    return
-
-  messages.value = [...messages.value, msgData]
-}
+const pendingDeleteSessionName = computed(() => {
+  return pendingDeleteSession.value?.sessionName || pendingDeleteSession.value?.sessionId || ''
+})
 
 watch(
-  weilaCore,
-  (core, _oldCore, onCleanup) => {
-    if (!core)
-      return
-    core.weila_onEvent(handleMessageEvent)
-    onCleanup(() => core.weila_offEvent(handleMessageEvent))
+  () => route.query.sessionId,
+  (sessionId) => {
+    selectedSessionId.value = typeof sessionId === 'string' ? sessionId : ''
   },
-  { immediate: true },
 )
 
-// ── 发送文本消息 ──
-const inputText = shallowRef('')
-
-async function handleSend() {
-  const text = inputText.value.trim()
-  if (!text || !weilaCore.value || !selectedSession.value)
+watch(selectedSessionId, (sessionId) => {
+  if (route.query.sessionId === sessionId)
     return
 
-  inputText.value = ''
+  void router.replace({
+    query: {
+      ...route.query,
+      sessionId: sessionId || undefined,
+    },
+  })
+})
+
+function handleDeleteSessionRequest(session: WL_IDbSession) {
+  pendingDeleteSession.value = session
+  isDeleteSessionModalOpen.value = true
+}
+
+function handleCancelDeleteSession() {
+  if (isDeletingSession.value)
+    return
+
+  isDeleteSessionModalOpen.value = false
+  pendingDeleteSession.value = undefined
+}
+
+async function handleConfirmDeleteSession() {
+  if (!pendingDeleteSession.value || isDeletingSession.value)
+    return
+
+  isDeletingSession.value = true
 
   try {
-    await weilaCore.value.weila_sendTextMsg(
-      selectedSession.value.sessionId,
-      selectedSession.value.sessionType,
-      text,
-    )
+    const success = await chatPanelRef.value?.deleteSession(pendingDeleteSession.value)
+    if (!success)
+      return
+
+    Message.success(t('chat.delete-session.success'))
+    isDeleteSessionModalOpen.value = false
+    pendingDeleteSession.value = undefined
   }
-  catch (err) {
-    console.error('[Chat] Failed to send message:', err)
+  finally {
+    isDeletingSession.value = false
   }
 }
 </script>
 
 <template>
-  <div flex h-full>
-    <!-- Session list sidebar -->
-    <aside class="w-60 shrink-0 border-r border-gray-200">
-      <div v-if="!weilaCore" class="flex items-center justify-center h-full text-neutral-400">
-        {{ t('chat.sdk-loading') }}
-      </div>
-      <SessionList
-        v-else
-        :sessions="sessions"
-        :active-session-id="selectedSession?.sessionId"
-        :loading="sessionsLoading"
-        :error="sessionsError"
-        @select="selectSession"
-        @refresh="sessionState.refresh"
-      />
-    </aside>
-
-    <!-- Chat area -->
-    <div flex-1 flex flex-col min-w-0>
-      <WlMsgList
-        v-if="selectedSession"
-        :messages="messages"
-        :current-user-id="currentUserId"
-        :sender-infos="senderInfos"
-        :has-more="hasMore"
-        :loading="messagesLoading"
-        :playing-audio-id="playingAudioId"
-        class="flex-1"
-        @audio-play="handleAudioPlay"
-        @audio-pause="handleAudioPause"
-        @load-more="loadMore(messages[0]?.msgId - 1)"
-      />
-      <div v-else class="flex-1 flex items-center justify-center text-neutral-400">
-        {{ t('chat.select-session') }}
-      </div>
-
-      <!-- Input bar -->
-      <div flex items-center gap-2 border-t border-gray-200 px-4 py-3 bg-white>
-        <input
-          v-model="inputText"
-          flex-1 rounded-lg border border-gray-300 px-3 py-2 outline-none
-          :placeholder="t('chat.placeholder')"
-          @keydown.enter="handleSend"
-        >
-        <a-button type="primary" :disabled="!inputText.trim() || !selectedSession" @click="handleSend">
-          {{ t('button.send') }}
+  <div h-full>
+    <div v-if="!weilaCore" class="flex items-center justify-center h-full text-neutral-400">
+      {{ t('chat.sdk-loading') }}
+    </div>
+    <WlChatPanel
+      v-else
+      ref="chatPanelRef"
+      v-model:selected-session-id="selectedSessionId"
+      :core="weilaCore"
+      :current-user-id="currentUserId"
+      message-list-height="calc(100vh - 220px)"
+      @delete-session="handleDeleteSessionRequest"
+    />
+    <a-modal
+      v-model:visible="isDeleteSessionModalOpen"
+      :title="t('chat.delete-session.title')"
+      :footer="false"
+      :mask-closable="!isDeletingSession"
+      :esc-to-close="!isDeletingSession"
+      :closable="!isDeletingSession"
+    >
+      <div>{{ t('chat.delete-session.content', { name: pendingDeleteSessionName }) }}</div>
+      <div mt6 flex justify-end gap3>
+        <a-button :disabled="isDeletingSession" @click="handleCancelDeleteSession">
+          {{ t('button.cancel') }}
+        </a-button>
+        <a-button status="danger" type="primary" :loading="isDeletingSession" @click="handleConfirmDeleteSession">
+          {{ t('button.confirm') }}
         </a-button>
       </div>
-    </div>
+    </a-modal>
   </div>
 </template>

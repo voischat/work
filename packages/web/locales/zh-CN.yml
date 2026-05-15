@@ -56,6 +56,7 @@ button:
   back: 返回
   cancel: 取消
   checkout: 查看
+  confirm: 确认
   copied: 复制成功
   copy: 复制
   create: 创建
@@ -97,6 +98,10 @@ change-member:
 change-member-settings-form:
   title: Edit Member Info
 chat:
+  delete-session:
+    content: 确定删除会话 {name} 吗？
+    success: 删除成功
+    title: 删除会话
   placeholder: 输入消息...
   sdk-loading: SDK 初始化中...
   select-session: 选择一个会话开始聊天
