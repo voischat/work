@@ -143,16 +143,14 @@ async function handleSendMessage(member: Member) {
         }">
         <template #actions="{ record }">
           <a-button-group>
-            <a-button v-if="!selfInfoStore.isCurrentUser(record.user_id)"
-              :loading="startingSessionUserId === record.user_id" @click="handleSendMessage(record)">
-              {{ t('button.send-message') }}
-            </a-button>
-
             <a-button @click="selectedItem = record; isEditMemberModalOpen = true">
               {{ t('edit') }}
             </a-button>
 
-            <a-dropdown v-if="record.type !== 255" :hide-on-select="false">
+            <a-dropdown
+              v-if="!selfInfoStore.isCurrentUser(record.user_id) || record.type !== 255"
+              :hide-on-select="false"
+            >
               <a-button>
                 <template #icon>
                   <icon-down />
@@ -160,10 +158,17 @@ async function handleSendMessage(member: Member) {
               </a-button>
               <template #content>
                 <div flex="~ col" p0>
-                  <a-doption @click="selectedItem = record; isResetPasswordModalOpen = true">
+                  <a-doption
+                    v-if="!selfInfoStore.isCurrentUser(record.user_id)"
+                    :disabled="startingSessionUserId === record.user_id"
+                    @click="handleSendMessage(record)"
+                  >
+                    {{ t('button.send-message') }}
+                  </a-doption>
+                  <a-doption v-if="record.type !== 255" @click="selectedItem = record; isResetPasswordModalOpen = true">
                     {{ t('reset-password.button') }}
                   </a-doption>
-                  <a-doption type="warning" @click="selectedItem = record; isDeleteMemberModalOpen = true">
+                  <a-doption v-if="record.type !== 255" type="warning" @click="selectedItem = record; isDeleteMemberModalOpen = true">
                     {{ t('注销成员') }}
                   </a-doption>
                 </div>

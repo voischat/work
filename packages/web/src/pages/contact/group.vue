@@ -33,6 +33,7 @@ const isDeptAdmin = computed(() => selfInfoStore.isDeptAdmin)
 const { data, refetch } = useWeilaFetch(() => `corp/group/get-my-manage-group-list?page=${curPage.value}&size=${pageSize.value}`)
 
 const selectedGroup = deepRef<any>(undefined)
+const isDeleteGroupModalOpen = shallowRef(false)
 
 const checkedGroupIds = deepRef<number[]>([])
 
@@ -152,24 +153,34 @@ function openGroupChat(group: GroupModel) {
           <a-table-column :title="t('controls')">
             <template #cell="{ record }">
               <div flex gap2>
-                <a-button @click="openGroupChat(record)">
-                  {{ t('button.send-message') }}
-                </a-button>
                 <EditGroupModal :group="selectedGroup" @success="refetch">
                   <a-button @click="() => selectedGroup = record">
                     {{ t('button.edit') }}
                   </a-button>
                 </EditGroupModal>
-                <DeleteGroupModal :group="record" @success="() => refetch()">
-                  <a-button status="danger" @click="() => selectedGroup = record">
-                    {{ t('button.delete') }}
+                <a-dropdown :hide-on-select="false">
+                  <a-button>
+                    <template #icon>
+                      <icon-down />
+                    </template>
                   </a-button>
-                </DeleteGroupModal>
+                  <template #content>
+                    <div flex="~ col" p0>
+                      <a-doption @click="openGroupChat(record)">
+                        {{ t('button.send-message') }}
+                      </a-doption>
+                      <a-doption type="warning" @click="selectedGroup = record; isDeleteGroupModalOpen = true">
+                        {{ t('button.delete') }}
+                      </a-doption>
+                    </div>
+                  </template>
+                </a-dropdown>
               </div>
             </template>
           </a-table-column>
         </template>
       </a-table>
+      <DeleteGroupModal v-model:open="isDeleteGroupModalOpen" :group="selectedGroup" @success="() => refetch()" />
     </a-card>
   </a-page-header>
 </template>
