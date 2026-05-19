@@ -35,7 +35,16 @@ onMounted(() => {
 // ── 当前用户 ID ──
 const currentUserId = computed(() => userInfo.value?.userId ?? 0)
 
+function parseSessionType(value: unknown) {
+  if (typeof value !== 'string')
+    return undefined
+
+  const sessionType = Number(value)
+  return Number.isFinite(sessionType) ? sessionType : undefined
+}
+
 const selectedSessionId = shallowRef(typeof route.query.sessionId === 'string' ? route.query.sessionId : '')
+const selectedSessionType = shallowRef<number | undefined>(parseSessionType(route.query.sessionType))
 const chatPanelRef = shallowRef<InstanceType<typeof WlChatPanel>>()
 const pendingDeleteSession = shallowRef<WL_IDbSession>()
 const isDeleteSessionModalOpen = shallowRef(false)
@@ -52,17 +61,45 @@ watch(
   },
 )
 
-watch(selectedSessionId, (sessionId) => {
-  if (route.query.sessionId === sessionId)
+watch(
+  () => route.query.sessionType,
+  (sessionType) => {
+    selectedSessionType.value = parseSessionType(sessionType)
+  },
+)
+
+async function ensureSelectedSession() {
+  const core = weilaCore.value
+  const sessionId = selectedSessionId.value
+  const sessionType = selectedSessionType.value
+  if (!core || !sessionId || sessionType === undefined)
+    return
+
+  if (core.weila_getSession(sessionId, sessionType))
+    return
+
+  await core.weila_startNewSession(sessionId, sessionType, {
+    sessionName: typeof route.query.sessionName === 'string' ? route.query.sessionName : undefined,
+    sessionAvatar: typeof route.query.sessionAvatar === 'string' ? route.query.sessionAvatar : undefined,
+  })
+}
+
+watch([selectedSessionId, selectedSessionType], ([sessionId, sessionType]) => {
+  if (route.query.sessionId === sessionId && parseSessionType(route.query.sessionType) === sessionType)
     return
 
   void router.replace({
     query: {
       ...route.query,
       sessionId: sessionId || undefined,
+      sessionType: sessionId && sessionType !== undefined ? String(sessionType) : undefined,
     },
   })
 })
+
+watch([weilaCore, selectedSessionId, selectedSessionType], () => {
+  void ensureSelectedSession()
+}, { immediate: true })
 
 function handleDeleteSessionRequest(session: WL_IDbSession) {
   pendingDeleteSession.value = session
@@ -107,6 +144,7 @@ async function handleConfirmDeleteSession() {
       v-else
       ref="chatPanelRef"
       v-model:selected-session-id="selectedSessionId"
+      v-model:selected-session-type="selectedSessionType"
       :core="weilaCore"
       :current-user-id="currentUserId"
       message-list-height="calc(100vh - 220px)"

@@ -47,6 +47,18 @@ function onSelect(group: GroupModel, e: PointerEvent) {
 
   router.push(`/contact/group-${group.id}-${group.name}`)
 }
+
+function openGroupChat(group: GroupModel) {
+  router.push({
+    path: '/workbench/chat',
+    query: {
+      sessionId: String(group.id),
+      sessionType: '18',
+      sessionName: group.name,
+      sessionAvatar: group.avatar || undefined,
+    },
+  })
+}
 </script>
 
 <template>
@@ -140,6 +152,9 @@ function onSelect(group: GroupModel, e: PointerEvent) {
           <a-table-column :title="t('controls')">
             <template #cell="{ record }">
               <div flex gap2>
+                <a-button @click="openGroupChat(record)">
+                  {{ t('button.send-message') }}
+                </a-button>
                 <EditGroupModal :group="selectedGroup" @success="refetch">
                   <a-button @click="() => selectedGroup = record">
                     {{ t('button.edit') }}

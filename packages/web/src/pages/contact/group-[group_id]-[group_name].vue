@@ -8,6 +8,7 @@ import DeleteGroupMemberModal from './components/DeleteGroupMemberModal.vue'
 
 const { t } = useI18n()
 const route = useRoute('/contact/group-[group_id]-[group_name]')
+const router = useRouter()
 
 const curPage = shallowRef(1)
 const pageSize = shallowRef(10)
@@ -32,6 +33,17 @@ const { data, refetch } = useWeilaFetch(() => `corp/group/get-group-member-list?
 const isEditModalVisible = shallowRef(false)
 const selectedItem = shallowRef<Member | undefined>(undefined)
 
+function openGroupChat() {
+  router.push({
+    path: '/workbench/chat',
+    query: {
+      sessionId: String(route.params.group_id),
+      sessionType: '18',
+      sessionName: String(route.params.group_name),
+    },
+  })
+}
+
 function onSelect(member: Member, e: PointerEvent) {
   selectedItem.value = member
   // @ts-expect-error type error
@@ -54,6 +66,11 @@ function onSelect(member: Member, e: PointerEvent) {
         <a-breadcrumb-item>{{ $t('group-list') }}</a-breadcrumb-item>
         <a-breadcrumb-item>{{ route.params.group_name }}</a-breadcrumb-item>
       </a-breadcrumb>
+    </template>
+    <template #extra>
+      <a-button type="primary" @click="openGroupChat">
+        {{ t('button.send-message') }}
+      </a-button>
     </template>
     <a-card>
       <template #title>
