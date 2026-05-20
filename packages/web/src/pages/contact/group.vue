@@ -2,8 +2,8 @@
 import type { GroupModel } from '~/api/contact'
 import { ref as deepRef, shallowRef } from 'vue'
 
+import Message from '@arco-design/web-vue/es/message'
 import CreateGroupModal from './components/CreateGroupModal.vue'
-import DeleteGroupModal from './components/DeleteGroupModal.vue'
 import EditGroupModal from './components/EditGroupModal.vue'
 
 definePage({
@@ -36,6 +36,16 @@ const selectedGroup = deepRef<any>(undefined)
 const isDeleteGroupModalOpen = shallowRef(false)
 
 const checkedGroupIds = deepRef<number[]>([])
+
+const { mutate: deleteGroup, isPending: isDeleteGroupPending } = useWeilaMutation<{
+  group_id: number
+}>('corp/group/delete-group', {
+  onSuccess: () => {
+    isDeleteGroupModalOpen.value = false
+    Message.success(t('message.success'))
+    refetch()
+  },
+})
 
 $inspect(checkedGroupIds)
 
@@ -180,7 +190,14 @@ function openGroupChat(group: GroupModel) {
           </a-table-column>
         </template>
       </a-table>
-      <DeleteGroupModal v-model:open="isDeleteGroupModalOpen" :group="selectedGroup" @success="() => refetch()" />
+      <a-modal v-model:visible="isDeleteGroupModalOpen" :title="t('delete.modal.title')">
+        <p>{{ t('delete.modal.hint') }} {{ t('delete.modal.content') }}</p>
+        <template #footer>
+          <a-button type="primary" :loading="isDeleteGroupPending" @click="deleteGroup({ group_id: selectedGroup?.id })">
+            {{ t('button.submit') }}
+          </a-button>
+        </template>
+      </a-modal>
     </a-card>
   </a-page-header>
 </template>
