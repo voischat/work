@@ -70,6 +70,14 @@ export default defineConfig(() => {
       '__BUILD_TIME__': now,
     },
 
+    optimizeDeps: {
+      include: [
+        '@weilasdk/core',
+        '@weilasdk/ui',
+        'crypto-js',
+      ],
+    },
+
     css: {
       preprocessorOptions: {
         less: {
