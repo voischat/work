@@ -1,6 +1,7 @@
 import type { UserModule } from './types'
 import { Notification } from '@arco-design/web-vue'
 import { installWeilaAudioRuntimePatch } from '@weilasdk/core'
+import { createWeilaUi } from '@weilasdk/ui'
 import * as v from 'valibot'
 import { setupLayouts } from 'virtual:generated-layouts'
 import { createWebHashHistory } from 'vue-router'
@@ -41,6 +42,8 @@ setup(
   // function to have custom setups
   (ctx) => {
     const { app } = ctx
+    createWeilaUi({ locale: 'zh-CN' }).install(app as any)
+
     // install all modules under `modules/`
     Object.values(import.meta.glob<{ install: UserModule }>('./modules/*.ts', { eager: true }))
       .forEach(i => i.install?.(ctx))
