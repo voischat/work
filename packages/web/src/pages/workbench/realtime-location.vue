@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ElAmap } from '@vuemap/vue-amap'
+import { ElAmap, ElAmapLayerSatellite } from '@vuemap/vue-amap'
 import { shallowRef } from 'vue'
 
 import { useDeptList } from '~/composables/useDeptList'
@@ -18,6 +18,7 @@ const { t } = useI18n()
 
 const selectedType = shallowRef<'dept' | 'group'>('group')
 const selectedId = shallowRef<number | undefined>(undefined)
+const satelliteVisible = shallowRef(false)
 
 const { deptOptions } = useDeptList()
 const { groupOptions } = useGroupList()
@@ -85,10 +86,22 @@ watch([selectedType, selectedId], async ([type, id]) => {
 
   <div h-full w-full>
     <ElAmap :center="center" :zoom="zoom" relative h-full w-full @init="(m) => map = m">
+      <ElAmapLayerSatellite :visible="satelliteVisible" />
+
       <!-- 标记点会自动通过 composable 渲染 -->
 
       <a-button
-        v-if="markers?.length" type="primary" shape="circle" class="absolute right-4 top-4"
+        shape="circle" class="absolute right-4 top-4"
+        :type="satelliteVisible ? 'primary' : 'secondary'"
+        @click="satelliteVisible = !satelliteVisible"
+      >
+        <template #icon>
+          <icon-image />
+        </template>
+      </a-button>
+
+      <a-button
+        v-if="markers?.length" type="primary" shape="circle" class="absolute right-4 top-16"
         @click="drawerVisible = true"
       >
         <template #icon>

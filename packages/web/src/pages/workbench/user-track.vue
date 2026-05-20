@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Message } from '@arco-design/web-vue'
-import { ElAmap } from '@vuemap/vue-amap'
+import { ElAmap, ElAmapLayerSatellite } from '@vuemap/vue-amap'
 import { ElAmapLoca, ElAmapLocaLine } from '@vuemap/vue-amap-loca'
 import { useRouteQuery } from '@vueuse/router'
 import dayjs from 'dayjs'
@@ -21,6 +21,7 @@ const { t } = useI18n()
 // 用户选择状态
 const selectedUserKeys = shallowRef('')
 const selectedDate = useRouteQuery('date', new Date().toISOString().split('T')[0])
+const satelliteVisible = shallowRef(false)
 
 // 使用composables
 const { treeData, loadMore } = useDeptTree()
@@ -69,12 +70,24 @@ function onMarkerSelected(marker: AMap.Marker) {
   </div>
   <div h-full w-full>
     <ElAmap :center="center" :zoom="zoom" relative h-full w-full @init="(m) => map = m">
+      <ElAmapLayerSatellite :visible="satelliteVisible" />
+
       <ElAmapLoca>
         <ElAmapLocaLine :visible="trackVisible" :source-data="trackFeatureCollection" :layer-style="layerStyle" />
       </ElAmapLoca>
 
       <a-button
-        v-if="markers?.length" type="primary" shape="circle" class="absolute right-4 top-4"
+        shape="circle" class="absolute right-4 top-4"
+        :type="satelliteVisible ? 'primary' : 'secondary'"
+        @click="satelliteVisible = !satelliteVisible"
+      >
+        <template #icon>
+          <icon-image />
+        </template>
+      </a-button>
+
+      <a-button
+        v-if="markers?.length" type="primary" shape="circle" class="absolute right-4 top-16"
         @click="drawerVisible = true"
       >
         <template #icon>
