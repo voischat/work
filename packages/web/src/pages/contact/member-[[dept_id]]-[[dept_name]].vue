@@ -107,7 +107,12 @@ async function handleSendMessage(member: Member) {
 
     await router.push({
       path: '/workbench/chat',
-      query: { sessionId: session.sessionId },
+      query: {
+        sessionId: session.sessionId,
+        sessionType: String(WL_IDbSessionType.SESSION_CORP_INDIVIDUAL_TYPE),
+        sessionName: member.name,
+        sessionAvatar: member.avatar || undefined,
+      },
     })
   }
   catch (err) {
