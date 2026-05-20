@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { GroupModel } from '~/api/contact'
-import { ref as deepRef, shallowRef } from 'vue'
-
 import Message from '@arco-design/web-vue/es/message'
+
+import { ref as deepRef, shallowRef } from 'vue'
 import CreateGroupModal from './components/CreateGroupModal.vue'
 import EditGroupModal from './components/EditGroupModal.vue'
 
