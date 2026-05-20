@@ -54,6 +54,7 @@
     "crypto-js": "catalog:",
     "floating-vue": "catalog:",
     "gcoord": "catalog:",
+    "html-to-image": "^1.11.13",
     "md5": "catalog:",
     "nanoid": "catalog:",
     "nprogress": "catalog:",

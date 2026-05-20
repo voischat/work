@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { WL_IDbSession } from '@weilasdk/core'
+import type { WL_IDbLocationShared, WL_IDbSession } from '@weilasdk/core'
 import Message from '@arco-design/web-vue/es/message'
 import { WlChatPanel } from '@weilasdk/ui'
 import { computed, shallowRef, watch } from 'vue'
@@ -46,9 +46,22 @@ function parseSessionType(value: unknown) {
 const selectedSessionId = shallowRef(typeof route.query.sessionId === 'string' ? route.query.sessionId : '')
 const selectedSessionType = shallowRef<number | undefined>(parseSessionType(route.query.sessionType))
 const chatPanelRef = shallowRef<InstanceType<typeof WlChatPanel>>()
+const mapPickerRef = shallowRef<{ captureImage: () => Promise<File> }>()
 const pendingDeleteSession = shallowRef<WL_IDbSession>()
 const isDeleteSessionModalOpen = shallowRef(false)
 const isDeletingSession = shallowRef(false)
+const isLocationPickerOpen = shallowRef(false)
+const isSendingLocation = shallowRef(false)
+
+interface MapPickerValue {
+  lon: number
+  lat: number
+  Address?: string
+  province?: string
+  city?: string
+  district?: string
+  township?: string
+}
 
 const pendingDeleteSessionName = computed(() => {
   return pendingDeleteSession.value?.sessionName || pendingDeleteSession.value?.sessionId || ''
@@ -133,6 +146,147 @@ async function handleConfirmDeleteSession() {
     isDeletingSession.value = false
   }
 }
+
+function openLocationPicker() {
+  isLocationPickerOpen.value = true
+}
+
+function canvasToPngFile(canvas: HTMLCanvasElement, fileName: string): Promise<File> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error('生成位置图片失败'))
+        return
+      }
+
+      resolve(new File([blob], fileName, { type: 'image/png' }))
+    }, 'image/png')
+  })
+}
+
+async function createFallbackLocationImageFile() {
+  const width = 400
+  const height = 200
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+
+  const ctx = canvas.getContext('2d')
+  if (!ctx)
+    throw new Error('当前浏览器不支持 Canvas')
+
+  // Keep this independent from map tile assets so location sending still works when
+  // DOM capture is blocked by cross-origin images or transient tile load failures.
+  ctx.fillStyle = '#e8f1ef'
+  ctx.fillRect(0, 0, width, height)
+
+  ctx.strokeStyle = '#d6e3df'
+  ctx.lineWidth = 1
+  for (let x = -40; x < width + 40; x += 48) {
+    ctx.beginPath()
+    ctx.moveTo(x, 0)
+    ctx.lineTo(x + 70, height)
+    ctx.stroke()
+  }
+  for (let y = 20; y < height; y += 42) {
+    ctx.beginPath()
+    ctx.moveTo(0, y)
+    ctx.lineTo(width, y - 34)
+    ctx.stroke()
+  }
+
+  ctx.strokeStyle = '#ffffff'
+  ctx.lineWidth = 14
+  ctx.lineCap = 'round'
+  ctx.beginPath()
+  ctx.moveTo(-20, 148)
+  ctx.bezierCurveTo(80, 118, 150, 170, 250, 116)
+  ctx.bezierCurveTo(305, 86, 342, 104, 420, 68)
+  ctx.stroke()
+
+  ctx.strokeStyle = '#cfdcd8'
+  ctx.lineWidth = 2
+  ctx.stroke()
+
+  const pinX = width / 2
+  const pinY = 80
+  ctx.fillStyle = '#1677ff'
+  ctx.beginPath()
+  ctx.arc(pinX, pinY - 18, 18, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.beginPath()
+  ctx.moveTo(pinX - 12, pinY - 4)
+  ctx.lineTo(pinX, pinY + 24)
+  ctx.lineTo(pinX + 12, pinY - 4)
+  ctx.closePath()
+  ctx.fill()
+  ctx.fillStyle = '#ffffff'
+  ctx.beginPath()
+  ctx.arc(pinX, pinY - 18, 7, 0, Math.PI * 2)
+  ctx.fill()
+
+  return canvasToPngFile(canvas, `location-${Date.now()}.png`)
+}
+
+async function createLocationImageFile() {
+  try {
+    if (!mapPickerRef.value)
+      throw new Error('Missing map picker ref')
+
+    // Prefer a real DOM capture of the visible map. If any map image asset cannot
+    // be inlined, fall back to the locally drawn placeholder image below.
+    return await mapPickerRef.value.captureImage()
+  }
+  catch (err) {
+    console.warn('[WorkbenchChat] Failed to capture map DOM, fallback to canvas:', err)
+    return createFallbackLocationImageFile()
+  }
+}
+
+async function handleLocationPicked(value: MapPickerValue) {
+  if (isSendingLocation.value)
+    return
+
+  const core = weilaCore.value
+  const sessionId = selectedSessionId.value
+  const sessionType = selectedSessionType.value
+  if (!core || !sessionId || sessionType === undefined) {
+    Message.error('请先选择会话')
+    return
+  }
+
+  isSendingLocation.value = true
+
+  const address = value.Address || [value.province, value.city, value.district, value.township].filter(Boolean).join('')
+  const locationName = address || '位置'
+
+  try {
+    const imageFile = await createLocationImageFile()
+    const mapUrl = await core.weila_uploadImageCache(sessionId, sessionType, imageFile)
+    const location: WL_IDbLocationShared = {
+      locationType: 'gcj02',
+      latitude: value.lat,
+      longitude: value.lon,
+      name: locationName,
+      address: address || '位置',
+      mapUrl,
+    }
+
+    const success = await chatPanelRef.value?.sendLocation(location)
+    if (!success)
+      return
+
+    Message.success('位置已发送')
+    isLocationPickerOpen.value = false
+  }
+  catch (err) {
+    console.error('[WorkbenchChat] Failed to upload location image:', err)
+    Message.error('位置图片上传失败')
+  }
+  finally {
+    isSendingLocation.value = false
+  }
+}
 </script>
 
 <template>
@@ -149,7 +303,23 @@ async function handleConfirmDeleteSession() {
       :current-user-id="currentUserId"
       message-list-height="calc(100vh - 220px)"
       @delete-session="handleDeleteSessionRequest"
+      @trigger-map-picker="openLocationPicker"
     />
+    <a-modal
+      v-model:visible="isLocationPickerOpen"
+      title="发送位置"
+      :footer="false"
+      width="min(960px, 92vw)"
+      :mask-closable="!isSendingLocation"
+      :esc-to-close="!isSendingLocation"
+      :closable="!isSendingLocation"
+      body-style="position: relative; height: min(680px, 78vh); padding: 0; overflow: hidden;"
+    >
+      <MapPicker ref="mapPickerRef" @update:value="handleLocationPicked" />
+      <div v-if="isSendingLocation" absolute inset-0 z-10 flex items-center justify-center bg-white:70 backdrop-blur-sm>
+        <a-spin tip="正在上传位置图片..." />
+      </div>
+    </a-modal>
     <a-modal
       v-model:visible="isDeleteSessionModalOpen"
       :title="t('chat.delete-session.title')"

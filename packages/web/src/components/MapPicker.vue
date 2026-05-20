@@ -3,6 +3,7 @@ import type { UnwrapRef } from 'vue'
 import { Message } from '@arco-design/web-vue'
 import { useQuery } from '@tanstack/vue-query'
 import { ElAmap } from '@vuemap/vue-amap'
+import { toBlob } from 'html-to-image'
 import { shallowRef } from 'vue'
 
 interface RegeoV2 {
@@ -36,6 +37,7 @@ const emit = defineEmits<{
 }>()
 
 const UNKOWN_ADDRESS = '[未知的地理位置]'
+const weilaApi = useWeilaApi()
 
 const zoom = shallowRef(props.options.zoom || 15)
 const { coords, isSupported, error: coordsError } = useGeolocation({
@@ -84,6 +86,7 @@ if (!center.value)
 const radius = shallowRef(props.options.radius || 300)
 
 const map = shallowRef<AMap.Map | null>(null)
+const mapCaptureRef = shallowRef<HTMLElement | null>(null)
 
 const isTouching = shallowRef(false)
 const isMoving = shallowRef(false)
@@ -96,23 +99,28 @@ const pickedCenter = computed(() => {
   return center.value
 })
 
-const { data: regeo, refetch } = useQuery({
-  enabled: !!pickedCenter.value,
-  queryKey: ['regeo', radius, pickedCenter],
-  queryFn: async () => {
-    return $v2<{ regeo: RegeoV2 }>('loc/regeo', {
-      body: {
-        lon: pickedCenter.value![0],
-        lat: pickedCenter.value![1],
-        radius: radius.value,
-      },
-    }).then((i: any) => i.regeo)
-  },
+const regeoQueryParams = computed(() => {
+  if (!pickedCenter.value)
+    return null
+
+  return {
+    lon: pickedCenter.value[0],
+    lat: pickedCenter.value[1],
+    radius: radius.value,
+  }
 })
 
-watch(isIdle, () => {
-  if (isIdle.value)
-    refetch()
+const { data: regeo } = useQuery({
+  enabled: computed(() => !!regeoQueryParams.value),
+  queryKey: computed(() => ['regeo', regeoQueryParams.value]),
+  queryFn: async () => {
+    if (!regeoQueryParams.value)
+      throw new Error('Missing picked center')
+
+    return weilaApi.value.v2.fetch<RegeoV2>('loc/regeo', {
+      body: regeoQueryParams.value,
+    })
+  },
 })
 
 const address = computed(() => {
@@ -179,43 +187,66 @@ function confirm() {
     Address: addr.value,
   })
 }
+
+async function captureImage(): Promise<File> {
+  if (!mapCaptureRef.value)
+    throw new Error('Missing map capture target')
+
+  await nextTick()
+
+  // Capture only the map layer and marker overlay. The parent keeps a canvas fallback
+  // because third-party map tiles can fail when html-to-image inlines image assets.
+  const blob = await toBlob(mapCaptureRef.value, {
+    canvasWidth: 400,
+    canvasHeight: 200,
+    pixelRatio: 1,
+    cacheBust: true,
+    skipFonts: true,
+    backgroundColor: '#e8f1ef',
+  })
+
+  if (!blob)
+    throw new Error('Failed to capture map DOM')
+
+  return new File([blob], `location-${Date.now()}.png`, { type: blob.type || 'image/png' })
+}
+
+defineExpose({
+  captureImage,
+})
 </script>
 
 <template>
   <div class="relative h-full w-full">
-    <ElAmap
-      v-model:center="center"
-      v-model:zoom="zoom"
-      @init="handleMapInit"
-    />
+    <div ref="mapCaptureRef" absolute inset-0>
+      <ElAmap v-model:center="center" v-model:zoom="zoom" @init="handleMapInit" />
 
-    <div absolute left-4 top-4 rounded-lg bg-white p2 color-black>
-      <div flex="items-center ~" space-x-2>
-        <i i-ph-map-pin />
-        <span>
-          {{ [regeo?.province, regeo?.district, regeo?.township].filter(Boolean).join(' · ') }}
-        </span>
+      <div absolute left-4 top-4 rounded-lg bg-white p2 color-black>
+        <div flex="items-center ~" space-x-2>
+          <i i-ph-map-pin />
+          <span>
+            {{ [regeo?.province, regeo?.district, regeo?.township].filter(Boolean).join(' · ') }}
+          </span>
+        </div>
+      </div>
+
+      <div absolute position-x-center top="50%" translate-y="-100%" flex="~ col items-center">
+        <p flex-1 rounded-full bg-primary:70 p4 text-white backdrop-blur-2xl transition-all flex="items-center ~">
+          <span sm:max-w="75vw" w-fit truncate break-keep>
+            {{ address }}
+          </span>
+        </p>
+        <div mxa h-15 w-1 rounded-b-full bg-primary:70 backdrop-blur-2xl />
       </div>
     </div>
 
-    <div
-      absolute position-x-center
-      top="50%" translate-y="-100%"
-      flex="~ col items-center"
-    >
-      <p
-        flex-1 rounded-full bg-primary:70 p4 text-white backdrop-blur-2xl transition-all
-        flex="items-center ~"
-      >
-        <span sm:max-w="75vw" w-fit truncate break-keep>
-          {{ address }}
-        </span>
-      </p>
-      <div mxa h-15 w-1 rounded-b-full bg-primary:70 backdrop-blur-2xl />
-    </div>
-
     <div absolute bottom-10 position-x-center>
-      <textarea v-model="addr" :rows="3" dark="bg-neutral-800" w-80vw border rounded-lg bg-white:40 p2 outline-none backdrop-blur-3xl lg:w-80 />
+      <textarea
+        v-model="addr"
+        :rows="3"
+        dark="bg-neutral-800"
+        w-80vw border rounded-lg bg-white:40 p2 outline-none backdrop-blur-3xl lg:w-80
+      />
 
       <div absolute bottom-4 right-2 flex>
         <button v-if="regeo && addr !== regeo.Address" btn="ghost sm" color-primary @click="addr = regeo.Address">
