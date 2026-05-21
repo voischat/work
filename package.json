@@ -12,6 +12,7 @@
     "dev:prod": "pnpm -C packages/web run dev:prod",
     "build": "pnpm -C packages/web run build",
     "build:staging": "pnpm -C packages/web run build:staging",
+    "preview": "pnpm -C packages/web run preview",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "lint-staged": "npx lint-staged",

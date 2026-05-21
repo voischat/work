@@ -17,7 +17,7 @@
     "build": "vite build",
     "report": "cross-env REPORT=true npm run build",
     "preview": "vite preview --host",
-    "preview-https": "serve dist",
+    "preview-https": "vite preview --host",
     "typecheck": "vue-tsc --noEmit --skipLibCheck",
     "up": "taze -I major",
     "prepare": "simple-git-hooks",
