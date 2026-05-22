@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { WL_IDbLocationShared, WL_IDbSession, WL_SessionProfileResolver } from '@weilasdk/core'
-import { WL_IDbSessionType } from '@weilasdk/core'
+import type { WL_GroupProfileResolver, WL_IDbLocationShared, WL_IDbSession, WL_ProfileResolver } from '@weilasdk/core'
 import Message from '@arco-design/web-vue/es/message'
 import { WlChatPanel } from '@weilasdk/ui'
 import { computed, shallowRef, watch } from 'vue'
@@ -68,55 +67,44 @@ const pendingDeleteSessionName = computed(() => {
   return pendingDeleteSession.value?.sessionName || pendingDeleteSession.value?.sessionId || ''
 })
 
-function isCorpIndividualSession(sessionType: number) {
-  return sessionType === WL_IDbSessionType.SESSION_CORP_INDIVIDUAL_TYPE
-}
-
-function isCorpGroupSession(sessionType: number) {
-  return (
-    sessionType === WL_IDbSessionType.SESSION_CORP_GROUP_TYPE
-    || sessionType === WL_IDbSessionType.SESSION_CORP_GROUP_TMP_TYPE
-  )
-}
-
-const resolveSessionProfile: WL_SessionProfileResolver = async (session) => {
-  if (session.sessionName?.trim())
-    return null
-
-  if (!isCorpIndividualSession(session.sessionType) && !isCorpGroupSession(session.sessionType))
-    return null
-
+const resolveProfile: WL_ProfileResolver = async (userId) => {
   try {
-    if (isCorpIndividualSession(session.sessionType)) {
-      const member = await weilaApi.value.v2.fetch<{
-        name?: string
-        avatar?: string
-      }>('corp/address/get-member', {
-        body: { member_id: Number(session.sessionId) },
-        method: 'POST',
-      })
-
-      return {
-        sessionName: member.name,
-        sessionAvatar: member.avatar,
-      }
-    }
-
-    const group = await weilaApi.value.v2.fetch<{
+    const member = await weilaApi.value.v2.fetch<{
       name?: string
       avatar?: string
-    }>('corp/group/get-group', {
-      body: { group_id: Number(session.sessionId) },
+    }>('corp/address/get-member', {
+      body: { member_id: userId },
       method: 'POST',
     })
 
     return {
-      sessionName: group.name,
-      sessionAvatar: group.avatar,
+      name: member.name,
+      avatar: member.avatar,
     }
   }
   catch (error) {
-    console.warn('[workbench/chat] resolve session profile failed:', error)
+    console.warn('[workbench/chat] resolve profile failed:', error)
+    return null
+  }
+}
+
+const resolveGroupProfile: WL_GroupProfileResolver = async (groupId) => {
+  try {
+    const group = await weilaApi.value.v2.fetch<{
+      name?: string
+      avatar?: string
+    }>('corp/group/get-group', {
+      body: { group_id: Number(groupId) },
+      method: 'POST',
+    })
+
+    return {
+      name: group.name,
+      avatar: group.avatar,
+    }
+  }
+  catch (error) {
+    console.warn('[workbench/chat] resolve group profile failed:', error)
     return null
   }
 }
@@ -174,10 +162,13 @@ watch(
     if (!core)
       return
 
-    core.weila_setSessionProfileResolver(resolveSessionProfile)
+    core.weila_setProfileResolver(resolveProfile)
+    core.weila_setGroupProfileResolver(resolveGroupProfile)
     onCleanup(() => {
-      if (weilaCore.value === core)
-        core.weila_setSessionProfileResolver(undefined)
+      if (weilaCore.value === core) {
+        core.weila_setProfileResolver(undefined)
+        core.weila_setGroupProfileResolver(undefined)
+      }
     })
   },
   { immediate: true },
