@@ -105,6 +105,10 @@ chat:
   placeholder: 输入消息...
   sdk-loading: SDK 初始化中...
   select-session: 选择一个会话开始聊天
+  location-picker:
+    not-supported: 当前浏览器不支持定位功能
+    permission-denied: '获取位置失败，请在浏览器地址栏左侧点击"网站权限"或"站点设置"，将位置权限设为"允许"后重试'
+    failed: 获取当前位置失败({code})
 close: 关闭
 colon: ':'
 confirm-password: 确认密码

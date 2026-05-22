@@ -384,7 +384,7 @@ async function handleLocationPicked(value: MapPickerValue) {
       :closable="!isSendingLocation"
       body-style="position: relative; height: min(680px, 78vh); padding: 0; overflow: hidden;"
     >
-      <MapPicker ref="mapPickerRef" @update:value="handleLocationPicked" />
+      <MapPicker v-if="isLocationPickerOpen" ref="mapPickerRef" @update:value="handleLocationPicked" />
       <div v-if="isSendingLocation" absolute inset-0 z-10 flex items-center justify-center bg-white:70 backdrop-blur-sm>
         <a-spin tip="正在上传位置图片..." />
       </div>

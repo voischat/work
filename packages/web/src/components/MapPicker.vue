@@ -37,6 +37,7 @@ const emit = defineEmits<{
 }>()
 
 const UNKOWN_ADDRESS = '[未知的地理位置]'
+const { t } = useI18n()
 const weilaApi = useWeilaApi()
 
 const zoom = shallowRef(props.options.zoom || 15)
@@ -50,10 +51,14 @@ watchEffect(() => {
     return
 
   if (!isSupported.value)
-    return Message.error('无法获取当前位置')
+    return Message.error(t('chat.location-picker.not-supported'))
 
-  if (coordsError.value)
-    return Message.error(`获取当前位置失败(${coordsError.value.code})`)
+  if (coordsError.value) {
+    const key = coordsError.value.code === 1
+      ? 'chat.location-picker.permission-denied'
+      : 'chat.location-picker.failed'
+    return Message.error(t(key, { code: coordsError.value.code }))
+  }
 })
 
 function checkCoordsValue(coords: UnwrapRef<ReturnType<typeof useGeolocation>['coords']>) {
