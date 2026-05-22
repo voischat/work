@@ -73,8 +73,10 @@ export default defineConfig(() => {
     optimizeDeps: {
       include: [
         '@weilasdk/core',
-        '@weilasdk/ui',
         'crypto-js',
+      ],
+      exclude: [
+        '@weilasdk/ui',
       ],
     },
 

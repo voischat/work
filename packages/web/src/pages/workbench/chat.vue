@@ -4,7 +4,6 @@ import { WL_IDbSessionType } from '@weilasdk/core'
 import Message from '@arco-design/web-vue/es/message'
 import { WlChatPanel } from '@weilasdk/ui'
 import { computed, shallowRef, watch } from 'vue'
-import '@weilasdk/ui/dist/index.css'
 
 definePage({
   meta: {
