@@ -52,6 +52,8 @@ const isDeleteSessionModalOpen = shallowRef(false)
 const isDeletingSession = shallowRef(false)
 const isLocationPickerOpen = shallowRef(false)
 const isSendingLocation = shallowRef(false)
+const isLocationModalOpen = shallowRef(false)
+const displayedLocation = shallowRef<{ latitude: number; longitude: number; name: string; address: string }>()
 
 interface MapPickerValue {
   lon: number
@@ -347,6 +349,11 @@ async function handleLocationPicked(value: MapPickerValue) {
     isSendingLocation.value = false
   }
 }
+
+function handleShowLocation(location: { latitude: number; longitude: number; name: string; address: string }) {
+  displayedLocation.value = location
+  isLocationModalOpen.value = true
+}
 </script>
 
 <template>
@@ -364,6 +371,7 @@ async function handleLocationPicked(value: MapPickerValue) {
       message-list-height="calc(100vh - 220px)"
       @delete-session="handleDeleteSessionRequest"
       @trigger-map-picker="openLocationPicker"
+      @location-click="handleShowLocation"
     />
     <a-modal
       v-model:visible="isLocationPickerOpen"
@@ -379,6 +387,21 @@ async function handleLocationPicked(value: MapPickerValue) {
       <div v-if="isSendingLocation" absolute inset-0 z-10 flex items-center justify-center bg-white:70 backdrop-blur-sm>
         <a-spin tip="正在上传位置图片..." />
       </div>
+    </a-modal>
+    <a-modal
+      v-model:visible="isLocationModalOpen"
+      title="查看位置"
+      :footer="false"
+      width="min(960px, 92vw)"
+      body-style="position: relative; height: min(680px, 78vh); padding: 0; overflow: hidden;"
+    >
+      <LocationViewer
+        v-if="isLocationModalOpen && displayedLocation"
+        :latitude="displayedLocation.latitude"
+        :longitude="displayedLocation.longitude"
+        :name="displayedLocation.name"
+        :address="displayedLocation.address"
+      />
     </a-modal>
     <a-modal
       v-model:visible="isDeleteSessionModalOpen"

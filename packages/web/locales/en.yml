@@ -113,6 +113,8 @@ chat:
   placeholder: Type a message...
   sdk-loading: Initializing SDK...
   select-session: Select a session to start chatting
+  location:
+    open-in-amap: Open in AMap
   location-picker:
     not-supported: Geolocation is not supported by this browser
     permission-denied: 'Unable to get location. Please click "Site Permissions" or "Site Settings" next to the address bar and set Location permission to "Allow", then try again'
