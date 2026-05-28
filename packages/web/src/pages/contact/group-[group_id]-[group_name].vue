@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Member } from '~/types/api'
+import { useQuery } from '@tanstack/vue-query'
 import { shallowRef } from 'vue'
 
 import { TrackType } from '~/api/contact'
@@ -23,17 +24,35 @@ const { data: depts } = useWeilaFetch<{
 // 权限判断
 const selfInfoStore = useSelfInfoStore()
 const isDeptAdmin = computed(() => selfInfoStore.isDeptAdmin)
+const weilaApi = useWeilaApi()
+const groupId = computed(() => Number(route.params.group_id))
+const selfUserId = computed(() => Number(selfInfoStore.selfInfo?.user_id))
 
 const { data, refetch } = useWeilaFetch(() => `corp/group/get-group-member-list?page=${curPage.value}&size=${pageSize.value}`, {
   body: () => ({
-    group_id: Number(route.params.group_id),
+    group_id: groupId.value,
   }),
+})
+
+const { data: canSendGroupMessage, refetch: refetchSelfMembership } = useQuery<boolean>({
+  enabled: computed(() => Boolean(selfUserId.value && groupId.value)),
+  queryKey: ['corp/group/get-group-all-member/self-membership', groupId, selfUserId],
+  queryFn: async () => {
+    const members = await weilaApi.value.v2.fetch<Member[]>('corp/group/get-group-all-member', {
+      body: { group_id: groupId.value },
+    })
+
+    return members.some(member => Number(member.user_id) === selfUserId.value)
+  },
 })
 
 const isEditModalVisible = shallowRef(false)
 const selectedItem = shallowRef<Member | undefined>(undefined)
 
 function openGroupChat() {
+  if (canSendGroupMessage.value !== true)
+    return
+
   router.push({
     path: '/workbench/chat',
     query: {
@@ -53,6 +72,11 @@ function onSelect(member: Member, e: PointerEvent) {
 
   isEditModalVisible.value = true
 }
+
+function handleMembersChanged() {
+  refetch()
+  refetchSelfMembership()
+}
 </script>
 
 <template>
@@ -68,14 +92,14 @@ function onSelect(member: Member, e: PointerEvent) {
       </a-breadcrumb>
     </template>
     <template #extra>
-      <a-button type="primary" @click="openGroupChat">
+      <a-button v-if="canSendGroupMessage" type="primary" @click="openGroupChat">
         {{ t('button.send-message') }}
       </a-button>
     </template>
     <a-card>
       <template #title>
         <a-space>
-          <AddGroupMemberModal :group-id="Number(route.params.group_id)" @success="refetch">
+          <AddGroupMemberModal :group-id="groupId" @success="handleMembersChanged">
             <a-button>
               <i i-ph-plus inline-block /> {{ t('button.add-group-member') }}
             </a-button>
@@ -191,8 +215,8 @@ function onSelect(member: Member, e: PointerEvent) {
             <template #cell>
               <div flex gap2>
                 <DeleteGroupMemberModal
-                  :group-id="Number(route.params.group_id)" :member="selectedItem"
-                  @success="refetch"
+                  :group-id="groupId" :member="selectedItem"
+                  @success="handleMembersChanged"
                 >
                   <a-button status="danger">
                     {{ t('button.delete') }}

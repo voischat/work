@@ -8,6 +8,8 @@ const props = defineProps<{
   groupId: number
 }>()
 
+const emits = defineEmits(['success'])
+
 const qc = useQueryClient()
 const { t } = useI18n()
 
@@ -27,6 +29,9 @@ const { mutate, isPending } = useWeilaMutation('corp/group/add-group-members', {
     Message.success(t('message.success'))
     open.value = false
     qc.invalidateQueries({ queryKey: ['corp/group/get-group-member-list'] })
+    qc.invalidateQueries({ queryKey: ['corp/group/get-group-all-member'] })
+    qc.invalidateQueries({ queryKey: ['corp/group/get-group-all-member/self-membership'] })
+    emits('success')
   },
 })
 </script>

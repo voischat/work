@@ -1,8 +1,22 @@
 <script setup lang="ts">
 import type { Member } from '~/types/api'
+import Message from '@arco-design/web-vue/es/message'
+import { WL_IDbSessionType } from '@weilasdk/core'
 import { shallowRef } from 'vue'
 
+const { t } = useI18n()
+const router = useRouter()
 const selfInfoStore = useSelfInfoStore()
+const weilaStore = useWeilaStore()
+const { core: weilaCore, userInfo } = storeToRefs(weilaStore)
+
+async function initSdk() {
+  if (weilaCore.value && userInfo.value)
+    return weilaCore.value
+
+  const loggedIn = await weilaStore.autoLogin()
+  return loggedIn ? weilaCore.value : null
+}
 
 const curPage = shallowRef(1)
 const pageSize = shallowRef(10)
@@ -27,8 +41,6 @@ const { data, refetch } = useWeilaFetch<{
   },
 )
 
-const { t } = useI18n()
-
 const members = computed(() => {
   if (!data.value?.members)
     return []
@@ -48,12 +60,61 @@ const members = computed(() => {
     .sort((a, b) => a.dept_id - b.dept_id)
 })
 
-// const isResetPasswordModalVisible = shallowRef(false)
 const isEditMemberModalOpen = shallowRef(false)
 const isResetPasswordModalOpen = shallowRef(false)
 const isDeleteMemberModalOpen = shallowRef(false)
 
 const selectedItem = shallowRef<Member | undefined>(undefined)
+const startingSessionUserId = shallowRef<number>()
+
+async function handleSendMessage(member: Member) {
+  selectedItem.value = member
+
+  if (selfInfoStore.isCurrentUser(member.user_id))
+    return
+
+  if (!member.user_id) {
+    Message.error('成员缺少用户 ID')
+    return
+  }
+
+  startingSessionUserId.value = member.user_id
+
+  try {
+    const core = weilaCore.value ?? await initSdk()
+
+    if (!core) {
+      Message.error('SDK 初始化失败，请重新登录后再试')
+      return
+    }
+
+    const session = await core.weila_startNewSession(
+      String(member.user_id),
+      WL_IDbSessionType.SESSION_CORP_INDIVIDUAL_TYPE,
+      {
+        sessionName: member.name,
+        sessionAvatar: member.avatar,
+      },
+    )
+
+    await router.push({
+      path: '/workbench/chat',
+      query: {
+        sessionId: session.sessionId,
+        sessionType: String(WL_IDbSessionType.SESSION_CORP_INDIVIDUAL_TYPE),
+        sessionName: member.name,
+        sessionAvatar: member.avatar || undefined,
+      },
+    })
+  }
+  catch (err) {
+    console.error('[Dept] Failed to start session:', err)
+    Message.error('发送消息失败')
+  }
+  finally {
+    startingSessionUserId.value = undefined
+  }
+}
 </script>
 
 <template>
@@ -94,11 +155,14 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
       >
         <template #actions="{ record }">
           <a-button-group>
-            <a-button @click="isEditMemberModalOpen = true">
+            <a-button @click="selectedItem = record; isEditMemberModalOpen = true">
               {{ t('edit') }}
             </a-button>
 
-            <a-dropdown v-if="record.type !== 255" :hide-on-select="false">
+            <a-dropdown
+              v-if="!selfInfoStore.isCurrentUser(record.user_id) || record.type !== 255"
+              :hide-on-select="false"
+            >
               <a-button>
                 <template #icon>
                   <icon-down />
@@ -106,10 +170,17 @@ const selectedItem = shallowRef<Member | undefined>(undefined)
               </a-button>
               <template #content>
                 <div flex="~ col" p0>
-                  <a-doption @click="isResetPasswordModalOpen = true">
+                  <a-doption
+                    v-if="!selfInfoStore.isCurrentUser(record.user_id)"
+                    :disabled="startingSessionUserId === record.user_id"
+                    @click="handleSendMessage(record)"
+                  >
+                    {{ t('button.send-message') }}
+                  </a-doption>
+                  <a-doption v-if="record.type !== 255" @click="selectedItem = record; isResetPasswordModalOpen = true">
                     {{ t('reset-password.button') }}
                   </a-doption>
-                  <a-doption @click="isDeleteMemberModalOpen = true">
+                  <a-doption v-if="record.type !== 255" @click="selectedItem = record; isDeleteMemberModalOpen = true">
                     {{ t('注销成员') }}
                   </a-doption>
                 </div>

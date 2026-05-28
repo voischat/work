@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import type { GroupModel } from '~/api/contact'
 import Message from '@arco-design/web-vue/es/message'
+import { useQuery } from '@tanstack/vue-query'
 
 import { ref as deepRef, shallowRef } from 'vue'
 import CreateGroupModal from './components/CreateGroupModal.vue'
 import EditGroupModal from './components/EditGroupModal.vue'
+
+interface GroupListResponse {
+  groups: GroupModel[]
+  count: number
+}
 
 definePage({
   meta: {
@@ -30,7 +36,25 @@ const { data: depts } = useWeilaFetch<{
 const selfInfoStore = useSelfInfoStore()
 const isDeptAdmin = computed(() => selfInfoStore.isDeptAdmin)
 
-const { data, refetch } = useWeilaFetch(() => `corp/group/get-my-manage-group-list?page=${curPage.value}&size=${pageSize.value}`)
+const { data, refetch } = useWeilaFetch<GroupListResponse>(() => `corp/group/get-my-manage-group-list?page=${curPage.value}&size=${pageSize.value}`)
+const weilaApi = useWeilaApi()
+const selfUserId = computed(() => Number(selfInfoStore.selfInfo?.user_id))
+const listedGroupIds = computed(() => data.value?.groups?.map(group => group.id) || [])
+const { data: groupMembershipMap } = useQuery<Record<number, boolean>>({
+  enabled: computed(() => Boolean(selfUserId.value && listedGroupIds.value.length)),
+  queryKey: ['corp/group/get-group-all-member/self-membership', listedGroupIds, selfUserId],
+  queryFn: async () => {
+    const entries = await Promise.all(listedGroupIds.value.map(async (groupId) => {
+      const members = await weilaApi.value.v2.fetch<{ user_id: number }[]>('corp/group/get-group-all-member', {
+        body: { group_id: groupId },
+      })
+
+      return [groupId, members.some(member => Number(member.user_id) === selfUserId.value)] as const
+    }))
+
+    return Object.fromEntries(entries)
+  },
+})
 
 const selectedGroup = deepRef<any>(undefined)
 const isDeleteGroupModalOpen = shallowRef(false)
@@ -60,6 +84,9 @@ function onSelect(group: GroupModel, e: PointerEvent) {
 }
 
 function openGroupChat(group: GroupModel) {
+  if (groupMembershipMap.value?.[group.id] !== true)
+    return
+
   router.push({
     path: '/workbench/chat',
     query: {
@@ -69,6 +96,10 @@ function openGroupChat(group: GroupModel) {
       sessionAvatar: group.avatar || undefined,
     },
   })
+}
+
+function canSendGroupMessage(group: GroupModel) {
+  return groupMembershipMap.value?.[group.id] === true
 }
 </script>
 
@@ -176,7 +207,7 @@ function openGroupChat(group: GroupModel) {
                   </a-button>
                   <template #content>
                     <div flex="~ col" p0>
-                      <a-doption @click="openGroupChat(record)">
+                      <a-doption v-if="canSendGroupMessage(record)" @click="openGroupChat(record)">
                         {{ t('button.send-message') }}
                       </a-doption>
                       <a-doption type="warning" @click="selectedGroup = record; isDeleteGroupModalOpen = true">
