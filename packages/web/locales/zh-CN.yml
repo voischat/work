@@ -3,7 +3,7 @@ account:
   txt: 账号
 add-device: 新增设备
 add-member: 添加成员
-adt: '{0}认证'
+adt: "{0}认证"
 adt-message: 认证信息
 adt-state:
   passed: 审核通过
@@ -99,12 +99,12 @@ change-member-settings-form:
   title: Edit Member Info
 chat:
   delete-session:
-    content: 确定删除会话 {name} 吗？
+    content: 确定删除频道 {name} 吗？
     success: 删除成功
-    title: 删除会话
+    title: 删除频道
   placeholder: 输入消息...
   sdk-loading: SDK 初始化中...
-  select-session: 选择一个会话开始聊天
+  select-session: 请选择一个频道
   location:
     open-in-amap: 在高德地图中打开
   location-picker:
@@ -112,7 +112,7 @@ chat:
     permission-denied: '获取位置失败，请在浏览器地址栏左侧点击"网站权限"或"站点设置"，将位置权限设为"允许"后重试'
     failed: 获取当前位置失败({code})
 close: 关闭
-colon: ':'
+colon: ":"
 confirm-password: 确认密码
 controls: 操作
 copy:
@@ -433,7 +433,7 @@ mobile:
       title: 开始使用
       description: 安装完成后登录账号即可开始使用
   footer:
-    copyright: '©{year}{projectName}.Allrightsreserved.'
+    copyright: "©{year}{projectName}.Allrightsreserved."
     contact: 如有问题，请联系技术支持
 register:
   cancel: 取消
@@ -492,7 +492,7 @@ sms-verify-code: 短信验证码
 state:
   online: 在线
 submenu:
-  chat: 聊天
+  chat: 消息
   dept-manage: 部门管理
   group-manage: 群组管理
   member-manage: 成员管理
