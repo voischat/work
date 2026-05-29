@@ -222,44 +222,46 @@ defineExpose({
 </script>
 
 <template>
-  <div class="relative h-full w-full">
-    <div ref="mapCaptureRef" absolute inset-0>
-      <ElAmap v-model:center="center" v-model:zoom="zoom" @init="handleMapInit" />
+  <div class="flex h-full w-full flex-col bg-white">
+    <div relative flex-1 min-h-0>
+      <div ref="mapCaptureRef" absolute inset-0>
+        <ElAmap v-model:center="center" v-model:zoom="zoom" @init="handleMapInit" />
 
-      <div absolute left-4 top-4 rounded-lg bg-white p2 color-black>
-        <div flex="items-center ~" space-x-2>
-          <i i-ph-map-pin />
-          <span>
-            {{ [regeo?.province, regeo?.district, regeo?.township].filter(Boolean).join(' · ') }}
-          </span>
+        <div absolute left-4 top-4 rounded-lg bg-white p2 color-black>
+          <div flex="items-center ~" space-x-2>
+            <i i-ph-map-pin />
+            <span>
+              {{ [regeo?.province, regeo?.district, regeo?.township].filter(Boolean).join(' · ') }}
+            </span>
+          </div>
         </div>
-      </div>
 
-      <div absolute position-x-center top="50%" translate-y="-100%" flex="~ col items-center">
-        <p flex-1 rounded-full bg-primary:70 p4 text-white backdrop-blur-2xl transition-all flex="items-center ~">
-          <span sm:max-w="75vw" w-fit truncate break-keep>
-            {{ address }}
-          </span>
-        </p>
-        <div mxa h-15 w-1 rounded-b-full bg-primary:70 backdrop-blur-2xl />
+        <div absolute position-x-center top="50%" translate-y="-100%" flex="~ col items-center">
+          <p flex-1 rounded-full bg-primary:70 p4 text-white backdrop-blur-2xl transition-all flex="items-center ~">
+            <span sm:max-w="75vw" w-fit truncate break-keep>
+              {{ address }}
+            </span>
+          </p>
+          <div mxa h-15 w-1 rounded-b-full bg-primary:70 backdrop-blur-2xl />
+        </div>
       </div>
     </div>
 
-    <div absolute bottom-10 position-x-center>
+    <div shrink-0 border-t border-neutral-200 bg-white p4>
       <textarea
         v-model="addr"
         :rows="3"
         dark="bg-neutral-800"
-        w-80vw border rounded-lg bg-white:40 p2 outline-none backdrop-blur-3xl lg:w-80
+        w-full border rounded-lg bg-white p2 outline-none
       />
 
-      <div absolute bottom-4 right-2 flex>
+      <div mt3 flex justify-end gap2>
         <button v-if="regeo && addr !== regeo.Address" btn="ghost sm" color-primary @click="addr = regeo.Address">
-          重置
+          {{ t('button.reset') }}
         </button>
-        <button :disabled="!regeo" rounded-lg btn="primary sm" @click="confirm">
-          确认
-        </button>
+        <a-button type="primary" :disabled="!regeo" class="min-w-28" @click="confirm">
+          {{ t('button.send') }}
+        </a-button>
       </div>
     </div>
   </div>
