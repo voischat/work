@@ -63,114 +63,108 @@ watch([selectedType, selectedId], async ([type, id]) => {
 </script>
 
 <template>
-  <div flex gap2 p4 bg-base>
-    <!-- 类型选择 -->
-    <a-radio-group v-model="selectedType" type="button">
-      <a-radio value="group">
-        {{ t('group.name') }}
-      </a-radio>
-      <a-radio value="dept">
-        {{ t('dept.name') }}
-      </a-radio>
-    </a-radio-group>
+  <div h-full min-h-0 flex flex-col>
+    <div flex shrink-0 gap2 p4 bg-base>
+      <!-- 类型选择 -->
+      <a-radio-group v-model="selectedType" type="button">
+        <a-radio value="group">
+          {{ t('group.name') }}
+        </a-radio>
+        <a-radio value="dept">
+          {{ t('dept.name') }}
+        </a-radio>
+      </a-radio-group>
 
-    <!-- 部门/群组选择 -->
-    <a-select
-      v-model="selectedId"
-      :options="currentOptions"
-      :placeholder="t('hint.please-select')"
-      max-w-60
-      grow-1
-    />
-  </div>
+      <!-- 部门/群组选择 -->
+      <a-select
+        v-model="selectedId"
+        :options="currentOptions"
+        :placeholder="t('hint.please-select')"
+        max-w-60
+        grow-1
+      />
+    </div>
 
-  <div h-full w-full>
-    <ElAmap :center="center" :zoom="zoom" relative h-full w-full @init="(m) => map = m">
-      <ElAmapLayerSatellite :visible="satelliteVisible" />
+    <div min-h-0 flex-1 of-hidden>
+      <ElAmap :center="center" :zoom="zoom" relative h-full w-full @init="(m) => map = m">
+        <ElAmapLayerSatellite :visible="satelliteVisible" />
 
-      <!-- 标记点会自动通过 composable 渲染 -->
+        <!-- 标记点会自动通过 composable 渲染 -->
 
-      <a-button
-        shape="circle" class="absolute right-4 top-4"
-        :type="satelliteVisible ? 'primary' : 'secondary'"
-        @click="satelliteVisible = !satelliteVisible"
-      >
-        <template #icon>
-          <icon-image />
-        </template>
-      </a-button>
+        <MapTypeSwitcher v-model="satelliteVisible" />
 
-      <a-button
-        v-if="markers?.length" type="primary" shape="circle" class="absolute right-4 top-16"
-        @click="drawerVisible = true"
-      >
-        <template #icon>
-          <icon-menu />
-        </template>
-      </a-button>
-    </ElAmap>
-
-    <a-drawer v-model:visible="drawerVisible" :width="720" unmount-on-close :footer="false">
-      <template #title>
-        {{ t('realtime-location') }}
-      </template>
-      <a-empty v-if="!sortedMarkersWithUserInfo?.length" />
-      <a-list v-else item-layout="horizontal">
-        <a-list-item v-for="item in sortedMarkersWithUserInfo" :key="item.marker.getExtData().id">
-          <a-list-item-meta>
-            <template #avatar>
-              <a-avatar :image-url="item.userInfo?.avatar?.replace(/^https?:/, '')">
-                <IconUser />
-              </a-avatar>
-            </template>
-            <template #title>
-              {{ item.userName }}
-            </template>
-            <template #description>
-              <a-descriptions
-                :column="2"
-                :data="[
-                  {
-                    label: t('user-id'),
-                    value: item.marker.getExtData().uid,
-                  },
-                  {
-                    label: t('phone'),
-                    value: item.userInfo?.phone || '-',
-                  },
-                  {
-                    label: t('weila-number'),
-                    value: item.userInfo?.user_num || '-',
-                  },
-                  {
-                    label: t('time'),
-                    value: new Date(item.marker.getExtData().ts * 1000).toLocaleString(),
-                  },
-                  {
-                    label: t('longitude'),
-                    value: (item.marker.getExtData().longitude as number).toFixed(6),
-                  },
-                  {
-                    label: t('latitude'),
-                    value: (item.marker.getExtData().latitude as number).toFixed(6),
-                  },
-                  {
-                    label: t('speed'),
-                    value: `${(item.marker.getExtData().spd as number).toFixed(2)} km/h`,
-                  },
-                ].filter(item => item.value)"
-                bordered
-                size="small"
-              />
-            </template>
-          </a-list-item-meta>
-          <template #actions>
-            <a-button type="primary" size="small" @click="selectedMarker = item.marker">
-              {{ t('button.checkout') }}
-            </a-button>
+        <a-button
+          v-if="markers?.length" type="primary" shape="circle" class="absolute right-4 top-4"
+          @click="drawerVisible = true"
+        >
+          <template #icon>
+            <icon-menu />
           </template>
-        </a-list-item>
-      </a-list>
-    </a-drawer>
+        </a-button>
+      </ElAmap>
+
+      <a-drawer v-model:visible="drawerVisible" :width="720" unmount-on-close :footer="false">
+        <template #title>
+          {{ t('realtime-location') }}
+        </template>
+        <a-empty v-if="!sortedMarkersWithUserInfo?.length" />
+        <a-list v-else item-layout="horizontal">
+          <a-list-item v-for="item in sortedMarkersWithUserInfo" :key="item.marker.getExtData().id">
+            <a-list-item-meta>
+              <template #avatar>
+                <a-avatar :image-url="item.userInfo?.avatar?.replace(/^https?:/, '')">
+                  <IconUser />
+                </a-avatar>
+              </template>
+              <template #title>
+                {{ item.userName }}
+              </template>
+              <template #description>
+                <a-descriptions
+                  :column="2"
+                  :data="[
+                    {
+                      label: t('user-id'),
+                      value: item.marker.getExtData().uid,
+                    },
+                    {
+                      label: t('phone'),
+                      value: item.userInfo?.phone || '-',
+                    },
+                    {
+                      label: t('weila-number'),
+                      value: item.userInfo?.user_num || '-',
+                    },
+                    {
+                      label: t('time'),
+                      value: new Date(item.marker.getExtData().ts * 1000).toLocaleString(),
+                    },
+                    {
+                      label: t('longitude'),
+                      value: (item.marker.getExtData().longitude as number).toFixed(6),
+                    },
+                    {
+                      label: t('latitude'),
+                      value: (item.marker.getExtData().latitude as number).toFixed(6),
+                    },
+                    {
+                      label: t('speed'),
+                      value: `${(item.marker.getExtData().spd as number).toFixed(2)} km/h`,
+                    },
+                  ].filter(item => item.value)"
+                  bordered
+                  size="small"
+                />
+              </template>
+            </a-list-item-meta>
+            <template #actions>
+              <a-button type="primary" size="small" @click="selectedMarker = item.marker">
+                {{ t('button.checkout') }}
+              </a-button>
+            </template>
+          </a-list-item>
+        </a-list>
+      </a-drawer>
+    </div>
   </div>
 </template>

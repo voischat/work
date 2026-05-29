@@ -29,6 +29,7 @@ declare module 'vue' {
     LocationViewer: typeof import('./components/LocationViewer.vue')['default']
     LoginBanner: typeof import('./components/login-banner/index.vue')['default']
     MapPicker: typeof import('./components/MapPicker.vue')['default']
+    MapTypeSwitcher: typeof import('./components/MapTypeSwitcher.vue')['default']
     MemberTable: typeof import('./components/MemberTable.vue')['default']
     MessageFileContent: typeof import('./components/MessageFileContent.vue')['default']
     MessageLocationContent: typeof import('./components/MessageLocationContent.vue')['default']
