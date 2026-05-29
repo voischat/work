@@ -354,6 +354,11 @@ function handleShowLocation(location: { latitude: number; longitude: number; nam
   displayedLocation.value = location
   isLocationModalOpen.value = true
 }
+
+function handlePttError(payload: { session: WL_IDbSession, error?: unknown }) {
+  console.warn('[WorkbenchChat] Failed to start PTT:', payload)
+  Message.error('无法开始语音对讲，请稍后重试')
+}
 </script>
 
 <template>
@@ -372,6 +377,7 @@ function handleShowLocation(location: { latitude: number; longitude: number; nam
       @delete-session="handleDeleteSessionRequest"
       @trigger-map-picker="openLocationPicker"
       @location-click="handleShowLocation"
+      @ptt-error="handlePttError"
     />
     <a-modal
       v-model:visible="isLocationPickerOpen"
