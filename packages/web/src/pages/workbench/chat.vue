@@ -53,7 +53,7 @@ const isDeletingSession = shallowRef(false)
 const isLocationPickerOpen = shallowRef(false)
 const isSendingLocation = shallowRef(false)
 const isLocationModalOpen = shallowRef(false)
-const displayedLocation = shallowRef<{ latitude: number; longitude: number; name: string; address: string }>()
+const displayedLocation = shallowRef<{ latitude: number, longitude: number, name: string, address: string }>()
 
 interface MapPickerValue {
   lon: number
@@ -74,6 +74,7 @@ const resolveProfile: WL_ProfileResolver = async (userId) => {
     const member = await weilaApi.value.v2.fetch<{
       name?: string
       avatar?: string
+      user_num?: number | string
     }>('corp/address/get-member', {
       body: { member_id: userId },
       method: 'POST',
@@ -82,6 +83,7 @@ const resolveProfile: WL_ProfileResolver = async (userId) => {
     return {
       name: member.name,
       avatar: member.avatar,
+      weilaNum: member.user_num === undefined ? undefined : String(member.user_num),
     }
   }
   catch (error) {
@@ -350,7 +352,7 @@ async function handleLocationPicked(value: MapPickerValue) {
   }
 }
 
-function handleShowLocation(location: { latitude: number; longitude: number; name: string; address: string }) {
+function handleShowLocation(location: { latitude: number, longitude: number, name: string, address: string }) {
   displayedLocation.value = location
   isLocationModalOpen.value = true
 }
@@ -366,25 +368,35 @@ function handlePttError(payload: { session: WL_IDbSession, error?: unknown }) {
     <div v-if="!weilaCore" class="flex items-center justify-center h-full text-neutral-400">
       {{ t('chat.sdk-loading') }}
     </div>
-    <WlChatPanel v-else ref="chatPanelRef" v-model:selected-session-id="selectedSessionId"
+    <WlChatPanel
+      v-else ref="chatPanelRef" v-model:selected-session-id="selectedSessionId"
       v-model:selected-session-type="selectedSessionType" :core="weilaCore" :current-user-id="currentUserId"
       message-list-height="calc(100vh - 220px)" @delete-session="handleDeleteSessionRequest"
-      @trigger-map-picker="openLocationPicker" @location-click="handleShowLocation" @ptt-error="handlePttError" />
-    <a-modal v-model:visible="isLocationPickerOpen" title="发送位置" :footer="false" width="min(960px, 92vw)"
+      @trigger-map-picker="openLocationPicker" @location-click="handleShowLocation" @ptt-error="handlePttError"
+    />
+    <a-modal
+      v-model:visible="isLocationPickerOpen" title="发送位置" :footer="false" width="min(960px, 92vw)"
       :mask-closable="!isSendingLocation" :esc-to-close="!isSendingLocation" :closable="!isSendingLocation"
-      body-style="position: relative; height: min(680px, 78vh); padding: 0; overflow: hidden;">
+      body-style="position: relative; height: min(680px, 78vh); padding: 0; overflow: hidden;"
+    >
       <MapPicker v-if="isLocationPickerOpen" ref="mapPickerRef" @update:value="handleLocationPicked" />
       <div v-if="isSendingLocation" absolute inset-0 z-10 flex items-center justify-center bg-white:70 backdrop-blur-sm>
         <a-spin tip="正在上传位置图片..." />
       </div>
     </a-modal>
-    <a-modal v-model:visible="isLocationModalOpen" title="查看位置" :footer="false" width="min(960px, 92vw)"
-      body-style="position: relative; height: min(680px, 78vh); padding: 0; overflow: hidden;">
-      <LocationViewer v-if="isLocationModalOpen && displayedLocation" :latitude="displayedLocation.latitude"
-        :longitude="displayedLocation.longitude" :name="displayedLocation.name" :address="displayedLocation.address" />
+    <a-modal
+      v-model:visible="isLocationModalOpen" title="查看位置" :footer="false" width="min(960px, 92vw)"
+      body-style="position: relative; height: min(680px, 78vh); padding: 0; overflow: hidden;"
+    >
+      <LocationViewer
+        v-if="isLocationModalOpen && displayedLocation" :latitude="displayedLocation.latitude"
+        :longitude="displayedLocation.longitude" :name="displayedLocation.name" :address="displayedLocation.address"
+      />
     </a-modal>
-    <a-modal v-model:visible="isDeleteSessionModalOpen" :title="t('chat.delete-session.title')" :footer="false"
-      :mask-closable="!isDeletingSession" :esc-to-close="!isDeletingSession" :closable="!isDeletingSession">
+    <a-modal
+      v-model:visible="isDeleteSessionModalOpen" :title="t('chat.delete-session.title')" :footer="false"
+      :mask-closable="!isDeletingSession" :esc-to-close="!isDeletingSession" :closable="!isDeletingSession"
+    >
       <div>{{ t('chat.delete-session.content', { name: pendingDeleteSessionName }) }}</div>
       <div mt6 flex justify-end gap3>
         <a-button :disabled="isDeletingSession" @click="handleCancelDeleteSession">
