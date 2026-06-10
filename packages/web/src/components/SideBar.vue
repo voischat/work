@@ -93,7 +93,7 @@ function goTo(path: string) {
 </script>
 
 <template>
-  <div>
+  <div h-full>
     <a-menu
       :selected-keys="[curPath]"
       :style="{ width: '200px', height: '100%' }"

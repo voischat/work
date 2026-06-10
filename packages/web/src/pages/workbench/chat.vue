@@ -2,6 +2,7 @@
 import type { WL_GroupProfileResolver, WL_IDbLocationShared, WL_IDbSession, WL_ProfileResolver } from '@weilasdk/core'
 import Message from '@arco-design/web-vue/es/message'
 import { WlChatPanel } from '@weilasdk/ui'
+import { isGroupSessionType } from '@weilasdk/core'
 import { computed, shallowRef, watch } from 'vue'
 import ChatLauncher from './components/ChatLauncher.vue'
 
@@ -55,6 +56,12 @@ const isLocationPickerOpen = shallowRef(false)
 const isSendingLocation = shallowRef(false)
 const isLocationModalOpen = shallowRef(false)
 const displayedLocation = shallowRef<{ latitude: number, longitude: number, name: string, address: string }>()
+const showLocationPanel = shallowRef(false)
+const realtimeLocationPanelId = computed(() => {
+  const id = Number(selectedSessionId.value)
+  return Number.isFinite(id) && id > 0 ? id : undefined
+})
+const panelWidth = ref(384)
 
 interface MapPickerValue {
   lon: number
@@ -145,6 +152,8 @@ async function ensureSelectedSession() {
 }
 
 watch([selectedSessionId, selectedSessionType], ([sessionId, sessionType]) => {
+  showLocationPanel.value = false
+
   if (route.query.sessionId === sessionId && parseSessionType(route.query.sessionType) === sessionType)
     return
 
@@ -369,39 +378,64 @@ function handlePttError(payload: { session: WL_IDbSession, error?: unknown }) {
     <div v-if="!weilaCore" class="flex items-center justify-center h-full text-neutral-400">
       {{ t('chat.sdk-loading') }}
     </div>
-    <WlChatPanel
-      v-else ref="chatPanelRef" v-model:selected-session-id="selectedSessionId"
-      v-model:selected-session-type="selectedSessionType" :core="weilaCore" :current-user-id="currentUserId"
-      message-list-height="calc(100vh - 220px)" @delete-session="handleDeleteSessionRequest"
-      @trigger-map-picker="openLocationPicker" @location-click="handleShowLocation" @ptt-error="handlePttError"
-    >
-      <template #session-header-actions>
-        <ChatLauncher :core="weilaCore" />
-      </template>
-    </WlChatPanel>
-    <a-modal
-      v-model:visible="isLocationPickerOpen" title="发送位置" :footer="false" width="min(960px, 92vw)"
+    <div v-else class="flex h-full">
+      <WlChatPanel
+        ref="chatPanelRef" v-model:selected-session-id="selectedSessionId"
+        v-model:selected-session-type="selectedSessionType" :core="weilaCore" :current-user-id="currentUserId"
+        class="flex-1 min-w-0" message-list-height="calc(100vh - 220px)" @delete-session="handleDeleteSessionRequest"
+        @trigger-map-picker="openLocationPicker" @location-click="handleShowLocation" @ptt-error="handlePttError"
+      >
+        <template #session-header-actions>
+          <ChatLauncher :core="weilaCore" />
+        </template>
+        <template #session-actions>
+          <a-button
+            v-if="selectedSessionType !== undefined && isGroupSessionType(selectedSessionType)" type="text"
+            @click="showLocationPanel = !showLocationPanel"
+          >
+            <template #icon>
+              <icon-location />
+            </template>
+            群成员位置
+          </a-button>
+        </template>
+      </WlChatPanel>
+      <a-resize-box
+        v-if="showLocationPanel"
+        v-model:width="panelWidth"
+        :directions="['left']"
+        :min-width="320"
+        :max-width="600"
+        class="h-full border-l border-neutral-200 bg-white"
+      >
+        <div h-full flex flex-col>
+          <div class="flex justify-between items-center p-3 border-b">
+            <span font-medium>群成员位置</span>
+            <a-button type="text" @click="showLocationPanel = false">
+              <template #icon>
+                <icon-close />
+              </template>
+            </a-button>
+          </div>
+          <RealtimeLocationPanel type="group" :id="realtimeLocationPanelId" class="flex-1 min-h-0" />
+        </div>
+      </a-resize-box>
+    </div>
+    <a-modal v-model:visible="isLocationPickerOpen" title="发送位置" :footer="false" width="min(960px, 92vw)"
       :mask-closable="!isSendingLocation" :esc-to-close="!isSendingLocation" :closable="!isSendingLocation"
-      body-style="position: relative; height: min(680px, 78vh); padding: 0; overflow: hidden;"
-    >
+      body-style="position: relative; height: min(680px, 78vh); padding: 0; overflow: hidden;">
       <MapPicker v-if="isLocationPickerOpen" ref="mapPickerRef" @update:value="handleLocationPicked" />
       <div v-if="isSendingLocation" absolute inset-0 z-10 flex items-center justify-center bg-white:70 backdrop-blur-sm>
         <a-spin tip="正在上传位置图片..." />
       </div>
     </a-modal>
-    <a-modal
-      v-model:visible="isLocationModalOpen" title="查看位置" :footer="false" width="min(960px, 92vw)"
-      body-style="position: relative; height: min(680px, 78vh); padding: 0; overflow: hidden;"
-    >
-      <LocationViewer
-        v-if="isLocationModalOpen && displayedLocation" :latitude="displayedLocation.latitude"
-        :longitude="displayedLocation.longitude" :name="displayedLocation.name" :address="displayedLocation.address"
-      />
+    <a-modal v-model:visible="isLocationModalOpen" title="查看位置" :footer="false" width="min(960px, 92vw)"
+      body-style="position: relative; height: min(680px, 78vh); padding: 0; overflow: hidden;">
+      <LocationViewer v-if="isLocationModalOpen && displayedLocation" :latitude="displayedLocation.latitude"
+        :longitude="displayedLocation.longitude" :name="displayedLocation.name" :address="displayedLocation.address" />
     </a-modal>
-    <a-modal
-      v-model:visible="isDeleteSessionModalOpen" :title="t('chat.delete-session.title')" :footer="false"
-      :mask-closable="!isDeletingSession" :esc-to-close="!isDeletingSession" :closable="!isDeletingSession"
-    >
+    <a-modal v-model:visible="isDeleteSessionModalOpen" :title="t('chat.delete-session.title')" :footer="false"
+      :mask-closable="!isDeletingSession" :esc-to-close="!isDeletingSession" :closable="!isDeletingSession">
       <div>{{ t('chat.delete-session.content', { name: pendingDeleteSessionName }) }}</div>
       <div mt6 flex justify-end gap3>
         <a-button :disabled="isDeletingSession" @click="handleCancelDeleteSession">
