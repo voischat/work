@@ -3,6 +3,7 @@ import type { WL_GroupProfileResolver, WL_IDbLocationShared, WL_IDbSession, WL_P
 import Message from '@arco-design/web-vue/es/message'
 import { WlChatPanel } from '@weilasdk/ui'
 import { computed, shallowRef, watch } from 'vue'
+import ChatLauncher from './components/ChatLauncher.vue'
 
 definePage({
   meta: {
@@ -373,7 +374,11 @@ function handlePttError(payload: { session: WL_IDbSession, error?: unknown }) {
       v-model:selected-session-type="selectedSessionType" :core="weilaCore" :current-user-id="currentUserId"
       message-list-height="calc(100vh - 220px)" @delete-session="handleDeleteSessionRequest"
       @trigger-map-picker="openLocationPicker" @location-click="handleShowLocation" @ptt-error="handlePttError"
-    />
+    >
+      <template #session-header-actions>
+        <ChatLauncher :core="weilaCore" />
+      </template>
+    </WlChatPanel>
     <a-modal
       v-model:visible="isLocationPickerOpen" title="发送位置" :footer="false" width="min(960px, 92vw)"
       :mask-closable="!isSendingLocation" :esc-to-close="!isSendingLocation" :closable="!isSendingLocation"
