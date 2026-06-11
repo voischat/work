@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { WL_GroupProfileResolver, WL_IDbLocationShared, WL_IDbSession, WL_ProfileResolver } from '@weilasdk/core'
 import Message from '@arco-design/web-vue/es/message'
-import { WlChatPanel } from '@weilasdk/ui'
 import { isGroupSessionType } from '@weilasdk/core'
+import { WlChatPanel } from '@weilasdk/ui'
 import { computed, shallowRef, watch } from 'vue'
 import ChatLauncher from './components/ChatLauncher.vue'
 
@@ -61,7 +61,7 @@ const realtimeLocationPanelId = computed(() => {
   const id = Number(selectedSessionId.value)
   return Number.isFinite(id) && id > 0 ? id : undefined
 })
-const panelWidth = ref(384)
+const panelWidth = shallowRef(384)
 
 interface MapPickerValue {
   lon: number
@@ -385,7 +385,7 @@ function handlePttError(payload: { session: WL_IDbSession, error?: unknown }) {
         class="flex-1 min-w-0" message-list-height="calc(100vh - 220px)" @delete-session="handleDeleteSessionRequest"
         @trigger-map-picker="openLocationPicker" @location-click="handleShowLocation" @ptt-error="handlePttError"
       >
-        <template #session-header-actions>
+        <template #session-footer>
           <ChatLauncher :core="weilaCore" />
         </template>
         <template #session-actions>
@@ -417,25 +417,33 @@ function handlePttError(payload: { session: WL_IDbSession, error?: unknown }) {
               </template>
             </a-button>
           </div>
-          <RealtimeLocationPanel type="group" :id="realtimeLocationPanelId" class="flex-1 min-h-0" />
+          <RealtimeLocationPanel :id="realtimeLocationPanelId" type="group" class="flex-1 min-h-0" />
         </div>
       </a-resize-box>
     </div>
-    <a-modal v-model:visible="isLocationPickerOpen" title="发送位置" :footer="false" width="min(960px, 92vw)"
+    <a-modal
+      v-model:visible="isLocationPickerOpen" title="发送位置" :footer="false" width="min(960px, 92vw)"
       :mask-closable="!isSendingLocation" :esc-to-close="!isSendingLocation" :closable="!isSendingLocation"
-      body-style="position: relative; height: min(680px, 78vh); padding: 0; overflow: hidden;">
+      body-style="position: relative; height: min(680px, 78vh); padding: 0; overflow: hidden;"
+    >
       <MapPicker v-if="isLocationPickerOpen" ref="mapPickerRef" @update:value="handleLocationPicked" />
       <div v-if="isSendingLocation" absolute inset-0 z-10 flex items-center justify-center bg-white:70 backdrop-blur-sm>
         <a-spin tip="正在上传位置图片..." />
       </div>
     </a-modal>
-    <a-modal v-model:visible="isLocationModalOpen" title="查看位置" :footer="false" width="min(960px, 92vw)"
-      body-style="position: relative; height: min(680px, 78vh); padding: 0; overflow: hidden;">
-      <LocationViewer v-if="isLocationModalOpen && displayedLocation" :latitude="displayedLocation.latitude"
-        :longitude="displayedLocation.longitude" :name="displayedLocation.name" :address="displayedLocation.address" />
+    <a-modal
+      v-model:visible="isLocationModalOpen" title="查看位置" :footer="false" width="min(960px, 92vw)"
+      body-style="position: relative; height: min(680px, 78vh); padding: 0; overflow: hidden;"
+    >
+      <LocationViewer
+        v-if="isLocationModalOpen && displayedLocation" :latitude="displayedLocation.latitude"
+        :longitude="displayedLocation.longitude" :name="displayedLocation.name" :address="displayedLocation.address"
+      />
     </a-modal>
-    <a-modal v-model:visible="isDeleteSessionModalOpen" :title="t('chat.delete-session.title')" :footer="false"
-      :mask-closable="!isDeletingSession" :esc-to-close="!isDeletingSession" :closable="!isDeletingSession">
+    <a-modal
+      v-model:visible="isDeleteSessionModalOpen" :title="t('chat.delete-session.title')" :footer="false"
+      :mask-closable="!isDeletingSession" :esc-to-close="!isDeletingSession" :closable="!isDeletingSession"
+    >
       <div>{{ t('chat.delete-session.content', { name: pendingDeleteSessionName }) }}</div>
       <div mt6 flex justify-end gap3>
         <a-button :disabled="isDeletingSession" @click="handleCancelDeleteSession">

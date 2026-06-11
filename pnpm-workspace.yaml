@@ -60,6 +60,7 @@ catalog:
   esno: ^4.8.0
   floating-vue: ^5.2.2
   gcoord: ^1.0.7
+  html-to-image: ^1.11.13
   jiti: ^2.6.1
   less: ^4.4.2
   lint-staged: 16.2.4

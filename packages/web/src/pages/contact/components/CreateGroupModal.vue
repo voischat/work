@@ -1,114 +1,32 @@
 <script setup lang="ts">
-import Message from '@arco-design/web-vue/es/message'
-import { useQueryClient } from '@tanstack/vue-query'
-import * as v from 'valibot'
 import { shallowRef } from 'vue'
-import { useForm } from 'zod-arco-rules/valibot'
+import CreateGroupForm from './CreateGroupForm.vue'
 
 const props = defineProps<{
   deptId?: number
+}>()
+
+const emit = defineEmits<{
+  success: []
 }>()
 
 const { t } = useI18n()
 
 const open = shallowRef(false)
 
-const qc = useQueryClient()
-
-const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
-
-const { data: depts } = useWeilaFetch<any[]>('corp/address/get-my-manage-all-dept', {}, {
-  enabled: open,
-})
-
-// type BurstMode = 0 | 1 | 2
-
-const { form, rules, handleSubmit, reset } = useForm(v.object({
-  name: v.pipe(v.string(() => t('form.error.name-nonempty'))),
-  dept_id: v.optional(v.number(), () => depts.value?.[0]?.id || 0),
-  burst_mode: v.optional(v.number(), 0),
-  avatar: v.optional(v.string(), ''),
-}))
-
-const { mutate, isPending } = useWeilaMutation('corp/group/create-group', {
-  onSuccess() {
-    reset()
-    open.value = false
-    Message.success(t('message.success'))
-    qc.invalidateQueries({ queryKey: ['corp/group/get-group-list'] })
-    qc.invalidateQueries({ queryKey: ['corp/group/get-my-manage-group-list'] })
-  },
-})
-
-watchEffect(() => {
-  if (open.value) {
-    reset()
-
-    if (props.deptId !== undefined)
-      form.value.dept_id = props.deptId
-  }
-})
-
-const submit = handleSubmit(async (values) => {
-  try {
-    if (form.value.avatar && !isRemoteImage(form.value.avatar))
-    // @ts-expect-error type error: `defineExpose` no type declare find
-      await avatarUploaderRef.value.upload()
-
-    mutate(values)
-  }
-  catch (error) {
-    console.error('error', error)
-  }
-})
+function handleSuccess() {
+  open.value = false
+  emit('success')
+}
 </script>
 
 <template>
-  <a-button type="primary" @click="open = true">
-    {{ t('button.create-group') }}
-  </a-button>
+  <slot name="trigger" :open="() => open = true">
+    <a-button type="primary" @click="open = true">
+      {{ t('button.create-group') }}
+    </a-button>
+  </slot>
   <a-modal v-model:visible="open" :title=" t('button.create-group') " :footer="false">
-    <a-form :rules :model="form" auto-label-width @submit="submit">
-      <a-form-item field="name" :label="t('org-form.name.label')">
-        <a-input v-model="form.name" :max-length="20" show-word-limit />
-      </a-form-item>
-      <a-form-item field="dept_id" :label="t('member.form.dept.label')">
-        <a-select
-          v-if="props.deptId === undefined"
-          allow-search :empty="t('no-data')"
-          :model-value="form.dept_id"
-          @change="(value: string) => form.dept_id = Number(value)"
-        >
-          <a-option v-for="{ name, id }, key in depts" :key :value="id" :label="name" />
-        </a-select>
-        <a-input
-          v-else
-          :model-value="depts?.find(d => d.id === props.deptId)?.name || ''"
-          readonly
-        />
-      </a-form-item>
-      <a-form-item field="avatar" :label="t('avatar')">
-        <AvatarUploader ref="avatarUploaderRef" v-model:src="form.avatar" />
-      </a-form-item>
-      <a-form-item field="burst_mode" :label="t('burst-mode')">
-        <a-radio-group v-model="form.burst_mode" direction="vertical">
-          <a-radio :value="0">
-            {{ t('burst-mode-0') }}
-          </a-radio>
-          <a-radio :value="1">
-            {{ t('burst-mode-1') }}
-          </a-radio>
-          <!-- <a-radio :value="2">
-            {{ t('burst-mode-2') }}
-          </a-radio> -->
-        </a-radio-group>
-      </a-form-item>
-
-      <a-form-item>
-        <a-button mla html-type="submit" type="primary" :loading="isPending">
-          {{ t('button.submit') }}
-        </a-button>
-      </a-form-item>
-    </a-form>
+    <CreateGroupForm v-if="open" :dept-id="props.deptId" @success="handleSuccess" />
   </a-modal>
 </template>

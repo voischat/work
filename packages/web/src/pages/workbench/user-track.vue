@@ -1,12 +1,12 @@
 <script setup lang="ts">
+import type { OrgTreeSelectedItem } from '~/components/OrgTree.vue'
 import { Message } from '@arco-design/web-vue'
 import { ElAmap, ElAmapLayerSatellite } from '@vuemap/vue-amap'
 import { ElAmapLoca, ElAmapLocaLine } from '@vuemap/vue-amap-loca'
 import { useRouteQuery } from '@vueuse/router'
 import dayjs from 'dayjs'
-import { shallowRef } from 'vue'
 
-import { useDeptTree } from '~/composables/useDeptTree'
+import { computed, shallowRef } from 'vue'
 import { useMapInteraction } from '~/composables/useMapInteraction'
 import { useUserTrack } from '~/composables/useTrackData'
 
@@ -18,13 +18,12 @@ definePage({
 
 const { t } = useI18n()
 
-// 用户选择状态
-const selectedUserKeys = shallowRef('')
+const selectedOrgItems = shallowRef<OrgTreeSelectedItem[]>([])
+const selectedUserKeys = computed(() => String(selectedOrgItems.value[0]?.id ?? ''))
 const selectedDate = useRouteQuery('date', new Date().toISOString().split('T')[0])
 const satelliteVisible = shallowRef(false)
 
 // 使用composables
-const { treeData, loadMore } = useDeptTree()
 const { tracks, trackFeatureCollection, refetch } = useUserTrack(selectedUserKeys, selectedDate)
 const {
   trackVisible,
@@ -46,30 +45,33 @@ function onMarkerSelected(marker: AMap.Marker) {
 </script>
 
 <template>
-  <div h-full min-h-0 flex flex-col>
-    <div flex shrink-0 gap2 p4 bg-base>
-      <a-tree-select
-        v-model="selectedUserKeys"
-        :data="treeData"
-        :load-more
-        :placeholder="t('hint.please-select')"
-        :block-node="true"
-        max-w-60
-        grow-1
-      />
-      <a-date-picker v-model="selectedDate" max-w-40 grow-1 :disabled-date="(current: any) => dayjs(current).isAfter(dayjs())" />
-      <a-tooltip :content="t('button.refresh')">
-        <a-button
-          v-if="tracks?.length" shape="circle"
-          @click="() => refetch().then(() => {
-            Message.success(t('message.refresh-success'))
-          })"
-        >
-          <icon-refresh />
-        </a-button>
-      </a-tooltip>
-    </div>
-    <div min-h-0 flex-1 of-hidden>
+  <div h-full min-h-0 flex>
+    <aside class="w-86 shrink-0 border-r border-neutral-200 bg-white flex flex-col min-h-0">
+      <div class="border-b border-neutral-100 p-4">
+        <div class="mb-3 text-base font-medium">
+          {{ t('user-track') }}
+        </div>
+        <div class="flex gap-2">
+          <a-date-picker v-model="selectedDate" class="min-w-0 flex-1" :disabled-date="(current: any) => dayjs(current).isAfter(dayjs())" />
+          <a-tooltip :content="t('button.refresh')">
+            <a-button
+              v-if="tracks?.length" type="outline"
+              @click="() => refetch().then(() => {
+                Message.success(t('message.refresh-success'))
+              })"
+            >
+              <template #icon>
+                <icon-refresh />
+              </template>
+            </a-button>
+          </a-tooltip>
+        </div>
+      </div>
+      <div class="min-h-0 flex-1 overflow-y-auto">
+        <OrgTree v-model:selected="selectedOrgItems" select-mode="solo" />
+      </div>
+    </aside>
+    <div min-w-0 flex-1 of-hidden>
       <ElAmap :center="center" :zoom="zoom" relative h-full w-full @init="(m) => map = m">
         <ElAmapLayerSatellite :visible="satelliteVisible" />
 
