@@ -168,7 +168,7 @@ async function startGroup(group: GroupModel) {
     :footer="false"
     width="480px"
   >
-    <div class="flex flex-col gap-3">
+    <div class="flex min-h-80 max-h-[70vh] flex-col gap-3 overflow-hidden">
       <a-input
         v-if="activeType === 'group'"
         v-model="groupSearch"
@@ -181,7 +181,7 @@ async function startGroup(group: GroupModel) {
         class="min-h-48"
       >
         <template v-if="activeType === 'individual'">
-          <OrgTree class="max-h-96 overflow-y-auto" @select-member="startIndividual" />
+          <OrgTree class="max-h-[52vh] overflow-y-auto rounded border border-neutral-200" @select-member="startIndividual" />
         </template>
 
         <template v-else>

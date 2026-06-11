@@ -202,7 +202,12 @@ function formatMemberMeta(member: Member) {
 
 .org-tree__dept {
   overflow: hidden;
+  border-bottom: 1px solid var(--color-border-1);
   background: transparent;
+}
+
+.org-tree__dept:last-child {
+  border-bottom: 0;
 }
 
 .org-tree__dept-button,
@@ -276,6 +281,7 @@ function formatMemberMeta(member: Member) {
 }
 
 .org-tree__member {
+  border-top: 1px solid var(--color-border-1);
   padding: 9px 12px 9px 34px;
 }
 

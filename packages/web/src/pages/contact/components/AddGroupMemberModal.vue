@@ -45,9 +45,10 @@ const { mutate, isPending } = useWeilaMutation('corp/group/add-group-members', {
 <template>
   <ModalTrigger v-model:open="open" :trigger="{ type: 'primary' }" :title=" t('button.add-group-member') ">
     <template #content>
-      <div relative p4 min-w-100 max-h-60vh of-y-auto>
+      <div class="min-w-100 min-h-80 max-h-[60vh] overflow-y-auto p-4">
         <OrgTree
           v-model:selected="selectedMembers"
+          class="rounded border border-neutral-200"
           select-mode="multi"
           :disabled-member-ids="groupMembers?.map(i => i.user_id)"
           :is-member-enabled="(member) => member.grp_cnt < member.grp_lmt"

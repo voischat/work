@@ -45,9 +45,10 @@ const { mutate, isPending } = useWeilaMutation<never, {
 <template>
   <ModalTrigger v-model:open="open" :title="t('add-member')" :trigger="{ type: 'primary' }">
     <template #content>
-      <div relative p4 min-w-100 max-h-60vh of-y-auto>
+      <div class="min-w-100 min-h-80 max-h-[60vh] overflow-y-auto p-4">
         <OrgTree
           v-model:selected="selectedMembers"
+          class="rounded border border-neutral-200"
           select-mode="multi"
           :disabled-member-ids="data?.depts?.map(i => i.user_id)"
         />
