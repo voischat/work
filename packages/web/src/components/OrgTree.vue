@@ -127,11 +127,21 @@ function isMemberSelectable(member: Member) {
 }
 
 function formatMemberMeta(member: Member) {
-  return [
-    member.job_num ? `工号 ${member.job_num}` : '',
-    member.phone ? `${member.country_code ? `+${member.country_code} ` : ''}${member.phone}` : '',
-    member.is_dept_admin ? '部门管理员' : '',
-  ].filter(Boolean).join(' · ')
+  return member.user_num || String(member.user_id)
+}
+
+function isMemberOnline(member: Member) {
+  return (member as Member & { online?: number }).online === 1
+}
+
+function getMemberTypeLabel(member: Member) {
+  if (member.is_dept_admin)
+    return '管理员'
+
+  if (member.type === 1)
+    return '设备'
+
+  return ''
 }
 </script>
 
@@ -146,7 +156,7 @@ function formatMemberMeta(member: Member) {
           />
           <span class="min-w-0 flex-1">
             <span class="org-tree__dept-name">{{ item.dept.name }}</span>
-            <span class="org-tree__dept-meta">部门 ID {{ item.dept.id }} · {{ item.dept.user_count }} 人</span>
+            <span class="org-tree__dept-meta">{{ item.dept.id }} · {{ item.dept.user_count }} 人</span>
           </span>
         </button>
 
@@ -173,8 +183,14 @@ function formatMemberMeta(member: Member) {
             <span class="min-w-0 flex-1">
               <span class="org-tree__member-title">
                 <span truncate>{{ props.memberTitle(member) }}</span>
+                <a-tag :color="isMemberOnline(member) ? 'green' : 'gray'" size="small">
+                  {{ isMemberOnline(member) ? '在线' : '离线' }}
+                </a-tag>
+                <a-tag v-if="getMemberTypeLabel(member)" color="blue" size="small">
+                  {{ getMemberTypeLabel(member) }}
+                </a-tag>
               </span>
-              <span class="org-tree__member-meta">{{ formatMemberMeta(member) || `用户 ID ${member.user_id}` }}</span>
+              <span class="org-tree__member-meta">{{ formatMemberMeta(member) }}</span>
             </span>
           </button>
           <div v-if="!item.loading && item.loaded && item.members.length === 0" class="org-tree__state">
@@ -202,12 +218,7 @@ function formatMemberMeta(member: Member) {
 
 .org-tree__dept {
   overflow: hidden;
-  border-bottom: 1px solid var(--color-border-1);
   background: transparent;
-}
-
-.org-tree__dept:last-child {
-  border-bottom: 0;
 }
 
 .org-tree__dept-button,
@@ -276,12 +287,10 @@ function formatMemberMeta(member: Member) {
 }
 
 .org-tree__members {
-  border-top: 1px solid var(--color-border-1);
   background: var(--color-fill-1);
 }
 
 .org-tree__member {
-  border-top: 1px solid var(--color-border-1);
   padding: 9px 12px 9px 34px;
 }
 
