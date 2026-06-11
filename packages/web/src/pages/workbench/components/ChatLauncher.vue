@@ -181,7 +181,7 @@ async function startGroup(group: GroupModel) {
         class="min-h-48"
       >
         <template v-if="activeType === 'individual'">
-          <OrgTree class="max-h-96 overflow-y-auto" @selecte-member="startIndividual" />
+          <OrgTree class="max-h-96 overflow-y-auto" @select-member="startIndividual" />
         </template>
 
         <template v-else>

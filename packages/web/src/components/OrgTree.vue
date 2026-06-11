@@ -22,15 +22,20 @@ interface DeptState {
 const props = withDefaults(defineProps<{
   selected?: OrgTreeSelectedItem[]
   selectMode?: 'solo' | 'multi'
+  disabledMemberIds?: number[]
+  isMemberEnabled?: (member: Member) => boolean
+  memberTitle?: (member: Member) => string
 }>(), {
   selected: () => [],
   selectMode: 'solo',
+  disabledMemberIds: () => [],
+  isMemberEnabled: () => true,
+  memberTitle: (member: Member) => member.name,
 })
 
 const emit = defineEmits<{
   'update:selected': [items: OrgTreeSelectedItem[]]
-  'selecteMember': [member: Member]
-  'selectedMember': [member: Member]
+  'selectMember': [member: Member]
 }>()
 
 const { data: deptData, isPending: isDeptPending } = useWeilaFetch<{
@@ -98,6 +103,9 @@ async function toggleDept(item: DeptState) {
 }
 
 function selectMember(member: Member, dept: DeptModel) {
+  if (!isMemberSelectable(member))
+    return
+
   const selectedItem: OrgTreeSelectedItem = {
     type: 'member',
     id: member.user_id,
@@ -111,8 +119,11 @@ function selectMember(member: Member, dept: DeptModel) {
     : [selectedItem]
 
   emit('update:selected', next)
-  emit('selecteMember', member)
-  emit('selectedMember', member)
+  emit('selectMember', member)
+}
+
+function isMemberSelectable(member: Member) {
+  return props.isMemberEnabled(member) && !props.disabledMemberIds.includes(member.user_id)
 }
 
 function formatMemberMeta(member: Member) {
@@ -149,7 +160,11 @@ function formatMemberMeta(member: Member) {
             :key="member.user_id"
             type="button"
             class="org-tree__member"
-            :class="{ 'org-tree__member--selected': selectedMemberIds.has(member.user_id) }"
+            :disabled="!isMemberSelectable(member)"
+            :class="{
+              'org-tree__member--selected': selectedMemberIds.has(member.user_id),
+              'org-tree__member--disabled': !isMemberSelectable(member),
+            }"
             @click="selectMember(member, item.dept)"
           >
             <a-avatar :image-url="member.avatar?.replace(/^https?:/, '')" :size="32">
@@ -157,8 +172,7 @@ function formatMemberMeta(member: Member) {
             </a-avatar>
             <span class="min-w-0 flex-1">
               <span class="org-tree__member-title">
-                <span truncate>{{ member.name }}</span>
-                <a-tag v-if="member.online" color="green" size="small">在线</a-tag>
+                <span truncate>{{ props.memberTitle(member) }}</span>
               </span>
               <span class="org-tree__member-meta">{{ formatMemberMeta(member) || `用户 ID ${member.user_id}` }}</span>
             </span>
@@ -215,6 +229,15 @@ function formatMemberMeta(member: Member) {
 .org-tree__member--selected {
   background: rgb(var(--primary-1));
   color: rgb(var(--primary-6));
+}
+
+.org-tree__member--disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.org-tree__member--disabled:hover {
+  background: transparent;
 }
 
 .org-tree__chevron {

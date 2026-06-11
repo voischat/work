@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import type { OrgTreeSelectedItem } from '~/components/OrgTree.vue'
 import type { Member } from '~/types/api'
 import { Message } from '@arco-design/web-vue'
 import { useQueryClient } from '@tanstack/vue-query'
-import { ref as deepRef, shallowRef } from 'vue'
+import { shallowRef } from 'vue'
 
 const props = defineProps<{
   groupId: number
@@ -15,14 +16,19 @@ const { t } = useI18n()
 
 const open = shallowRef(false)
 
-const checkedKeys = deepRef<string[]>([])
-const checkedMemberKeys = computed(() => checkedKeys.value.filter(i => i.startsWith('member-')))
+const selectedMembers = shallowRef<OrgTreeSelectedItem[]>([])
+const selectedUserIds = computed(() => selectedMembers.value.map(item => item.id))
 
 const { data: groupMembers, refetch } = useWeilaFetch<Member[]>('corp/group/get-group-all-member', {
   body: { group_id: props.groupId },
 })
 
-watchEffect(() => open.value && refetch())
+watchEffect(() => {
+  if (open.value) {
+    selectedMembers.value = []
+    refetch()
+  }
+})
 
 const { mutate, isPending } = useWeilaMutation('corp/group/add-group-members', {
   onSuccess() {
@@ -40,21 +46,20 @@ const { mutate, isPending } = useWeilaMutation('corp/group/add-group-members', {
   <ModalTrigger v-model:open="open" :trigger="{ type: 'primary' }" :title=" t('button.add-group-member') ">
     <template #content>
       <div relative p4 min-w-100 max-h-60vh of-y-auto>
-        <ContactSelectTree
-          v-model:checked-keys="checkedKeys"
-          :uncheckable-ids="groupMembers.map(i => i.user_id)"
-          :is-item-enable="(member) => member.grp_cnt < member.grp_lmt"
+        <OrgTree
+          v-model:selected="selectedMembers"
+          select-mode="multi"
+          :disabled-member-ids="groupMembers?.map(i => i.user_id)"
+          :is-member-enabled="(member) => member.grp_cnt < member.grp_lmt"
           :member-title="(member) => `${member.name} (${member.grp_cnt}/${member.grp_lmt})`"
         />
       </div>
     </template>
     <template #footer>
       <a-button
-        type="primary" :disabled="!checkedMemberKeys?.length" :loading="isPending" @click="() => mutate({
+        type="primary" :disabled="!selectedUserIds.length" :loading="isPending" @click="() => mutate({
           group_id: Number(props.groupId),
-          user_ids: checkedKeys.filter((key) => key.startsWith('member')).map((key) => {
-            return Number(key.replace('member-', ''))
-          }),
+          user_ids: selectedUserIds,
         })"
       >
         {{ t('button.submit') }}
