@@ -111,6 +111,7 @@ const resolveGroupProfile: WL_GroupProfileResolver = async (groupId) => {
     const group = await weilaApi.value.v2.fetch<{
       name?: string
       avatar?: string
+      user_count?: number
     }>('corp/group/get-group', {
       body: { group_id: Number(groupId) },
       method: 'POST',
@@ -119,6 +120,7 @@ const resolveGroupProfile: WL_GroupProfileResolver = async (groupId) => {
     return {
       name: group.name,
       avatar: group.avatar,
+      memberCount: group.user_count,
     }
   }
   catch (error) {
