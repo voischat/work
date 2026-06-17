@@ -132,6 +132,7 @@ async function startGroup(group: GroupModel) {
       {
         sessionName: group.name,
         sessionAvatar: group.avatar,
+        memberCount: group.user_count,
       },
     )
 
