@@ -130,7 +130,7 @@ function generateMockLocations(): RealtimeLocationModel[] {
 }
 
 export function useRealtimeLocation(
-  selectedType: Ref<'dept' | 'group'>,
+  selectedType: Ref<'dept' | 'group' | 'individual'>,
   selectedId: Ref<number | undefined>,
 ) {
   const enabled = computed(() => selectedId.value !== undefined)
@@ -139,7 +139,7 @@ export function useRealtimeLocation(
 
   const { data: apiLocations, refetch: apiRefetch } = useWeilaFetch<RealtimeLocationModel[]>('corp/loc/get-realtime-location', {
     body: () => {
-      const sessionType = selectedType.value === 'dept' ? 20 : 18
+      const sessionType = selectedType.value === 'dept' ? 20 : selectedType.value === 'individual' ? 17 : 18
       return {
         session_id: selectedId.value,
         session_type: sessionType,

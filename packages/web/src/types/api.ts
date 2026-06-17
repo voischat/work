@@ -59,6 +59,9 @@ export interface Member {
   grp_cnt: number
   grp_lmt: number
 
+  online?: 0 | 1
+  online_status?: 0 | 1
+
   // device only
   product: string
   imei: string

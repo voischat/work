@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ElAmap, ElAmapLayerSatellite } from '@vuemap/vue-amap'
-import { computed, onMounted, ref, shallowRef, toRef, watch } from 'vue'
+import { computed, onMounted, shallowRef, toRef, watch } from 'vue'
 
 import { useRealtimeLocation } from '~/composables/useRealtimeLocation'
 import { useRealtimeMapInteraction } from '~/composables/useRealtimeMapInteraction'
 import { useUserInfoStore } from '~/composables/useUserInfoStore'
 
 const props = defineProps<{
-  type: 'dept' | 'group'
+  type: 'dept' | 'group' | 'individual'
   id: number | undefined
 }>()
 
@@ -16,7 +16,7 @@ const { t } = useI18n()
 const satelliteVisible = shallowRef(false)
 
 const selectedType = toRef(props, 'type')
-const selectedId = ref(props.id)
+const selectedId = shallowRef(props.id)
 
 watch(() => props.id, (newId) => {
   selectedId.value = newId

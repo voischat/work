@@ -38,6 +38,8 @@ const emit = defineEmits<{
   'selectMember': [member: Member]
 }>()
 
+const { t } = useI18n()
+
 const { data: deptData, isPending: isDeptPending } = useWeilaFetch<{
   depts: DeptModel[]
 }>('corp/address/get-my-manage-dept-list')
@@ -131,7 +133,7 @@ function formatMemberMeta(member: Member) {
 }
 
 function isMemberOnline(member: Member) {
-  return (member as Member & { online?: number }).online === 1
+  return (member.online_status ?? member.online) === 1
 }
 
 function getMemberTypeLabel(member: Member) {
@@ -150,14 +152,14 @@ function getMemberTypeLabel(member: Member) {
     <div v-if="deptStates.length" class="org-tree__list">
       <div v-for="item in deptStates" :key="item.dept.id" class="org-tree__dept">
         <button type="button" class="org-tree__dept-button" @click="toggleDept(item)">
-          <span
-            class="icon-[carbon--chevron-right] org-tree__chevron"
-            :class="{ 'rotate-90': item.expanded }"
-          />
           <span class="min-w-0 flex-1">
             <span class="org-tree__dept-name">{{ item.dept.name }}</span>
-            <span class="org-tree__dept-meta">{{ item.dept.id }} · {{ item.dept.user_count }} 人</span>
+            <span class="org-tree__dept-meta">{{ item.dept.user_count }} 人</span>
           </span>
+          <IconRight
+            class="org-tree__chevron"
+            :class="{ 'rotate-90': item.expanded }"
+          />
         </button>
 
         <div v-if="item.expanded" class="org-tree__members">
@@ -184,7 +186,7 @@ function getMemberTypeLabel(member: Member) {
               <span class="org-tree__member-title">
                 <span truncate>{{ props.memberTitle(member) }}</span>
                 <a-tag :color="isMemberOnline(member) ? 'green' : 'gray'" size="small">
-                  {{ isMemberOnline(member) ? '在线' : '离线' }}
+                  {{ isMemberOnline(member) ? t('online') : t('offline') }}
                 </a-tag>
                 <a-tag v-if="getMemberTypeLabel(member)" color="blue" size="small">
                   {{ getMemberTypeLabel(member) }}

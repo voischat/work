@@ -27,6 +27,20 @@ const currentUserId = computed(() => userInfo.value?.userId ?? 0)
 
 const modalVisible = shallowRef(false)
 const activeType = shallowRef<'individual' | 'group'>('individual')
+const popupVisible = shallowRef(false)
+
+const triggerRef = shallowRef<HTMLElement>()
+const triggerWidth = computed(() => triggerRef.value?.clientWidth ?? 296)
+
+function openIndividualFromPopup() {
+  popupVisible.value = false
+  openIndividual()
+}
+
+function openGroupFromPopup() {
+  popupVisible.value = false
+  openGroup()
+}
 
 const groupPage = shallowRef(1)
 const groupSearch = shallowRef('')
@@ -142,24 +156,40 @@ async function startGroup(group: GroupModel) {
 
 <template>
   <div class="w-full">
-    <a-dropdown position="br">
-      <div class="w-full">
+    <a-trigger
+      v-model:popup-visible="popupVisible"
+      position="br"
+      trigger="click"
+      :popup-style="{ width: `${triggerWidth}px` }"
+      :popup-translate="[0, 4]"
+      auto-fit-position
+      :unmount-on-close="true"
+    >
+      <div ref="triggerRef" class="w-full">
         <a-button type="primary" long class="justify-center flex items-center gap-1">
           <template #icon>
             <IconMessage />
           </template>
-          <span>发起聊天</span>
+          <span>发起对话</span>
         </a-button>
       </div>
       <template #content>
-        <a-doption class="w-[296px]" @click="openIndividual">
-          单呼
-        </a-doption>
-        <a-doption class="w-[296px]" @click="openGroup">
-          群呼
-        </a-doption>
+        <div class="bg-white rounded border border-neutral-200 shadow-lg py-1">
+          <div
+            class="px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 cursor-pointer"
+            @click="openIndividualFromPopup"
+          >
+            单呼
+          </div>
+          <div
+            class="px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 cursor-pointer"
+            @click="openGroupFromPopup"
+          >
+            群呼
+          </div>
+        </div>
       </template>
-    </a-dropdown>
+    </a-trigger>
   </div>
 
   <a-modal

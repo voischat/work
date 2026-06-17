@@ -46,16 +46,40 @@ export function useUserInfoStore() {
     }
   }
 
+  // 获取单个成员信息
+  async function fetchMember(memberId: number): Promise<Member | null> {
+    const weilaApi = useWeilaApi()
+    try {
+      const member = await weilaApi.value.v2.fetch<Member>('corp/address/get-member', {
+        body: { member_id: memberId },
+      })
+
+      if (member) {
+        membersMap.value.set(member.user_id, member)
+      }
+
+      return member
+    }
+    catch (error) {
+      console.error(`获取成员 ${memberId} 失败:`, error)
+      return null
+    }
+  }
+
   // 根据用户ID查找用户信息
   function getUserInfo(uid: number): Member | null {
     // 直接从成员映射中查找
     return membersMap.value.get(uid) || null
   }
 
-  // 预加载成员信息（当选择部门或群组时调用）
-  async function preloadMembers(type: 'dept' | 'group', id: number) {
+  // 预加载成员信息（当选择部门、群组或个人时调用）
+  async function preloadMembers(type: 'dept' | 'group' | 'individual', id: number) {
     if (type === 'dept') {
       return await fetchDeptMembers(id)
+    }
+    else if (type === 'individual') {
+      const member = await fetchMember(id)
+      return member ? [member] : []
     }
     else {
       return await fetchGroupMembers(id)
@@ -74,6 +98,7 @@ export function useUserInfoStore() {
     // 方法
     fetchDeptMembers,
     fetchGroupMembers,
+    fetchMember,
     getUserInfo,
     preloadMembers,
     clearCache,

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { WL_GroupProfileResolver, WL_IDbLocationShared, WL_IDbSession, WL_ProfileResolver } from '@weilasdk/core'
 import Message from '@arco-design/web-vue/es/message'
-import { isGroupSessionType } from '@weilasdk/core'
+import { isGroupSessionType, isIndividualSessionType } from '@weilasdk/core'
 import { WlChatPanel } from '@weilasdk/ui'
 import { computed, shallowRef, watch } from 'vue'
 import ChatLauncher from './components/ChatLauncher.vue'
@@ -60,6 +60,12 @@ const showLocationPanel = shallowRef(false)
 const realtimeLocationPanelId = computed(() => {
   const id = Number(selectedSessionId.value)
   return Number.isFinite(id) && id > 0 ? id : undefined
+})
+const realtimeLocationPanelType = computed(() => {
+  const sessionType = selectedSessionType.value
+  if (sessionType === undefined)
+    return 'group'
+  return isIndividualSessionType(sessionType) ? 'individual' : 'group'
 })
 const panelWidth = shallowRef(384)
 
@@ -390,13 +396,14 @@ function handlePttError(payload: { session: WL_IDbSession, error?: unknown }) {
         </template>
         <template #session-actions>
           <a-button
-            v-if="selectedSessionType !== undefined && isGroupSessionType(selectedSessionType)" type="text"
+            v-if="selectedSessionType !== undefined && (isGroupSessionType(selectedSessionType) || isIndividualSessionType(selectedSessionType))"
+            type="text"
             @click="showLocationPanel = !showLocationPanel"
           >
             <template #icon>
               <icon-location />
             </template>
-            群成员位置
+            成员位置
           </a-button>
         </template>
       </WlChatPanel>
@@ -410,14 +417,14 @@ function handlePttError(payload: { session: WL_IDbSession, error?: unknown }) {
       >
         <div h-full flex flex-col>
           <div class="flex justify-between items-center p-3 border-b">
-            <span font-medium>群成员位置</span>
-            <a-button type="text" @click="showLocationPanel = false">
+            <span font-medium>成员位置</span>
+            <a-button status="danger" type="text" @click="showLocationPanel = false">
               <template #icon>
                 <icon-close />
               </template>
             </a-button>
           </div>
-          <RealtimeLocationPanel :id="realtimeLocationPanelId" type="group" class="flex-1 min-h-0" />
+          <RealtimeLocationPanel :id="realtimeLocationPanelId" :type="realtimeLocationPanelType" class="flex-1 min-h-0" />
         </div>
       </a-resize-box>
     </div>
