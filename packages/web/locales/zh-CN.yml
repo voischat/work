@@ -161,6 +161,7 @@ dept:
   name: 部门
 dept-manager: 部门管理员
 dept-count: 部门数量
+device: 设备
 device-count: 设备数量
 download-android-app: 安卓 APP 下载
 edit: 编辑
@@ -200,7 +201,10 @@ group:
   member: 群成员
   my-groups: 我的群组
   settings:
+    created: '创建日期：{date}'
+    member-count: '成员数：{count}'
     members: 成员
+    members-count: '成员（{count}）'
     title: 群组设置
 group-count: 群组数量
 group-list: 群列表
@@ -365,6 +369,10 @@ not-supported: 不支持
 offline: 离线
 old-password: 旧密码
 online: 在线
+org-tree:
+  empty:
+    dept: 暂无部门
+    member: 暂无成员
 open: 打开
 option:
   a: Option A
@@ -475,6 +483,7 @@ reset-pwd:
       errMsg: 输入正确的电话号码
       placeholder: 你的电话号码
     title: 重置密码
+search: 搜索
 selected: 已选择
 sendSMS:
   success:
@@ -530,6 +539,7 @@ vip:
     time: 会员过期时间
   level: 会员等级
 weila-number: 微喇号
+weila-number-with-value: '微喇号：{num}'
 workbench:
   add-customer-service: 添加客服
   area: 区域

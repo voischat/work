@@ -57,6 +57,8 @@ const isSendingLocation = shallowRef(false)
 const isLocationModalOpen = shallowRef(false)
 const displayedLocation = shallowRef<{ latitude: number, longitude: number, name: string, address: string }>()
 const showLocationPanel = shallowRef(false)
+const showGroupSettingsPanel = shallowRef(false)
+const groupSettingsPanelWidth = shallowRef(420)
 const realtimeLocationPanelId = computed(() => {
   const id = Number(selectedSessionId.value)
   return Number.isFinite(id) && id > 0 ? id : undefined
@@ -66,6 +68,12 @@ const realtimeLocationPanelType = computed(() => {
   if (sessionType === undefined)
     return 'group'
   return isIndividualSessionType(sessionType) ? 'individual' : 'group'
+})
+const selectedGroupId = computed(() => {
+  if (selectedSessionType.value === undefined || !isGroupSessionType(selectedSessionType.value))
+    return undefined
+  const id = Number(selectedSessionId.value)
+  return Number.isFinite(id) && id > 0 ? id : undefined
 })
 const panelWidth = shallowRef(384)
 
@@ -161,6 +169,7 @@ async function ensureSelectedSession() {
 
 watch([selectedSessionId, selectedSessionType], ([sessionId, sessionType]) => {
   showLocationPanel.value = false
+  showGroupSettingsPanel.value = false
 
   if (route.query.sessionId === sessionId && parseSessionType(route.query.sessionType) === sessionType)
     return
@@ -375,6 +384,10 @@ function handleShowLocation(location: { latitude: number, longitude: number, nam
   isLocationModalOpen.value = true
 }
 
+function handleGroupSettingsSuccess() {
+  weilaCore.value?.weila_refreshSessionList()
+}
+
 function handlePttError(payload: { session: WL_IDbSession, error?: unknown }) {
   console.warn('[WorkbenchChat] Failed to start PTT:', payload)
   Message.error('无法开始语音对讲，请稍后重试')
@@ -407,6 +420,16 @@ function handlePttError(payload: { session: WL_IDbSession, error?: unknown }) {
             </template>
             成员位置
           </a-button>
+          <a-button
+            v-if="selectedGroupId !== undefined"
+            type="text"
+            @click="showGroupSettingsPanel = !showGroupSettingsPanel"
+          >
+            <template #icon>
+              <icon-more-vertical />
+            </template>
+            {{ t('group.settings.title') }}
+          </a-button>
         </template>
       </WlChatPanel>
       <a-resize-box
@@ -428,6 +451,20 @@ function handlePttError(payload: { session: WL_IDbSession, error?: unknown }) {
           </div>
           <RealtimeLocationPanel :id="realtimeLocationPanelId" :type="realtimeLocationPanelType" class="flex-1 min-h-0" />
         </div>
+      </a-resize-box>
+      <a-resize-box
+        v-if="showGroupSettingsPanel && selectedGroupId !== undefined"
+        v-model:width="groupSettingsPanelWidth"
+        :directions="['left']"
+        :min-width="320"
+        :max-width="600"
+        class="h-full border-l border-neutral-200 bg-white"
+      >
+        <GroupSettings
+          :group-id="selectedGroupId"
+          @close="showGroupSettingsPanel = false"
+          @success="handleGroupSettingsSuccess"
+        />
       </a-resize-box>
     </div>
     <a-modal

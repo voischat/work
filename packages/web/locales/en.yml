@@ -172,6 +172,7 @@ dept:
   name: Dept
 dept-count: Number of departments
 dept-manager: Department Administrator
+device: Device
 device-count: Number of devices
 download-android-app: Android APP download
 edit: Edit
@@ -211,7 +212,10 @@ group:
   member: Group members
   my-groups: My Groups
   settings:
+    created: 'Created: {date}'
+    member-count: 'Members: {count}'
     members: Members
+    members-count: 'Members ({count})'
     title: Group Settings
 group-count: Number of groups
 group-list: Group list
@@ -379,6 +383,10 @@ not-supported: Not supported
 offline: Offline
 old-password: Old password
 online: Online
+org-tree:
+  empty:
+    dept: No departments
+    member: No members
 open: open
 option:
   a: Option A
@@ -495,6 +503,7 @@ reset-pwd:
       errMsg: Enter correct phone number
       placeholder: your phone number
     title: Reset Password
+search: Search
 selected: Selected
 sendSMS:
   success:
@@ -549,6 +558,7 @@ vip:
     time: Membership expiration time
   level: Membership Level
 weila-number: ID
+weila-number-with-value: 'ID: {num}'
 workbench:
   add-customer-service: Add customer service.
   area: Region

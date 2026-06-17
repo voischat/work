@@ -127,24 +127,6 @@ function selectMember(member: Member, dept: DeptModel) {
 function isMemberSelectable(member: Member) {
   return props.isMemberEnabled(member) && !props.disabledMemberIds.includes(member.user_id)
 }
-
-function formatMemberMeta(member: Member) {
-  return member.user_num || String(member.user_id)
-}
-
-function isMemberOnline(member: Member) {
-  return (member.online_status ?? member.online) === 1
-}
-
-function getMemberTypeLabel(member: Member) {
-  if (member.is_dept_admin)
-    return '管理员'
-
-  if (member.type === 1)
-    return '设备'
-
-  return ''
-}
 </script>
 
 <template>
@@ -166,43 +148,24 @@ function getMemberTypeLabel(member: Member) {
           <div v-if="item.loading" class="org-tree__state">
             <a-spin size="small" />
           </div>
-          <button
+          <OrgTreeMemberItem
             v-for="member in item.members"
             v-else
             :key="member.user_id"
-            type="button"
-            class="org-tree__member"
+            :member="member"
+            :selected="selectedMemberIds.has(member.user_id)"
             :disabled="!isMemberSelectable(member)"
-            :class="{
-              'org-tree__member--selected': selectedMemberIds.has(member.user_id),
-              'org-tree__member--disabled': !isMemberSelectable(member),
-            }"
-            @click="selectMember(member, item.dept)"
-          >
-            <a-avatar :image-url="member.avatar?.replace(/^https?:/, '')" :size="32">
-              <IconUser />
-            </a-avatar>
-            <span class="min-w-0 flex-1">
-              <span class="org-tree__member-title">
-                <span truncate>{{ props.memberTitle(member) }}</span>
-                <a-tag :color="isMemberOnline(member) ? 'green' : 'gray'" size="small">
-                  {{ isMemberOnline(member) ? t('online') : t('offline') }}
-                </a-tag>
-                <a-tag v-if="getMemberTypeLabel(member)" color="blue" size="small">
-                  {{ getMemberTypeLabel(member) }}
-                </a-tag>
-              </span>
-              <span class="org-tree__member-meta">{{ formatMemberMeta(member) }}</span>
-            </span>
-          </button>
+            :member-title="props.memberTitle"
+            @select="selectMember(member, item.dept)"
+          />
           <div v-if="!item.loading && item.loaded && item.members.length === 0" class="org-tree__state">
-            暂无成员
+            {{ t('org-tree.empty.member') }}
           </div>
         </div>
       </div>
     </div>
     <div v-else-if="!isDeptPending" class="org-tree__state py-10">
-      暂无部门
+      {{ t('org-tree.empty.dept') }}
     </div>
   </a-spin>
 </template>
@@ -223,8 +186,7 @@ function getMemberTypeLabel(member: Member) {
   background: transparent;
 }
 
-.org-tree__dept-button,
-.org-tree__member {
+.org-tree__dept-button {
   width: 100%;
   display: flex;
   align-items: center;
@@ -233,29 +195,11 @@ function getMemberTypeLabel(member: Member) {
   background: transparent;
   text-align: left;
   cursor: pointer;
-}
-
-.org-tree__dept-button {
   padding: 10px 12px;
 }
 
-.org-tree__dept-button:hover,
-.org-tree__member:hover {
+.org-tree__dept-button:hover {
   background: var(--color-fill-2);
-}
-
-.org-tree__member--selected {
-  background: rgb(var(--primary-1));
-  color: rgb(var(--primary-6));
-}
-
-.org-tree__member--disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
-.org-tree__member--disabled:hover {
-  background: transparent;
 }
 
 .org-tree__chevron {
@@ -266,8 +210,7 @@ function getMemberTypeLabel(member: Member) {
   transition: transform 0.2s ease;
 }
 
-.org-tree__dept-name,
-.org-tree__member-title {
+.org-tree__dept-name {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -277,8 +220,7 @@ function getMemberTypeLabel(member: Member) {
   color: var(--color-text-1);
 }
 
-.org-tree__dept-meta,
-.org-tree__member-meta {
+.org-tree__dept-meta {
   display: block;
   margin-top: 2px;
   overflow: hidden;
@@ -290,10 +232,6 @@ function getMemberTypeLabel(member: Member) {
 
 .org-tree__members {
   background: var(--color-fill-1);
-}
-
-.org-tree__member {
-  padding: 9px 12px 9px 34px;
 }
 
 .org-tree__state {
