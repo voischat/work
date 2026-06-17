@@ -3,6 +3,7 @@ import Message from '@arco-design/web-vue/es/message'
 import * as v from 'valibot'
 import { shallowRef } from 'vue'
 import { useForm } from 'zod-arco-rules/valibot'
+import { useWeilaStore } from '~/stores/weila'
 
 const props = defineProps<{
   group?: any
@@ -10,6 +11,7 @@ const props = defineProps<{
 const emits = defineEmits(['success'])
 
 const { t } = useI18n()
+const weilaStore = useWeilaStore()
 
 const open = shallowRef(false)
 
@@ -30,6 +32,8 @@ const { mutateAsync: change, isPending } = useWeilaMutation('corp/group/change-g
     Message.success(t('message.success'))
     emits('success')
     reset()
+    // web 修改群资料后服务端不会推送 SDK 事件，手动触发 session 列表刷新
+    weilaStore.core?.weila_refreshSessionList()
   },
 })
 

@@ -7,6 +7,7 @@ import * as v from 'valibot'
 import { computed } from 'vue'
 import { useForm } from 'zod-arco-rules/valibot'
 import { TrackType } from '~/api/contact'
+import { useWeilaStore } from '~/stores/weila'
 
 interface Props {
   member?: Member
@@ -14,6 +15,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const emits = defineEmits(['success'])
 
 const { t } = useI18n()
 const { themeColor } = useAppStore()
@@ -22,6 +24,7 @@ const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
 const open = defineModel('open', { default: false })
 const authStore = useAuthStore()
 const selfInfoStore = useSelfInfoStore()
+const weilaStore = useWeilaStore()
 
 const { form, rules, handleSubmit, reset } = useForm(v.object({
   user_id: v.optional(v.number(), () => props.member?.user_id),
@@ -58,8 +61,13 @@ const { mutate: edit, isPending } = useWeilaMutation('corp/address/change-member
     qc.invalidateQueries({ queryKey: ['corp/address/get-member-list'] })
     qc.invalidateQueries({ queryKey: ['corp/address/get-dept-member-list'] })
     qc.invalidateQueries({ queryKey: ['corp/address/get-my-manage-dept-list'] })
+    qc.invalidateQueries({ queryKey: ['corp/group/get-group-all-member'] })
     if (selfInfoStore.isCurrentUser(Number(form.value.user_id)))
       qc.invalidateQueries({ queryKey: ['corp/user/get-selfinfo'] })
+
+    emits('success')
+    // web 修改成员资料后服务端不会推送 SDK 事件，手动触发 session 列表刷新
+    weilaStore.core?.weila_refreshSessionList()
   },
 })
 
