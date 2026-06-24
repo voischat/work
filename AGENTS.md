@@ -33,7 +33,7 @@ This is a Vue.js-based enterprise management system called "微喇企业管理�
 ## Project Structure
 
 ```
-weila-work-unity/
+weila-work/
 ├── packages/
 │   └── web/                    # Main web application
 │       ├── src/
