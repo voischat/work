@@ -59,12 +59,28 @@ weila-work/
 ## Build and Development Commands
 
 ### Development
-```bash
-# Start development server
-pnpm dev
 
-# Start production development server
+The most common way to start the local development server is with the production development profile:
+
+```bash
 pnpm dev:prod
+```
+
+When running inside herdr, split a dedicated pane and start the server there so the focused pane stays free:
+
+```bash
+NEW_PANE=$(herdr pane split w1:p6 --direction right --no-focus | python3 -c 'import sys,json; print(json.load(sys.stdin)["result"]["pane"]["pane_id"])')
+herdr pane run "$NEW_PANE" "cd /Users/kvoon/weila/weila-work-and-sdk/weila-work && pnpm dev:prod"
+herdr wait output "$NEW_PANE" --match "ready" --timeout 30000
+```
+
+The server runs at `https://localhost:5173/` by default.
+
+Other development commands:
+
+```bash
+# Start standard development server
+pnpm dev
 
 # Start with HTTPS (auto-generated certificates)
 pnpm dev  # (includes mkcert plugin)
