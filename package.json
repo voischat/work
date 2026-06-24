@@ -16,7 +16,10 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "lint-staged": "npx lint-staged",
-    "up": "nlx taze -I major"
+    "up": "nlx taze -I major",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
     "dayjs": "catalog:",
@@ -34,9 +37,11 @@
     "eslint-plugin-unimport": "catalog:",
     "lint-staged": "catalog:",
     "octokit": "catalog:",
+    "oxc-minify": "0.137.0",
     "simple-git-hooks": "catalog:",
     "unbuild": "catalog:",
-    "vite-plugin-dts": "catalog:"
+    "vite-plugin-dts": "catalog:",
+    "vitepress": "catalog:"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"

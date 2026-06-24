@@ -14,3 +14,7 @@ dist
 pkg
 .tar.gz
 .obsidian
+
+# VitePress
+/docs/.vitepress/dist
+/docs/.vitepress/cache
