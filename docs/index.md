@@ -24,12 +24,12 @@ features:
     link: /enterprise-info
     linkText: 阅读企业信息
   - title: 通讯录
-    details: 成员管理、部门管理、成员编辑与权限操作。
-    link: /contacts
+    details: 成员管理、部门管理、群组管理、成员编辑与权限操作。
+    link: /contacts/
     linkText: 阅读通讯录
   - title: 工作台
-    details: 查看成员轨迹、地图可视化、轨迹列表与位置详情。
-    link: /workspace
+    details: 聊天频道、单呼/群呼、实时位置、成员轨迹与地图可视化。
+    link: /workspace/
     linkText: 阅读工作台
   - title: 其他
     details: 权限分级管理、表单搜索与过滤等辅助功能说明。
