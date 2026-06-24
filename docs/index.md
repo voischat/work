@@ -11,8 +11,8 @@ hero:
       text: 开始阅读
       link: /account-management
     - theme: alt
-      text: 查看目录
-      link: /enterprise-info
+      text: App 手册
+      link: https://cdn.voiswork.cn/guide/voiswork-app-guide.pdf
 
 features:
   - title: 账户管理
