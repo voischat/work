@@ -102,6 +102,7 @@ chat:
     content: 确定删除频道 {name} 吗？
     success: 删除成功
     title: 删除频道
+  not-in-group: 您不在群组中
   placeholder: 输入消息...
   sdk-loading: SDK 初始化中...
   select-session: 请选择一个频道

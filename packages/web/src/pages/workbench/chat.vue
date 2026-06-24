@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { WL_GroupProfileResolver, WL_IDbLocationShared, WL_IDbSession, WL_ProfileResolver } from '@weilasdk/core'
+import type { Member } from '~/types/api'
 import Message from '@arco-design/web-vue/es/message'
+import { useQuery } from '@tanstack/vue-query'
 import { isGroupSessionType, isIndividualSessionType } from '@weilasdk/core'
 import { WlChatPanel } from '@weilasdk/ui'
 import { computed, shallowRef, watch } from 'vue'
@@ -36,6 +38,8 @@ onMounted(() => {
 
 // ── 当前用户 ID ──
 const currentUserId = computed(() => userInfo.value?.userId ?? 0)
+const selfInfoStore = useSelfInfoStore()
+const selfUserId = computed(() => Number(selfInfoStore.selfInfo?.user_id) || currentUserId.value || 0)
 
 function parseSessionType(value: unknown) {
   if (typeof value !== 'string')
@@ -76,6 +80,35 @@ const selectedGroupId = computed(() => {
   return Number.isFinite(id) && id > 0 ? id : undefined
 })
 const panelWidth = shallowRef(384)
+
+// 检查当前用户是否仍在选中的群组中
+const { data: isInSelectedGroup } = useQuery<boolean>({
+  enabled: computed(() => Boolean(selfUserId.value && selectedGroupId.value)),
+  queryKey: ['corp/group/get-group-all-member/self-membership', selectedGroupId, selfUserId],
+  queryFn: async () => {
+    const groupId = selectedGroupId.value
+    if (!groupId)
+      return false
+
+    const members = await weilaApi.value.v2.fetch<Member[]>('corp/group/get-group-all-member', {
+      body: { group_id: groupId },
+      method: 'POST',
+    })
+
+    return members.some(member => Number(member.user_id) === selfUserId.value)
+  },
+  refetchOnWindowFocus: false,
+})
+
+async function beforeSend(session: WL_IDbSession): Promise<boolean> {
+  if (!isGroupSessionType(session.sessionType) || !selectedGroupId.value)
+    return true
+  return isInSelectedGroup.value !== false
+}
+
+function handleSendBlocked() {
+  Message.warning(t('chat.not-in-group'))
+}
 
 interface MapPickerValue {
   lon: number
@@ -403,8 +436,9 @@ function handlePttError(payload: { session: WL_IDbSession, error?: unknown }) {
       <WlChatPanel
         ref="chatPanelRef" v-model:selected-session-id="selectedSessionId"
         v-model:selected-session-type="selectedSessionType" :core="weilaCore" :current-user-id="currentUserId"
-        class="flex-1 min-w-0" message-list-height="calc(100vh - 220px)" @delete-session="handleDeleteSessionRequest"
-        @trigger-map-picker="openLocationPicker" @location-click="handleShowLocation" @ptt-error="handlePttError"
+        :before-send="beforeSend" class="flex-1 min-w-0" message-list-height="calc(100vh - 220px)"
+        @delete-session="handleDeleteSessionRequest" @trigger-map-picker="openLocationPicker"
+        @location-click="handleShowLocation" @ptt-error="handlePttError" @send-blocked="handleSendBlocked"
       >
         <template #session-footer>
           <ChatLauncher :core="weilaCore" />

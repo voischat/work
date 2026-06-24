@@ -110,6 +110,7 @@ chat:
     content: Delete session {name}?
     success: Deleted successfully
     title: Delete Session
+  not-in-group: You are not in this group
   placeholder: Type a message...
   sdk-loading: Initializing SDK...
   select-session: Select a session to start chatting
