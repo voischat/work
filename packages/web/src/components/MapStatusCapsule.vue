@@ -54,7 +54,7 @@ const wrapperClass = computed(() => {
     case 'error':
       return 'bg-red-50 text-red-600'
     default:
-      return 'bg-white/90 text-gray-500'
+      return 'bg-red-50 text-red-500'
   }
 })
 
@@ -74,7 +74,7 @@ function handleItemClick(item: any, index: number) {
 <template>
   <div class="absolute left-1/2 top-4 z-10 -translate-x-1/2 flex flex-col items-center gap-2">
     <div
-      class="flex items-center gap-2 rounded-full px-3 py-1 text-sm shadow-md backdrop-blur transition-all duration-300 ease-out whitespace-nowrap"
+      class="flex items-center gap-2 rounded-full px-5 py-2 text-lg shadow-lg ring-1 ring-black/10 backdrop-blur transition-all duration-300 ease-out whitespace-nowrap"
       :class="wrapperClass"
     >
       <icon-info-circle v-if="state === 'idle'" />
@@ -96,7 +96,7 @@ function handleItemClick(item: any, index: number) {
       <button
         v-if="state === 'success'"
         type="button"
-        class="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs text-neutral-600 shadow-sm transition-colors hover:bg-neutral-100 whitespace-nowrap"
+        class="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-4 py-2 text-base text-neutral-600 shadow-sm transition-colors hover:bg-neutral-100 whitespace-nowrap"
         :title="t('location-status.focus')"
         @click="emit('focus')"
       >
@@ -114,25 +114,25 @@ function handleItemClick(item: any, index: number) {
       >
         <button
           type="button"
-          class="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs text-neutral-600 shadow-sm transition-colors hover:bg-neutral-100 whitespace-nowrap"
+          class="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-4 py-2 text-base text-neutral-600 shadow-sm transition-colors hover:bg-neutral-100 whitespace-nowrap"
           :title="t('location-status.track')"
         >
-          <icon-menu />
+          <icon-message />
           <span>{{ t('location-status.track') }}</span>
         </button>
         <template #content>
-          <div class="max-h-80 min-w-60 overflow-y-auto rounded-lg border border-neutral-200 bg-white p-1 shadow-lg">
+          <div class="max-h-80 min-w-72 overflow-y-auto rounded-lg border border-neutral-200 bg-white p-2 shadow-lg">
             <div
               v-for="(item, index) in items"
               :key="index"
-              class="cursor-pointer rounded px-3 py-2 transition-colors hover:bg-neutral-50"
+              class="cursor-pointer rounded px-5 py-5 transition-colors hover:bg-neutral-50"
               @click="handleItemClick(item, index)"
             >
               <div
                 v-for="(field, fieldIndex) in fields"
                 :key="field.key"
                 class="flex gap-1"
-                :class="fieldIndex === 0 ? 'text-sm font-medium text-neutral-900' : 'text-xs text-neutral-500 mt-0.5'"
+                :class="fieldIndex === 0 ? 'text-lg font-medium text-neutral-900' : 'text-base text-neutral-500 mt-0.5'"
               >
                 <span v-if="field.label" class="shrink-0 text-neutral-400">{{ field.label }}{{ t('colon') }}</span>
                 <span class="truncate">{{ formatValue(field, item) }}</span>
@@ -144,7 +144,7 @@ function handleItemClick(item: any, index: number) {
 
       <button
         type="button"
-        class="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs text-neutral-600 shadow-sm transition-colors hover:bg-neutral-100 whitespace-nowrap"
+        class="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-4 py-2 text-base text-neutral-600 shadow-sm transition-colors hover:bg-neutral-100 whitespace-nowrap"
         :title="t('button.refresh')"
         @click="emit('refresh')"
       >

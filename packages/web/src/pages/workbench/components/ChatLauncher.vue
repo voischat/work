@@ -167,7 +167,7 @@ async function startGroup(group: GroupModel) {
       :unmount-on-close="true"
     >
       <div ref="triggerRef" class="w-full">
-        <a-button type="primary" long class="justify-center flex items-center gap-1">
+        <a-button type="primary" long size="large" class="justify-center flex items-center gap-2 text-base">
           <template #icon>
             <IconMessage />
           </template>
@@ -177,16 +177,18 @@ async function startGroup(group: GroupModel) {
       <template #content>
         <div class="bg-white rounded border border-neutral-200 shadow-lg py-1">
           <div
-            class="px-3 py-2 text-center text-sm text-primary hover:bg-neutral-50 cursor-pointer"
+            class="flex items-center justify-center gap-2 px-4 py-4 text-base text-primary hover:bg-neutral-50 cursor-pointer"
             @click="openIndividualFromPopup"
           >
-            个人对话
+            <icon-user />
+            <span>个人对话</span>
           </div>
           <div
-            class="px-3 py-2 text-center text-sm text-primary hover:bg-neutral-50 cursor-pointer"
+            class="flex items-center justify-center gap-2 px-4 py-4 text-base text-primary hover:bg-neutral-50 cursor-pointer"
             @click="openGroupFromPopup"
           >
-            群组对话
+            <icon-user-group />
+            <span>群组对话</span>
           </div>
         </div>
       </template>
