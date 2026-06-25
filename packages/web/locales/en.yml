@@ -291,6 +291,7 @@ location-status:
   error: Failed to fetch location data
   focus: Focus all locations
   list: List
+  track: Track
 login:
   __i18n_ally_root__:
     android-download: Android app download

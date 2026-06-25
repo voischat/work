@@ -33,7 +33,6 @@ const {
 } = useUserTrack(selectedUserKeys, selectedDate)
 const {
   trackVisible,
-  drawerVisible,
   zoom,
   center,
   map,
@@ -41,6 +40,20 @@ const {
   selectedMarker,
   layerStyle,
 } = useMapInteraction(tracks)
+
+const trackFields = [
+  { key: 'created', label: t('time'), formatter: (v: number) => new Date(v * 1000).toLocaleString() },
+  { key: 'lng', label: t('longitude'), formatter: (v: number) => v.toFixed(6) },
+  { key: 'lat', label: t('latitude'), formatter: (v: number) => v.toFixed(6) },
+]
+
+function handleTrackClick(item: any, index: number) {
+  const marker = markers.value[index]
+  if (marker) {
+    selectedMarker.value = marker
+    triggerRef(selectedMarker)
+  }
+}
 
 const fetchState = computed(() => {
   if (!selectedOrgItems.value.length || !selectedDate.value)
@@ -60,11 +73,6 @@ const latestDate = computed(() => {
 })
 
 $inspect(trackFeatureCollection)
-
-function onMarkerSelected(marker: AMap.Marker) {
-  selectedMarker.value = marker
-  triggerRef(selectedMarker)
-}
 
 function onFocusAllMarkers() {
   map.value?.setFitView(markers.value)
@@ -91,9 +99,11 @@ function onFocusAllMarkers() {
         :state="fetchState"
         :date="latestDate"
         :error-message="error?.message"
+        :items="tracks"
+        :fields="trackFields"
         @focus="onFocusAllMarkers"
         @refresh="() => refetch().then(() => Message.success(t('message.refresh-success')))"
-        @list="drawerVisible = true"
+        @item-click="handleTrackClick"
       />
 
       <ElAmap :center="center" :zoom="zoom" relative h-full w-full @init="(m) => map = m">
@@ -105,31 +115,6 @@ function onFocusAllMarkers() {
 
         <MapTypeSwitcher v-model="satelliteVisible" />
       </ElAmap>
-
-      <a-drawer v-model:visible="drawerVisible" :width="340" unmount-on-close>
-        <template #title>
-          {{ t('user-track') }}
-        </template>
-        <a-list item-layout="horizontal">
-          <a-list-item v-for="marker, key in markers" :key>
-            <a-list-item-meta>
-              <template #title>
-                {{ new Date(marker.getExtData().created * 1000).toLocaleString() }}
-              </template>
-              <template #description>
-                <span mr2>{{ t('longitude') }}</span> <span>{{ (marker.getExtData().longitude as number).toFixed(6) }}</span>
-                <br>
-                <span mr2>{{ t('latitude') }}</span> <span>{{ (marker.getExtData().latitude as number).toFixed(6) }}<br></span>
-              </template>
-            </a-list-item-meta>
-            <template #extra>
-              <a-button type="primary" size="small" @click="() => onMarkerSelected(marker)">
-                {{ t('button.checkout') }}
-              </a-button>
-            </template>
-          </a-list-item>
-        </a-list>
-      </a-drawer>
     </div>
   </div>
 </template>

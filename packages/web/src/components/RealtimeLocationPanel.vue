@@ -31,7 +31,6 @@ const {
 } = useRealtimeLocation(selectedType, selectedId)
 const { getUserInfo, preloadMembers } = useUserInfoStore()
 const {
-  drawerVisible,
   zoom,
   center,
   map,
@@ -39,22 +38,41 @@ const {
   selectedMarker,
 } = useRealtimeMapInteraction(locations)
 
-// 新的 computed data，包含用户信息和标记点，按用户名排序
-const sortedMarkersWithUserInfo = computed(() => {
+const locationFields = [
+  { key: 'userName' },
+  { key: 'user_num', label: t('weila-number') },
+  { key: 'phone', label: t('phone') },
+  { key: 'ts', label: t('time'), formatter: (v: number) => new Date(v * 1000).toLocaleString() },
+  { key: 'lng', label: t('longitude'), formatter: (v: number) => v.toFixed(6) },
+  { key: 'lat', label: t('latitude'), formatter: (v: number) => v.toFixed(6) },
+  { key: 'spd', label: t('speed'), formatter: (v: number) => `${v.toFixed(2)} km/h` },
+]
+
+const locationListItems = computed(() => {
   if (!markers.value?.length)
     return []
 
   return markers.value
     .map((marker) => {
-      const userInfo = getUserInfo(marker.getExtData().uid)
+      const extData = marker.getExtData()
+      const userInfo = getUserInfo(extData.uid)
       return {
         marker,
-        userInfo,
-        userName: userInfo?.name || `用户${marker.getExtData().uid}`,
+        userName: userInfo?.name || `用户${extData.uid}`,
+        user_num: userInfo?.user_num || '-',
+        phone: userInfo?.phone || '-',
+        ts: extData.ts,
+        lng: extData.longitude,
+        lat: extData.latitude,
+        spd: extData.spd,
       }
     })
     .sort((a, b) => a.userName.localeCompare(b.userName))
 })
+
+function handleLocationClick(item: any) {
+  selectedMarker.value = item.marker
+}
 
 const fetchState = computed(() => {
   if (selectedId.value === undefined)
@@ -98,9 +116,11 @@ watch([selectedType, selectedId], async ([type, id]) => {
       :state="fetchState"
       :date="latestLocationDate"
       :error-message="error?.message"
+      :items="locationListItems"
+      :fields="locationFields"
       @focus="handleFocus"
       @refresh="() => refetch().then(() => Message.success(t('message.refresh-success')))"
-      @list="drawerVisible = true"
+      @item-click="handleLocationClick"
     />
 
     <ElAmap :center="center" :zoom="zoom" relative h-full w-full @init="(m) => map = m">
@@ -110,68 +130,5 @@ watch([selectedType, selectedId], async ([type, id]) => {
 
       <MapTypeSwitcher v-model="satelliteVisible" />
     </ElAmap>
-
-    <a-drawer v-model:visible="drawerVisible" :width="720" unmount-on-close :footer="false">
-      <template #title>
-        {{ t('realtime-location') }}
-      </template>
-      <a-empty v-if="!sortedMarkersWithUserInfo?.length" />
-      <a-list v-else item-layout="horizontal">
-        <a-list-item v-for="item in sortedMarkersWithUserInfo" :key="item.marker.getExtData().id">
-          <a-list-item-meta>
-            <template #avatar>
-              <a-avatar :image-url="item.userInfo?.avatar?.replace(/^https?:/, '')">
-                <IconUser />
-              </a-avatar>
-            </template>
-            <template #title>
-              {{ item.userName }}
-            </template>
-            <template #description>
-              <a-descriptions
-                :column="2"
-                :data="[
-                  {
-                    label: t('user-id'),
-                    value: item.marker.getExtData().uid,
-                  },
-                  {
-                    label: t('phone'),
-                    value: item.userInfo?.phone || '-',
-                  },
-                  {
-                    label: t('weila-number'),
-                    value: item.userInfo?.user_num || '-',
-                  },
-                  {
-                    label: t('time'),
-                    value: new Date(item.marker.getExtData().ts * 1000).toLocaleString(),
-                  },
-                  {
-                    label: t('longitude'),
-                    value: (item.marker.getExtData().longitude as number).toFixed(6),
-                  },
-                  {
-                    label: t('latitude'),
-                    value: (item.marker.getExtData().latitude as number).toFixed(6),
-                  },
-                  {
-                    label: t('speed'),
-                    value: `${(item.marker.getExtData().spd as number).toFixed(2)} km/h`,
-                  },
-                ].filter(item => item.value)"
-                bordered
-                size="small"
-              />
-            </template>
-          </a-list-item-meta>
-          <template #actions>
-            <a-button type="primary" size="small" @click="selectedMarker = item.marker">
-              {{ t('button.checkout') }}
-            </a-button>
-          </template>
-        </a-list-item>
-      </a-list>
-    </a-drawer>
   </div>
 </template>

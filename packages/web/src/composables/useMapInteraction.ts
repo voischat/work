@@ -8,7 +8,6 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
 
   // 地图相关状态
   const trackVisible = shallowRef(true)
-  const drawerVisible = shallowRef(false)
   const zoom = shallowRef(12)
   const center = shallowRef([121.59996, 31.197646])
   const map = shallowRef<AMap.Map | null>(null)
@@ -133,7 +132,6 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
     if (!isNumber(lng) || !isNumber(lat))
       return
 
-    drawerVisible.value = false
     map.value?.setCenter([lng, lat])
   }
 
@@ -180,7 +178,6 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
 
   return {
     trackVisible,
-    drawerVisible,
     zoom,
     center,
     map,

@@ -280,6 +280,7 @@ location-status:
   error: 获取位置数据失败
   focus: 聚焦所有位置
   list: 列表
+  track: 轨迹
 login:
   android-download: 安卓 APP 下载
   cancel: 取消
