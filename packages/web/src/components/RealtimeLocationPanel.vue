@@ -94,12 +94,13 @@ watch([selectedType, selectedId], async ([type, id]) => {
 
 <template>
   <div min-h-0 flex-1 of-hidden relative>
-    <LocationFetchStatus
+    <MapStatusCapsule
       :state="fetchState"
       :date="latestLocationDate"
       :error-message="error?.message"
       @focus="handleFocus"
       @refresh="() => refetch().then(() => Message.success(t('message.refresh-success')))"
+      @list="drawerVisible = true"
     />
 
     <ElAmap :center="center" :zoom="zoom" relative h-full w-full @init="(m) => map = m">
@@ -108,15 +109,6 @@ watch([selectedType, selectedId], async ([type, id]) => {
       <!-- 标记点会自动通过 composable 渲染 -->
 
       <MapTypeSwitcher v-model="satelliteVisible" />
-
-      <a-button
-        v-if="markers?.length" type="primary" shape="circle" class="absolute right-4 top-4 z-10"
-        @click="drawerVisible = true"
-      >
-        <template #icon>
-          <icon-menu />
-        </template>
-      </a-button>
     </ElAmap>
 
     <a-drawer v-model:visible="drawerVisible" :width="720" unmount-on-close :footer="false">

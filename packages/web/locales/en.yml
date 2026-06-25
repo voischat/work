@@ -290,6 +290,7 @@ location-status:
   empty: No location data
   error: Failed to fetch location data
   focus: Focus all locations
+  list: List
 login:
   __i18n_ally_root__:
     android-download: Android app download

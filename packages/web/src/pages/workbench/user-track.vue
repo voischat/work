@@ -80,18 +80,6 @@ function onFocusAllMarkers() {
         </div>
         <div class="flex gap-2">
           <a-date-picker v-model="selectedDate" class="min-w-0 flex-1" :disabled-date="(current: any) => dayjs(current).isAfter(dayjs())" />
-          <a-tooltip :content="t('button.refresh')">
-            <a-button
-              type="outline"
-              @click="() => refetch().then(() => {
-                Message.success(t('message.refresh-success'))
-              })"
-            >
-              <template #icon>
-                <icon-refresh />
-              </template>
-            </a-button>
-          </a-tooltip>
         </div>
       </div>
       <div class="min-h-0 flex-1 overflow-y-auto">
@@ -99,12 +87,13 @@ function onFocusAllMarkers() {
       </div>
     </aside>
     <div min-w-0 flex-1 of-hidden relative>
-      <LocationFetchStatus
+      <MapStatusCapsule
         :state="fetchState"
         :date="latestDate"
         :error-message="error?.message"
         @focus="onFocusAllMarkers"
         @refresh="() => refetch().then(() => Message.success(t('message.refresh-success')))"
+        @list="drawerVisible = true"
       />
 
       <ElAmap :center="center" :zoom="zoom" relative h-full w-full @init="(m) => map = m">
@@ -115,15 +104,6 @@ function onFocusAllMarkers() {
         </ElAmapLoca>
 
         <MapTypeSwitcher v-model="satelliteVisible" />
-
-        <a-button
-          v-if="markers?.length" type="primary" shape="circle" class="absolute right-4 top-4"
-          @click="drawerVisible = true"
-        >
-          <template #icon>
-            <icon-menu />
-          </template>
-        </a-button>
       </ElAmap>
 
       <a-drawer v-model:visible="drawerVisible" :width="340" unmount-on-close>
