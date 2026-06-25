@@ -89,7 +89,7 @@ async function startIndividual(member: Member) {
     return
 
   if (member.user_id === currentUserId.value) {
-    Message.warning('不能和自己发起单呼')
+    Message.warning('不能和自己发起个人对话')
     return
   }
 
@@ -180,13 +180,13 @@ async function startGroup(group: GroupModel) {
             class="px-3 py-2 text-center text-sm text-primary hover:bg-neutral-50 cursor-pointer"
             @click="openIndividualFromPopup"
           >
-            单呼
+            个人对话
           </div>
           <div
             class="px-3 py-2 text-center text-sm text-primary hover:bg-neutral-50 cursor-pointer"
             @click="openGroupFromPopup"
           >
-            群呼
+            群组对话
           </div>
         </div>
       </template>
@@ -195,7 +195,7 @@ async function startGroup(group: GroupModel) {
 
   <a-modal
     v-model:visible="modalVisible"
-    :title="activeType === 'individual' ? '单呼' : '群呼'"
+    :title="activeType === 'individual' ? '个人对话' : '群组对话'"
     :footer="false"
     width="480px"
   >
