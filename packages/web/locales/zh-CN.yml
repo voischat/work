@@ -370,6 +370,7 @@ not-supported: 不支持
 offline: 离线
 old-password: 旧密码
 online: 在线
+online-docs: 在线文档
 org-tree:
   empty:
     dept: 暂无部门

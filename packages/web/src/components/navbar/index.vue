@@ -26,6 +26,18 @@ const resetPasswordModalVisible = shallowRef(false)
 const bindingPhoneModalVisible = shallowRef(false)
 const deleteAccountModalVisible = shallowRef(false)
 
+const { data: webGuideUrl } = useWeilaFetch<string>('common/guide', {
+  body: () => ({
+    type: 'corp-web',
+  }),
+})
+
+const { data: appGuideUrl } = useWeilaFetch<string>('common/guide', {
+  body: () => ({
+    type: 'corp-app',
+  }),
+})
+
 function tryLogout() {
   logout()
 }
@@ -61,6 +73,29 @@ const buildTime = new Date(__BUILD_TIME__).toLocaleString()
           </a-button>
         </a-tooltip>
       </li>
+      <a-trigger trigger="click" position="br" :popup-translate="[0, 8]">
+        <a-button class="nav-btn" type="outline" shape="circle">
+          <template #icon>
+            <icon-book />
+          </template>
+        </a-button>
+        <template #content>
+          <div bg-white border rounded-lg p2 shadow-lg>
+            <a-link
+              href="https://docs-weila-work.pages.dev" target="_blank" rel="noopener noreferrer"
+              block p2
+            >
+              {{ t('online-docs') }}
+            </a-link>
+            <a-link :href="webGuideUrl" target="_blank" rel="noopener noreferrer" block p2>
+              {{ t('web-guide') }}
+            </a-link>
+            <a-link :href="appGuideUrl" target="_blank" rel="noopener noreferrer" block p2>
+              {{ t('app-guide') }}
+            </a-link>
+          </div>
+        </template>
+      </a-trigger>
       <a-tooltip
         :content="isFullscreen
           ? t('settings.navbar.screen.toExit')

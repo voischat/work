@@ -384,6 +384,7 @@ not-supported: Not supported
 offline: Offline
 old-password: Old password
 online: Online
+online-docs: Online Docs
 org-tree:
   empty:
     dept: No departments
