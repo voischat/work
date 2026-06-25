@@ -18,7 +18,14 @@ const qc = useQueryClient()
 
 const searchQuery = shallowRef('')
 const selectedMember = shallowRef<Member | undefined>(undefined)
+const memberToDelete = shallowRef<Member | undefined>(undefined)
 const isEditMemberModalOpen = shallowRef(false)
+const isDeleteModalOpen = shallowRef(false)
+
+watch(isDeleteModalOpen, (open) => {
+  if (!open)
+    memberToDelete.value = undefined
+})
 
 const { data: group, refetch: refetchGroup } = useWeilaFetch<GroupModel>('corp/group/get-group', {
   body: { group_id: props.groupId },
@@ -174,15 +181,9 @@ function getBurstModeLabel(mode?: number) {
                     <a-doption @click="handleEditMember(member)">
                       {{ t('button.edit') }}
                     </a-doption>
-                    <DeleteGroupMemberModal
-                      :group-id="groupId"
-                      :member="member"
-                      @success="handleMembersChanged"
-                    >
-                      <a-doption>
-                        <span class="text-red-6">{{ t('button.delete') }}</span>
-                      </a-doption>
-                    </DeleteGroupMemberModal>
+                    <a-doption @click="memberToDelete = member; isDeleteModalOpen = true">
+                      <span class="text-red-6">{{ t('button.delete') }}</span>
+                    </a-doption>
                   </template>
                 </a-dropdown>
               </template>
@@ -200,5 +201,13 @@ function getBurstModeLabel(mode?: number) {
     v-model:open="isEditMemberModalOpen"
     :member="selectedMember"
     @success="handleEditMemberSuccess"
+  />
+
+  <DeleteGroupMemberModal
+    v-if="memberToDelete"
+    v-model:open="isDeleteModalOpen"
+    :group-id="groupId"
+    :member="memberToDelete"
+    @success="handleMembersChanged"
   />
 </template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Member } from '~/types/api'
 import Message from '@arco-design/web-vue/es/message'
-import { shallowRef } from 'vue'
+import { computed, useSlots } from 'vue'
 
 defineProps<{
   groupId?: number
@@ -9,10 +9,12 @@ defineProps<{
 }>()
 
 const emits = defineEmits(['success'])
+const slots = useSlots()
+const hasTrigger = computed(() => !!slots.default)
 
 const { t } = useI18n()
 
-const open = shallowRef(false)
+const open = defineModel('open', { default: false })
 
 const { mutateAsync, isPending } = useWeilaMutation<{
   group_id: number
@@ -27,7 +29,8 @@ const { mutateAsync, isPending } = useWeilaMutation<{
 </script>
 
 <template>
-  <ModalTrigger v-model:open="open" :trigger="{ status: 'danger' }" :title=" t('delete.modal.title') ">
+  <ModalTrigger v-if="hasTrigger" v-model:open="open" :trigger="{ status: 'danger' }" :title=" t('delete.modal.title') ">
+    <slot />
     <template #content>
       <a-list my-4>
         <a-list-item v-if="member">
@@ -37,7 +40,7 @@ const { mutateAsync, isPending } = useWeilaMutation<{
     </template>
     <template #footer>
       <a-button
-        type="primary" :loading="isPending" :disabled="!member" @click="(e) => mutateAsync({
+        type="primary" :loading="isPending" :disabled="!member" @click="() => mutateAsync({
           group_id: groupId,
           user_id: member?.user_id,
         })"
@@ -46,4 +49,30 @@ const { mutateAsync, isPending } = useWeilaMutation<{
       </a-button>
     </template>
   </ModalTrigger>
+  <a-modal
+    v-else
+    v-model:visible="open"
+    :title="t('delete.modal.title')"
+    :mask-closable="false"
+    :esc-to-close="!isPending"
+  >
+    <a-list my-4>
+      <a-list-item v-if="member">
+        {{ member.name }} ({{ member.user_num }})
+      </a-list-item>
+    </a-list>
+    <template #footer>
+      <a-button :disabled="isPending" @click="open = false">
+        {{ t('button.cancel') }}
+      </a-button>
+      <a-button
+        type="primary" :loading="isPending" :disabled="!member" @click="() => mutateAsync({
+          group_id: groupId,
+          user_id: member?.user_id,
+        })"
+      >
+        {{ t('button.submit') }}
+      </a-button>
+    </template>
+  </a-modal>
 </template>
