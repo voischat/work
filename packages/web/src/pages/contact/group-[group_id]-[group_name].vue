@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { Member } from '~/types/api'
+import Message from '@arco-design/web-vue/es/message'
 import { useQuery } from '@tanstack/vue-query'
+import { WL_IDbSessionType } from '@weilasdk/core'
 import { shallowRef } from 'vue'
 
 import { TrackType } from '~/api/contact'
@@ -27,6 +29,66 @@ const isDeptAdmin = computed(() => selfInfoStore.isDeptAdmin)
 const weilaApi = useWeilaApi()
 const groupId = computed(() => Number(route.params.group_id))
 const selfUserId = computed(() => Number(selfInfoStore.selfInfo?.user_id))
+
+const weilaStore = useWeilaStore()
+const { core: weilaCore, userInfo } = storeToRefs(weilaStore)
+
+async function initSdk() {
+  if (weilaCore.value && userInfo.value)
+    return weilaCore.value
+
+  const loggedIn = await weilaStore.autoLogin()
+  return loggedIn ? weilaCore.value : null
+}
+
+const startingSessionUserId = shallowRef<number>()
+
+async function handleSendMessage(member: Member) {
+  if (selfInfoStore.isCurrentUser(member.user_id))
+    return
+
+  if (!member.user_id) {
+    Message.error('成员缺少用户 ID')
+    return
+  }
+
+  startingSessionUserId.value = member.user_id
+
+  try {
+    const core = weilaCore.value ?? await initSdk()
+
+    if (!core) {
+      Message.error('SDK 初始化失败，请重新登录后再试')
+      return
+    }
+
+    const session = await core.weila_startNewSession(
+      String(member.user_id),
+      WL_IDbSessionType.SESSION_CORP_INDIVIDUAL_TYPE,
+      {
+        sessionName: member.name,
+        sessionAvatar: member.avatar,
+      },
+    )
+
+    await router.push({
+      path: '/workbench/chat',
+      query: {
+        sessionId: session.sessionId,
+        sessionType: String(WL_IDbSessionType.SESSION_CORP_INDIVIDUAL_TYPE),
+        sessionName: member.name,
+        sessionAvatar: member.avatar || undefined,
+      },
+    })
+  }
+  catch (err) {
+    console.error('[Group] Failed to start session:', err)
+    Message.error('发送消息失败')
+  }
+  finally {
+    startingSessionUserId.value = undefined
+  }
+}
 
 const { data, refetch } = useWeilaFetch(() => `corp/group/get-group-member-list?page=${curPage.value}&size=${pageSize.value}`, {
   body: () => ({
@@ -92,7 +154,7 @@ function handleMembersChanged() {
       </a-breadcrumb>
     </template>
     <template #extra>
-      <a-button v-if="canSendGroupMessage" type="primary" @click="openGroupChat">
+      <a-button v-if="canSendGroupMessage || selfInfoStore.isOwner || selfInfoStore.isAdmin" type="primary" @click="openGroupChat">
         {{ t('button.send-message') }}
       </a-button>
     </template>
@@ -212,8 +274,15 @@ function handleMembersChanged() {
             </template>
           </a-table-column>
           <a-table-column :title="t('controls')">
-            <template #cell>
+            <template #cell="{ record }">
               <div flex gap2>
+                <a-button
+                  v-if="!selfInfoStore.isCurrentUser(record.user_id)"
+                  :disabled="startingSessionUserId === record.user_id"
+                  @click="handleSendMessage(record)"
+                >
+                  {{ t('button.send-message') }}
+                </a-button>
                 <DeleteGroupMemberModal
                   :group-id="groupId" :member="selectedItem"
                   @success="handleMembersChanged"

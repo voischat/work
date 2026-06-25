@@ -83,8 +83,14 @@ function onSelect(group: GroupModel, e: PointerEvent) {
   router.push(`/contact/group-${group.id}-${group.name}`)
 }
 
+function canSendGroupMessage(group: GroupModel) {
+  return selfInfoStore.isOwner
+    || selfInfoStore.isAdmin
+    || groupMembershipMap.value?.[group.id] === true
+}
+
 function openGroupChat(group: GroupModel) {
-  if (groupMembershipMap.value?.[group.id] !== true)
+  if (!canSendGroupMessage(group))
     return
 
   router.push({
@@ -96,10 +102,6 @@ function openGroupChat(group: GroupModel) {
       sessionAvatar: group.avatar || undefined,
     },
   })
-}
-
-function canSendGroupMessage(group: GroupModel) {
-  return groupMembershipMap.value?.[group.id] === true
 }
 </script>
 

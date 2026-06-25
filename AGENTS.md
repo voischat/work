@@ -188,6 +188,12 @@ pnpm archive
 ### Required Node.js Version
 - Node.js >= 14.0.0
 
+### Test Account
+- **Account**: `70009790`
+- **Password**: `123456`
+
+Use this account for local development and browser automation tests.
+
 ### Development Server Configuration
 - Proxy configuration for API calls to `demo.weila.hk`
 - HTTPS support with auto-generated certificates
