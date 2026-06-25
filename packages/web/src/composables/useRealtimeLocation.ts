@@ -137,7 +137,15 @@ export function useRealtimeLocation(
 
   watch(selectedType, () => selectedId.value = undefined)
 
-  const { data: apiLocations, refetch: apiRefetch } = useWeilaFetch<RealtimeLocationModel[]>('corp/loc/get-realtime-location', {
+  const {
+    data: apiLocations,
+    refetch: apiRefetch,
+    isPending,
+    isFetching,
+    isError,
+    error,
+    status,
+  } = useWeilaFetch<RealtimeLocationModel[]>('corp/loc/get-realtime-location', {
     body: () => {
       const sessionType = selectedType.value === 'dept' ? 20 : selectedType.value === 'individual' ? 17 : 18
       return {
@@ -157,8 +165,8 @@ export function useRealtimeLocation(
 
   const mockLocations = shallowRef<RealtimeLocationModel[]>([])
 
-  const refetch = () => {
-    apiRefetch()
+  const refetch = async () => {
+    await apiRefetch()
     if (useMockData.value) {
       mockLocations.value = generateMockLocations()
     }
@@ -190,5 +198,10 @@ export function useRealtimeLocation(
     refetch,
     pause,
     resume,
+    isPending,
+    isFetching,
+    isError,
+    error,
+    status,
   }
 }

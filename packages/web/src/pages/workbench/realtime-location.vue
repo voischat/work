@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { shallowRef } from 'vue'
+import { shallowRef, watch } from 'vue'
 
 import RealtimeLocationPanel from '~/components/RealtimeLocationPanel.vue'
 import { useDeptList } from '~/composables/useDeptList'
@@ -21,6 +21,11 @@ const { groupOptions } = useGroupList()
 
 const currentOptions = computed(() => {
   return selectedType.value === 'dept' ? deptOptions.value : groupOptions.value
+})
+
+// 切换类型时清空已选的部门/群组
+watch(selectedType, () => {
+  selectedId.value = undefined
 })
 </script>
 
@@ -47,6 +52,6 @@ const currentOptions = computed(() => {
       />
     </div>
 
-    <RealtimeLocationPanel :type="selectedType" :id="selectedId" class="flex-1 min-h-0" />
+    <RealtimeLocationPanel :id="selectedId" :type="selectedType" class="flex-1 min-h-0" />
   </div>
 </template>

@@ -472,7 +472,7 @@ function handlePttError(payload: { session: WL_IDbSession, error?: unknown }) {
         :directions="['left']"
         :min-width="320"
         :max-width="600"
-        class="h-full border-l border-neutral-200 bg-white"
+        class="h-full border-l border-neutral-200 bg-white of-visible"
       >
         <div h-full flex flex-col>
           <div class="flex justify-between items-center p-3 border-b">

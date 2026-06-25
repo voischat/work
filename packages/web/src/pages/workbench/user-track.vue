@@ -24,7 +24,13 @@ const selectedDate = useRouteQuery('date', new Date().toISOString().split('T')[0
 const satelliteVisible = shallowRef(false)
 
 // 使用composables
-const { tracks, trackFeatureCollection, refetch } = useUserTrack(selectedUserKeys, selectedDate)
+const {
+  tracks,
+  trackFeatureCollection,
+  refetch,
+  isError,
+  error,
+} = useUserTrack(selectedUserKeys, selectedDate)
 const {
   trackVisible,
   drawerVisible,
@@ -36,11 +42,32 @@ const {
   layerStyle,
 } = useMapInteraction(tracks)
 
+const fetchState = computed(() => {
+  if (!selectedOrgItems.value.length || !selectedDate.value)
+    return 'idle'
+  if (isError.value)
+    return 'error'
+  if (!tracks.value?.length)
+    return 'empty'
+  return 'success'
+})
+
+const latestDate = computed(() => {
+  if (!tracks.value?.length)
+    return undefined
+  const latest = Math.max(...tracks.value.map(t => t.created))
+  return new Date(latest * 1000).toLocaleString()
+})
+
 $inspect(trackFeatureCollection)
 
 function onMarkerSelected(marker: AMap.Marker) {
   selectedMarker.value = marker
   triggerRef(selectedMarker)
+}
+
+function onFocusAllMarkers() {
+  map.value?.setFitView(markers.value)
 }
 </script>
 
@@ -55,7 +82,7 @@ function onMarkerSelected(marker: AMap.Marker) {
           <a-date-picker v-model="selectedDate" class="min-w-0 flex-1" :disabled-date="(current: any) => dayjs(current).isAfter(dayjs())" />
           <a-tooltip :content="t('button.refresh')">
             <a-button
-              v-if="tracks?.length" type="outline"
+              type="outline"
               @click="() => refetch().then(() => {
                 Message.success(t('message.refresh-success'))
               })"
@@ -71,7 +98,15 @@ function onMarkerSelected(marker: AMap.Marker) {
         <OrgTree v-model:selected="selectedOrgItems" select-mode="solo" />
       </div>
     </aside>
-    <div min-w-0 flex-1 of-hidden>
+    <div min-w-0 flex-1 of-hidden relative>
+      <LocationFetchStatus
+        :state="fetchState"
+        :date="latestDate"
+        :error-message="error?.message"
+        @focus="onFocusAllMarkers"
+        @refresh="() => refetch().then(() => Message.success(t('message.refresh-success')))"
+      />
+
       <ElAmap :center="center" :zoom="zoom" relative h-full w-full @init="(m) => map = m">
         <ElAmapLayerSatellite :visible="satelliteVisible" />
 

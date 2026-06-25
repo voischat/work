@@ -282,6 +282,14 @@ legal-form:
 loading: Loading...
 loc_share: location share
 location-detail: Location information
+location-status:
+  idle: Please select member/dept or date
+  loading: Fetching location data...
+  success: Data updated at {date}
+  success-prefix: Data updated at
+  empty: No location data
+  error: Failed to fetch location data
+  focus: Focus all locations
 login:
   __i18n_ally_root__:
     android-download: Android app download

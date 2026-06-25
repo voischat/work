@@ -28,6 +28,7 @@ declare module 'vue' {
     Footer: typeof import('./components/footer/index.vue')['default']
     GroupSettings: typeof import('./components/GroupSettings.vue')['default']
     LoadingMask: typeof import('./components/LoadingMask.vue')['default']
+    LocationFetchStatus: typeof import('./components/LocationFetchStatus.vue')['default']
     LocationViewer: typeof import('./components/LocationViewer.vue')['default']
     LoginBanner: typeof import('./components/login-banner/index.vue')['default']
     MapPicker: typeof import('./components/MapPicker.vue')['default']

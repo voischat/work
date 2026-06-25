@@ -177,13 +177,13 @@ async function startGroup(group: GroupModel) {
       <template #content>
         <div class="bg-white rounded border border-neutral-200 shadow-lg py-1">
           <div
-            class="px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 cursor-pointer"
+            class="px-3 py-2 text-center text-sm text-primary hover:bg-neutral-50 cursor-pointer"
             @click="openIndividualFromPopup"
           >
             单呼
           </div>
           <div
-            class="px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 cursor-pointer"
+            class="px-3 py-2 text-center text-sm text-primary hover:bg-neutral-50 cursor-pointer"
             @click="openGroupFromPopup"
           >
             群呼

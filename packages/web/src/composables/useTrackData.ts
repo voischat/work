@@ -1,13 +1,18 @@
 import type { UserTrackModel } from '~/api/track'
-import Message from '@arco-design/web-vue/es/message'
 import { computed } from 'vue'
 
 export function useUserTrack(selectedUserKeys: Ref<string>, selectedDate: Ref<string>) {
-  const { t } = useI18n()
-
   const enabled = computed(() => Boolean(selectedUserKeys.value && selectedDate.value))
 
-  const { data: tracks, refetch } = useWeilaFetch<UserTrackModel[]>('corp/loc/get-track', {
+  const {
+    data: tracks,
+    refetch,
+    isPending,
+    isFetching,
+    isError,
+    error,
+    status,
+  } = useWeilaFetch<UserTrackModel[]>('corp/loc/get-track', {
     body: () => ({
       user_id: Number(selectedUserKeys.value.replace('member-', '')),
       date: selectedDate.value,
@@ -15,14 +20,6 @@ export function useUserTrack(selectedUserKeys: Ref<string>, selectedDate: Ref<st
     pick: ['tracks'],
   }, {
     enabled,
-  })
-
-  // 监听轨迹数据变化，无数据时提示
-  watchDebounced(() => tracks.value, (val) => {
-    if (!val?.length)
-      Message.info(t('no-data'))
-  }, {
-    debounce: 500,
   })
 
   // 生成GeoJSON格式的轨迹数据
@@ -44,5 +41,10 @@ export function useUserTrack(selectedUserKeys: Ref<string>, selectedDate: Ref<st
     tracks,
     trackFeatureCollection,
     refetch,
+    isPending,
+    isFetching,
+    isError,
+    error,
+    status,
   }
 }

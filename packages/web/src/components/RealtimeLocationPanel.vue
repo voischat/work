@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Message } from '@arco-design/web-vue'
 import { ElAmap, ElAmapLayerSatellite } from '@vuemap/vue-amap'
 import { computed, onMounted, shallowRef, toRef, watch } from 'vue'
 
@@ -22,7 +23,12 @@ watch(() => props.id, (newId) => {
   selectedId.value = newId
 })
 
-const { locations, refetch } = useRealtimeLocation(selectedType, selectedId)
+const {
+  locations,
+  refetch,
+  isError,
+  error,
+} = useRealtimeLocation(selectedType, selectedId)
 const { getUserInfo, preloadMembers } = useUserInfoStore()
 const {
   drawerVisible,
@@ -50,6 +56,27 @@ const sortedMarkersWithUserInfo = computed(() => {
     .sort((a, b) => a.userName.localeCompare(b.userName))
 })
 
+const fetchState = computed(() => {
+  if (selectedId.value === undefined)
+    return 'idle'
+  if (isError.value)
+    return 'error'
+  if (!locations.value?.length)
+    return 'empty'
+  return 'success'
+})
+
+const latestLocationDate = computed(() => {
+  if (!locations.value?.length)
+    return undefined
+  const latest = locations.value.reduce((max, loc) => loc.ts > max.ts ? loc : max)
+  return new Date(latest.ts * 1000).toLocaleString()
+})
+
+function handleFocus() {
+  map.value?.setFitView(markers.value)
+}
+
 // 组件挂载时立即获取位置（确保 v-if 切换后能立刻加载）
 onMounted(() => {
   if (selectedId.value !== undefined) {
@@ -67,6 +94,14 @@ watch([selectedType, selectedId], async ([type, id]) => {
 
 <template>
   <div min-h-0 flex-1 of-hidden relative>
+    <LocationFetchStatus
+      :state="fetchState"
+      :date="latestLocationDate"
+      :error-message="error?.message"
+      @focus="handleFocus"
+      @refresh="() => refetch().then(() => Message.success(t('message.refresh-success')))"
+    />
+
     <ElAmap :center="center" :zoom="zoom" relative h-full w-full @init="(m) => map = m">
       <ElAmapLayerSatellite :visible="satelliteVisible" />
 
@@ -75,7 +110,7 @@ watch([selectedType, selectedId], async ([type, id]) => {
       <MapTypeSwitcher v-model="satelliteVisible" />
 
       <a-button
-        v-if="markers?.length" type="primary" shape="circle" class="absolute right-4 top-4"
+        v-if="markers?.length" type="primary" shape="circle" class="absolute right-4 top-4 z-10"
         @click="drawerVisible = true"
       >
         <template #icon>

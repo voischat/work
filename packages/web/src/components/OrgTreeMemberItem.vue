@@ -99,8 +99,12 @@ function getMemberTypeLabel(member: Member) {
 }
 
 .org-tree-member-item--selected {
-  background: rgb(var(--primary-1));
+  background: rgba(var(--primary-6), 0.12);
   color: rgb(var(--primary-6));
+}
+
+.org-tree-member-item--selected:hover {
+  background: rgba(var(--primary-6), 0.12);
 }
 
 .org-tree-member-item--disabled {

@@ -271,6 +271,14 @@ legal-form:
 loading: 加载中...
 loc_share: 位置共享
 location-detail: 位置信息
+location-status:
+  idle: 请选择成员/部门或日期
+  loading: 正在获取位置数据...
+  success: 数据更新于 {date}
+  success-prefix: 数据更新于
+  empty: 暂无位置数据
+  error: 获取位置数据失败
+  focus: 聚焦所有位置
 login:
   android-download: 安卓 APP 下载
   cancel: 取消
