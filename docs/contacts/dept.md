@@ -38,3 +38,9 @@ title: 部门管理
 ![](../assets/Screenshot-2025-10-13-at-11.29.33-AM.png)
 
 ![](../assets/Screenshot-2025-10-13-at-11.30.04-AM.png)
+
+## 给部门成员发送消息
+
+进入部门详情页面，在成员列表的"操作"列下拉菜单中选择"发送消息"，即可跳转至工作台会话并打开与该成员的聊天。
+
+![给部门成员发送消息](../assets/dept-member-send-message.png)

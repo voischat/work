@@ -45,3 +45,43 @@ login account by using `agent-browser`:
 - **Account**: `70009790`
 - **Password**: `123456`
 
+## 更新用户手册流程
+
+`weila-work/docs` 是 VitePress 用户手册。当功能变更需要同步文档或截图时，按以下流程执行：
+
+1. **启动本地服务**
+   ```bash
+   pnpm dev:prod
+   ```
+   默认监听 `https://localhost:5173`
+
+2. **登录并截图**
+   使用 `agent-browser` 登录测试账号，按实际交互操作后截图：
+   - 账号：`70009790`
+   - 密码：`123456`
+   - 示例命令：
+     ```bash
+     agent-browser open https://localhost:5173 --ignore-https-errors --session-name weila-work-docs
+     agent-browser snapshot -i
+     agent-browser screenshot docs/assets/xxx.png
+     ```
+   - 新截图统一保存到 `docs/assets/`，使用 kebab-case 描述性文件名。
+   - 更新现有截图时尽量保持同名，避免修改 markdown 引用。
+
+3. **更新文档内容**
+   - Markdown 源文件位于 `docs/` 及其子目录。
+   - 子目录中的 markdown 引用图片时使用 `../assets/<filename>.png`。
+   - 新增/拆分类别时同步更新 `docs/.vitepress/config.mts` 的 `sidebar`。
+   - 删除或迁移旧页面后，检查首页 `docs/index.md` 的链接是否失效。
+
+4. **构建验证**
+   ```bash
+   pnpm docs:build
+   ```
+   确保无构建错误，且 `docs/.vitepress/dist/` 中生成了新增/修改的页面和图片。
+
+5. **清理环境**
+   - 关闭 `agent-browser` 会话。
+   - 停止 `pnpm dev:prod` 后台进程。
+   - 检查 `git status`，撤销无关文件变更（如 `packages/web/src/components.d.ts` 等自动生成的文件）。
+

@@ -28,11 +28,11 @@ features:
     link: /contacts/
     linkText: 阅读通讯录
   - title: 工作台
-    details: 聊天频道、单呼/群呼、实时位置、成员轨迹与地图可视化。
+    details: 聊天频道、个人对话（单呼）/群组对话（群呼）、实时位置、成员轨迹与地图可视化。
     link: /workspace/
     linkText: 阅读工作台
-  - title: 其他
-    details: 权限分级管理、表单搜索与过滤等辅助功能说明。
-    link: /others
-    linkText: 阅读其他说明
+  - title: 通用操作
+    details: 权限分级管理、表单搜索与过滤等跨页面通用能力说明。
+    link: /common/
+    linkText: 阅读通用操作
 ---

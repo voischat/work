@@ -35,7 +35,14 @@ export default defineConfig({
               { text: '成员轨迹', link: '/workspace/track' },
             ],
           },
-          { text: '其他', link: '/others' },
+          {
+            text: '通用操作',
+            link: '/common/',
+            items: [
+              { text: '搜索与过滤', link: '/common/search-filter' },
+              { text: '权限分级', link: '/common/permissions' },
+            ],
+          },
         ],
       },
     ],
