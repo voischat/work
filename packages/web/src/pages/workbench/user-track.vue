@@ -6,7 +6,8 @@ import { ElAmapLoca, ElAmapLocaLine } from '@vuemap/vue-amap-loca'
 import { useRouteQuery } from '@vueuse/router'
 import dayjs from 'dayjs'
 
-import { computed, shallowRef } from 'vue'
+import { computed, shallowRef, watch } from 'vue'
+import MapStatusCapsule from '~/components/MapStatusCapsule.vue'
 import { useMapInteraction } from '~/composables/useMapInteraction'
 import { useUserTrack } from '~/composables/useTrackData'
 
@@ -22,6 +23,7 @@ const selectedOrgItems = shallowRef<OrgTreeSelectedItem[]>([])
 const selectedUserKeys = computed(() => String(selectedOrgItems.value[0]?.id ?? ''))
 const selectedDate = useRouteQuery('date', new Date().toISOString().split('T')[0])
 const satelliteVisible = shallowRef(false)
+const capsuleRef = shallowRef<InstanceType<typeof MapStatusCapsule>>()
 
 // 使用composables
 const {
@@ -72,11 +74,20 @@ const latestDate = computed(() => {
   return new Date(latest * 1000).toLocaleString()
 })
 
+const canFetch = computed(() => !!selectedOrgItems.value.length && !!selectedDate.value)
+
 $inspect(trackFeatureCollection)
 
 function onFocusAllMarkers() {
   map.value?.setFitView(markers.value)
 }
+
+watch(map, (m) => {
+  if (!m) return
+  const onInteract = () => capsuleRef.value?.flashMessage()
+  m.on('mapmove', onInteract)
+  m.on('zoomchange', onInteract)
+}, { once: true })
 </script>
 
 <template>
@@ -96,11 +107,13 @@ function onFocusAllMarkers() {
     </aside>
     <div min-w-0 flex-1 of-hidden relative>
       <MapStatusCapsule
+        ref="capsuleRef"
         :state="fetchState"
         :date="latestDate"
         :error-message="error?.message"
         :items="tracks"
         :fields="trackFields"
+        :can-fetch="canFetch"
         @focus="onFocusAllMarkers"
         @refresh="() => refetch().then(() => Message.success(t('message.refresh-success')))"
         @item-click="handleTrackClick"

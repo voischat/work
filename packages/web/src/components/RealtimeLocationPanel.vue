@@ -3,6 +3,7 @@ import { Message } from '@arco-design/web-vue'
 import { ElAmap, ElAmapLayerSatellite } from '@vuemap/vue-amap'
 import { computed, onMounted, shallowRef, toRef, watch } from 'vue'
 
+import MapStatusCapsule from '~/components/MapStatusCapsule.vue'
 import { useRealtimeLocation } from '~/composables/useRealtimeLocation'
 import { useRealtimeMapInteraction } from '~/composables/useRealtimeMapInteraction'
 import { useUserInfoStore } from '~/composables/useUserInfoStore'
@@ -15,6 +16,7 @@ const props = defineProps<{
 const { t } = useI18n()
 
 const satelliteVisible = shallowRef(false)
+const capsuleRef = shallowRef<InstanceType<typeof MapStatusCapsule>>()
 
 const selectedType = toRef(props, 'type')
 const selectedId = shallowRef(props.id)
@@ -84,6 +86,8 @@ const fetchState = computed(() => {
   return 'success'
 })
 
+const canFetch = computed(() => selectedId.value !== undefined)
+
 const latestLocationDate = computed(() => {
   if (!locations.value?.length)
     return undefined
@@ -108,16 +112,25 @@ watch([selectedType, selectedId], async ([type, id]) => {
     await preloadMembers(type, id)
   }
 }, { immediate: true })
+
+watch(map, (m) => {
+  if (!m) return
+  const onInteract = () => capsuleRef.value?.flashMessage()
+  m.on('mapmove', onInteract)
+  m.on('zoomchange', onInteract)
+}, { once: true })
 </script>
 
 <template>
   <div min-h-0 flex-1 of-hidden relative>
     <MapStatusCapsule
+      ref="capsuleRef"
       :state="fetchState"
       :date="latestLocationDate"
       :error-message="error?.message"
       :items="locationListItems"
       :fields="locationFields"
+      :can-fetch="canFetch"
       @focus="handleFocus"
       @refresh="() => refetch().then(() => Message.success(t('message.refresh-success')))"
       @item-click="handleLocationClick"
