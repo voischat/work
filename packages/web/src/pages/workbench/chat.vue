@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import type { WL_GroupProfileResolver, WL_IDbLocationShared, WL_IDbSession, WL_ProfileResolver } from '@weilasdk/core'
+import type { WL_IDbLocationShared, WL_IDbSession } from '@weilasdk/core'
+import type { BatchSessionProfileResolver } from '@weilasdk/ui'
 import type { Member } from '~/types/api'
 import Message from '@arco-design/web-vue/es/message'
 import { useQuery } from '@tanstack/vue-query'
 import { isGroupSessionType, isIndividualSessionType } from '@weilasdk/core'
 import { WlChatPanel } from '@weilasdk/ui'
-import { computed, shallowRef, watch } from 'vue'
+import { computed, reactive, shallowRef, watch } from 'vue'
 import ChatLauncher from './components/ChatLauncher.vue'
 
 definePage({
@@ -81,13 +82,103 @@ const selectedGroupId = computed(() => {
 })
 const panelWidth = shallowRef(384)
 
+interface CorpSessionItem {
+  id: number
+  type: number
+  name: string
+  avatar: string
+  user_count: number
+}
+
+function isResolvableSessionType(sessionType: number): boolean {
+  return isIndividualSessionType(sessionType) || isGroupSessionType(sessionType)
+}
+
+const invalidSessionKeys = reactive(new Set<string>())
+
+const selectedSessionKey = computed(() => {
+  if (!selectedSessionId.value || selectedSessionType.value === undefined)
+    return null
+  return `${selectedSessionId.value}_${selectedSessionType.value}`
+})
+
+const isSelectedSessionUnavailable = computed(() => {
+  const key = selectedSessionKey.value
+  return key ? invalidSessionKeys.has(key) : false
+})
+
+const batchResolveSessionProfiles: BatchSessionProfileResolver = async (sessions) => {
+  const profileMap = new Map<string, { sessionName?: string, sessionAvatar?: string, memberCount?: number, invalid?: boolean }>()
+
+  const requestSessions = sessions
+    .filter(s => isResolvableSessionType(s.sessionType))
+    .map((s) => {
+      const id = Number(s.sessionId)
+      return { id, type: s.sessionType }
+    })
+    .filter(s => Number.isFinite(s.id) && s.id > 0)
+
+  if (requestSessions.length === 0)
+    return profileMap
+
+  try {
+    // v2.fetch 的 pickWeilaData 在 data 只有一个字段时会返回该字段的值，
+    // 因此这里可能直接拿到 sessions 数组，也可能是 { sessions: [...] } 对象
+    const res = await weilaApi.value.v2.fetch<CorpSessionItem[] | { sessions?: CorpSessionItem[] }>('corp/session/get-sessions', {
+      body: { sessions: requestSessions },
+      method: 'POST',
+    })
+
+    // 如果返回的是空对象（没有 sessions 字段），说明接口未按预期返回数据，直接跳过
+    if (!Array.isArray(res) && (!res || !('sessions' in res))) {
+      console.warn('[workbench/chat] get-sessions returned unexpected response:', res)
+      return profileMap
+    }
+
+    const returnedItems = Array.isArray(res) ? res : res.sessions ?? []
+
+    const returnedMap = new Map<string, CorpSessionItem>()
+    for (const item of returnedItems)
+      returnedMap.set(`${item.id}_${item.type}`, item)
+
+    for (const session of sessions) {
+      if (!isResolvableSessionType(session.sessionType))
+        continue
+
+      const key = `${session.sessionId}_${session.sessionType}`
+      const item = returnedMap.get(key)
+      if (!item) {
+        profileMap.set(key, { invalid: true })
+      }
+      else {
+        profileMap.set(key, {
+          sessionName: item.name,
+          sessionAvatar: item.avatar,
+          memberCount: item.user_count,
+        })
+      }
+    }
+  }
+  catch (error) {
+    console.warn('[workbench/chat] batch resolve session profiles failed:', error)
+  }
+
+  return profileMap
+}
+
+function handleInvalidSessionsChange(keys: Set<string>) {
+  invalidSessionKeys.clear()
+  for (const key of keys)
+    invalidSessionKeys.add(key)
+}
+
 // 检查当前用户是否仍在选中的群组中
 const { data: isInSelectedGroup } = useQuery<boolean>({
-  enabled: computed(() => Boolean(selfUserId.value && selectedGroupId.value)),
+  enabled: computed(() => Boolean(selfUserId.value && selectedGroupId.value && !isSelectedSessionUnavailable.value)),
   queryKey: ['corp/group/get-group-all-member/self-membership', selectedGroupId, selfUserId],
   queryFn: async () => {
     const groupId = selectedGroupId.value
-    if (!groupId)
+    if (!groupId || isSelectedSessionUnavailable.value)
       return false
 
     const members = await weilaApi.value.v2.fetch<Member[]>('corp/group/get-group-all-member', {
@@ -101,12 +192,18 @@ const { data: isInSelectedGroup } = useQuery<boolean>({
 })
 
 async function beforeSend(session: WL_IDbSession): Promise<boolean> {
+  if (isSelectedSessionUnavailable.value)
+    return false
   if (!isGroupSessionType(session.sessionType) || !selectedGroupId.value)
     return true
   return isInSelectedGroup.value !== false
 }
 
 function handleSendBlocked() {
+  if (isSelectedSessionUnavailable.value) {
+    Message.warning(t('chat.session-unavailable'))
+    return
+  }
   Message.warning(t('chat.not-in-group'))
 }
 
@@ -123,52 +220,6 @@ interface MapPickerValue {
 const pendingDeleteSessionName = computed(() => {
   return pendingDeleteSession.value?.sessionName || pendingDeleteSession.value?.sessionId || ''
 })
-
-const resolveProfile: WL_ProfileResolver = async (userId) => {
-  try {
-    const member = await weilaApi.value.v2.fetch<{
-      name?: string
-      avatar?: string
-      user_num?: number | string
-    }>('corp/address/get-member', {
-      body: { member_id: userId },
-      method: 'POST',
-    })
-
-    return {
-      name: member.name,
-      avatar: member.avatar,
-      weilaNum: member.user_num === undefined ? undefined : String(member.user_num),
-    }
-  }
-  catch (error) {
-    console.warn('[workbench/chat] resolve profile failed:', error)
-    return null
-  }
-}
-
-const resolveGroupProfile: WL_GroupProfileResolver = async (groupId) => {
-  try {
-    const group = await weilaApi.value.v2.fetch<{
-      name?: string
-      avatar?: string
-      user_count?: number
-    }>('corp/group/get-group', {
-      body: { group_id: Number(groupId) },
-      method: 'POST',
-    })
-
-    return {
-      name: group.name,
-      avatar: group.avatar,
-      memberCount: group.user_count,
-    }
-  }
-  catch (error) {
-    console.warn('[workbench/chat] resolve group profile failed:', error)
-    return null
-  }
-}
 
 watch(
   () => route.query.sessionId,
@@ -219,24 +270,6 @@ watch([selectedSessionId, selectedSessionType], ([sessionId, sessionType]) => {
 watch([weilaCore, selectedSessionId, selectedSessionType], () => {
   void ensureSelectedSession()
 }, { immediate: true })
-
-watch(
-  weilaCore,
-  (core, _oldCore, onCleanup) => {
-    if (!core)
-      return
-
-    core.weila_setProfileResolver(resolveProfile)
-    core.weila_setGroupProfileResolver(resolveGroupProfile)
-    onCleanup(() => {
-      if (weilaCore.value === core) {
-        core.weila_setProfileResolver(undefined)
-        core.weila_setGroupProfileResolver(undefined)
-      }
-    })
-  },
-  { immediate: true },
-)
 
 function handleDeleteSessionRequest(session: WL_IDbSession) {
   pendingDeleteSession.value = session
@@ -436,9 +469,11 @@ function handlePttError(payload: { session: WL_IDbSession, error?: unknown }) {
       <WlChatPanel
         ref="chatPanelRef" v-model:selected-session-id="selectedSessionId"
         v-model:selected-session-type="selectedSessionType" :core="weilaCore" :current-user-id="currentUserId"
-        :before-send="beforeSend" class="flex-1 min-w-0" message-list-height="calc(100vh - 220px)"
+        :before-send="beforeSend" :batch-resolve-session-profiles="batchResolveSessionProfiles"
+        class="flex-1 min-w-0" message-list-height="calc(100vh - 220px)"
         @delete-session="handleDeleteSessionRequest" @trigger-map-picker="openLocationPicker"
         @location-click="handleShowLocation" @ptt-error="handlePttError" @send-blocked="handleSendBlocked"
+        @invalid-sessions-change="handleInvalidSessionsChange"
       >
         <template #session-footer>
           <ChatLauncher :core="weilaCore" />
@@ -455,7 +490,7 @@ function handlePttError(payload: { session: WL_IDbSession, error?: unknown }) {
             成员位置
           </a-button>
           <a-button
-            v-if="selectedGroupId !== undefined"
+            v-if="selectedGroupId !== undefined && !isSelectedSessionUnavailable"
             type="text"
             @click="showGroupSettingsPanel = !showGroupSettingsPanel"
           >
