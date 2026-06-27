@@ -1,7 +1,7 @@
 {
   "name": "weila-work-web",
   "type": "module",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "description": "Arco Design Pro for Vue",
@@ -26,7 +26,7 @@
     "archive": "esno scripts/archive.ts",
     "test": "vitest",
     "release": "npx bumpp && esno scripts/release.ts",
-    "pack": "nr release && nr build && nr zip "
+    "pack": "nr release && nr build && nr archive"
   },
   "dependencies": {
     "@antfu/utils": "catalog:",
