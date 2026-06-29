@@ -26,7 +26,8 @@
     "archive": "esno scripts/archive.ts",
     "test": "vitest",
     "release": "npx bumpp && esno scripts/release.ts",
-    "pack": "nr release && nr build && nr archive"
+    "pack": "nr release && nr build && nr archive",
+    "electron": "electron electron/main.cjs"
   },
   "dependencies": {
     "@antfu/utils": "catalog:",
@@ -101,6 +102,7 @@
     "bumpp": "catalog:",
     "cross-env": "catalog:",
     "dotenv": "catalog:",
+    "electron": "^42.5.0",
     "eslint": "catalog:",
     "eslint-plugin-format": "catalog:",
     "esno": "catalog:",

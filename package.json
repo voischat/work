@@ -22,7 +22,8 @@
     "docs:preview": "vitepress preview docs",
     "cli:dev": "pnpm -C packages/cli run dev",
     "cli:build": "pnpm -C packages/cli run build",
-    "cli:start": "pnpm -C packages/cli start"
+    "cli:start": "pnpm -C packages/cli start",
+    "electron": "pnpm -C packages/web run electron"
   },
   "dependencies": {
     "dayjs": "catalog:",
