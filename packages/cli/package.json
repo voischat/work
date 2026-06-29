@@ -1,0 +1,34 @@
+{
+  "name": "weila-work-cli",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "description": "CLI for Weila Work management APIs",
+  "author": "kvoon",
+  "license": "MIT",
+  "bin": {
+    "weila-work-cli": "./dist/cli.mjs"
+  },
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "start": "node ./dist/cli.mjs"
+  },
+  "dependencies": {
+    "@wl/network": "link:~/i/wl-network",
+    "cac": "^6.7.14",
+    "md5": "^2.3.0",
+    "ofetch": "catalog:",
+    "unstorage": "^1.17.3"
+  },
+  "devDependencies": {
+    "@types/md5": "catalog:",
+    "@types/node": "catalog:",
+    "tsdown": "^0.16.7",
+    "typescript": "catalog:"
+  }
+}

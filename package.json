@@ -19,7 +19,10 @@
     "up": "nlx taze -I major",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "cli:dev": "pnpm -C packages/cli run dev",
+    "cli:build": "pnpm -C packages/cli run build",
+    "cli:start": "pnpm -C packages/cli start"
   },
   "dependencies": {
     "dayjs": "catalog:",
