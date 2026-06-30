@@ -1,0 +1,7 @@
+.eve/
+.workflow-data/
+dist/
+node_modules/
+.env
+.env.local
+*.log

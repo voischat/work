@@ -575,6 +575,7 @@ workbench:
   no-audit-info: 暂无待审核的认证信息
   pass: 通过
   platform: 工作台
+  ai-agent: AI 助手
   profile: 简介
   qualification: 资质信息
   question-mark: 吗？
@@ -594,6 +595,12 @@ workbench:
   type-colon: 类型：
   user-track: 用户轨迹
 web-guide: 管理台用户手册
+agent:
+  title: AI 助手
+  input-placeholder: 输入问题，例如：查询我的企业、搜索 Vue watch 用法
+  send: 发送
+  no-reply: （无回复）
+  request-failed: 请求失败，请检查 Agent 服务是否已启动
 app-guide: App 用户手册
 tooltips:
   track:

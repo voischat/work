@@ -594,6 +594,7 @@ workbench:
   no-audit-info: No certification information pending review.
   pass: through
   platform: Workbench
+  ai-agent: AI Assistant
   profile: Introduction
   qualification: Qualification Information
   question-mark: '"Ma?" translates to "Is it?" or "Really?" depending on the context.'
@@ -613,6 +614,12 @@ workbench:
   type-colon: 'Type:'
   user-track: User trajectory
 web-guide: Web Guide
+agent:
+  title: AI Assistant
+  input-placeholder: Ask something, e.g. query my org, or search Vue watch usage
+  send: Send
+  no-reply: (no reply)
+  request-failed: Request failed. Please check whether the Agent server is running
 app-guide: App Guide
 tooltips:
   track:

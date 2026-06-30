@@ -54,6 +54,7 @@ const serviceRoute = computed(() => {
 })
 
 const isCreateBusinessModalOpen = shallowRef(false)
+const enableAgent = import.meta.env.VITE_ENABLE_AGENT === 'true'
 </script>
 
 <template>
@@ -122,7 +123,19 @@ const isCreateBusinessModalOpen = shallowRef(false)
             服务号审核
           </h3>
         </div>
-      </RouterLink> -->
+      <!-- Agent -->
+      <RouterLink
+        v-if="enableAgent"
+        to="/agent"
+        class="rounded-lg bg-white p-6 shadow-md transition-shadow duration-300 dark:bg-neutral-800 hover:shadow-lg"
+      >
+        <div class="mb-4 flex items-center">
+          <i class="i-carbon-bot mr-3 text-2xl text-primary-600 dark:text-primary-400" />
+          <h3 class="text-xl text-gray-900 font-semibold dark:text-gray-100">
+            {{ t('workbench.ai-agent') }}
+          </h3>
+        </div>
+      </RouterLink>
     </div>
     <CreateBusinessModal v-model:open="isCreateBusinessModalOpen" />
   </div>

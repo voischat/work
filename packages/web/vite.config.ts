@@ -96,6 +96,11 @@ export default defineConfig(() => {
     server: {
       cors: true,
       proxy: {
+        '/eve/v1': {
+          target: 'http://127.0.0.1:2000',
+          changeOrigin: true,
+          secure: false,
+        },
         '/v1': {
           target: proxyTargetV1,
           timeout: 20 * 1000,
