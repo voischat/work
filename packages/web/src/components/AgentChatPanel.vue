@@ -44,7 +44,9 @@ function setAgentText(text: string) {
 }
 
 async function startStream(sessionId: string) {
+  console.log('[agent-chat] starting stream', sessionId, 'baseUrl', baseUrl)
   const streamRes = await fetch(`${baseUrl}/eve/v1/session/${sessionId}/stream`)
+  console.log('[agent-chat] stream response', streamRes.status, streamRes.ok, 'body?', !!streamRes.body)
   if (!streamRes.ok || !streamRes.body) {
     errorMsg.value = `Stream failed: ${streamRes.status}`
     return
@@ -56,6 +58,7 @@ async function startStream(sessionId: string) {
 
   const read = async () => {
     const { value, done } = await reader.read()
+    console.log('[agent-chat] read chunk', { done, size: value?.length })
     if (done) return
 
     buffer += decoder.decode(value, { stream: true })
@@ -63,6 +66,7 @@ async function startStream(sessionId: string) {
     buffer = lines.pop() || ''
 
     for (const line of lines.filter(Boolean)) {
+      console.log('[agent-chat] event line', line.slice(0, 200))
       try {
         const event = JSON.parse(line) as any
         if (event.type === 'message.appended' && event.data?.messageDelta) {
@@ -74,6 +78,10 @@ async function startStream(sessionId: string) {
         else if (event.type === 'tool.result' && event.data?.result) {
           appendAgentText(`\n\n[tool result] ${JSON.stringify(event.data.result)}`)
         }
+        else if (event.type === 'session.failed' || event.type === 'turn.failed' || event.type === 'step.failed') {
+          const err = event.data?.code || event.data?.error || JSON.stringify(event.data)
+          appendAgentText(`\n\n[error: ${event.type}] ${err}`)
+        }
       }
       catch {
         // ignore malformed NDJSON lines
@@ -84,6 +92,7 @@ async function startStream(sessionId: string) {
   }
 
   await read()
+  console.log('[agent-chat] stream ended')
 }
 
 async function send() {

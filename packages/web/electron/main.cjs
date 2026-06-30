@@ -55,6 +55,28 @@ async function startAgent() {
     WEILA_AGENT_HOST: AGENT_HOST,
   }
 
+  if (!isDev) {
+    // 生产环境优先读取内嵌 agent 目录下的 .env 文件
+    try {
+      const fs = require('node:fs')
+      const envPath = path.join(agentDir, '.env')
+      const envContent = fs.readFileSync(envPath, 'utf-8')
+      for (const line of envContent.split('\n')) {
+        const trimmed = line.trim()
+        if (!trimmed || trimmed.startsWith('#')) continue
+        const idx = trimmed.indexOf('=')
+        if (idx === -1) continue
+        const key = trimmed.slice(0, idx).trim()
+        const value = trimmed.slice(idx + 1).trim()
+        if (env[key] === undefined || env[key] === '')
+          env[key] = value
+      }
+    }
+    catch {
+      // ignore missing .env
+    }
+  }
+
   if (isDev) {
     // 开发环境使用 pnpm
     agentChild = spawn('pnpm', ['run', 'dev'], {
@@ -118,6 +140,7 @@ const createWindow = () => {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      webSecurity: false,
       preload: path.join(__dirname, 'preload.js'),
       additionalArguments: [`--agent-started-by-electron=${agentStartedByElectron}`],
     },

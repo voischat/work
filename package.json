@@ -5,6 +5,11 @@
   "description": "",
   "author": "",
   "license": "ISC",
+  "pnpm": {
+    "overrides": {
+      "@wl/network": "link:../../../i/wl-network"
+    }
+  },
   "keywords": [],
   "main": "index.js",
   "scripts": {
