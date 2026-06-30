@@ -5,6 +5,7 @@ interface Message {
 }
 
 const { t } = useI18n()
+const authStore = useAuthStore()
 
 const input = shallowRef('')
 const messages = shallowRef<Message[]>([])
@@ -13,6 +14,11 @@ const errorMsg = shallowRef('')
 
 const agentHost = (typeof window !== 'undefined' && (window as any).electronAPI?.agentHost) || ''
 const baseUrl = agentHost.replace(/\/$/, '')
+
+function getAccessToken(): string {
+  // 浏览器环境优先使用 Pinia auth store（localStorage token）
+  return authStore.token || ((typeof window !== 'undefined' && (window as any).electronAPI?.token) || '')
+}
 
 function appendAgentText(delta: string) {
   const last = messages.value[messages.value.length - 1]
@@ -87,7 +93,7 @@ async function send() {
   errorMsg.value = ''
 
   try {
-    const token = (window as any).electronAPI?.token || ''
+    const token = getAccessToken()
     const headers: Record<string, string> = { 'content-type': 'application/json' }
     if (token) headers['x-weila-token'] = token
 
