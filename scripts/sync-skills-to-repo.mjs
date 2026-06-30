@@ -10,7 +10,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(__dirname, '..')
 const SKILL_NAME = 'weila-work-cli'
 const SOURCE_DIR = join(ROOT, 'packages', 'cli', 'skills', SKILL_NAME)
-const LOCAL_AGENT_DIR = join(ROOT, '.agents', 'skills', SKILL_NAME)
+const LOCAL_AGENT_DIR = join(ROOT, '..', '.agents', 'skills', SKILL_NAME)
 const CLI_PACKAGE_JSON = join(ROOT, 'packages', 'cli', 'package.json')
 
 const args = process.argv.slice(2)

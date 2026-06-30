@@ -40,7 +40,7 @@ Vue 3 + TS monorepo (pnpm workspaces). Enterprise comms: contacts, messaging, de
    ```
 
 2. **Sync the agent skill**
-   Skill source lives in `packages/cli/skills/weila-work-cli/`. The sync script reads the CLI version from `packages/cli/package.json`, updates `SKILL.md` metadata, mirrors the skill to the local agent directory, and pushes to the public skill repo.
+   Skill source lives in `packages/cli/skills/weila-work-cli/`. The sync script reads the CLI version from `packages/cli/package.json`, updates `SKILL.md` metadata, mirrors the skill to the workspace agent directory (`../.agents/skills/weila-work-cli/`), and pushes to the public skill repo.
    ```bash
    # Sync to local agent only
    pnpm --filter weila-work-cli sync:skills
