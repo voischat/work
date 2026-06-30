@@ -108,17 +108,19 @@ async function startAgent() {
 }
 
 function stopAgent() {
-  if (!agentChild)
-    return
+  if (!agentChild) return
 
   log('stopping agent server...')
   if (!agentChild.killed) {
-    agentChild.kill('SIGTERM')
-    // force kill after 5s
-    setTimeout(() => {
-      if (agentChild && !agentChild.killed)
-        agentChild.kill('SIGKILL')
-    }, 5000).unref()
+    if (process.platform === 'win32') {
+      require('node:child_process').execSync(`taskkill /pid ${agentChild.pid} /T /F`, { stdio: 'ignore' })
+    } else {
+      agentChild.kill('SIGTERM')
+      setTimeout(() => {
+        if (agentChild && !agentChild.killed)
+          agentChild.kill('SIGKILL')
+      }, 5000).unref()
+    }
   }
 }
 

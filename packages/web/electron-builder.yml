@@ -33,3 +33,8 @@ mac:
     - target: dir
       arch:
         - arm64
+win:
+  target:
+    - target: dir
+      arch:
+        - x64
