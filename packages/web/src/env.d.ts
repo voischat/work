@@ -4,6 +4,7 @@
 interface Window {
   electronAPI?: {
     agentHost?: string
+    apiBaseUrl?: string
     token?: string
   }
 }

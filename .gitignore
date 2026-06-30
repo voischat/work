@@ -15,6 +15,13 @@ pkg
 .tar.gz
 .obsidian
 
+# Electron build artifacts
+release
+**/release
+agent-deploy
+deploy-temp
+packages/agent-deploy
+
 # VitePress
 /docs/.vitepress/dist
 /docs/.vitepress/cache

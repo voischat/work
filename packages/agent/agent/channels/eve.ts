@@ -2,6 +2,7 @@ import { localDev, none } from 'eve/channels/auth'
 import { eveChannel } from 'eve/channels/eve'
 
 export default eveChannel({
+  cors: true,
   auth: [localDev(), none()],
   onMessage(ctx, message) {
     const request = ctx.eve.request
