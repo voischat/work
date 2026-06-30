@@ -30,6 +30,22 @@ export function registerAuthCommands(cli: CAC): void {
     })
 
   cli
+    .command('auth:set-token', 'Store an access token directly without logging in')
+    .option('--token <token>', 'Access token')
+    .example('weila-work-cli auth:set-token --token <access-token>')
+    .action(async (options) => {
+      try {
+        const token = parseString(options.token)
+        const { storage } = await getClient(resolveClientOptions(options))
+        await storage.setItem('token', token)
+        printSuccess({ message: 'Token stored successfully' })
+      }
+      catch (err) {
+        printError(err)
+      }
+    })
+
+  cli
     .command('auth:whoami', 'Get current user info')
     .alias('whoami')
     .example('weila-work-cli auth:whoami')

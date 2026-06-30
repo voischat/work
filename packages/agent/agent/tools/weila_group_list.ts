@@ -8,7 +8,8 @@ export default defineTool({
     page: z.number().optional().default(1).describe('页码，默认 1'),
     size: z.number().optional().default(20).describe('每页数量，默认 20'),
   }),
-  async execute({ page, size }) {
-    return runWeilaCli(['group:list', '--page', String(page), '--size', String(size)])
+  async execute({ page, size }, ctx) {
+    const token = ctx.session.auth?.current?.attributes?.token as string | undefined
+    return runWeilaCli(['group:list', '--page', String(page), '--size', String(size)], { token })
   },
 })

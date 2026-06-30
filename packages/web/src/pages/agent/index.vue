@@ -87,9 +87,13 @@ async function send() {
   errorMsg.value = ''
 
   try {
+    const token = (window as any).electronAPI?.token || ''
+    const headers: Record<string, string> = { 'content-type': 'application/json' }
+    if (token) headers['x-weila-token'] = token
+
     const sessionRes = await fetch(`${baseUrl}/eve/v1/session`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers,
       body: JSON.stringify({ message: text }),
     })
     if (!sessionRes.ok)
@@ -97,7 +101,6 @@ async function send() {
 
     const { sessionId } = await sessionRes.json() as { sessionId: string }
 
-    // start streaming without awaiting; the Eve stream stays open for follow-ups
     startStream(sessionId).catch((err: any) => {
       errorMsg.value = err.message || t('agent.request-failed')
     })
@@ -106,7 +109,6 @@ async function send() {
     errorMsg.value = err.message || t('agent.request-failed')
   }
   finally {
-    // keep send button usable; the agent response streams in asynchronously
     loading.value = false
   }
 }

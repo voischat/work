@@ -10,11 +10,12 @@ export default defineTool({
     page: z.number().optional().default(1).describe('页码，默认 1'),
     size: z.number().optional().default(20).describe('每页数量，默认 20'),
   }),
-  async execute({ key, deptIds, page, size }) {
+  async execute({ key, deptIds, page, size }, ctx) {
+    const token = ctx.session.auth?.current?.attributes?.token as string | undefined
     const args = ['address:member-list']
     if (key) args.push('--key', key)
     if (deptIds?.length) args.push('--dept-ids', deptIds.join(','))
     args.push('--page', String(page), '--size', String(size))
-    return runWeilaCli(args)
+    return runWeilaCli(args, { token })
   },
 })
