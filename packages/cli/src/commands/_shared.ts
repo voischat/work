@@ -6,6 +6,7 @@ export interface GlobalCliOptions {
   baseUrl?: string
   appId?: string
   appKey?: string
+  token?: string
   json?: boolean
   debug?: boolean
 }
@@ -16,6 +17,7 @@ export function resolveClientOptions(options: GlobalCliOptions): ClientOptions {
     baseURL: options.baseUrl,
     appId: options.appId,
     appKey: options.appKey,
+    token: options.token,
   }
 }
 
@@ -25,6 +27,7 @@ export function registerGlobalOptions(cli: CAC): void {
     .option('--base-url <url>', 'API base URL')
     .option('--app-id <id>', 'App ID')
     .option('--app-key <key>', 'App Key')
+    .option('--token <token>', 'Access token (uses in-memory auth, skips profile login)')
     .option('--json', 'Output raw JSON (default)', { default: true })
     .option('--debug', 'Print debug information')
 }
