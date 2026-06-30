@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref as deepRef } from 'vue'
+
 interface Message {
   role: 'user' | 'agent'
   text: string
@@ -8,7 +10,7 @@ const { t } = useI18n()
 const authStore = useAuthStore()
 
 const input = shallowRef('')
-const messages = shallowRef<Message[]>([])
+const messages = deepRef<Message[]>([])
 const loading = shallowRef(false)
 const errorMsg = shallowRef('')
 
