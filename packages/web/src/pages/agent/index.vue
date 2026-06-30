@@ -12,12 +12,12 @@ const messages = shallowRef<Message[]>([])
 const loading = shallowRef(false)
 const errorMsg = shallowRef('')
 
-const agentHost = (typeof window !== 'undefined' && (window as any).electronAPI?.agentHost) || ''
+const agentHost = (typeof window !== 'undefined' && window.electronAPI?.agentHost) || ''
 const baseUrl = agentHost.replace(/\/$/, '')
 
 function getAccessToken(): string {
   // 浏览器环境优先使用 Pinia auth store（localStorage token）
-  return authStore.token || ((typeof window !== 'undefined' && (window as any).electronAPI?.token) || '')
+  return authStore.token || ((typeof window !== 'undefined' && window.electronAPI?.token) || '')
 }
 
 function appendAgentText(delta: string) {

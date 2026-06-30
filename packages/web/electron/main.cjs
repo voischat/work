@@ -1,4 +1,5 @@
 const { app, BrowserWindow } = require('electron')
+const path = require('node:path')
 
 const DEV_SERVER_URL = 'https://localhost:5173'
 
@@ -12,6 +13,7 @@ const createWindow = () => {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      preload: path.join(__dirname, 'preload.cjs'),
     },
   })
 
