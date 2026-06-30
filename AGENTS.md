@@ -28,6 +28,34 @@ Vue 3 + TS monorepo (pnpm workspaces). Enterprise comms: contacts, messaging, de
 | `pnpm test` | Vitest |
 | `pnpm release` | Bump version + release |
 
+## CLI Release Flow
+
+`packages/cli` publishes `weila-work-cli` to npm and keeps the agent skill in sync.
+
+1. **Bump and publish the CLI**
+   ```bash
+   cd packages/cli
+   pnpm bump        # bumps version and creates a git tag
+   npm publish      # requires npm OTP
+   ```
+
+2. **Sync the agent skill**
+   Skill source lives in `packages/cli/skills/weila-work-cli/`. The sync script reads the CLI version from `packages/cli/package.json`, updates `SKILL.md` metadata, mirrors the skill to the local agent directory, and pushes to the public skill repo.
+   ```bash
+   # Sync to local agent only
+   pnpm --filter weila-work-cli sync:skills
+
+   # Sync and push to GitHub
+   pnpm --filter weila-work-cli publish:skills
+   ```
+
+   Public skill repo: `https://github.com/kvoon9/skills-weila-work-cli`  
+   Install by users: `npx skills add kvoon9/skills-weila-work-cli`
+
+3. **Verify**
+   - Check npm version at `https://www.npmjs.com/package/weila-work-cli`
+   - Check the skill repo has the latest `skills/weila-work-cli/SKILL.md`
+
 ## Code Style
 
 - ESLint: `@antfu/eslint-config` with Vue i18n plugin + TanStack Query rules
