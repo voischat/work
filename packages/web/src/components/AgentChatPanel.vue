@@ -65,14 +65,14 @@ async function startStream(sessionId: string) {
     for (const line of lines.filter(Boolean)) {
       try {
         const event = JSON.parse(line) as any
-        if (event.type === 'message.appended' && event.messageDelta) {
-          appendAgentText(event.messageDelta)
+        if (event.type === 'message.appended' && event.data?.messageDelta) {
+          appendAgentText(event.data.messageDelta)
         }
-        else if (event.type === 'message.completed' && event.message?.content) {
-          setAgentText(event.message.content)
+        else if (event.type === 'message.completed' && event.data?.message) {
+          setAgentText(event.data.message)
         }
-        else if (event.type === 'tool.result' && event.result) {
-          appendAgentText(`\n\n[tool result] ${JSON.stringify(event.result)}`)
+        else if (event.type === 'tool.result' && event.data?.result) {
+          appendAgentText(`\n\n[tool result] ${JSON.stringify(event.data.result)}`)
         }
       }
       catch {
