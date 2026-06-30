@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref as deepRef } from 'vue'
-
 interface Message {
   role: 'user' | 'agent'
   text: string
@@ -10,7 +8,7 @@ const { t } = useI18n()
 const authStore = useAuthStore()
 
 const input = shallowRef('')
-const messages = deepRef<Message[]>([])
+const messages = shallowRef<Message[]>([])
 const loading = shallowRef(false)
 const errorMsg = shallowRef('')
 
@@ -22,22 +20,26 @@ function getAccessToken(): string {
 }
 
 function appendAgentText(delta: string) {
-  const last = messages.value[messages.value.length - 1]
+  const list = messages.value
+  const last = list[list.length - 1]
   if (last && last.role === 'agent') {
     last.text += delta
+    messages.value = [...list]
   }
   else {
-    messages.value.push({ role: 'agent', text: delta })
+    messages.value = [...list, { role: 'agent', text: delta }]
   }
 }
 
 function setAgentText(text: string) {
-  const last = messages.value[messages.value.length - 1]
+  const list = messages.value
+  const last = list[list.length - 1]
   if (last && last.role === 'agent') {
     last.text = text
+    messages.value = [...list]
   }
   else {
-    messages.value.push({ role: 'agent', text })
+    messages.value = [...list, { role: 'agent', text }]
   }
 }
 
@@ -88,7 +90,7 @@ async function send() {
   const text = input.value.trim()
   if (!text || loading.value) return
 
-  messages.value.push({ role: 'user', text })
+  messages.value = [...messages.value, { role: 'user', text }]
   input.value = ''
   loading.value = true
   errorMsg.value = ''
