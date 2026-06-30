@@ -8,7 +8,9 @@ import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(__dirname, '..')
-const SOURCE_DIR = join(ROOT, '.agents', 'skills', 'weila-work-cli')
+const SKILL_NAME = 'weila-work-cli'
+const SOURCE_DIR = join(ROOT, 'packages', 'cli', 'skills', SKILL_NAME)
+const LOCAL_AGENT_DIR = join(ROOT, '.agents', 'skills', SKILL_NAME)
 const CLI_PACKAGE_JSON = join(ROOT, 'packages', 'cli', 'package.json')
 
 const args = process.argv.slice(2)
@@ -17,8 +19,7 @@ const positional = args.filter(a => !a.startsWith('--'))
 
 const TARGET_REPO = positional[0] || 'skills-weila-work-cli'
 const TARGET_ROOT = resolve(positional[1] || join(ROOT, '..', TARGET_REPO))
-const SKILL_NAME = 'weila-work-cli'
-const SKILL_DIR = join(TARGET_ROOT, 'skills', SKILL_NAME)
+const TARGET_SKILL_DIR = join(TARGET_ROOT, 'skills', SKILL_NAME)
 
 function run(cmd, cwd, opts = {}) {
   return execSync(cmd, { cwd, stdio: 'inherit', ...opts })
@@ -31,19 +32,24 @@ function readJson(path) {
 async function syncSkillVersion(skillMdPath, version) {
   let content = await readFile(skillMdPath, 'utf8')
 
-  // Update metadata.version in YAML frontmatter
   content = content.replace(
     /^(metadata:\n(?:[\s\S]*?\n))?  version: "[^"]+"/m,
     (match, metadataBlock) => metadataBlock ? `${metadataBlock}  version: "${version}"` : `metadata:\n  version: "${version}"`,
   )
 
-  // Update the version hint line below frontmatter
   content = content.replace(
     /The skill is based on `weila-work-cli` v[\d.]+/,
     `The skill is based on \`weila-work-cli\` v${version}`,
   )
 
   await writeFile(skillMdPath, content, 'utf8')
+}
+
+async function mirror(source, dest) {
+  if (existsSync(dest))
+    await rm(dest, { recursive: true, force: true })
+  await mkdir(dirname(dest), { recursive: true })
+  await cp(source, dest, { recursive: true, preserveTimestamps: true })
 }
 
 async function sync() {
@@ -55,25 +61,23 @@ async function sync() {
   const sourceSkillMd = join(SOURCE_DIR, 'SKILL.md')
   await syncSkillVersion(sourceSkillMd, cliVersion)
 
-  const isGitRepo = existsSync(join(TARGET_ROOT, '.git'))
+  // 1. Mirror to local agent directory so the current agent loads the latest skill
+  await mirror(SOURCE_DIR, LOCAL_AGENT_DIR)
+  console.log(`Synced skill to local agent: ${LOCAL_AGENT_DIR}`)
 
+  // 2. Mirror to the standalone skill repo
+  const isGitRepo = existsSync(join(TARGET_ROOT, '.git'))
   if (!isGitRepo) {
     await mkdir(TARGET_ROOT, { recursive: true })
     run('git init', TARGET_ROOT)
   }
 
-  // Remove existing skill files but keep .git, README, and other repo-level files
-  const skillBase = join(TARGET_ROOT, 'skills')
-  if (existsSync(skillBase))
-    await rm(skillBase, { recursive: true, force: true })
-
-  await mkdir(SKILL_DIR, { recursive: true })
-  await cp(SOURCE_DIR, SKILL_DIR, { recursive: true, preserveTimestamps: true })
+  await mirror(SOURCE_DIR, TARGET_SKILL_DIR)
 
   // Generate a root README if none exists
   const readmePath = join(TARGET_ROOT, 'README.md')
   if (!existsSync(readmePath)) {
-    const skillMd = await readFile(join(SKILL_DIR, 'SKILL.md'), 'utf8').catch(() => '')
+    const skillMd = await readFile(join(TARGET_SKILL_DIR, 'SKILL.md'), 'utf8').catch(() => '')
     const nameMatch = skillMd.match(/^name:\s*(.+)$/m)
     const descriptionMatch = skillMd.match(/^description:\s*(.+)$/m)
     const name = nameMatch?.[1].trim() || SKILL_NAME
@@ -81,11 +85,11 @@ async function sync() {
 
     await writeFile(
       readmePath,
-      `# ${name}\n\n${description}\n\nThis repository is auto-synced from \`weila-work/.agents/skills/${SKILL_NAME}\`.\n\n## Install\n\n\`\`\`bash\nnpx skills add kvoon9/${TARGET_REPO}\n\`\`\`\n`,
+      `# ${name}\n\n${description}\n\nThis repository is auto-synced from \`weila-work/packages/cli/skills/${SKILL_NAME}\`.\n\n## Install\n\n\`\`\`bash\nnpx skills add kvoon9/${TARGET_REPO}\n\`\`\`\n`,
     )
   }
 
-  // Commit
+  // Commit in the standalone repo
   try {
     run('git add -A', TARGET_ROOT, { stdio: 'pipe' })
     const status = execSync('git status --porcelain', { cwd: TARGET_ROOT, encoding: 'utf8' })
@@ -101,7 +105,7 @@ async function sync() {
     console.warn('Git commit skipped:', err.message)
   }
 
-  console.log(`\nSynced skill to: ${SKILL_DIR}`)
+  console.log(`Synced skill to standalone repo: ${TARGET_SKILL_DIR}`)
 
   if (shouldPush) {
     const remoteExists = execSync('git remote', { cwd: TARGET_ROOT, encoding: 'utf8' }).trim()

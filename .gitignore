@@ -18,3 +18,5 @@ pkg
 # VitePress
 /docs/.vitepress/dist
 /docs/.vitepress/cache
+# Auto-synced agent skills (source lives in packages/cli/skills)
+/.agents/skills/weila-work-cli
