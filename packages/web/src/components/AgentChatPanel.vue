@@ -16,7 +16,6 @@ const agentHost = (typeof window !== 'undefined' && window.electronAPI?.agentHos
 const baseUrl = agentHost.replace(/\/$/, '')
 
 function getAccessToken(): string {
-  // 浏览器环境优先使用 Pinia auth store（localStorage token）
   return authStore.token || ((typeof window !== 'undefined' && window.electronAPI?.token) || '')
 }
 
@@ -121,8 +120,15 @@ async function send() {
 </script>
 
 <template>
-  <div class="h-full flex flex-col p4">
-    <div class="flex-1 overflow-auto space-y-3">
+  <div class="h-full flex flex-col bg-white dark:bg-neutral-900 border-l border-neutral-200 dark:border-neutral-700">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-700">
+      <div class="flex items-center gap-2">
+        <i class="i-carbon-bot text-lg text-primary-600 dark:text-primary-400" />
+        <span class="font-semibold">{{ t('agent.title') }}</span>
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-auto space-y-3 p-4">
       <div
         v-for="(msg, idx) in messages" :key="idx"
         :class="msg.role === 'user' ? 'text-right' : 'text-left'"
@@ -141,7 +147,7 @@ async function send() {
       </div>
     </div>
 
-    <div class="mt-4 flex gap-2">
+    <div class="p-3 border-t border-neutral-200 dark:border-neutral-700 flex gap-2">
       <a-textarea
         v-model="input"
         :placeholder="t('agent.input-placeholder')"

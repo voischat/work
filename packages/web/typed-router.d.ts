@@ -19,7 +19,6 @@ declare module 'vue-router/auto-routes' {
    */
   export interface RouteNamedMap {
     '/[...catch]': RouteRecordInfo<'/[...catch]', '/:catch(.*)', { catch: ParamValue<true> }, { catch: ParamValue<false> }>,
-    '/agent/': RouteRecordInfo<'/agent/', '/agent', Record<never, never>, Record<never, never>>,
     '/contact': RouteRecordInfo<'/contact', '/contact', Record<never, never>, Record<never, never>, '/contact/dept' | '/contact/dept-[dept_id]-[dept_name]' | '/contact/group' | '/contact/group-[group_id]-[group_name]' | '/contact/legal' | '/contact/member-[[dept_id]]-[[dept_name]]' | '/contact/org'>,
     '/contact/dept': RouteRecordInfo<'/contact/dept', '/contact/dept', Record<never, never>, Record<never, never>>,
     '/contact/dept-[dept_id]-[dept_name]': RouteRecordInfo<'/contact/dept-[dept_id]-[dept_name]', '/contact/dept-:dept_id-:dept_name', { dept_id: ParamValue<true>, dept_name: ParamValue<true> }, { dept_id: ParamValue<false>, dept_name: ParamValue<false> }>,
@@ -66,10 +65,6 @@ declare module 'vue-router/auto-routes' {
   export interface _RouteFileInfoMap {
     'src/pages/[...catch].vue': {
       routes: '/[...catch]'
-      views: never
-    }
-    'src/pages/agent/index.vue': {
-      routes: '/agent/'
       views: never
     }
     'src/pages/contact.vue': {

@@ -2,6 +2,7 @@
 import { shallowRef } from 'vue'
 
 const sidebarCollapsed = shallowRef(false)
+const agentCollapsed = shallowRef(false)
 </script>
 
 <template>
@@ -19,6 +20,24 @@ const sidebarCollapsed = shallowRef(false)
       <div flex-1 of-auto>
         <router-view />
       </div>
+      <!-- Agent Chat Panel -->
+      <div
+        :class="agentCollapsed ? 'w-0 border-l-0 opacity-0' : 'w-[360px] border-l border-neutral-200 opacity-100'"
+        class="transition-all duration-300 overflow-hidden shrink-0 h-full"
+      >
+        <AgentChatPanel />
+      </div>
+      <a-button
+        :class="agentCollapsed ? 'right-0' : 'right-[359px]'"
+        class="agent-toggle absolute top-1/2 -translate-y-1/2 z-50 transition-all duration-300"
+        size="small"
+        @click="agentCollapsed = !agentCollapsed"
+      >
+        <template #icon>
+          <icon-right v-if="agentCollapsed" />
+          <icon-left v-else />
+        </template>
+      </a-button>
       <a-button
         :class="sidebarCollapsed ? 'left-0' : 'left-[199px]'"
         class="sidebar-toggle absolute top-1/2 -translate-y-1/2 z-50 transition-all duration-300"
@@ -35,7 +54,8 @@ const sidebarCollapsed = shallowRef(false)
 </template>
 
 <style scoped>
-.sidebar-toggle {
+.sidebar-toggle,
+.agent-toggle {
   width: 24px;
   height: 32px;
   padding: 0;
@@ -44,5 +64,16 @@ const sidebarCollapsed = shallowRef(false)
   border-radius: 0 16px 16px 0;
   background: var(--color-bg-2);
   box-shadow: none;
+}
+
+.agent-toggle {
+  border-left: 1px solid var(--color-border-3);
+  border-right: 0;
+  border-radius: 16px 0 0 16px;
+}
+
+.agent-toggle:has(> span > .icon-left),
+.agent-toggle:has(> span > [class*="icon-left"]) {
+  border-radius: 16px 0 0 16px;
 }
 </style>
