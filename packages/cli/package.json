@@ -1,33 +1,47 @@
 {
   "name": "weila-work-cli",
   "type": "module",
-  "version": "0.0.1",
-  "private": true,
+  "version": "0.0.2",
   "description": "CLI for Weila Work management APIs",
   "author": "kvoon",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kvoon9/weila-work.git",
+    "directory": "packages/cli"
+  },
   "bin": {
-    "weila-work-cli": "./dist/cli.mjs"
+    "weila-work-cli": "dist/cli.mjs"
   },
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
     "typecheck": "tsc --noEmit",
-    "start": "node ./dist/cli.mjs"
+    "start": "node ./dist/cli.mjs",
+    "prepublishOnly": "pnpm run build",
+    "bump": "bumpp",
+    "sync:skills": "node ../../scripts/sync-skills-to-repo.mjs",
+    "publish:skills": "node ../../scripts/sync-skills-to-repo.mjs --push"
   },
   "dependencies": {
-    "@wl/network": "link:~/i/wl-network",
     "cac": "^6.7.14",
     "md5": "^2.3.0",
-    "ofetch": "catalog:",
     "unstorage": "^1.17.3"
   },
   "devDependencies": {
     "@types/md5": "catalog:",
     "@types/node": "catalog:",
+    "@wl/network": "link:~/i/wl-network",
+    "bumpp": "^11.1.0",
     "tsdown": "^0.16.7",
     "typescript": "catalog:"
   }

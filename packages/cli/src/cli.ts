@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { cac } from 'cac'
 import pkg from '../package.json' with { type: 'json' }
 import { registerAddressCommands } from './commands/address.js'
