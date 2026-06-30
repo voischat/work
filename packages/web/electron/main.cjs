@@ -16,7 +16,6 @@ const AGENT_DIR_PACKAGED = path.resolve(process.resourcesPath, 'agent')
 app.commandLine.appendSwitch('ignore-certificate-errors')
 
 let agentChild = null
-let agentStartedByElectron = false
 
 function log(...args) {
   console.log('[electron]', ...args)
@@ -46,17 +45,11 @@ async function startAgent() {
   }
 
   log('starting agent server...')
-  agentStartedByElectron = true
 
   const agentDir = isDev ? AGENT_DIR : AGENT_DIR_PACKAGED
-  const env = {
-    ...process.env,
-    DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY || '',
-    WEILA_AGENT_HOST: AGENT_HOST,
-  }
-
-  if (!isDev) {
-    // 生产环境优先读取内嵌 agent 目录下的 .env 文件
+  // 读取 agent 目录下的 .env（dev + prod 都读）
+  const env = { ...process.env, WEILA_AGENT_HOST: AGENT_HOST }
+  ;(function loadDotEnv() {
     try {
       const fs = require('node:fs')
       const envPath = path.join(agentDir, '.env')
@@ -67,15 +60,12 @@ async function startAgent() {
         const idx = trimmed.indexOf('=')
         if (idx === -1) continue
         const key = trimmed.slice(0, idx).trim()
-        const value = trimmed.slice(idx + 1).trim()
-        if (env[key] === undefined || env[key] === '')
-          env[key] = value
+        if (env[key]) continue
+        env[key] = trimmed.slice(idx + 1).trim()
       }
     }
-    catch {
-      // ignore missing .env
-    }
-  }
+    catch { /* no .env */ }
+  })()
 
   if (isDev) {
     // 开发环境使用 pnpm
@@ -107,7 +97,6 @@ async function startAgent() {
   agentChild.on('exit', (code) => {
     log(`agent exited with code ${code}`)
     agentChild = null
-    agentStartedByElectron = false
   })
 
   const ready = await waitForAgent(AGENT_HOST, 30000)
@@ -142,7 +131,6 @@ const createWindow = () => {
       contextIsolation: true,
       webSecurity: false,
       preload: path.join(__dirname, 'preload.js'),
-      additionalArguments: [`--agent-started-by-electron=${agentStartedByElectron}`],
     },
   })
 

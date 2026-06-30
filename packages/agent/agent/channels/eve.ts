@@ -4,10 +4,9 @@ import { eveChannel } from 'eve/channels/eve'
 export default eveChannel({
   cors: true,
   auth: [localDev(), none()],
-  onMessage(ctx, message) {
+  onMessage(ctx, _message) {
     const request = ctx.eve.request
-    const token = request.headers.get('x-weila-token')
-      || (typeof message === 'string' ? undefined : undefined)
+    const token = request.headers.get('x-weila-token') ?? undefined
 
     const caller = ctx.eve.caller
     return {

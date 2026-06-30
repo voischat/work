@@ -16,7 +16,8 @@ const agentHost = (typeof window !== 'undefined' && window.electronAPI?.agentHos
 const baseUrl = agentHost.replace(/\/$/, '')
 
 function getAccessToken(): string {
-  return authStore.token || ((typeof window !== 'undefined' && window.electronAPI?.token) || '')
+  // token 来自 web 登录会话；agent 端会用它作为 CLI --token 调用
+  return authStore.token
 }
 
 function appendAgentText(delta: string) {

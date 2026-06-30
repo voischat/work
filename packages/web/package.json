@@ -28,8 +28,8 @@
     "release": "npx bumpp && esno scripts/release.ts",
     "pack": "nr release && nr build && nr archive",
     "electron": "electron electron/main.cjs",
-    "electron:build": "node scripts/prepare-agent.cjs && vite build && electron-builder",
-    "electron:build:dir": "node scripts/prepare-agent.cjs && vite build && electron-builder --dir"
+    "electron:build": "node scripts/prepare-agent.cjs && vite build && node scripts/fix-electron-build.cjs && electron-builder",
+    "electron:build:dir": "node scripts/prepare-agent.cjs && vite build && node scripts/fix-electron-build.cjs && electron-builder --dir"
   },
   "dependencies": {
     "@antfu/utils": "catalog:",
@@ -106,7 +106,6 @@
     "dotenv": "catalog:",
     "electron": "^42.5.0",
     "electron-builder": "^25.1.8",
-    "electron-forge": "^5.2.4",
     "eslint": "catalog:",
     "eslint-plugin-format": "catalog:",
     "esno": "catalog:",
