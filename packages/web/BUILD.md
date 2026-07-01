@@ -67,7 +67,7 @@ pnpm --filter weila-work-web run electron
 
 ### 1. `node scripts/prepare-agent.cjs` —— 产出 `packages/agent-deploy/`
 
-1. `eve build`（在 `packages/agent`）→ 产出 `.output`（纯 JS server，生产直接跑它）；校验 `.output/server/index.mjs` 存在。
+1. **强制干净重建 agent**：先删 `packages/agent` 的 `.output`、`.eve`、`node_modules/.cache/eve`，再 `eve build` → 产出 `.output`（纯 JS server，生产直接跑它）；校验 `.output/server/index.mjs` 存在。清缓存是为了杜绝 eve 增量缓存把旧编译产物打进包（见问题定位 #8）。
 2. **`pnpm run build`（在 `packages/cli`）→ 产出 `dist/cli.mjs`**。`weila-work-cli` 是 agent 的 workspace 依赖，`pnpm deploy` 只拷贝它的 `files: ["dist"]`；不先构建则打包后的 CLI 只有 `package.json`/`README`，运行期 agent 调用会失败（见问题定位 #2）。
 3. **清理 pnpm deploy 的伪嵌套残留**（`packages/agent/packages`、`agent-deploy/agent-deploy`、`agent-deploy/packages`），deploy 前后各清一次，保证幂等（见问题定位 #1）。
 4. `pnpm --filter weila-work-agent deploy --legacy --prod agent-deploy` → 拷贝运行期依赖。
@@ -168,3 +168,12 @@ pnpm rebuild electron      # 触发下载 dist
 ### 7. electron 二进制下载慢 / 被墙
 
 `electron-builder.yml` 的 `electronDownload.mirror` 已指向 `cdn.npmmirror.com`。若仍失败，检查网络或临时换镜像。
+
+### 8. 改了 agent 源码、跑了 `electron:build`，打包后 agent 还是旧的
+
+eve 有增量编译缓存（`packages/agent/node_modules/.cache/eve`、`.eve`）。个别情况下缓存未完全失效，`eve build` 会复用旧编译产物 → 打进包的还是旧 agent。
+`prepare-agent.cjs` 已在每次 `eve build` 前清掉 `.output` / `.eve` / `node_modules/.cache/eve`，强制从零编译。若手动跑 `eve build` 遇到同样问题，先清一遍：
+
+```bash
+rm -rf packages/agent/.output packages/agent/.eve packages/agent/node_modules/.cache/eve
+```

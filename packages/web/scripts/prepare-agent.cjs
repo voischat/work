@@ -20,6 +20,18 @@ fs.rmSync(deployDir, { recursive: true, force: true })
 // --- 先构建预构建 agent server（.output）---
 // 必须在 pnpm deploy 之前构建：deploy 会生成 agent-deploy（同名 weila-work-agent 包），
 // 若此时构建会与 packages/agent 形成 workspace 同名包冲突。
+//
+// 强制干净重建：先清掉旧产物与 eve 的增量编译缓存，再 eve build。
+// 否则改了 agent 源码后打包，可能因 eve 缓存（node_modules/.cache/eve）没完全失效
+// 而把旧编译产物打进包 —— 表现为“跑了 electron:build，agent 还是旧的”。
+console.log('[prepare-agent] cleaning agent build caches for a fresh rebuild...')
+for (const p of [
+  path.join(agentDir, '.output'),
+  path.join(agentDir, '.eve'),
+  path.join(agentDir, 'node_modules', '.cache', 'eve'),
+]) {
+  fs.rmSync(p, { recursive: true, force: true })
+}
 console.log('[prepare-agent] building agent (.output)...')
 execSync('pnpm run build', { cwd: agentDir, stdio: 'inherit' })
 const outputSrc = path.join(agentDir, '.output')
