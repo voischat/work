@@ -1,6 +1,7 @@
 const { app, BrowserWindow, protocol, net, session, ipcMain } = require('electron')
 const { spawn } = require('node:child_process')
 const path = require('node:path')
+const fs = require('node:fs')
 const { pathToFileURL } = require('node:url')
 
 const isDev = !app.isPackaged
@@ -16,10 +17,40 @@ const AGENT_DIR_PACKAGED = path.resolve(process.resourcesPath, 'agent')
 // 开发环境下 Vite 使用自签名 mkcert 证书，Electron 默认不信任，先忽略证书错误
 app.commandLine.appendSwitch('ignore-certificate-errors')
 
+// debug: 生产环境写入文件日志（双击启动时看不到控制台）
+// 为避免时序问题（app.getPath 需要 ready 后才能用），先缓存到数组，
+// ready 后一次性初始化文件流并回写缓冲。
+let logInit = null           // {stream, path} 或 null
+const logBuf = []            // ready 前的消息暂存
+
+function flushLogBuf() {
+  if (!logBuf.length || !logInit) return
+  for (const msg of logBuf.splice(0))
+    logInit.stream.write(msg + '\n')
+}
+
+function initFileLog() {
+  if (logInit || isDev) return
+  const logPath = path.join(app.getPath('userData'), 'electron-debug.log')
+  const stream = fs.createWriteStream(logPath, { flags: 'a' })
+  logInit = { stream, path: logPath }
+  console.log(`[electron] debug log → ${logPath}`)
+  flushLogBuf()
+}
+
+function log(...args) {
+  const msg = `[${new Date().toISOString()}] ${args.join(' ')}`
+  console.log(msg)
+  if (logInit) {
+    logInit.stream.write(msg + '\n')
+  } else if (!isDev) {
+    logBuf.push(msg)
+  }
+}
+
 // 注册自定义特权协议 weila-app://，标记为 secure origin，
 // 这样打包后渲染进程通过该协议加载时 getUserMedia 就能正常调用。
 // file:// 不被 Chromium 视为 secure origin，会导致媒体 API 直接失败。
-// debug: 标记 weila-app:// 协议注册完成位置（必须在 ready 之前）
 log('registering privileged scheme: weila-app')
 protocol.registerSchemesAsPrivileged([
   {
@@ -57,9 +88,7 @@ function reportAgentFailure(reason) {
   }
 }
 
-function log(...args) {
-  console.log('[electron]', ...args)
-}
+
 
 // 打包后渲染进程通过 weila-app:// 加载，Chromium 默认会拒绝麦克风等设备权限，
 // 导致 AI 助手语音输入（getUserMedia）报 NotAllowedError。这里显式放行
@@ -280,6 +309,7 @@ const createWindow = () => {
 }
 
 app.whenReady().then(async () => {
+  initFileLog()
   log('app ready, setting up...')
   const distDir = path.join(__dirname, '../dist')
   log(`distDir resolved: ${distDir}`)
