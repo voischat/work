@@ -616,7 +616,7 @@ workbench:
 web-guide: Web Guide
 agent:
   title: AI Assistant
-  input-placeholder: Ask something, e.g. query my org, or search Vue watch usage
+  input-placeholder: Message the AI assistant…
   send: Send
   no-reply: (no reply)
   request-failed: Request failed. Please check whether the Agent server is running

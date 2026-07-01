@@ -597,7 +597,7 @@ workbench:
 web-guide: 管理台用户手册
 agent:
   title: AI 助手
-  input-placeholder: 输入问题，例如：查询我的企业、搜索 Vue watch 用法
+  input-placeholder: 输入消息，与 AI 助手对话…
   send: 发送
   no-reply: （无回复）
   request-failed: 请求失败，请检查 Agent 服务是否已启动

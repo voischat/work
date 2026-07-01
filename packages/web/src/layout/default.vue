@@ -2,7 +2,7 @@
 import { shallowRef } from 'vue'
 
 const sidebarCollapsed = shallowRef(false)
-const agentCollapsed = shallowRef(false)
+const agentCollapsed = shallowRef(true)
 </script>
 
 <template>
@@ -34,8 +34,8 @@ const agentCollapsed = shallowRef(false)
         @click="agentCollapsed = !agentCollapsed"
       >
         <template #icon>
-          <icon-right v-if="agentCollapsed" />
-          <icon-left v-else />
+          <icon-left v-if="agentCollapsed" />
+          <icon-right v-else />
         </template>
       </a-button>
       <a-button
