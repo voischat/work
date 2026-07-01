@@ -51,10 +51,10 @@ pnpm install
 ## 构建命令
 
 ```bash
-# 完整打包（按 electron-builder.yml：win=x64 dir、mac=arm64 dir）
+# 完整打包（按 electron-builder.yml：win=x64 NSIS 安装包、mac=arm64 dir）
 pnpm --filter weila-work-web run electron:build
 
-# 只打 unpacked 目录（--dir，最快，适合本地验证，不生成安装器）
+# 只打 unpacked 目录（--dir，最快，适合本地验证，不生成安装包）
 pnpm --filter weila-work-web run electron:build:dir
 
 # 开发态直接跑（连 vite dev server + pnpm run dev 拉起 agent）
@@ -72,8 +72,12 @@ pnpm --filter weila-work-web run electron
 3. **清理 pnpm deploy 的伪嵌套残留**（`packages/agent/packages`、`agent-deploy/agent-deploy`、`agent-deploy/packages`），deploy 前后各清一次，保证幂等（见问题定位 #1）。
 4. `pnpm --filter weila-work-agent deploy --legacy --prod agent-deploy` → 拷贝运行期依赖。
 5. 把 `.output` 拷进 `agent-deploy/.output`。
-6. 裁掉仅构建期 / 原生件，并体检：无任何 `.node`（打印「产物体检通过」）。
-7. 写 `agent-deploy/.env`（取 `packages/agent/.env`，否则写 `DEEPSEEK_API_KEY=<env 或空>`）。
+6. 裁掉仅构建期 / 原生件。
+7. **解引用软链接（自包含）**：把 `agent-deploy/node_modules` 里的 pnpm 软链接全部换成真实文件。pnpm deploy 生成的是**指向源 agent-deploy 的绝对软链接**，electron-builder 会原样搬运；不解引用则产物不自包含，压缩/解压或拷到别的机器后 Node 找不到 `unstorage` 等依赖（见问题定位 #9）。完成后体检：0 软链接 + `unstorage` 存在，否则报错中断。
+8. 体检：无任何 `.node`（打印「产物体检通过」）。
+9. 写 `agent-deploy/.env`（取 `packages/agent/.env`，否则写 `DEEPSEEK_API_KEY=<env 或空>`）。
+
+> 副作用：解引用让 `agent-deploy/node_modules` 由 ~90MB 膨胀到 ~370MB（真实文件展开），NSIS 会压缩，最终 `Setup.exe` ~170MB。
 
 ### 2. `vite build` —— 产出 `dist/`
 
@@ -86,11 +90,16 @@ pnpm --filter weila-work-web run electron
 ### 4. `electron-builder`（读 `electron-builder.yml`）
 
 - 从 `cdn.npmmirror.com` 下载对应平台 electron 二进制（首次约 148MB）。
-- `extraResources` 把 `agent-deploy` 拷进 `resources/agent`（含 `.output/**`、`node_modules/**`、`.env*` 等）。
-- 无自签名证书时跳过签名（`dir` 目标正常现象）。
-- 未配置图标时用 electron 默认图标（`dir` 验证阶段可忽略）。
+- Windows 目标为 **`nsis`**，产出安装包；NSIS 工具链首次会从 GitHub（electron-builder-binaries）下载。
+- `extraResources` 把 `agent-deploy` 拷进 `resources/agent`（含 `.output/**`、`node_modules/**`、`.env*` 等）。因为第 1 步已解引用，这里搬进去的是真实文件、无软链接。
+- 无自签名证书时跳过签名（正常现象）。
+- 未配置图标时用 electron 默认图标（验证阶段可忽略）。
 
-**产物**：`release/<version>/`（`win-unpacked/`、`mac-arm64/`）。`<version>` 取 `packages/web/package.json` 的 `version`（当前 `3.1.1`）。Windows 可执行文件为 `release/<version>/win-unpacked/微喇企业管理台.exe`。
+**产物**：
+- Windows：`release/<version>/WeilaWork-<version>-win-x64-setup.exe`（NSIS 安装包，分享用这个）+ 中间 `release/<version>/win-unpacked/`。
+- mac：`release/<version>/mac-arm64/`（仍是 dir 目标）。
+
+`<version>` 取 `packages/web/package.json` 的 `version`（当前 `3.1.1`）。
 
 ## 运行期架构（`electron/main.cjs`）
 
@@ -177,3 +186,14 @@ eve 有增量编译缓存（`packages/agent/node_modules/.cache/eve`、`.eve`）
 ```bash
 rm -rf packages/agent/.output packages/agent/.eve packages/agent/node_modules/.cache/eve
 ```
+
+### 9. 压缩/拷贝/换机器后运行报 `Cannot find package 'unstorage'`（所有 weila_cli 命令失败）
+
+根因：`pnpm deploy` 生成的 `agent-deploy/node_modules` 是 pnpm 软链接结构，且是**指向构建机源目录的绝对软链接**；electron-builder 原样搬进 `resources/agent`。产物在**构建机本机**能跑（软链接目标还在），但一旦 zip 压缩/解压（软链接失效）或拷到别的机器，Node 就找不到 `unstorage` 等 CLI 运行期依赖。
+`prepare-agent.cjs` 已在打包前把 `agent-deploy/node_modules` **解引用成真实文件**（见流水线第 1 步第 7 项），并体检 0 软链接 + `unstorage` 就位。核对随包产物应无软链接：
+
+```bash
+find release/<version>/win-unpacked/resources/agent -type l | wc -l   # 应为 0
+```
+
+> 因此分享请直接发 NSIS 安装包 `WeilaWork-<version>-win-x64-setup.exe`；不要再手动 zip `win-unpacked`（历史上 zip 会破坏软链接，现已解引用不受影响，但安装包才是正规分发方式）。

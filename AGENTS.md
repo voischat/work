@@ -33,13 +33,13 @@ Vue 3 + TS monorepo (pnpm workspaces). Enterprise comms: contacts, messaging, de
 Desktop build (embeds the eve agent). Full guide + troubleshooting: `packages/web/BUILD.md`.
 
 ```bash
-# Unpacked dir build, fastest for local verification (win=x64 / mac=arm64 per electron-builder.yml)
+# Unpacked dir build, fastest for local verification
 pnpm --filter weila-work-web run electron:build:dir
-# Full build
+# Full build (win = NSIS installer, mac = arm64 dir)
 pnpm --filter weila-work-web run electron:build
 ```
 
-Pipeline: `scripts/prepare-agent.cjs` (eve build → build weila-work-cli → clean pnpm-deploy leftovers → deploy → prune native) → `vite build` → `scripts/fix-electron-build.cjs` → `electron-builder`. Output in `packages/web/release/<version>/`.
+Pipeline: `scripts/prepare-agent.cjs` (clean eve caches → eve build → build weila-work-cli → clean pnpm-deploy leftovers → deploy → prune native → **dereference symlinks so node_modules is self-contained**) → `vite build` → `scripts/fix-electron-build.cjs` → `electron-builder`. Windows output is a self-contained NSIS installer `packages/web/release/<version>/WeilaWork-<version>-win-x64-setup.exe` — share that, not a hand-made zip of `win-unpacked` (pnpm symlinks break outside the build machine).
 
 ## CLI Release Flow
 
