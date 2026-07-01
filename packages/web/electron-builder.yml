@@ -36,6 +36,16 @@ mac:
         - arm64
 win:
   target:
-    - target: dir
+    - target: nsis
       arch:
         - x64
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: 微喇企业管理台
+  uninstallDisplayName: 微喇企业管理台
+  artifactName: WeilaWork-${version}-win-${arch}-setup.${ext}
