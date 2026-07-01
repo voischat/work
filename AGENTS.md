@@ -28,6 +28,19 @@ Vue 3 + TS monorepo (pnpm workspaces). Enterprise comms: contacts, messaging, de
 | `pnpm test` | Vitest |
 | `pnpm release` | Bump version + release |
 
+## Electron Packaging
+
+Desktop build (embeds the eve agent). Full guide + troubleshooting: `packages/web/BUILD.md`.
+
+```bash
+# Unpacked dir build, fastest for local verification (win=x64 / mac=arm64 per electron-builder.yml)
+pnpm --filter weila-work-web run electron:build:dir
+# Full build
+pnpm --filter weila-work-web run electron:build
+```
+
+Pipeline: `scripts/prepare-agent.cjs` (eve build → build weila-work-cli → clean pnpm-deploy leftovers → deploy → prune native) → `vite build` → `scripts/fix-electron-build.cjs` → `electron-builder`. Output in `packages/web/release/<version>/`.
+
 ## CLI Release Flow
 
 `packages/cli` publishes `weila-work-cli` to npm and keeps the agent skill in sync.
