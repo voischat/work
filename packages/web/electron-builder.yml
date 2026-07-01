@@ -19,13 +19,9 @@ extraResources:
   - from: ../agent-deploy
     to: agent
     filter:
-      - "agent/**"
       - ".output/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - ".env*"
-      - "tsconfig.json"
       - "node_modules/**"
+      - ".env*"
 extraMetadata:
   main: electron/main.cjs
 mac:
