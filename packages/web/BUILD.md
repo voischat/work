@@ -2,15 +2,21 @@
 
 内嵌 AI 助手（eve agent）的微喇企业管理台桌面版打包指南。涵盖工具链、流水线、验收，以及**问题定位**（末尾「常见问题定位」章节）。
 
-## 为什么构建机无关
+## 为什么构建机无关 / 自包含
 
-内嵌的 AI 助手（eve agent）在**生产环境运行的是预构建产物 `.output`**（由 `eve build` 产出，纯 JS、平台中立），而不是开发用的 `eve dev`。
-随包的 `node_modules` 也只保留运行期真正需要的纯 JS 依赖（`weila-work-cli` → `cac` / `md5` / `unstorage`）。
-`scripts/prepare-agent.cjs` 会裁掉一切仅构建期使用的工具链与原生件（rolldown / rollup / esbuild / lightningcss / better-sqlite3 / microsandbox / fsevents 等），并体检确保产物里**没有任何 `.node` 原生二进制**。
+生产环境运行的是两个**零外部依赖的预构建 bundle**：
 
-因此本包**在 macOS / Linux / Docker / Windows 任意平台构建，都能产出可在 Windows 运行的 agent**，不会再出现“mac 二进制被塞进 Windows 包导致 agent 起不来”的问题。
+- **agent server**：`eve build` 产出的 `.output`（nitro server bundle，`_libs` 已内联全部依赖，平台中立纯 JS），不是开发用的 `eve dev`。
+- **weila-work-cli**：tsdown `noExternal` 把 `cac`/`md5`/`unstorage`/`@wl/network` 全部打进 `dist`，运行期零外部 npm 依赖。
 
-> 背景：历史上曾在 mac 上交叉打 Windows 包，`pnpm deploy --prod` 把 darwin-arm64 原生件拷进了 Windows 包，`eve dev` 在 Windows 上加载 `*-win32-x64-msvc` 绑定失败 → agent 进程崩 → `127.0.0.1:2000` 无人监听 → 前端 `POST /eve/v1/session` 报 `ERR_CONNECTION_REFUSED`。
+因此随包的 `agent-deploy` 只需 `.output` + `node_modules/weila-work-cli`（CLI bundle）+ `.env`，**不含任何第三方依赖包、无软链接、无 `.node` 原生件**（`prepare-agent.cjs` 会体检断言）。
+
+好处：
+
+- **构建机无关**：在 macOS / Linux / Docker / Windows 任意平台构建，都能产出可在 Windows 运行的 agent，不会出现“mac 二进制被塞进 Windows 包”的问题。
+- **可分发**：产物压缩/解压/拷到别的机器都能跑，不再有“缺 unstorage/md5/… 依赖”这类问题。
+
+> 背景：历史上曾用 `pnpm deploy --prod` 拷运行期依赖，既把平台原生件带进包（`eve dev` 在 Windows 加载 `*-win32-x64-msvc` 失败 → agent 崩），又因 pnpm 软链接不自包含导致压缩/换机器后缺依赖。现在改为“两个自包含 bundle + 最小扁平组装”，从根上消除这两类问题。
 
 ## 工具链要求
 
@@ -65,19 +71,19 @@ pnpm --filter weila-work-web run electron
 
 ## 流水线拆解（`electron:build` 依次执行）
 
-### 1. `node scripts/prepare-agent.cjs` —— 产出 `packages/agent-deploy/`
+### 1. `node scripts/prepare-agent.cjs` —— 组装最小自包含 `packages/agent-deploy/`
 
-1. **强制干净重建 agent**：先删 `packages/agent` 的 `.output`、`.eve`、`node_modules/.cache/eve`，再 `eve build` → 产出 `.output`（纯 JS server，生产直接跑它）；校验 `.output/server/index.mjs` 存在。清缓存是为了杜绝 eve 增量缓存把旧编译产物打进包（见问题定位 #8）。
-2. **`pnpm run build`（在 `packages/cli`）→ 产出 `dist/cli.mjs`**。`weila-work-cli` 是 agent 的 workspace 依赖，`pnpm deploy` 只拷贝它的 `files: ["dist"]`；不先构建则打包后的 CLI 只有 `package.json`/`README`，运行期 agent 调用会失败（见问题定位 #2）。
-3. **清理 pnpm deploy 的伪嵌套残留**（`packages/agent/packages`、`agent-deploy/agent-deploy`、`agent-deploy/packages`），deploy 前后各清一次，保证幂等（见问题定位 #1）。
-4. `pnpm --filter weila-work-agent deploy --legacy --prod agent-deploy` → 拷贝运行期依赖。
-5. 把 `.output` 拷进 `agent-deploy/.output`。
-6. 裁掉仅构建期 / 原生件。
-7. **解引用软链接（自包含）**：把 `agent-deploy/node_modules` 里的 pnpm 软链接全部换成真实文件。pnpm deploy 生成的是**指向源 agent-deploy 的绝对软链接**，electron-builder 会原样搬运；不解引用则产物不自包含，压缩/解压或拷到别的机器后 Node 找不到 `unstorage` 等依赖（见问题定位 #9）。完成后体检：0 软链接 + `unstorage` 存在，否则报错中断。
-8. 体检：无任何 `.node`（打印「产物体检通过」）。
-9. 写 `agent-deploy/.env`（取 `packages/agent/.env`，否则写 `DEEPSEEK_API_KEY=<env 或空>`）。
+运行期只需两样**零外部依赖**的预构建 bundle，所以 agent-deploy 做成最小扁平结构，**不用 pnpm deploy、无软链接、无 prune、无解引用**：
 
-> 副作用：解引用让 `agent-deploy/node_modules` 由 ~90MB 膨胀到 ~370MB（真实文件展开），NSIS 会压缩，最终 `Setup.exe` ~170MB。
+1. **强制干净重建 agent**：先删 `packages/agent` 的 `.output`、`.eve`、`node_modules/.cache/eve`，再 `eve build` → 产出 `.output`（nitro server bundle，`_libs` 已内联全部依赖，自包含）；校验 `.output/server/index.mjs` 存在。清缓存是为了杜绝 eve 增量缓存把旧编译产物打进包（见问题定位 #8）。
+2. **构建自包含 CLI**：`pnpm run build`（在 `packages/cli`，tsdown `noExternal` 把 `cac`/`md5`/`unstorage`/`@wl/network` 全部打进 bundle）→ `dist/cli.mjs` **零外部 npm 依赖**（只用 Node 内置）。
+3. **组装 agent-deploy**（全真实文件）：
+   - `.output/` ← 拷 `packages/agent/.output`；
+   - `node_modules/weila-work-cli/{package.json,dist}` ← 拷 CLI 包（供运行期 `import.meta.resolve('weila-work-cli')` 定位）；
+   - `.env` ← 取 `packages/agent/.env`，否则写 `DEEPSEEK_API_KEY=<env 或空>`。
+4. **体检**：0 软链接 + 0 `.node` + `weila-work-cli/dist/cli.mjs` 就位，否则报错中断。
+
+> 因为两个 bundle 都自包含，agent-deploy 里**不含任何第三方依赖包**（`node_modules` 下只有 `weila-work-cli` 自己），产物 ~6MB、无软链接，压缩/拷贝/换机器都能跑，从根上消除“打包后缺 unstorage/md5/… 依赖”这类问题（见问题定位 #9）。
 
 ### 2. `vite build` —— 产出 `dist/`
 
@@ -91,7 +97,7 @@ pnpm --filter weila-work-web run electron
 
 - 从 `cdn.npmmirror.com` 下载对应平台 electron 二进制（首次约 148MB）。
 - Windows 目标为 **`nsis`**，产出安装包；NSIS 工具链首次会从 GitHub（electron-builder-binaries）下载。
-- `extraResources` 把 `agent-deploy` 拷进 `resources/agent`（含 `.output/**`、`node_modules/**`、`.env*` 等）。因为第 1 步已解引用，这里搬进去的是真实文件、无软链接。
+- `extraResources` 把 `agent-deploy` 拷进 `resources/agent`（`.output/**`、`node_modules/**`、`.env*`）。第 1 步已做成全真实文件、无软链接。
 - 无自签名证书时跳过签名（正常现象）。
 - 未配置图标时用 electron 默认图标（验证阶段可忽略）。
 
@@ -127,7 +133,7 @@ curl -sS http://127.0.0.1:2000/eve/v1/health
 
 # 验证随包 CLI 能在 electron 的 node 运行时里执行（agent 工具调用走的就是这条路）
 ELECTRON_RUN_AS_NODE=1 ./微喇企业管理台.exe \
-  resources/agent/node_modules/.pnpm/weila-work-cli@*/node_modules/weila-work-cli/dist/cli.mjs --help
+  resources/agent/node_modules/weila-work-cli/dist/cli.mjs --help
 ```
 
 - app 日志出现 `[electron] agent ready` 与 `[electron] loaded index.html` 即为正常；
@@ -135,22 +141,16 @@ ELECTRON_RUN_AS_NODE=1 ./微喇企业管理台.exe \
 
 ## 常见问题定位
 
-### 1. `pnpm deploy` 报 `EPERM: operation not permitted, open '...\.bin\eve'`（Windows）
+### 1. （历史）`pnpm deploy` 的 EPERM / 伪嵌套残留 / CLI dist 缺失
 
-`pnpm --filter ... deploy` 会在被过滤包目录下额外生成一份**伪嵌套副本** `packages/agent/packages/agent-deploy`。上一次打包残留的 bin shim（`eve.CMD` / `eve.ps1` …）会让本次 deploy 写 `.bin/eve` 时 EPERM 失败。
-`prepare-agent.cjs` 已在 deploy 前后清理这些伪目录。若仍复现（例如手动跑过 deploy），手动清一遍再重打：
-
-```bash
-rm -rf packages/agent/packages packages/agent-deploy
-```
+这些问题都来自早期用 `pnpm --filter weila-work-agent deploy` 拷运行期依赖的做法。现在 `prepare-agent.cjs` 已改为**组装最小自包含 agent-deploy**（不再跑 pnpm deploy），这一整类问题（`.bin/eve` EPERM、`packages/agent/packages` 伪嵌套残留、deploy 出的 CLI 只有 package.json）都不复存在。若在旧分支遇到，升级到当前 `prepare-agent.cjs` 即可。
 
 ### 2. 打包后 AI 工具调用失败 / 找不到 `weila-work-cli` 的 `dist/cli.mjs`
 
-`weila-work-cli` 的 `dist` 从未构建时，deploy 出来只有 `package.json`/`README`，运行期 `import.meta.resolve` 定位的 `dist/cli.mjs` 缺失。
-`prepare-agent.cjs` 已在 deploy 前构建 CLI。核对随包产物：
+`prepare-agent.cjs` 会构建 CLI 并把 `package.json` + `dist` 拷进 `agent-deploy/node_modules/weila-work-cli`，且体检断言 `dist/cli.mjs` 存在。核对随包产物：
 
 ```bash
-find release/<version>/win-unpacked/resources/agent/node_modules -path '*weila-work-cli*' -name 'cli.mjs'
+ls release/<version>/win-unpacked/resources/agent/node_modules/weila-work-cli/dist/cli.mjs
 ```
 
 ### 3. `pnpm` 报 corepack `Cannot find matching keyid`
@@ -187,13 +187,14 @@ eve 有增量编译缓存（`packages/agent/node_modules/.cache/eve`、`.eve`）
 rm -rf packages/agent/.output packages/agent/.eve packages/agent/node_modules/.cache/eve
 ```
 
-### 9. 压缩/拷贝/换机器后运行报 `Cannot find package 'unstorage'`（所有 weila_cli 命令失败）
+### 9. 压缩/拷贝/换机器后运行报 `Cannot find package 'unstorage'` / `'md5'` 等（所有 weila_cli 命令失败）
 
-根因：`pnpm deploy` 生成的 `agent-deploy/node_modules` 是 pnpm 软链接结构，且是**指向构建机源目录的绝对软链接**；electron-builder 原样搬进 `resources/agent`。产物在**构建机本机**能跑（软链接目标还在），但一旦 zip 压缩/解压（软链接失效）或拷到别的机器，Node 就找不到 `unstorage` 等 CLI 运行期依赖。
-`prepare-agent.cjs` 已在打包前把 `agent-deploy/node_modules` **解引用成真实文件**（见流水线第 1 步第 7 项），并体检 0 软链接 + `unstorage` 就位。核对随包产物应无软链接：
+历史根因：早期 `pnpm deploy` 出的 `agent-deploy/node_modules` 是 pnpm 软链接结构（指向构建机的绝对软链接），electron-builder 原样搬运。本机能跑，但压缩/解压（软链接失效）或换机器后 Node 找不到 CLI 的运行期依赖，且是“缺一个补一个”（unstorage→md5→…）。
+**现已根治**：`weila-work-cli` 用 tsdown `noExternal` 把所有依赖打进 `dist`（零外部 npm 依赖），`.output` 本就自包含；agent-deploy 只放这两个 bundle + `.env`，`node_modules` 下仅一个 `weila-work-cli`、无软链接、无第三方依赖。核对：
 
 ```bash
-find release/<version>/win-unpacked/resources/agent -type l | wc -l   # 应为 0
+find release/<version>/win-unpacked/resources/agent -type l | wc -l                    # 0
+ls release/<version>/win-unpacked/resources/agent/node_modules                          # 只有 weila-work-cli
 ```
 
-> 因此分享请直接发 NSIS 安装包 `WeilaWork-<version>-win-x64-setup.exe`；不要再手动 zip `win-unpacked`（历史上 zip 会破坏软链接，现已解引用不受影响，但安装包才是正规分发方式）。
+> 分享请直接发 NSIS 安装包 `WeilaWork-<version>-win-x64-setup.exe`（自包含，装到哪台机器都能跑）。

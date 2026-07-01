@@ -39,7 +39,7 @@ pnpm --filter weila-work-web run electron:build:dir
 pnpm --filter weila-work-web run electron:build
 ```
 
-Pipeline: `scripts/prepare-agent.cjs` (clean eve caches → eve build → build weila-work-cli → clean pnpm-deploy leftovers → deploy → prune native → **dereference symlinks so node_modules is self-contained**) → `vite build` → `scripts/fix-electron-build.cjs` → `electron-builder`. Windows output is a self-contained NSIS installer `packages/web/release/<version>/WeilaWork-<version>-win-x64-setup.exe` — share that, not a hand-made zip of `win-unpacked` (pnpm symlinks break outside the build machine).
+Pipeline: `scripts/prepare-agent.cjs` (clean eve caches → eve build `.output` → build self-contained `weila-work-cli` bundle via tsdown `noExternal` → assemble a minimal flat `agent-deploy` = `.output` + `node_modules/weila-work-cli` + `.env`, no pnpm deploy / no symlinks / no third-party deps) → `vite build` → `scripts/fix-electron-build.cjs` → `electron-builder`. Windows output is a self-contained NSIS installer `packages/web/release/<version>/WeilaWork-<version>-win-x64-setup.exe` — share that (runs on any machine); never a hand-made zip.
 
 ## CLI Release Flow
 
