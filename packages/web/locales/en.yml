@@ -625,6 +625,8 @@ agent:
   voice-empty: No speech recognized
   voice-failed: Voice recognition failed
   mic-denied: Microphone access denied. Please allow microphone permission
+  mic-not-found: No microphone device found. Please check your device and try again
+  mic-in-use: Microphone is in use by another app. Please close it and try again
 app-guide: App Guide
 tooltips:
   track:

@@ -138,9 +138,16 @@ export function useBaiduSpeech() {
     if (isRecording.value || isProcessing.value)
       return
 
-    mediaStream = await navigator.mediaDevices.getUserMedia({
-      audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true },
-    })
+    try {
+      mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true },
+      })
+    }
+    catch (e: any) {
+      // 保留错误名，便于区分“无设备 / 被占用 / 权限被拒”等原因
+      console.error(`[voice] getUserMedia failed name=${e?.name} message=${e?.message}`)
+      throw e
+    }
 
     const Ctor = window.AudioContext || (window as any).webkitAudioContext
     audioContext = new Ctor({ sampleRate: TARGET_SAMPLE_RATE })

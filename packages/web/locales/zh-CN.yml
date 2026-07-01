@@ -606,6 +606,8 @@ agent:
   voice-empty: 未识别到语音内容
   voice-failed: 语音识别失败
   mic-denied: 无法访问麦克风，请允许麦克风权限
+  mic-not-found: 未检测到麦克风设备，请检查设备后重试
+  mic-in-use: 麦克风被其他程序占用，请关闭后重试
 app-guide: App 用户手册
 tooltips:
   track:

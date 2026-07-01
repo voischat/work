@@ -99,6 +99,24 @@ async function startStream(sessionId: string) {
 
 const { isRecording, isProcessing: voiceProcessing, start: startVoice, stopAndRecognize } = useBaiduSpeech()
 
+// 把 getUserMedia 的错误类型映射为可读提示：
+// NotFoundError    → 没有麦克风设备
+// NotReadableError → 设备被其他程序占用/驱动异常
+// 其余（NotAllowedError/SecurityError…）→ 权限被拒
+function micErrorMessage(err: any): string {
+  switch (err?.name) {
+    case 'NotFoundError':
+    case 'DevicesNotFoundError':
+      return t('agent.mic-not-found')
+    case 'NotReadableError':
+    case 'TrackStartError':
+    case 'AbortError':
+      return t('agent.mic-in-use')
+    default:
+      return t('agent.mic-denied')
+  }
+}
+
 async function toggleVoice() {
   if (voiceProcessing.value)
     return
@@ -107,8 +125,9 @@ async function toggleVoice() {
     try {
       await startVoice()
     }
-    catch {
-      Message.error(t('agent.mic-denied'))
+    catch (err: any) {
+      console.error(`[voice] startVoice failed name=${err?.name} message=${err?.message}`)
+      Message.error(micErrorMessage(err))
     }
     return
   }
@@ -121,6 +140,7 @@ async function toggleVoice() {
       Message.warning(t('agent.voice-empty'))
   }
   catch (err: any) {
+    console.error(`[voice] stopAndRecognize failed name=${err?.name} message=${err?.message}`)
     Message.error(err?.message || t('agent.voice-failed'))
   }
 }
