@@ -94,15 +94,10 @@ function reportAgentFailure(reason) {
 // 导致 AI 助手语音输入（getUserMedia）报 NotAllowedError。这里显式放行
 // media / audioCapture 权限。本地可信首方应用，其余权限也一并放行以维持原有行为。
 function setupPermissions() {
-  log('setting up permission handlers')
   session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) => {
-    log(`permission request: ${_permission} → granting`)
     callback(true)
   })
-  session.defaultSession.setPermissionCheckHandler((_webContents, _permission, _requestingOrigin, _details) => {
-    log(`permission check: ${_permission} → granting`)
-    return true
-  })
+  session.defaultSession.setPermissionCheckHandler(() => true)
 }
 
 // 生产环境下通过自定义 weila-app:// 协议提供 dist 目录的静态文件服务。
@@ -113,9 +108,7 @@ function setupProtocol(distDir) {
     const url = new URL(request.url)
     const filePath = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname)
     const resolved = path.join(distDir, filePath)
-    const fileUrl = pathToFileURL(resolved).href
-    log(`weila-app request: ${request.url} → ${fileUrl}`)
-    return net.fetch(fileUrl)
+    return net.fetch(pathToFileURL(resolved).href)
   })
 }
 
@@ -281,30 +274,21 @@ const createWindow = () => {
 
   win.webContents.on('did-finish-load', () => {
     log(`loaded ${isDev ? DEV_SERVER_URL : 'weila-app://index.html'}`)
-    // debug: 注入后检查 window.location.origin 和 mediaDevices 存在性
-    Promise.all([
-      win.webContents.executeJavaScript('window.location.origin'),
-      win.webContents.executeJavaScript('typeof navigator.mediaDevices?.getUserMedia'),
-      win.webContents.executeJavaScript('window.isSecureContext'),
-    ]).then(([origin, gUMType, isSecure]) => {
-      log(`renderer origin: ${origin}  getUserMedia: ${gUMType}  isSecureContext: ${isSecure}`)
-    }).catch(() => {})
   })
 
   win.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
     console.error(`[electron] failed to load: ${errorCode} ${errorDescription} (${validatedURL})`)
   })
 
-  // debug: 捕获渲染进程 console 日志
-  win.webContents.on('console-message', (_event, level, message, _line, _sourceId) => {
-    const levelName = ['verbose', 'info', 'warning', 'error'][level] || level
-    console.log(`[renderer:${levelName}] ${message}`)
-  })
-
-  // debug: 响应渲染进程 getUserMedia 调试查询
-  win.webContents.on('ipc-message', (_event, channel, ...args) => {
-    if (channel === '__debug_log__')
-      console.log(`[renderer:debug] ${args.join(' ')}`)
+  // 只把渲染进程的 warning/error 级别日志写入文件日志（保留 [voice] 等错误便于排查），
+  // info/verbose 级别不落盘以免刷屏。Electron 42：details 对象含 .level/.message，
+  // 旧位置参数 level(number)/message 仍兼容保留。
+  win.webContents.on('console-message', (details, level, message) => {
+    const lvl = (details && details.level) || ['verbose', 'info', 'warning', 'error'][level] || level
+    if (lvl !== 'error' && lvl !== 'warning')
+      return
+    const text = details && typeof details.message === 'string' ? details.message : message
+    log(`[renderer:${lvl}] ${text}`)
   })
 }
 
