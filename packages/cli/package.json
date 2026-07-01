@@ -1,7 +1,7 @@
 {
   "name": "weila-work-cli",
   "type": "module",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "CLI for Weila Work management APIs",
   "author": "kvoon",
   "license": "MIT",
@@ -40,7 +40,7 @@
   "devDependencies": {
     "@types/md5": "catalog:",
     "@types/node": "catalog:",
-    "@wl/network": "link:~/i/wl-network",
+    "@wl/network": "npm:@vois/weila-network@^0.0.7",
     "bumpp": "^11.1.0",
     "tsdown": "^0.16.7",
     "typescript": "catalog:"

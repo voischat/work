@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { WL_IDbLocationShared, WL_IDbSession } from '@weilasdk/core'
-import type { BatchSessionProfileResolver } from '@weilasdk/ui'
+import type { WL_IDbLocationShared, WL_IDbSession } from '@vois/weila-sdk-core'
+import type { BatchSessionProfileResolver } from '@vois/weila-sdk-ui'
 import type { Member } from '~/types/api'
 import Message from '@arco-design/web-vue/es/message'
 import { useQuery } from '@tanstack/vue-query'
-import { isGroupSessionType, isIndividualSessionType } from '@weilasdk/core'
-import { WlChatPanel } from '@weilasdk/ui'
+import { isGroupSessionType, isIndividualSessionType } from '@vois/weila-sdk-core'
+import { WlChatPanel } from '@vois/weila-sdk-ui'
 import { computed, reactive, shallowRef, watch } from 'vue'
 import ChatLauncher from './components/ChatLauncher.vue'
 

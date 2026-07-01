@@ -16,6 +16,28 @@ const AGENT_DIR_PACKAGED = path.resolve(process.resourcesPath, 'agent')
 app.commandLine.appendSwitch('ignore-certificate-errors')
 
 let agentChild = null
+// 极简可观测：保留 agent 子进程 stderr 末尾若干行，启动失败时展示给用户
+const AGENT_LOG_MAX_LINES = 40
+let agentLogTail = []
+
+function recordAgentLog(chunk) {
+  const text = String(chunk)
+  agentLogTail.push(...text.split('\n').filter(Boolean))
+  if (agentLogTail.length > AGENT_LOG_MAX_LINES)
+    agentLogTail = agentLogTail.slice(-AGENT_LOG_MAX_LINES)
+}
+
+function reportAgentFailure(reason) {
+  const tail = agentLogTail.length ? agentLogTail.join('\n') : '(无 agent 日志输出)'
+  const message = `本地 AI 助手服务未能在 ${AGENT_HOST} 启动。\n\n原因：${reason}\n\n最近日志：\n${tail}`
+  console.error('[electron]', message)
+  try {
+    require('electron').dialog.showErrorBox('AI 助手启动失败', message)
+  }
+  catch (err) {
+    console.error('[electron] showErrorBox failed:', err)
+  }
+}
 
 function log(...args) {
   console.log('[electron]', ...args)
@@ -77,33 +99,56 @@ async function startAgent() {
     })
   }
   else {
-    // 生产环境没有 pnpm，用 Electron 自带的 Node.js 运行内嵌 agent
-    agentChild = spawn(process.execPath, [path.join(agentDir, 'node_modules/eve/bin/eve.js'), 'dev'], {
+    // 生产环境：直接运行预构建的 .output server（平台中立 JS），不再用 eve dev，
+    // 从而不依赖 eve CLI 及 rolldown/rollup/esbuild/lightningcss 等打包器原生件。
+    const agentUrl = new URL(AGENT_HOST)
+    const serverEntry = path.join(agentDir, '.output', 'server', 'index.mjs')
+    agentChild = spawn(process.execPath, [serverEntry], {
       cwd: agentDir,
-      env: { ...env, ELECTRON_RUN_AS_NODE: '1' },
+      env: {
+        ...env,
+        ELECTRON_RUN_AS_NODE: '1',
+        HOST: agentUrl.hostname,
+        PORT: agentUrl.port,
+        NITRO_HOST: agentUrl.hostname,
+        NITRO_PORT: agentUrl.port,
+      },
       stdio: 'pipe',
       detached: false,
     })
   }
 
   agentChild.stdout?.on('data', (data) => {
+    recordAgentLog(data)
     process.stdout.write(`[agent] ${data}`)
   })
 
   agentChild.stderr?.on('data', (data) => {
+    recordAgentLog(data)
     process.stderr.write(`[agent] ${data}`)
+  })
+
+  let agentReady = false
+  agentChild.on('error', (err) => {
+    recordAgentLog(`spawn error: ${err.message}`)
+    log(`agent spawn error: ${err.message}`)
   })
 
   agentChild.on('exit', (code) => {
     log(`agent exited with code ${code}`)
+    // 启动阶段就退出（尤其非 0），说明 agent 没起来，主动报错给用户
+    if (!agentReady && code !== 0)
+      reportAgentFailure(`agent 进程提前退出（code ${code}）`)
     agentChild = null
   })
 
   const ready = await waitForAgent(AGENT_HOST, 30000)
   if (!ready) {
     log('agent failed to start in time')
+    reportAgentFailure('启动超时（30s 内未通过 /eve/v1/health 健康检查）')
     return
   }
+  agentReady = true
   log('agent ready')
 }
 

@@ -20,6 +20,7 @@ extraResources:
     to: agent
     filter:
       - "agent/**"
+      - ".output/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - ".env*"

@@ -1,7 +1,7 @@
 import type { UserModule } from './types'
 import { Notification } from '@arco-design/web-vue'
-import { installWeilaAudioRuntimePatch } from '@weilasdk/core'
-import { createWeilaUi } from '@weilasdk/ui'
+import { installWeilaAudioRuntimePatch } from '@vois/weila-sdk-core'
+import { createWeilaUi } from '@vois/weila-sdk-ui'
 import * as v from 'valibot'
 import { setupLayouts } from 'virtual:generated-layouts'
 import { createWebHashHistory } from 'vue-router'
@@ -24,7 +24,7 @@ import 'viewerjs/dist/viewer.css'
 import '@unocss/reset/tailwind.css'
 import 'virtual:uno.css'
 
-import '@weilasdk/ui/index.css'
+import '@vois/weila-sdk-ui/index.css'
 
 installWeilaAudioRuntimePatch()
 

@@ -2,7 +2,7 @@
 import type { Member } from '~/types/api'
 import Message from '@arco-design/web-vue/es/message'
 import { useQuery } from '@tanstack/vue-query'
-import { WL_IDbSessionType } from '@weilasdk/core'
+import { WL_IDbSessionType } from '@vois/weila-sdk-core'
 import { shallowRef } from 'vue'
 
 import { TrackType } from '~/api/contact'

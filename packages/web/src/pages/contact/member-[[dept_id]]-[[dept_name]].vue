@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Member } from '~/types/api'
 import Message from '@arco-design/web-vue/es/message'
-import { WL_IDbSessionType } from '@weilasdk/core'
+import { WL_IDbSessionType } from '@vois/weila-sdk-core'
 import { shallowRef } from 'vue'
 
 definePage({

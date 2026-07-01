@@ -1,4 +1,4 @@
-import type { WL_ExtEventCallback, WL_IDbUserInfo } from '@weilasdk/core'
+import type { WL_ExtEventCallback, WL_IDbUserInfo } from '@vois/weila-sdk-core'
 import {
   createWeilaAudioInitController,
   initLogger,
@@ -7,7 +7,7 @@ import {
   WeilaCore,
   WL_ConfigID,
   WL_ExtEventID,
-} from '@weilasdk/core'
+} from '@vois/weila-sdk-core'
 import { defineStore } from 'pinia'
 import { shallowRef } from 'vue'
 import { useLocalCrypto } from '~/composables/useLocalCrypto'

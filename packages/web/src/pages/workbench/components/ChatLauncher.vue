@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { WeilaCore } from '@weilasdk/core'
+import type { WeilaCore } from '@vois/weila-sdk-core'
 import type { GroupModel } from '~/api/contact'
 import type { Member } from '~/types/api'
 import IconMessage from '@arco-design/web-vue/es/icon/icon-message'
 import Message from '@arco-design/web-vue/es/message'
-import { WL_IDbSessionType } from '@weilasdk/core'
+import { WL_IDbSessionType } from '@vois/weila-sdk-core'
 import { computed, shallowRef } from 'vue'
 import CreateGroupModal from '../../contact/components/CreateGroupModal.vue'
 
