@@ -101,6 +101,21 @@ export default defineConfig(() => {
           changeOrigin: true,
           secure: false,
         },
+        // Baidu speech APIs have no CORS headers; proxy them in dev.
+        // In the packaged Electron app webSecurity is off, so the composable
+        // calls the absolute Baidu URLs directly and never hits these.
+        '/baidu-oauth': {
+          target: 'https://aip.baidubce.com',
+          changeOrigin: true,
+          secure: false,
+          rewrite: p => p.replace(/^\/baidu-oauth/, ''),
+        },
+        '/baidu-asr': {
+          target: 'https://vop.baidu.com',
+          changeOrigin: true,
+          secure: false,
+          rewrite: p => p.replace(/^\/baidu-asr/, ''),
+        },
         '/v1': {
           target: proxyTargetV1,
           timeout: 20 * 1000,

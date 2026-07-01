@@ -620,6 +620,11 @@ agent:
   send: Send
   no-reply: (no reply)
   request-failed: Request failed. Please check whether the Agent server is running
+  voice-input: Voice input
+  voice-stop: Stop recording
+  voice-empty: No speech recognized
+  voice-failed: Voice recognition failed
+  mic-denied: Microphone access denied. Please allow microphone permission
 app-guide: App Guide
 tooltips:
   track:

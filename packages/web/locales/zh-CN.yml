@@ -601,6 +601,11 @@ agent:
   send: 发送
   no-reply: （无回复）
   request-failed: 请求失败，请检查 Agent 服务是否已启动
+  voice-input: 语音输入
+  voice-stop: 停止录音
+  voice-empty: 未识别到语音内容
+  voice-failed: 语音识别失败
+  mic-denied: 无法访问麦克风，请允许麦克风权限
 app-guide: App 用户手册
 tooltips:
   track:

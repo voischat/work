@@ -1,5 +1,7 @@
 <script setup lang="ts">
-interface Message {
+import { Message } from '@arco-design/web-vue'
+
+interface ChatMessage {
   role: 'user' | 'agent'
   text: string
 }
@@ -8,9 +10,8 @@ const { t } = useI18n()
 const authStore = useAuthStore()
 
 const input = shallowRef('')
-const messages = shallowRef<Message[]>([])
+const messages = shallowRef<ChatMessage[]>([])
 const loading = shallowRef(false)
-const errorMsg = shallowRef('')
 
 const agentHost = (typeof window !== 'undefined' && window.electronAPI?.agentHost) || ''
 const baseUrl = agentHost.replace(/\/$/, '')
@@ -49,7 +50,7 @@ async function startStream(sessionId: string) {
   const streamRes = await fetch(`${baseUrl}/eve/v1/session/${sessionId}/stream`)
   console.log('[agent-chat] stream response', streamRes.status, streamRes.ok, 'body?', !!streamRes.body)
   if (!streamRes.ok || !streamRes.body) {
-    errorMsg.value = `Stream failed: ${streamRes.status}`
+    Message.error(`Stream failed: ${streamRes.status}`)
     return
   }
 
@@ -96,6 +97,34 @@ async function startStream(sessionId: string) {
   console.log('[agent-chat] stream ended')
 }
 
+const { isRecording, isProcessing: voiceProcessing, start: startVoice, stopAndRecognize } = useBaiduSpeech()
+
+async function toggleVoice() {
+  if (voiceProcessing.value)
+    return
+
+  if (!isRecording.value) {
+    try {
+      await startVoice()
+    }
+    catch {
+      Message.error(t('agent.mic-denied'))
+    }
+    return
+  }
+
+  try {
+    const text = await stopAndRecognize()
+    if (text)
+      input.value = text
+    else
+      Message.warning(t('agent.voice-empty'))
+  }
+  catch (err: any) {
+    Message.error(err?.message || t('agent.voice-failed'))
+  }
+}
+
 async function send() {
   const text = input.value.trim()
   if (!text || loading.value) return
@@ -103,7 +132,6 @@ async function send() {
   messages.value = [...messages.value, { role: 'user', text }]
   input.value = ''
   loading.value = true
-  errorMsg.value = ''
 
   try {
     const token = getAccessToken()
@@ -121,11 +149,11 @@ async function send() {
     const { sessionId } = await sessionRes.json() as { sessionId: string }
 
     startStream(sessionId).catch((err: any) => {
-      errorMsg.value = err.message || t('agent.request-failed')
+      Message.error(err.message || t('agent.request-failed'))
     })
   }
   catch (err: any) {
-    errorMsg.value = err.message || t('agent.request-failed')
+    Message.error(err.message || t('agent.request-failed'))
   }
   finally {
     loading.value = false
@@ -156,9 +184,6 @@ async function send() {
           <pre class="whitespace-pre-wrap font-sans">{{ msg.text }}</pre>
         </div>
       </div>
-      <div v-if="errorMsg" class="text-red-500 text-sm">
-        {{ errorMsg }}
-      </div>
     </div>
 
     <div class="p-3 border-t border-neutral-200 dark:border-neutral-700 flex gap-2">
@@ -169,6 +194,16 @@ async function send() {
         class="flex-1"
         @keydown.enter.prevent="send"
       />
+      <a-button
+        :type="isRecording ? 'primary' : 'outline'"
+        :status="isRecording ? 'danger' : 'normal'"
+        :loading="voiceProcessing"
+        :disabled="loading"
+        :title="isRecording ? t('agent.voice-stop') : t('agent.voice-input')"
+        @click="toggleVoice"
+      >
+        <i v-if="!voiceProcessing" :class="isRecording ? 'i-ph-stop-fill' : 'i-ph-microphone'" class="text-base" />
+      </a-button>
       <a-button type="primary" :loading="loading" @click="send">
         {{ t('agent.send') }}
       </a-button>
