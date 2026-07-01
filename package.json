@@ -7,7 +7,7 @@
   "license": "ISC",
   "pnpm": {
     "overrides": {
-      "@wl/network": "link:../../../i/wl-network"
+      "@wl/network": "npm:@vois/weila-network@^0.0.7"
     }
   },
   "keywords": [],
