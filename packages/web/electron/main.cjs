@@ -1,4 +1,4 @@
-const { app, BrowserWindow, protocol, net, session } = require('electron')
+const { app, BrowserWindow, protocol, net, session, ipcMain } = require('electron')
 const { spawn } = require('node:child_process')
 const path = require('node:path')
 const { pathToFileURL } = require('node:url')
@@ -19,6 +19,8 @@ app.commandLine.appendSwitch('ignore-certificate-errors')
 // 注册自定义特权协议 weila-app://，标记为 secure origin，
 // 这样打包后渲染进程通过该协议加载时 getUserMedia 就能正常调用。
 // file:// 不被 Chromium 视为 secure origin，会导致媒体 API 直接失败。
+// debug: 标记 weila-app:// 协议注册完成位置（必须在 ready 之前）
+log('registering privileged scheme: weila-app')
 protocol.registerSchemesAsPrivileged([
   {
     scheme: 'weila-app',
@@ -63,20 +65,28 @@ function log(...args) {
 // 导致 AI 助手语音输入（getUserMedia）报 NotAllowedError。这里显式放行
 // media / audioCapture 权限。本地可信首方应用，其余权限也一并放行以维持原有行为。
 function setupPermissions() {
+  log('setting up permission handlers')
   session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) => {
+    log(`permission request: ${_permission} → granting`)
     callback(true)
   })
-  session.defaultSession.setPermissionCheckHandler(() => true)
+  session.defaultSession.setPermissionCheckHandler((_webContents, _permission, _requestingOrigin, _details) => {
+    log(`permission check: ${_permission} → granting`)
+    return true
+  })
 }
 
 // 生产环境下通过自定义 weila-app:// 协议提供 dist 目录的静态文件服务。
 // 该协议在 registerSchemesAsPrivileged 中被标记为 secure，使得 getUserMedia 可用。
 function setupProtocol(distDir) {
+  log(`setting up weila-app protocol handler, distDir=${distDir}`)
   protocol.handle('weila-app', (request) => {
     const url = new URL(request.url)
-    // 保留 pathname 中的前导 /，使 path.join 正确处理
     const filePath = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname)
-    return net.fetch(pathToFileURL(path.join(distDir, filePath)).href)
+    const resolved = path.join(distDir, filePath)
+    const fileUrl = pathToFileURL(resolved).href
+    log(`weila-app request: ${request.url} → ${fileUrl}`)
+    return net.fetch(fileUrl)
   })
 }
 
@@ -223,6 +233,7 @@ const createWindow = () => {
     win.webContents.openDevTools()
   }
   else {
+    log('loading production URL: weila-app://index.html')
     win.loadURL('weila-app://index.html')
   }
 
@@ -240,18 +251,41 @@ const createWindow = () => {
   }
 
   win.webContents.on('did-finish-load', () => {
-    log(`loaded ${isDev ? DEV_SERVER_URL : 'index.html'}`)
+    log(`loaded ${isDev ? DEV_SERVER_URL : 'weila-app://index.html'}`)
+    // debug: 注入后检查 window.location.origin 和 mediaDevices 存在性
+    Promise.all([
+      win.webContents.executeJavaScript('window.location.origin'),
+      win.webContents.executeJavaScript('typeof navigator.mediaDevices?.getUserMedia'),
+      win.webContents.executeJavaScript('window.isSecureContext'),
+    ]).then(([origin, gUMType, isSecure]) => {
+      log(`renderer origin: ${origin}  getUserMedia: ${gUMType}  isSecureContext: ${isSecure}`)
+    }).catch(() => {})
   })
 
-  win.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
-    console.error(`[electron] failed to load: ${errorCode} ${errorDescription}`)
+  win.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+    console.error(`[electron] failed to load: ${errorCode} ${errorDescription} (${validatedURL})`)
+  })
+
+  // debug: 捕获渲染进程 console 日志
+  win.webContents.on('console-message', (_event, level, message, _line, _sourceId) => {
+    const levelName = ['verbose', 'info', 'warning', 'error'][level] || level
+    console.log(`[renderer:${levelName}] ${message}`)
+  })
+
+  // debug: 响应渲染进程 getUserMedia 调试查询
+  win.webContents.on('ipc-message', (_event, channel, ...args) => {
+    if (channel === '__debug_log__')
+      console.log(`[renderer:debug] ${args.join(' ')}`)
   })
 }
 
 app.whenReady().then(async () => {
+  log('app ready, setting up...')
+  const distDir = path.join(__dirname, '../dist')
+  log(`distDir resolved: ${distDir}`)
   setupPermissions()
   if (!isDev)
-    setupProtocol(path.join(__dirname, '../dist'))
+    setupProtocol(distDir)
   await startAgent()
   createWindow()
 
