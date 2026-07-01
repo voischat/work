@@ -43,6 +43,17 @@ function log(...args) {
   console.log('[electron]', ...args)
 }
 
+// 打包后渲染进程通过 file:// 加载，Chromium 默认会拒绝麦克风等设备权限，
+// 导致 AI 助手语音输入（getUserMedia）报 NotAllowedError。这里显式放行
+// media / audioCapture 权限。本地可信首方应用，其余权限也一并放行以维持原有行为。
+function setupPermissions() {
+  const { session } = require('electron')
+  session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) => {
+    callback(true)
+  })
+  session.defaultSession.setPermissionCheckHandler(() => true)
+}
+
 async function waitForAgent(url, timeoutMs = 15000) {
   const start = Date.now()
   while (Date.now() - start < timeoutMs) {
@@ -212,6 +223,7 @@ const createWindow = () => {
 }
 
 app.whenReady().then(async () => {
+  setupPermissions()
   await startAgent()
   createWindow()
 
