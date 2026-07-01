@@ -116,6 +116,82 @@ function pruneNativeArtifacts(dir) {
 }
 pruneNativeArtifacts(path.join(deployDir, 'node_modules'))
 
+// 解引用：把 node_modules 里的软链接换成真实文件，让 agent-deploy 完全自包含。
+// pnpm deploy 生成的是指向源 agent-deploy 的绝对软链接，electron-builder 原样搬运，
+// 导致打包产物压缩/解压或拷到别的机器后 Node 找不到依赖（如 unstorage）→ weila-work-cli 全挂。
+// 纯 Node 实现（不用 shell cp：Windows 上 execSync 走 cmd.exe 找不到 cp）。
+console.log('[prepare-agent] dereferencing symlinks (self-contained node_modules)...')
+function copyDeref(src, dst, chain) {
+  let st
+  try { st = fs.lstatSync(src) }
+  catch { return }
+  if (st.isSymbolicLink()) {
+    let real
+    try { real = fs.realpathSync(src) }
+    catch { return } // 悬空软链接（被裁剪的仅构建期依赖）→ 跳过
+    let rst
+    try { rst = fs.statSync(real) }
+    catch { return }
+    if (rst.isDirectory()) {
+      if (chain.includes(real)) return // 环形软链接保护
+      fs.mkdirSync(dst, { recursive: true })
+      for (const e of fs.readdirSync(real))
+        copyDeref(path.join(real, e), path.join(dst, e), [...chain, real])
+    }
+    else {
+      fs.copyFileSync(real, dst)
+    }
+  }
+  else if (st.isDirectory()) {
+    fs.mkdirSync(dst, { recursive: true })
+    for (const e of fs.readdirSync(src))
+      copyDeref(path.join(src, e), path.join(dst, e), chain)
+  }
+  else {
+    fs.copyFileSync(src, dst)
+  }
+}
+const nmDir = path.join(deployDir, 'node_modules')
+const nmTmp = path.join(deployDir, 'node_modules.deref')
+fs.rmSync(nmTmp, { recursive: true, force: true })
+copyDeref(nmDir, nmTmp, [])
+fs.rmSync(nmDir, { recursive: true, force: true })
+fs.renameSync(nmTmp, nmDir)
+
+// 自包含体检：不应再残留任何软链接
+const remainingLinks = []
+;(function scanLinks(dir) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, e.name)
+    if (e.isSymbolicLink())
+      remainingLinks.push(path.relative(deployDir, p))
+    else if (e.isDirectory())
+      scanLinks(p)
+  }
+})(nmDir)
+if (remainingLinks.length)
+  throw new Error(`[prepare-agent] 仍残留 ${remainingLinks.length} 个软链接，产物不自包含:\n${remainingLinks.slice(0, 10).join('\n')}`)
+console.log('[prepare-agent] node_modules 已自包含（0 软链接）✓')
+
+// 关键运行期依赖存在性断言：CLI 运行期需要 unstorage（真实文件），防止将来被误裁静默出错。
+let unstorageOk = false
+;(function findUnstorage(dir) {
+  if (unstorageOk) return
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (unstorageOk) return
+    const p = path.join(dir, e.name)
+    if (e.isDirectory()) {
+      if (e.name === 'unstorage' && fs.existsSync(path.join(p, 'package.json')))
+        unstorageOk = true
+      else
+        findUnstorage(p)
+    }
+  }
+})(nmDir)
+if (!unstorageOk)
+  throw new Error('[prepare-agent] 未在 agent-deploy/node_modules 找到真实的 unstorage/package.json（weila-work-cli 运行期依赖缺失）')
+console.log('[prepare-agent] 运行期依赖体检通过：unstorage 就位 ✓')
+
 // 产物体检：确保不残留任何 .node 原生件
 const leftover = []
 ;(function scan(dir) {
