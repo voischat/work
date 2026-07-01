@@ -1,6 +1,7 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, protocol, net, session } = require('electron')
 const { spawn } = require('node:child_process')
 const path = require('node:path')
+const { pathToFileURL } = require('node:url')
 
 const isDev = !app.isPackaged
 const DEV_SERVER_URL = process.env.WEILA_DEV_SERVER_URL || 'https://localhost:5173'
@@ -14,6 +15,21 @@ const AGENT_DIR_PACKAGED = path.resolve(process.resourcesPath, 'agent')
 
 // 开发环境下 Vite 使用自签名 mkcert 证书，Electron 默认不信任，先忽略证书错误
 app.commandLine.appendSwitch('ignore-certificate-errors')
+
+// 注册自定义特权协议 weila-app://，标记为 secure origin，
+// 这样打包后渲染进程通过该协议加载时 getUserMedia 就能正常调用。
+// file:// 不被 Chromium 视为 secure origin，会导致媒体 API 直接失败。
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'weila-app',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      bypassCSP: true,
+    },
+  },
+])
 
 let agentChild = null
 // 极简可观测：保留 agent 子进程 stderr 末尾若干行，启动失败时展示给用户
@@ -43,15 +59,25 @@ function log(...args) {
   console.log('[electron]', ...args)
 }
 
-// 打包后渲染进程通过 file:// 加载，Chromium 默认会拒绝麦克风等设备权限，
+// 打包后渲染进程通过 weila-app:// 加载，Chromium 默认会拒绝麦克风等设备权限，
 // 导致 AI 助手语音输入（getUserMedia）报 NotAllowedError。这里显式放行
 // media / audioCapture 权限。本地可信首方应用，其余权限也一并放行以维持原有行为。
 function setupPermissions() {
-  const { session } = require('electron')
   session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) => {
     callback(true)
   })
   session.defaultSession.setPermissionCheckHandler(() => true)
+}
+
+// 生产环境下通过自定义 weila-app:// 协议提供 dist 目录的静态文件服务。
+// 该协议在 registerSchemesAsPrivileged 中被标记为 secure，使得 getUserMedia 可用。
+function setupProtocol(distDir) {
+  protocol.handle('weila-app', (request) => {
+    const url = new URL(request.url)
+    // 保留 pathname 中的前导 /，使 path.join 正确处理
+    const filePath = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname)
+    return net.fetch(pathToFileURL(path.join(distDir, filePath)).href)
+  })
 }
 
 async function waitForAgent(url, timeoutMs = 15000) {
@@ -197,7 +223,7 @@ const createWindow = () => {
     win.webContents.openDevTools()
   }
   else {
-    win.loadFile(path.join(__dirname, '../dist/index.html'))
+    win.loadURL('weila-app://index.html')
   }
 
   // 生产环境下转发 /eve/v1 请求到本地 agent 服务，避免 CORS
@@ -224,6 +250,8 @@ const createWindow = () => {
 
 app.whenReady().then(async () => {
   setupPermissions()
+  if (!isDev)
+    setupProtocol(path.join(__dirname, '../dist'))
   await startAgent()
   createWindow()
 
