@@ -6,6 +6,8 @@ const rootDir = path.resolve(__dirname, '../..')
 const deployDir = path.resolve(rootDir, 'agent-deploy')
 // 注意：rootDir 解析为 weila-work/packages，agent 包在 weila-work/packages/agent。
 const agentDir = path.resolve(rootDir, 'agent')
+// weila-work-cli 是 agent 的 workspace 依赖，运行期由 agent 子进程调用其 dist/cli.mjs。
+const cliDir = path.resolve(rootDir, 'cli')
 
 // 构建机无关（路 B）：生产只运行预构建的 .output（平台中立 JS），并只随包纯 JS 运行期依赖。
 // 因此本脚本在任意平台（mac/Linux/Docker/Windows）跑都能产出可在 Windows 运行的 agent 包，
@@ -24,6 +26,27 @@ const outputSrc = path.join(agentDir, '.output')
 if (!fs.existsSync(path.join(outputSrc, 'server', 'index.mjs')))
   throw new Error(`[prepare-agent] eve build 未产出 ${path.join(outputSrc, 'server', 'index.mjs')}`)
 
+// 先构建 weila-work-cli 的 dist（workspace 依赖，deploy 只拷贝其 files=["dist"]）。
+// 不构建则 deploy 出的 CLI 包只有 package.json/README，运行期 import.meta.resolve
+// 定位到的 dist/cli.mjs 缺失，打包后的 AI 工具调用会失败。
+console.log('[prepare-agent] building weila-work-cli (dist)...')
+execSync('pnpm run build', { cwd: cliDir, stdio: 'inherit' })
+if (!fs.existsSync(path.join(cliDir, 'dist', 'cli.mjs')))
+  throw new Error(`[prepare-agent] cli build 未产出 ${path.join(cliDir, 'dist', 'cli.mjs')}`)
+
+// Windows 关键修复：pnpm --filter ... deploy 会在被过滤包目录下生成伪嵌套副本
+// （packages/agent/packages/agent-deploy）。上一次运行残留的 bin shim 会让本次 deploy
+// 在写 .bin/eve 时 EPERM 失败。这里在 deploy 前先清掉所有伪嵌套残留。
+const spuriousDirs = [
+  path.join(agentDir, 'packages'),
+  path.join(deployDir, 'agent-deploy'),
+  path.join(deployDir, 'packages'),
+]
+for (const p of spuriousDirs) {
+  if (fs.existsSync(p))
+    fs.rmSync(p, { recursive: true, force: true })
+}
+
 console.log('[prepare-agent] deploying agent production deps...')
 execSync(`pnpm --filter weila-work-agent deploy --legacy --prod "${deployDir}"`, {
   cwd: rootDir,
@@ -31,8 +54,7 @@ execSync(`pnpm --filter weila-work-agent deploy --legacy --prod "${deployDir}"`,
 })
 
 // pnpm deploy may create spurious nested dirs
-for (const d of ['agent-deploy', 'packages']) {
-  const p = path.join(deployDir, d)
+for (const p of spuriousDirs) {
   if (fs.existsSync(p))
     fs.rmSync(p, { recursive: true, force: true })
 }
