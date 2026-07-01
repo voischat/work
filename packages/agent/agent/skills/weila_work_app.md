@@ -13,7 +13,7 @@ description: 当 agent 运行在微喇企业管理台（Weila Work）的桌面 a
 
 ## 认证与 token 来源
 
-- token 来自用户当前登录的 web 会话，由前端以请求头 `x-weila-token` 发送，会话层写入 `session.auth.current.attributes.token`，最终透传给 `weila-work-cli --token`。
+- token 来自用户当前登录的 web 会话，由前端以请求头 `x-weila-token` 发送，会话层写入 `session.auth.current.attributes.token`，最终透传给 `weila_cli` tool。
 - 这是 app 环境下**唯一**的认证方式：
   - **不需要**、也**不应该**让用户提供账号、密码或手动 token。
   - **不要**提示运行 `weila-work-cli auth:login` 或 `auth:set-token`。
@@ -26,7 +26,6 @@ description: 当 agent 运行在微喇企业管理台（Weila Work）的桌面 a
 - 提示用户「请确认已在微喇 Work app 内登录后重试」。
 - 不要尝试用账号密码登录，也不要索取 token。
 
-## 能力边界
+## 能力
 
-- 当前为只读 MVP：仅支持企业信息、部门、成员、群组的查询（见 `weila_work_cli` skill 的 tools）。
-- 不执行任何创建、修改、删除等副作用操作。
+通过 `weila_cli` tool 执行 `weila-work-cli` 命令，可查询和管理企业信息、部门、成员、群组。具体命令和参数见 `weila_work_cli` skill 文档。
