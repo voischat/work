@@ -99,10 +99,6 @@ async function startStream(sessionId: string) {
 
 const { isRecording, isProcessing: voiceProcessing, start: startVoice, stopAndRecognize } = useBaiduSpeech()
 
-// 把 getUserMedia 的错误类型映射为可读提示：
-// NotFoundError    → 没有麦克风设备
-// NotReadableError → 设备被其他程序占用/驱动异常
-// 其余（NotAllowedError/SecurityError…）→ 权限被拒
 function micErrorMessage(err: any): string {
   switch (err?.name) {
     case 'NotFoundError':

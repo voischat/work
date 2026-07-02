@@ -1,4 +1,4 @@
-const { app, BrowserWindow, protocol, net, session, ipcMain } = require('electron')
+const { app, BrowserWindow, protocol, net, session } = require('electron')
 const { spawn } = require('node:child_process')
 const path = require('node:path')
 const fs = require('node:fs')
@@ -142,7 +142,6 @@ async function startAgent() {
   const env = { ...process.env, WEILA_AGENT_HOST: AGENT_HOST }
   ;(function loadDotEnv() {
     try {
-      const fs = require('node:fs')
       const envPath = path.join(agentDir, '.env')
       const envContent = fs.readFileSync(envPath, 'utf-8')
       for (const line of envContent.split('\n')) {
@@ -255,13 +254,11 @@ const createWindow = () => {
     win.webContents.openDevTools()
   }
   else {
-    log('loading production URL: weila-app://index.html')
     win.loadURL('weila-app://index.html')
   }
 
   // 生产环境下转发 /eve/v1 请求到本地 agent 服务，避免 CORS
   if (!isDev) {
-    const { session } = require('electron')
     session.defaultSession.webRequest.onBeforeSendHeaders({ urls: ['http://127.0.0.1:2000/*'] }, (details, callback) => {
       details.requestHeaders['Origin'] = 'http://localhost'
       callback({ requestHeaders: details.requestHeaders })
@@ -294,9 +291,7 @@ const createWindow = () => {
 
 app.whenReady().then(async () => {
   initFileLog()
-  log('app ready, setting up...')
   const distDir = path.join(__dirname, '../dist')
-  log(`distDir resolved: ${distDir}`)
   setupPermissions()
   if (!isDev)
     setupProtocol(distDir)
