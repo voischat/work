@@ -531,6 +531,21 @@ async function forwardMessageContent(msg: WL_IDbMsgData, target: SessionSelectPa
   }
 }
 
+async function handleWithdraw(msg: WL_IDbMsgData) {
+  const core = weilaCore.value
+  if (!core)
+    return
+
+  try {
+    await core.weila_withdrawMsg(msg.sessionId, msg.sessionType, msg.msgId)
+    Message.success('撤回成功')
+  }
+  catch (err) {
+    console.error('[WorkbenchChat] Withdraw failed:', err)
+    Message.error('撤回失败')
+  }
+}
+
 function handleForward(msg: WL_IDbMsgData) {
   forwardingMsg.value = msg
   isForwardPickerOpen.value = true
@@ -600,10 +615,10 @@ async function handleForwardTargetSelect(target: SessionSelectPayload) {
         ref="chatPanelRef" v-model:selected-session-id="selectedSessionId"
         v-model:selected-session-type="selectedSessionType" :core="weilaCore" :current-user-id="currentUserId"
         :before-send="beforeSend" :batch-resolve-session-profiles="batchResolveSessionProfiles"
-        class="flex-1 min-w-0" message-list-height="calc(100vh - 220px)" show-forward
+        class="flex-1 min-w-0" message-list-height="calc(100vh - 220px)" show-forward show-withdraw
         @delete-session="handleDeleteSessionRequest" @trigger-map-picker="openLocationPicker"
         @location-click="handleShowLocation" @ptt-error="handlePttError" @send-blocked="handleSendBlocked"
-        @invalid-sessions-change="handleInvalidSessionsChange" @forward="handleForward"
+        @invalid-sessions-change="handleInvalidSessionsChange" @forward="handleForward" @withdraw="handleWithdraw"
       >
         <template #session-footer>
           <ChatLauncher :core="weilaCore" />
