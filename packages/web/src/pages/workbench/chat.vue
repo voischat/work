@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import type { WL_IDbLocationShared, WL_IDbSession } from '@vois/weila-sdk-core'
+import type { WL_IDbLocationShared, WL_IDbMsgData, WL_IDbSession } from '@vois/weila-sdk-core'
 import type { BatchSessionProfileResolver } from '@vois/weila-sdk-ui'
+import type { SessionSelectPayload } from './components/ChatSessionPickerModal.vue'
 import type { Member } from '~/types/api'
 import Message from '@arco-design/web-vue/es/message'
 import { useQuery } from '@tanstack/vue-query'
-import { isGroupSessionType, isIndividualSessionType } from '@vois/weila-sdk-core'
+import { isGroupSessionType, isIndividualSessionType, WL_IDbMsgDataType } from '@vois/weila-sdk-core'
 import { WlChatPanel } from '@vois/weila-sdk-ui'
 import { computed, reactive, shallowRef, watch } from 'vue'
 import ChatLauncher from './components/ChatLauncher.vue'
+import ChatSessionPickerModal from './components/ChatSessionPickerModal.vue'
 
 definePage({
   meta: {
@@ -64,6 +66,9 @@ const displayedLocation = shallowRef<{ latitude: number, longitude: number, name
 const showLocationPanel = shallowRef(false)
 const showGroupSettingsPanel = shallowRef(false)
 const groupSettingsPanelWidth = shallowRef(420)
+const isForwardPickerOpen = shallowRef(false)
+const forwardingMsg = shallowRef<WL_IDbMsgData>()
+const isForwarding = shallowRef(false)
 const realtimeLocationPanelId = computed(() => {
   const id = Number(selectedSessionId.value)
   return Number.isFinite(id) && id > 0 ? id : undefined
@@ -458,6 +463,131 @@ function handlePttError(payload: { session: WL_IDbSession, error?: unknown }) {
   console.warn('[WorkbenchChat] Failed to start PTT:', payload)
   Message.error('无法开始语音对讲，请稍后重试')
 }
+
+async function urlToFile(url: string, fileName?: string): Promise<File> {
+  const response = await fetch(url)
+  if (!response.ok)
+    throw new Error(`下载文件失败: ${response.status} ${response.statusText}`)
+
+  const blob = await response.blob()
+  const finalFileName = fileName || url.split('/').pop() || 'file'
+  return new File([blob], finalFileName, { type: blob.type || 'application/octet-stream' })
+}
+
+async function forwardMessageContent(msg: WL_IDbMsgData, target: SessionSelectPayload) {
+  const core = weilaCore.value
+  if (!core)
+    throw new Error('SDK 未初始化')
+
+  const { sessionId, sessionType } = target
+  const fileName = msg.fileInfo?.fileName
+
+  switch (msg.msgType) {
+    case WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE:
+      return core.weila_sendTextMsg(sessionId, sessionType, msg.textData || '')
+
+    case WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE: {
+      if (!msg.audioData)
+        throw new Error('该音频不支持转发')
+      if (msg.audioData.data && msg.audioData.data.length > 0) {
+        return core.weila_sendAudioMsgByData(sessionId, sessionType, msg.audioData)
+      }
+      if (!msg.audioData.audioUrl)
+        throw new Error('该音频不支持转发')
+      return core.weila_sendAudioMsg(sessionId, sessionType, msg.audioData.audioUrl, msg.audioData.frameCount)
+    }
+
+    case WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE: {
+      const url = msg.fileInfo?.fileUrl
+      if (!url)
+        throw new Error('图片链接不存在')
+      const file = await urlToFile(url, fileName)
+      return core.weila_sendImage(sessionId, sessionType, file.name, file)
+    }
+
+    case WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE: {
+      const url = msg.fileInfo?.fileUrl
+      if (!url)
+        throw new Error('视频链接不存在')
+      const file = await urlToFile(url, fileName)
+      return core.weila_sendVideo(sessionId, sessionType, file.name, file)
+    }
+
+    case WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE: {
+      const url = msg.fileInfo?.fileUrl
+      if (!url)
+        throw new Error('文件链接不存在')
+      const file = await urlToFile(url, fileName)
+      return core.weila_sendFile(sessionId, sessionType, file.name, file)
+    }
+
+    case WL_IDbMsgDataType.WL_DB_MSG_DATA_LOCATION_TYPE:
+      if (!msg.location)
+        throw new Error('位置信息不存在')
+      return core.weila_sendPosition(sessionId, sessionType, msg.location)
+
+    default:
+      throw new Error(`不支持转发的消息类型: ${msg.msgType}`)
+  }
+}
+
+function handleForward(msg: WL_IDbMsgData) {
+  forwardingMsg.value = msg
+  isForwardPickerOpen.value = true
+}
+
+async function handleForwardTargetSelect(target: SessionSelectPayload) {
+  if (isForwarding.value || !forwardingMsg.value)
+    return
+
+  const core = weilaCore.value
+  if (!core)
+    return
+
+  isForwarding.value = true
+
+  try {
+    await core.weila_startNewSession(target.sessionId, target.sessionType, {
+      sessionName: target.sessionName,
+      sessionAvatar: target.sessionAvatar,
+      memberCount: target.memberCount,
+    })
+
+    await forwardMessageContent(forwardingMsg.value, target)
+
+    isForwardPickerOpen.value = false
+    forwardingMsg.value = undefined
+
+    Message.success({
+      content: () => h('div', { class: 'flex items-center gap-1' }, [
+        h('span', '转发成功，'),
+        h('a', {
+          class: 'text-blue-600 hover:text-blue-700 hover:underline cursor-pointer',
+          href: 'javascript:;',
+          onClick: (e: Event) => {
+            e.preventDefault()
+            void router.push({
+              path: '/workbench/chat',
+              query: {
+                sessionId: target.sessionId,
+                sessionType: String(target.sessionType),
+                sessionName: target.sessionName,
+                sessionAvatar: target.sessionAvatar,
+              },
+            })
+          },
+        }, '点击前往'),
+      ]),
+    })
+  }
+  catch (err) {
+    console.error('[WorkbenchChat] Forward failed:', err)
+    Message.error('转发失败')
+  }
+  finally {
+    isForwarding.value = false
+  }
+}
 </script>
 
 <template>
@@ -470,10 +600,10 @@ function handlePttError(payload: { session: WL_IDbSession, error?: unknown }) {
         ref="chatPanelRef" v-model:selected-session-id="selectedSessionId"
         v-model:selected-session-type="selectedSessionType" :core="weilaCore" :current-user-id="currentUserId"
         :before-send="beforeSend" :batch-resolve-session-profiles="batchResolveSessionProfiles"
-        class="flex-1 min-w-0" message-list-height="calc(100vh - 220px)"
+        class="flex-1 min-w-0" message-list-height="calc(100vh - 220px)" show-forward
         @delete-session="handleDeleteSessionRequest" @trigger-map-picker="openLocationPicker"
         @location-click="handleShowLocation" @ptt-error="handlePttError" @send-blocked="handleSendBlocked"
-        @invalid-sessions-change="handleInvalidSessionsChange"
+        @invalid-sessions-change="handleInvalidSessionsChange" @forward="handleForward"
       >
         <template #session-footer>
           <ChatLauncher :core="weilaCore" />
@@ -569,5 +699,13 @@ function handlePttError(payload: { session: WL_IDbSession, error?: unknown }) {
         </a-button>
       </div>
     </a-modal>
+    <ChatSessionPickerModal
+      v-model:visible="isForwardPickerOpen"
+      :core="weilaCore"
+      title="转发到"
+      :loading="isForwarding"
+      :disabled-user-ids="[selfUserId]"
+      @select="handleForwardTargetSelect"
+    />
   </div>
 </template>
