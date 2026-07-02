@@ -1,8 +1,30 @@
 <script setup lang="ts">
+import { useRouteQuery } from '@vueuse/router'
 import { shallowRef } from 'vue'
 
 const sidebarCollapsed = shallowRef(false)
 const agentCollapsed = shallowRef(true)
+
+const aiQuery = useRouteQuery('ai', '' as string)
+const aiEnabledStorage = useLocalStorage('weila-work-ai-panel-enabled', false)
+
+function resolveAiEnabled() {
+  if (aiQuery.value === 'true')
+    return true
+  if (aiQuery.value === 'false')
+    return false
+  return aiEnabledStorage.value
+}
+
+const isAiEnabled = shallowRef(resolveAiEnabled())
+
+watch(aiQuery, () => {
+  isAiEnabled.value = resolveAiEnabled()
+})
+
+watch(isAiEnabled, (enabled) => {
+  aiEnabledStorage.value = enabled
+})
 </script>
 
 <template>
@@ -21,23 +43,25 @@ const agentCollapsed = shallowRef(true)
         <router-view />
       </div>
       <!-- Agent Chat Panel -->
-      <div
-        :class="agentCollapsed ? 'w-0 border-l-0 opacity-0' : 'w-[360px] border-l border-neutral-200 opacity-100'"
-        class="transition-all duration-300 overflow-hidden shrink-0 h-full"
-      >
-        <AgentChatPanel />
-      </div>
-      <a-button
-        :class="agentCollapsed ? 'right-0' : 'right-[359px]'"
-        class="agent-toggle absolute top-1/2 -translate-y-1/2 z-50 transition-all duration-300"
-        size="small"
-        @click="agentCollapsed = !agentCollapsed"
-      >
-        <template #icon>
-          <icon-left v-if="agentCollapsed" />
-          <icon-right v-else />
-        </template>
-      </a-button>
+      <template v-if="isAiEnabled">
+        <div
+          :class="agentCollapsed ? 'w-0 border-l-0 opacity-0' : 'w-[360px] border-l border-neutral-200 opacity-100'"
+          class="transition-all duration-300 overflow-hidden shrink-0 h-full"
+        >
+          <AgentChatPanel />
+        </div>
+        <a-button
+          :class="agentCollapsed ? 'right-0' : 'right-[359px]'"
+          class="agent-toggle absolute top-1/2 -translate-y-1/2 z-50 transition-all duration-300"
+          size="small"
+          @click="agentCollapsed = !agentCollapsed"
+        >
+          <template #icon>
+            <icon-left v-if="agentCollapsed" />
+            <icon-right v-else />
+          </template>
+        </a-button>
+      </template>
       <a-button
         :class="sidebarCollapsed ? 'left-0' : 'left-[199px]'"
         class="sidebar-toggle absolute top-1/2 -translate-y-1/2 z-50 transition-all duration-300"
