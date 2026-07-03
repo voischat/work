@@ -546,6 +546,19 @@ async function handleWithdraw(msg: WL_IDbMsgData) {
   }
 }
 
+const ONE_HOUR_SECONDS = 3600
+const ONE_DAY_SECONDS = 86400
+
+function canForward(msg: WL_IDbMsgData) {
+  if (msg.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE)
+    return true
+  return (Date.now() / 1000 - msg.created) <= ONE_DAY_SECONDS
+}
+
+function canWithdraw(msg: WL_IDbMsgData) {
+  return (Date.now() / 1000 - msg.created) <= ONE_HOUR_SECONDS
+}
+
 function handleForward(msg: WL_IDbMsgData) {
   forwardingMsg.value = msg
   isForwardPickerOpen.value = true
@@ -616,6 +629,7 @@ async function handleForwardTargetSelect(target: SessionSelectPayload) {
         v-model:selected-session-type="selectedSessionType" :core="weilaCore" :current-user-id="currentUserId"
         :before-send="beforeSend" :batch-resolve-session-profiles="batchResolveSessionProfiles"
         class="flex-1 min-w-0" message-list-height="calc(100vh - 220px)" show-forward show-withdraw
+        :can-forward="canForward" :can-withdraw="canWithdraw"
         @delete-session="handleDeleteSessionRequest" @trigger-map-picker="openLocationPicker"
         @location-click="handleShowLocation" @ptt-error="handlePttError" @send-blocked="handleSendBlocked"
         @invalid-sessions-change="handleInvalidSessionsChange" @forward="handleForward" @withdraw="handleWithdraw"
