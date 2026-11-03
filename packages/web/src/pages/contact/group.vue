@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { GroupModel } from '~/api/contact'
 import Message from '@arco-design/web-vue/es/message'
-import { useQuery } from '@tanstack/vue-query'
 
 import { ref as deepRef, shallowRef } from 'vue'
 import CreateGroupModal from './components/CreateGroupModal.vue'
@@ -39,22 +38,35 @@ const isDeptAdmin = computed(() => selfInfoStore.isDeptAdmin)
 const { data, refetch } = useWeilaFetch<GroupListResponse>(() => `corp/group/get-my-manage-group-list?page=${curPage.value}&size=${pageSize.value}`)
 const weilaApi = useWeilaApi()
 const selfUserId = computed(() => Number(selfInfoStore.selfInfo?.user_id))
-const listedGroupIds = computed(() => data.value?.groups?.map(group => group.id) || [])
-const { data: groupMembershipMap } = useQuery<Record<number, boolean>>({
-  enabled: computed(() => Boolean(selfUserId.value && listedGroupIds.value.length)),
-  queryKey: ['corp/group/get-group-all-member/self-membership', listedGroupIds, selfUserId],
-  queryFn: async () => {
-    const entries = await Promise.all(listedGroupIds.value.map(async (groupId) => {
-      const members = await weilaApi.value.v2.fetch<{ user_id: number }[]>('corp/group/get-group-all-member', {
-        body: { group_id: groupId },
-      })
+// Membership is only read when a row menu opens, and each group is asked once.
+// Querying every listed group up front made one request per group and re-ran
+// that whole set whenever the list changed or the window regained focus.
+const groupMembership = shallowRef<Record<number, boolean>>({})
+const membershipPending = new Set<number>()
 
-      return [groupId, members.some(member => Number(member.user_id) === selfUserId.value)] as const
-    }))
+async function ensureGroupMembership(groupId: number): Promise<void> {
+  if (selfInfoStore.isOwner || selfInfoStore.isAdmin)
+    return
+  if (groupId in groupMembership.value || membershipPending.has(groupId))
+    return
 
-    return Object.fromEntries(entries)
-  },
-})
+  membershipPending.add(groupId)
+  try {
+    const members = await weilaApi.value.v2.fetch<{ user_id: number }[]>('corp/group/get-group-all-member', {
+      body: { group_id: groupId },
+    })
+    groupMembership.value = {
+      ...groupMembership.value,
+      [groupId]: members.some(member => Number(member.user_id) === selfUserId.value),
+    }
+  }
+  catch (error) {
+    console.error(`获取群组 ${groupId} 成员失败:`, error)
+  }
+  finally {
+    membershipPending.delete(groupId)
+  }
+}
 
 const selectedGroup = deepRef<any>(undefined)
 const isDeleteGroupModalOpen = shallowRef(false)
@@ -86,7 +98,7 @@ function onSelect(group: GroupModel, e: PointerEvent) {
 function canSendGroupMessage(group: GroupModel) {
   return selfInfoStore.isOwner
     || selfInfoStore.isAdmin
-    || groupMembershipMap.value?.[group.id] === true
+    || groupMembership.value[group.id] === true
 }
 
 function openGroupChat(group: GroupModel) {
@@ -202,7 +214,7 @@ function openGroupChat(group: GroupModel) {
                   </a-button>
                 </EditGroupModal>
                 <a-dropdown :hide-on-select="false">
-                  <a-button>
+                  <a-button @click="ensureGroupMembership(record.id)">
                     <template #icon>
                       <icon-down />
                     </template>
