@@ -1,8 +1,9 @@
 import type { UseQueryOptions } from '@tanstack/vue-query'
-import { isFunction, isObject } from '@antfu/utils'
+import { isFunction } from '@antfu/utils'
 import { useQuery } from '@tanstack/vue-query'
 import { parseURL } from 'ufo'
 import { computed, isRef, toValue, watch } from 'vue'
+import { shouldRetryQuery } from '~/utils/queryRetry'
 import { useWeilaApi } from './useWeilaApi'
 
 export function useWeilaFetch<T>(
@@ -24,15 +25,7 @@ export function useWeilaFetch<T>(
       body: toValue(body),
       method,
     }),
-    retry: (failCount, error) => {
-      if (failCount > 3)
-        return false
-
-      if (error?.message && isObject(error.message) && JSON.parse(error.message).errcode === 32)
-        return false
-
-      return true
-    },
+    retry: (failCount, error) => shouldRetryQuery(failCount, error),
     refetchOnWindowFocus: false,
     ...tanstackOptions,
   })
