@@ -27,12 +27,12 @@ export default defineConfig(() => {
   const proxyTargetV1 = isDev
     // ? 'http://localhost:8088'
     ? 'http://demo.weila.hk'
-    : 'https://voiswork.cn'
+    : 'https://api.voischat.cn'
 
   const proxyTargetV2 = isDev
     // ? 'http://demo.weila.hk'
     ? 'http://localhost:8090'
-    : 'https://voiswork.cn'
+    : 'https://api.voischat.cn'
 
   return {
     base: './',
