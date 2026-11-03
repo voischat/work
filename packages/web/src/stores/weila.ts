@@ -10,10 +10,10 @@ import {
 } from '@vois/weila-sdk-core'
 import { defineStore } from 'pinia'
 import { shallowRef } from 'vue'
-import { useLocalCrypto } from '~/composables/useLocalCrypto'
+import { useWeilaApi } from '~/composables/useWeilaApi'
 import { appid, appkey } from '~/shared/const'
-
-const tempAccount = useLocalCrypto('temp-account')
+import { tempAccount } from '~/shared/states'
+import { toChatSafeUploadUrl } from '~/utils/uploadUrl'
 
 export const useWeilaStore = defineStore('weila', () => {
   const core = shallowRef<WeilaCore | null>(null)
@@ -53,9 +53,22 @@ export const useWeilaStore = defineStore('weila', () => {
     const instance = new WeilaCore()
 
     await instance.weila_init({
-      webSock: 'wss://wss.weila.hk:8999',
+      webSock: import.meta.env.DEV
+        ? (import.meta.env.VITE_WEB_SOCK || 'wss://wss.weila.hk:8899')
+        : 'wss://api.voischat.cn/voischat/bridge',
       appId: appid.value,
       appKey: appkey.value,
+    })
+
+    const weilaApi = useWeilaApi()
+    instance.weila_setFileUploader(async (file, fileName) => {
+      const formData = new FormData()
+      formData.append('file', file, fileName)
+      const raw = await weilaApi.value.v2.request.post<unknown>('common/upload-file', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: Math.min(600_000, Math.max(120_000, Math.ceil(file.size / 50_000) * 1000)),
+      })
+      return toChatSafeUploadUrl(raw, weilaApi.value.v2.request.defaults.baseURL || window.location.href)
     })
 
     // Register kickout event listener

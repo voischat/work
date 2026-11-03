@@ -1,0 +1,32 @@
+export function hasImageExtension(url: string): boolean {
+  try {
+    return /\.(?:apng|avif|gif|jpe?g|png|webp)$/i.test(new URL(url).pathname)
+  }
+  catch {
+    return false
+  }
+}
+
+export function toChatSafeUploadUrl(raw: unknown, baseUrl: string): string {
+  const value = typeof raw === 'string'
+    ? raw
+    : raw && typeof raw === 'object' && typeof (raw as { url?: unknown }).url === 'string'
+      ? (raw as { url: string }).url
+      : ''
+
+  if (!value) {
+    throw new Error('上传接口未返回文件地址')
+  }
+
+  const url = new URL(value, baseUrl)
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    throw new Error('上传接口返回了不支持的地址')
+  }
+
+  // The chat text protocol embeds the URL verbatim and cannot carry a query
+  // string, so drop it. The upload CDN serves the same file over https.
+  url.protocol = 'https:'
+  url.hash = ''
+  url.search = ''
+  return url.href
+}

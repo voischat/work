@@ -52,18 +52,16 @@ export function useUploadFile(options?: Omit<UseMutationOptions<string[], Error,
         formData.append('file', f)
 
         try {
-          const data = await api.value.v2.fetch<{ url: string }>('common/upload-file', {
-            body: formData,
+          const url = await api.value.v2.request.post<string>('common/upload-file', formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
             },
+            timeout: 120_000,
           })
 
-          // console.log('data', data)
-
-          wrapper.url = data?.url || ''
+          wrapper.url = url || ''
           wrapper.state = 'success'
-          urls.push(data?.url || '')
+          urls.push(url || '')
         }
         catch (error) {
           wrapper.state = 'error'

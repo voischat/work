@@ -9,7 +9,7 @@ import { shallowRef } from 'vue'
 import { useForm } from 'zod-arco-rules/valibot'
 import { useLocalCrypto } from '~/composables/useLocalCrypto'
 import { useSmsCountdown } from '~/composables/useSmsCountdown'
-import { autoLogin } from '~/shared/states'
+import { autoLogin, tempAccount } from '~/shared/states'
 
 definePage({
   meta: {
@@ -21,7 +21,6 @@ definePage({
 const authStore = useAuthStore()
 const router = useRouter()
 const accountHistoryRecord = useLocalCrypto('account-history-record')
-const tempAccount = useLocalCrypto('temp-account')
 
 const { t } = useI18n()
 const activeTab = shallowRef<'password' | 'sms'>('password')

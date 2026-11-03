@@ -1,3 +1,5 @@
+import { useLocalCrypto } from '~/composables/useLocalCrypto'
+
 export const timestamp = useTimestamp({ offset: 0 })
 export const et = computed(() => Math.floor(timestamp.value / 1000))
 
@@ -133,3 +135,5 @@ export async function hasNewBundle() {
 }
 
 export const autoLogin = useLocalStorage('auto_login', false)
+
+export const tempAccount = useLocalCrypto('temp-account')
