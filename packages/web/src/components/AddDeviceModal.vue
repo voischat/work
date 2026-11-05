@@ -61,8 +61,10 @@ const { mutate, isPending } = useWeilaMutation('corp/address/add-device', {
 const submit = handleSubmit(async (values: any) => {
   // @ts-expect-error type error: `defineExpose` no type declare find
   const { upload } = avatarUploaderRef.value
-  if (form.value.avatar && !isRemoteImage(form.value.avatar))
-    await upload()
+  if (form.value.avatar && !isRemoteImage(form.value.avatar)) {
+    if (!(await upload()))
+      return
+  }
 
   mutate(values)
 })

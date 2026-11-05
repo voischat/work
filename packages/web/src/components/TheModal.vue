@@ -11,5 +11,8 @@ const open = defineModel('open', { default: false })
 
   <a-modal v-model:visible="open" :title>
     <slot name="content" />
+    <template v-if="$slots.footer" #footer>
+      <slot name="footer" />
+    </template>
   </a-modal>
 </template>

@@ -19,7 +19,8 @@ const displayDurationText = computed(() => displayDuration.value ? `${displayDur
 const { data: mp3Url } = useQuery({
   queryKey: computed(() => ['/corp/web/ptturl-to-mp3url', voiceUrl.value]),
   enabled: computed(() => Boolean(voiceUrl.value)),
-  gcTime: 0,
+  staleTime: 5 * 60_000,
+  refetchOnWindowFocus: false,
   queryFn: () => weilaFetch('/corp/web/ptturl-to-mp3url', {
     body: {
       ptturl: voiceUrl.value,

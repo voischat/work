@@ -15,11 +15,16 @@ describe('shouldRetryQuery', () => {
     expect(shouldRetryQuery(0, { message: JSON.stringify({ errcode: 20 }) })).toBe(false)
   })
 
-  it('retries a transport error until the attempt budget runs out', () => {
+  it('retries a transport error for three retries, four attempts total', () => {
     const error = new TypeError('Failed to fetch')
     expect(shouldRetryQuery(0, error)).toBe(true)
-    expect(shouldRetryQuery(3, error)).toBe(true)
-    expect(shouldRetryQuery(4, error)).toBe(false)
+    expect(shouldRetryQuery(2, error)).toBe(true)
+    expect(shouldRetryQuery(3, error)).toBe(false)
+  })
+
+  it('does not retry an error that already has an HTTP response', () => {
+    expect(shouldRetryQuery(0, { response: { status: 500 } })).toBe(false)
+    expect(shouldRetryQuery(0, { response: { status: 404 } })).toBe(false)
   })
 
   it('retries when the message is not the business-error JSON', () => {

@@ -56,8 +56,6 @@ function handleEditMember(member: Member) {
 }
 
 function handleMembersChanged() {
-  refetchMembers()
-  refetchGroup()
   qc.invalidateQueries({ queryKey: ['corp/group/get-group-all-member'] })
   qc.invalidateQueries({ queryKey: ['corp/group/get-group'] })
   emits('success')

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Message from '@arco-design/web-vue/es/message'
 import { UseImage } from '@vueuse/components'
 import { defineEmits } from 'unplugin-vue-macros/macros'
 import { shallowRef } from 'vue'
@@ -29,29 +28,33 @@ onChange(() => {
 
 const weilaApi = useWeilaApi()
 
-function upload() {
+async function upload(): Promise<boolean> {
   if (!compressedFile.value)
-    return
+    return true
 
   const formData = new FormData()
   formData.append('file', compressedFile.value)
 
-  return weilaApi.value.v2.request.post<string>('common/upload-file', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-    onUploadProgress: (progressEvent: any) => {
-      if (progressEvent.total) {
-        const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-        emits('uploading', percent)
-      }
-    },
-  })
-    .then(url => src.value = url)
-    .catch((error) => {
-      console.error('error', error)
-      Message.error((error as Error)?.message || String(error))
+  try {
+    const url = await weilaApi.value.v2.request.post<string>('common/upload-file', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      onUploadProgress: (progressEvent: any) => {
+        if (progressEvent.total) {
+          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+          emits('uploading', percent)
+        }
+      },
     })
+
+    src.value = url
+    return true
+  }
+  catch (error) {
+    console.error('upload avatar failed', error)
+    return false
+  }
 }
 
 async function onSave(file: File) {

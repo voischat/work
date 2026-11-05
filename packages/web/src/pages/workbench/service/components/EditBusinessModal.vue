@@ -47,9 +47,8 @@ async function handleSubmit() {
   if (form.avatar !== businessData.value?.merchant?.avatar && !isRemoteImage(form.avatar || '')) {
     // @ts-expect-error type error: `defineExpose` no type declare find
     const { upload } = avatarUploaderRef.value
-    if (upload) {
-      await upload()
-    }
+    if (upload && !(await upload()))
+      return
   }
 
   // 确保 businessData 存在

@@ -59,8 +59,10 @@ const { mutate: createMember, isPending } = useWeilaMutation('corp/address/creat
 const submit = handleSubmit(async (values: any) => {
   // @ts-expect-error type error: `defineExpose` no type declare find
   const { upload } = avatarUploaderRef.value
-  if (form.value.avatar && !isRemoteImage(form.value.avatar))
-    await upload()
+  if (form.value.avatar && !isRemoteImage(form.value.avatar)) {
+    if (!(await upload()))
+      return
+  }
 
   createMember({
     ...values,

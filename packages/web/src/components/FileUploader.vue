@@ -67,10 +67,16 @@ async function onSave(file: File) {
 
   isUploading.value = true
 
-  await uploadFile(file)
-  emits('update:files', filelist.value.map(f => f.url || f.dataUrl))
-  // toast('上传成功')
-  isUploading.value = false
+  try {
+    await uploadFile(file)
+    emits('update:files', filelist.value.map(f => f.url || f.dataUrl))
+  }
+  catch (error) {
+    emits('error', error)
+  }
+  finally {
+    isUploading.value = false
+  }
 }
 
 const uploadStateIconMap = {

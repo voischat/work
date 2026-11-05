@@ -125,7 +125,7 @@ function openGroupChat(group: GroupModel) {
     <a-card>
       <template #title>
         <a-space>
-          <CreateGroupModal @success="refetch" />
+          <CreateGroupModal />
         </a-space>
       </template>
 

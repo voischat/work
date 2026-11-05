@@ -6,6 +6,7 @@ import { VueQueryDevtools } from '@tanstack/vue-query-devtools'
 import { isWeilaRes, v2Query } from '@wl/network'
 import { stringifyQuery } from 'ufo'
 import { computed } from 'vue'
+import { getApiBaseUrl } from './composables/useWeilaApi'
 import { appid, appkey } from './shared/const'
 import { autoLogin } from './shared/states'
 
@@ -26,7 +27,21 @@ onBeforeRouteUpdate(() => {
 
 const router = useRouter()
 
-let refreshing: Promise<any> | null = null
+const REFRESH_COOLDOWN_MS = 30_000
+const ERROR_TOAST_WINDOW_MS = 10_000
+const PUBLIC_PATH_KEYWORDS = [
+  'login',
+  'auth/refresh',
+  'common/get-image-verifycode',
+  'common/send-sms-verifycode',
+  'common/app-download',
+  'common/guide',
+]
+
+let refreshing: Promise<AuthModel | undefined> | null = null
+let lastRefreshFailure = 0
+let lastRefreshNotice = 0
+const recentErrorToasts = new Map<string, number>()
 
 const weilaApi = useWeilaApi()
 
@@ -34,70 +49,84 @@ weilaApi.value.hook('request:prepare', async (ctx) => {
   const { needRefresh } = useAuthStore()
   const { refreshToken, token, expiresIn, loginTime } = storeToRefs(useAuthStore())
 
-  const clean = (reason?: any) => {
-    console.error('clean reason', reason)
+  const clean = () => {
     token.value = ''
     refreshToken.value = ''
     expiresIn.value = -1
     loginTime.value = -1
     // 清除自动登录相关缓存，防止无限重试
     autoLogin.value = false
-    // window.location.reload()
+  }
+
+  const handleRefreshFailure = (error: unknown) => {
+    lastRefreshFailure = Date.now()
+    console.error('refresh token failed', error)
+    clean()
+
+    if (Date.now() - lastRefreshNotice > 1000) {
+      lastRefreshNotice = Date.now()
+      Message.error('登录已过期，请重新登录')
+    }
+
+    router.push('/login')
   }
 
   try {
-    const url = (ctx?.request || ctx?.url) || '' as string
-    const isPublic = ['login', 'common'].some(i => url.includes(i))
-    const isNeedRefresh = needRefresh()
+    const request = ctx?.request || ctx?.url || ''
+    const url = typeof request === 'string' ? request : request.url || ''
+    const isPublic = PUBLIC_PATH_KEYWORDS.some(keyword => url.includes(keyword))
 
-    if (isPublic || !isNeedRefresh)
+    if (isPublic || !needRefresh())
       return
 
-    if (!refreshing) {
-      refreshing = fetch(`/v2/corp/auth/refresh?${stringifyQuery({
-        ...v2Query(appname, appid.value, appkey.value),
-      })}`, {
+    if (refreshing) {
+      await refreshing
+      return
+    }
+
+    if (Date.now() - lastRefreshFailure < REFRESH_COOLDOWN_MS)
+      return
+
+    const pending = (async () => {
+      const query = await v2Query(appname, appid.value, appkey.value)
+      const res = await fetch(`${getApiBaseUrl()}/corp/auth/refresh?${stringifyQuery(query as unknown as Record<string, string | undefined>)}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ refresh_token: refreshToken.value }),
       })
-        .then((res) => {
-          if (!res.ok)
-            throw new Error('refresh token failed')
 
-          return res.json()
-        })
-        .then(({ data: auth, errcode }: { data: AuthModel, errcode: number }) => {
-          if (errcode === 31) {
-            router.push('/login')
-            return
-          }
+      if (!res.ok)
+        throw new Error(`refresh failed with HTTP ${res.status}`)
 
-          if (errcode !== 0) {
-            router.push('/login')
-            return
-          }
+      const { data: auth, errcode }: { data: AuthModel, errcode: number } = await res.json()
+      if (errcode !== 0 || !auth)
+        throw new Error(`refresh failed with errcode ${errcode}`)
 
-          token.value = auth.access_token
-          refreshToken.value = auth.refresh_token
-          expiresIn.value = auth.expires_in
-          loginTime.value = Date.now()
-          return auth
-        })
-        .catch((error) => {
-          console.error('error', error)
-          clean()
-        })
+      token.value = auth.access_token
+      refreshToken.value = auth.refresh_token
+      expiresIn.value = auth.expires_in
+      loginTime.value = Date.now()
+      return auth
+    })()
+
+    refreshing = pending
+    const settle = () => {
+      if (refreshing === pending)
+        refreshing = null
     }
+    void pending.then(settle, settle)
 
-    return refreshing
+    try {
+      await pending
+    }
+    catch (error) {
+      handleRefreshFailure(error)
+    }
   }
   catch (error) {
-    console.error('error', error)
-    console.error('ctx', ctx)
-    clean()
+    handleRefreshFailure(error)
   }
 })
 weilaApi.value.hook('request:error', onError)
@@ -108,17 +137,42 @@ weilaApi.value.hook('auth:error', () => {
   window.location.reload()
 })
 
+function toastError(message: string) {
+  const now = Date.now()
+  if (now - (recentErrorToasts.get(message) ?? 0) < ERROR_TOAST_WINDOW_MS)
+    return
+
+  recentErrorToasts.set(message, now)
+  Message.error(message)
+  window.setTimeout(() => {
+    if (recentErrorToasts.get(message) === now)
+      recentErrorToasts.delete(message)
+  }, ERROR_TOAST_WINDOW_MS)
+}
+
 function onError(error: any) {
   console.error('error', error)
+
   if (isWeilaRes(error)) {
-    Message.error(`${error.errcode}${error.errmsg}`)
+    toastError(`${error.errcode}${error.errmsg}`)
+    return
   }
-  else if (error?.error) {
-    Message.error(error?.error)
+
+  if (error?.error) {
+    toastError(String(error.error))
+    return
   }
-  else {
-    Message.error(`${error?.response?.status}:${error?.response?.statusText}`)
+
+  if (typeof error?.response?.status === 'number') {
+    const statusText = error.response.statusText ? `: ${error.response.statusText}` : ''
+    toastError(`${error.response.status}${statusText}`)
+    return
   }
+
+  if (error?.name === 'TimeoutError' || error?.name === 'AbortError')
+    toastError('请求超时')
+  else
+    toastError('网络请求失败')
 }
 </script>
 

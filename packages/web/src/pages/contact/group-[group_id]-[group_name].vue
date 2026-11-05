@@ -90,13 +90,13 @@ async function handleSendMessage(member: Member) {
   }
 }
 
-const { data, refetch } = useWeilaFetch(() => `corp/group/get-group-member-list?page=${curPage.value}&size=${pageSize.value}`, {
+const { data } = useWeilaFetch(() => `corp/group/get-group-member-list?page=${curPage.value}&size=${pageSize.value}`, {
   body: () => ({
     group_id: groupId.value,
   }),
 })
 
-const { data: canSendGroupMessage, refetch: refetchSelfMembership } = useQuery<boolean>({
+const { data: canSendGroupMessage } = useQuery<boolean>({
   enabled: computed(() => Boolean(selfUserId.value && groupId.value)),
   queryKey: ['corp/group/get-group-all-member/self-membership', groupId, selfUserId],
   queryFn: async () => {
@@ -134,11 +134,6 @@ function onSelect(member: Member, e: PointerEvent) {
 
   isEditModalVisible.value = true
 }
-
-function handleMembersChanged() {
-  refetch()
-  refetchSelfMembership()
-}
 </script>
 
 <template>
@@ -161,7 +156,7 @@ function handleMembersChanged() {
     <a-card>
       <template #title>
         <a-space>
-          <AddGroupMemberModal :group-id="groupId" @success="handleMembersChanged">
+          <AddGroupMemberModal :group-id="groupId">
             <a-button>
               <i i-ph-plus inline-block /> {{ t('button.add-group-member') }}
             </a-button>
@@ -285,7 +280,6 @@ function handleMembersChanged() {
                 </a-button>
                 <DeleteGroupMemberModal
                   :group-id="groupId" :member="selectedItem"
-                  @success="handleMembersChanged"
                 >
                   <a-button status="danger">
                     {{ t('button.delete') }}

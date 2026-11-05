@@ -39,7 +39,8 @@ const submit = handleSubmit(async (values: any) => {
   // @ts-expect-error type error: `defineExpose` no type declare find
   const { upload } = avatarUploaderRef.value
   if (form.value.avatar !== corp.value?.avatar && !isRemoteImage(form.value.avatar || '')) {
-    await upload()
+    if (!(await upload()))
+      return
   }
 
   await change(values)

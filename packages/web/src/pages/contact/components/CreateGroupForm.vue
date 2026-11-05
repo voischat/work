@@ -42,9 +42,11 @@ watchEffect(() => {
 
 const submit = handleSubmit(async (values) => {
   try {
-    if (form.value.avatar && !isRemoteImage(form.value.avatar))
+    if (form.value.avatar && !isRemoteImage(form.value.avatar)) {
       // @ts-expect-error type error: `defineExpose` no type declare find
-      await avatarUploaderRef.value.upload()
+      if (!(await avatarUploaderRef.value.upload()))
+        return
+    }
 
     mutate(values)
   }

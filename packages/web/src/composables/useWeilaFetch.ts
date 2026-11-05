@@ -1,9 +1,8 @@
 import type { UseQueryOptions } from '@tanstack/vue-query'
-import { isFunction } from '@antfu/utils'
 import { useQuery } from '@tanstack/vue-query'
-import { parseURL } from 'ufo'
-import { computed, isRef, toValue, watch } from 'vue'
+import { computed, toValue } from 'vue'
 import { shouldRetryQuery } from '~/utils/queryRetry'
+import { pickFromResponse } from '~/utils/response'
 import { useWeilaApi } from './useWeilaApi'
 
 export function useWeilaFetch<T>(
@@ -18,10 +17,11 @@ export function useWeilaFetch<T>(
   const { body, method = 'POST', pick } = toValue(options) || {}
 
   const weilaApi = useWeilaApi()
+  const requestUrl = () => toValue(url).replace(/^\/+/, '')
 
   const res = useQuery<T>({
-    queryKey: [() => parseURL(toValue(url)).pathname, body, method],
-    queryFn: () => weilaApi.value.v2.fetch(toValue(url), {
+    queryKey: [requestUrl, body, method],
+    queryFn: () => weilaApi.value.v2.fetch(requestUrl(), {
       body: toValue(body),
       method,
     }),
@@ -30,40 +30,8 @@ export function useWeilaFetch<T>(
     ...tanstackOptions,
   })
 
-  const { refetch } = res
-
-  // FIXME: maybe bug - call twice
-  // if (body && (isRef(body) || isFunction(body))) {
-  //   watch(body, () => {
-  //     // @ts-expect-error type error
-  //     if (toValue(tanstackOptions?.enabled) !== false)
-  //       refetch()
-  //   }, { deep: true })
-  // }
-  if (isRef(url) || isFunction(url)) {
-    watch(url, () => {
-      // @ts-expect-error type error
-      if (toValue(tanstackOptions?.enabled) !== false)
-        refetch()
-    })
-  }
-
   return {
     ...res,
-    data: computed(() => {
-      if (!res.data.value)
-        return res.data.value
-
-      if (!pick || pick.length === 0)
-        return res.data.value
-
-      if (pick.length === 1)
-        return res.data.value[pick[0] as keyof T]
-
-      return pick.reduce((obj, key) => {
-        obj[key] = res.data.value?.[key as keyof T]
-        return obj
-      }, {} as any)
-    }) as ComputedRef<T>,
+    data: computed(() => pickFromResponse(res.data.value, pick)) as ComputedRef<T>,
   }
 }

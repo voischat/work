@@ -39,15 +39,16 @@ const avatarUploaderRef = shallowRef(null)
 const isUploadingAlbum = shallowRef(false)
 const isMapPickerModalOpen = shallowRef(false)
 
-function handleCreate() {
+async function handleCreate() {
   // 上传头像
   // @ts-expect-error type error: `defineExpose` no type declare find
   const { upload } = avatarUploaderRef.value
   if (form.avatar && !isRemoteImage(form.avatar)) {
-    return upload().then(() => create(form))
+    if (!(await upload()))
+      return
   }
 
-  return create(form)
+  return create({ point: form })
 }
 </script>
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Member } from '~/types/api'
 import Message from '@arco-design/web-vue/es/message'
+import { useQueryClient } from '@tanstack/vue-query'
 import { computed, useSlots } from 'vue'
 
 defineProps<{
@@ -15,6 +16,7 @@ const hasTrigger = computed(() => !!slots.default)
 const { t } = useI18n()
 
 const open = defineModel('open', { default: false })
+const qc = useQueryClient()
 
 const { mutateAsync, isPending } = useWeilaMutation<{
   group_id: number
@@ -23,6 +25,9 @@ const { mutateAsync, isPending } = useWeilaMutation<{
   onSuccess() {
     open.value = false
     Message.success(t('message.success'))
+    qc.invalidateQueries({ queryKey: ['corp/group/get-group-member-list'] })
+    qc.invalidateQueries({ queryKey: ['corp/group/get-group-all-member'] })
+    qc.invalidateQueries({ queryKey: ['corp/group/get-group-all-member/self-membership'] })
     emits('success')
   },
 })

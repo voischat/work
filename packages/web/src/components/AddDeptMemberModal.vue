@@ -17,17 +17,15 @@ const open = shallowRef(false)
 const selectedMembers = shallowRef<OrgTreeSelectedItem[]>([])
 const selectedUserIds = computed(() => selectedMembers.value.map(item => item.id))
 
-const { data, refetch } = useWeilaFetch<{ depts: Member[], count: number }>('corp/address/get-my-manage-dept-list', {
+const { data } = useWeilaFetch<{ depts: Member[], count: number }>('corp/address/get-my-manage-dept-list', {
   body: { dept_id: props.deptId },
 }, {
   enabled: open,
 })
 
 watchEffect(() => {
-  if (open.value) {
+  if (open.value)
     selectedMembers.value = []
-    refetch()
-  }
 })
 
 const { mutate, isPending } = useWeilaMutation<never, {
