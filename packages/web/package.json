@@ -25,7 +25,7 @@
     "mock": "apipost-mock-gen fixtures/mock/weila.md --output generated/mock/weila.ts",
     "archive": "esno scripts/archive.ts",
     "test": "vitest",
-    "release": "npx bumpp && esno scripts/release.ts",
+    "release": "npx bumpp",
     "pack": "nr release && nr build && nr archive",
     "electron": "electron electron/main.cjs",
     "electron:build": "node scripts/prepare-agent.cjs && vite build && node scripts/fix-electron-build.cjs && electron-builder",
