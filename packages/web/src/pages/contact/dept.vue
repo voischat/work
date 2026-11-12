@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DeptModel } from '~/api/contact'
+import { shallowRef } from 'vue'
 
 import CreateDeptModal from './components/CreateDeptModal.vue'
 import DeleteDeptModal from './components/DeleteDeptModal.vue'
@@ -21,10 +22,13 @@ interface Dept {
   user_count: number
 }
 
+const curPage = shallowRef(0)
+const pageSize = shallowRef(10)
+
 const { data, refetch } = useWeilaFetch<{
   count: number
   dept: Dept
-}>('corp/address/get-my-manage-dept-list')
+}>(() => `corp/address/get-my-manage-dept-list?page=${curPage.value}&size=${pageSize.value}`)
 
 const selfInfoStore = useSelfInfoStore()
 
@@ -52,11 +56,17 @@ function onSelect(dept: DeptModel, e: PointerEvent) {
 
       <!-- @vue-expect-error type error when arco's row-click -->
       <a-table
+        :pagination="{
+          pageSize: 10,
+          total: data?.count || 0,
+        }"
         :data="data?.depts" size="medium" :column-resizable="true" :scroll="{
           x: 1000,
           y: 600,
         }" :scrollbar="true" :columns="[{ title: t('name'), dataIndex: 'name' }]"
         @row-click="(...args) => onSelect(...args)"
+
+        @page-change="(page) => curPage = page - 1"
       >
         <template #columns>
           <a-table-column :title="t('name')">

@@ -29,7 +29,7 @@ async function initSdk() {
 const filterInput = shallowRef('')
 const key = useDebounce(filterInput, 500)
 
-const curPage = shallowRef(1)
+const curPage = shallowRef(0)
 const pageSize = shallowRef(10)
 
 const filters = shallowRef<{ [key: string]: any }>({})

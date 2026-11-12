@@ -13,11 +13,11 @@ List groups you manage.
 
 | Option | Description |
 |--------|-------------|
-| `--page <page>` | Page number (default: 1) |
+| `--page <page>` | Page number, 0-based (default: 0) |
 | `--size <size>` | Page size (default: 20) |
 
 ```bash
-weila-work-cli group:list --page 1 --size 20
+weila-work-cli group:list --page 0 --size 20
 ```
 
 ## `group:get`
@@ -51,11 +51,11 @@ Paginated group member list.
 | Option | Description |
 |--------|-------------|
 | `--id <id>` | Group ID |
-| `--page <page>` | Page number (default: 1) |
+| `--page <page>` | Page number, 0-based (default: 0) |
 | `--size <size>` | Page size (default: 20) |
 
 ```bash
-weila-work-cli group:member-list --id 123 --page 1 --size 20
+weila-work-cli group:member-list --id 123 --page 0 --size 20
 ```
 
 ## `group:create`

@@ -13,7 +13,7 @@ const { t } = useI18n()
 const route = useRoute('/contact/group-[group_id]-[group_name]')
 const router = useRouter()
 
-const curPage = shallowRef(1)
+const curPage = shallowRef(0)
 const pageSize = shallowRef(10)
 
 // 获取部门列表
@@ -176,7 +176,7 @@ function onSelect(member: Member, e: PointerEvent) {
           x: 1000,
           y: 600,
         }" :scrollbar="true"
-        @page-change="(page) => curPage = page" @row-click="(...args) => onSelect(...args)"
+        @page-change="(page) => curPage = page - 1" @row-click="(...args) => onSelect(...args)"
       >
         <template #columns>
           <!-- <a-table-column :title="t('type')">

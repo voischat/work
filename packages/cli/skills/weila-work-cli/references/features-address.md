@@ -99,7 +99,7 @@ Paginated member list across the organization.
 | `--key <key>` | Search keyword |
 | `--member-types <types>` | Member types (comma separated) |
 | `--dept-ids <ids>` | Department IDs (comma separated) |
-| `--page <page>` | Page number (default: 1) |
+| `--page <page>` | Page number, 0-based (default: 0) |
 | `--size <size>` | Page size (default: 20) |
 
 ```bash
@@ -115,7 +115,7 @@ Paginated members of a department.
 | `--dept-id <id>` | Department ID |
 | `--key <key>` | Search keyword |
 | `--member-types <types>` | Member types (comma separated) |
-| `--page <page>` | Page number (default: 1) |
+| `--page <page>` | Page number, 0-based (default: 0) |
 | `--size <size>` | Page size (default: 20) |
 
 ```bash

@@ -64,7 +64,7 @@ export function registerAddressCommands(cli: CAC): void {
     .option('--key <key>', 'Search keyword')
     .option('--member-types <types>', 'Member types (comma separated)')
     .option('--dept-ids <ids>', 'Department IDs (comma separated)')
-    .option('--page <page>', 'Page number', { default: '1' })
+    .option('--page <page>', 'Page number (0-based)', { default: '0' })
     .option('--size <size>', 'Page size', { default: '20' })
     .example('weila-work-cli address:member-list --key zhang --dept-ids 1,2')
     .action(async (options) => {
@@ -79,7 +79,7 @@ export function registerAddressCommands(cli: CAC): void {
           key,
           member_types: parseNumberArray(memberTypes),
           dept_ids: parseNumberArray(deptIds),
-          page: parseOptionalNumber(page) ?? 1,
+          page: parseOptionalNumber(page) ?? 0,
           size: parseOptionalNumber(size) ?? 20,
         })
         printSuccess(res)
@@ -94,7 +94,7 @@ export function registerAddressCommands(cli: CAC): void {
     .option('--dept-id <id>', 'Department ID')
     .option('--key <key>', 'Search keyword')
     .option('--member-types <types>', 'Member types (comma separated)')
-    .option('--page <page>', 'Page number', { default: '1' })
+    .option('--page <page>', 'Page number (0-based)', { default: '0' })
     .option('--size <size>', 'Page size', { default: '20' })
     .example('weila-work-cli address:dept-member-list --dept-id 5')
     .action(async (options) => {
@@ -108,7 +108,7 @@ export function registerAddressCommands(cli: CAC): void {
         const res = await api.getDeptMemberList(client, Number(deptId) || 0, {
           key,
           member_types: parseNumberArray(memberTypes),
-          page: parseOptionalNumber(page) ?? 1,
+          page: parseOptionalNumber(page) ?? 0,
           size: parseOptionalNumber(size) ?? 20,
         })
         printSuccess(res)

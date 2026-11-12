@@ -21,7 +21,7 @@ const { t } = useI18n()
 
 const router = useRouter()
 
-const curPage = shallowRef(1)
+const curPage = shallowRef(0)
 const pageSize = shallowRef(10)
 
 // 获取部门列表
@@ -140,7 +140,7 @@ function openGroupChat(group: GroupModel) {
           y: 600,
         }" :scrollbar="true" @row-click="(...args) => onSelect(...args)"
 
-        @page-change="(page) => curPage = page"
+        @page-change="(page) => curPage = page - 1"
       >
         <template #columns>
           <a-table-column :title="t('avatar')">

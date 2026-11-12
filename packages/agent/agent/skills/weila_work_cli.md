@@ -76,20 +76,20 @@ weila_cli({command: "address:dept-tree"})
 weila_cli({command: "address:dept-create", args: ["--name", "技术部"]})
 
 # 成员
-weila_cli({command: "address:member-list", args: ["--key", "张三", "--page", "1", "--size", "20"]})
+weila_cli({command: "address:member-list", args: ["--key", "张三", "--page", "0", "--size", "20"]})
 weila_cli({command: "address:member", args: ["--id", "123"]})
 weila_cli({command: "address:member-create", args: ["--name", "李四", "--password", "123456", "--dept-id", "5"]})
 weila_cli({command: "address:member-state", args: ["--user-id", "123", "--state", "0"]})
 
 # 群组
-weila_cli({command: "group:list", args: ["--page", "1", "--size", "20"]})
+weila_cli({command: "group:list", args: ["--page", "0", "--size", "20"]})
 weila_cli({command: "group:get", args: ["--id", "456"]})
 weila_cli({command: "group:create", args: ["--name", "运维群"]})
 ```
 
 ## 注意
 
-- `--page` 默认 1，`--size` 默认 20。
+- `--page` 从 0 开始（0 为第一页），默认 0；`--size` 默认 20。
 - `--dept-ids` 和 `--user-ids` 用逗号分隔多个 ID。
 - `--sex` 接受 0（女）或 1（男）。
 - `--is-dept-admin`、`--loc-share`、`--track`、`--burst-mode` 接受 `true`/`false`/`0`/`1`。

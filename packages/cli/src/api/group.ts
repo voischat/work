@@ -7,7 +7,7 @@ export interface GroupListFilters {
 }
 
 export async function getMyManageGroupList(api: WeilaApi, filters: GroupListFilters = {}): Promise<{ groups: GroupModel[], count: number }> {
-  return api.v2.fetch(`corp/group/get-my-manage-group-list?page=${filters.page ?? 1}&size=${filters.size ?? 20}`, {})
+  return api.v2.fetch(`corp/group/get-my-manage-group-list?page=${filters.page ?? 0}&size=${filters.size ?? 20}`, {})
 }
 
 export async function getGroup(api: WeilaApi, groupId: number): Promise<GroupModel> {
@@ -24,7 +24,7 @@ export interface GroupMemberListFilters {
 }
 
 export async function getGroupMemberList(api: WeilaApi, groupId: number, filters: GroupMemberListFilters = {}): Promise<{ count: number, members: Member[] }> {
-  return api.v2.fetch(`corp/group/get-group-member-list?page=${filters.page ?? 1}&size=${filters.size ?? 20}`, { body: { group_id: groupId } })
+  return api.v2.fetch(`corp/group/get-group-member-list?page=${filters.page ?? 0}&size=${filters.size ?? 20}`, { body: { group_id: groupId } })
 }
 
 export interface CreateGroupPayload {

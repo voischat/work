@@ -49,7 +49,7 @@ const localVisible = computed({
 
 const currentActiveType = shallowRef(props.activeType)
 
-const groupPage = shallowRef(1)
+const groupPage = shallowRef(0)
 const groupSearch = shallowRef('')
 const debouncedGroupSearch = useDebounce(groupSearch, 300)
 const groupQuerySize = computed(() => debouncedGroupSearch.value.trim() ? 100 : 10)
@@ -68,11 +68,11 @@ const groups = computed(() => {
   return key ? list.filter(group => group.name.toLowerCase().includes(key)) : list
 })
 const hasMoreGroups = computed(
-  () => (groupData.value?.count ?? 0) > groupPage.value * groupQuerySize.value,
+  () => (groupData.value?.count ?? 0) > (groupPage.value + 1) * groupQuerySize.value,
 )
 
 watch(debouncedGroupSearch, () => {
-  groupPage.value = 1
+  groupPage.value = 0
 })
 
 watch(
@@ -82,14 +82,14 @@ watch(
       return
 
     currentActiveType.value = props.activeType
-    groupPage.value = 1
+    groupPage.value = 0
     groupSearch.value = ''
   },
 )
 
 function goPrev() {
   if (currentActiveType.value === 'group')
-    groupPage.value = Math.max(1, groupPage.value - 1)
+    groupPage.value = Math.max(0, groupPage.value - 1)
 }
 
 function goNext() {
@@ -201,7 +201,7 @@ function handleSelectGroup(group: GroupModel) {
             <div class="flex justify-end gap-2 pt-2 border-t border-neutral-100">
               <a-button
                 size="mini"
-                :disabled="groupPage <= 1"
+                :disabled="groupPage <= 0"
                 @click="goPrev"
               >
                 上一页

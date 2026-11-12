@@ -22,11 +22,11 @@ export interface MemberListFilters {
 }
 
 export async function getMemberList(api: WeilaApi, filters: MemberListFilters = {}): Promise<{ count: number, members: Member[] }> {
-  return api.v2.fetch(`corp/address/get-member-list?page=${filters.page ?? 1}&size=${filters.size ?? 20}`, { body: filters })
+  return api.v2.fetch(`corp/address/get-member-list?page=${filters.page ?? 0}&size=${filters.size ?? 20}`, { body: filters })
 }
 
 export async function getDeptMemberList(api: WeilaApi, deptId: number, filters: Omit<MemberListFilters, 'dept_ids'> = {}): Promise<{ count: number, members: Member[] }> {
-  return api.v2.fetch(`corp/address/get-dept-member-list?page=${filters.page ?? 1}&size=${filters.size ?? 20}`, { body: { ...filters, dept_id: deptId } })
+  return api.v2.fetch(`corp/address/get-dept-member-list?page=${filters.page ?? 0}&size=${filters.size ?? 20}`, { body: { ...filters, dept_id: deptId } })
 }
 
 export async function getDeptAllMember(api: WeilaApi, deptId: number): Promise<Member[]> {

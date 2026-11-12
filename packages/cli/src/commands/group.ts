@@ -16,16 +16,16 @@ function parseBurstMode(v: unknown): 0 | 1 | undefined {
 export function registerGroupCommands(cli: CAC): void {
   cli
     .command('group:list', 'List groups you manage')
-    .option('--page <page>', 'Page number', { default: '1' })
+    .option('--page <page>', 'Page number (0-based)', { default: '0' })
     .option('--size <size>', 'Page size', { default: '20' })
-    .example('weila-work-cli group:list --page 1 --size 20')
+    .example('weila-work-cli group:list --page 0 --size 20')
     .action(async (options) => {
       try {
         const page = options.page
         const size = options.size
         const { api: client } = await getClient(resolveClientOptions(options))
         const res = await api.getMyManageGroupList(client, {
-          page: parseOptionalNumber(page) ?? 1,
+          page: parseOptionalNumber(page) ?? 0,
           size: parseOptionalNumber(size) ?? 20,
         })
         printSuccess(res)
@@ -70,9 +70,9 @@ export function registerGroupCommands(cli: CAC): void {
   cli
     .command('group:member-list', 'Paginated group member list')
     .option('--id <id>', 'Group ID')
-    .option('--page <page>', 'Page number', { default: '1' })
+    .option('--page <page>', 'Page number (0-based)', { default: '0' })
     .option('--size <size>', 'Page size', { default: '20' })
-    .example('weila-work-cli group:member-list --id 123 --page 1 --size 20')
+    .example('weila-work-cli group:member-list --id 123 --page 0 --size 20')
     .action(async (options) => {
       try {
         const id = options.id
@@ -80,7 +80,7 @@ export function registerGroupCommands(cli: CAC): void {
         const size = options.size
         const { api: client } = await getClient(resolveClientOptions(options))
         const res = await api.getGroupMemberList(client, Number(id) || 0, {
-          page: parseOptionalNumber(page) ?? 1,
+          page: parseOptionalNumber(page) ?? 0,
           size: parseOptionalNumber(size) ?? 20,
         })
         printSuccess(res)

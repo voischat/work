@@ -18,7 +18,7 @@ async function initSdk() {
   return loggedIn ? weilaCore.value : null
 }
 
-const curPage = shallowRef(1)
+const curPage = shallowRef(0)
 const pageSize = shallowRef(10)
 
 const filterInput = shallowRef('')
