@@ -18,11 +18,14 @@ export function useWeilaFetch<T>(
 
   const weilaApi = useWeilaApi()
   const requestUrl = () => toValue(url).replace(/^\/+/, '')
+  const requestPath = () => requestUrl().split('?')[0]
+  const requestParams = () => requestUrl().split('?')[1] ?? ''
+  const requestBody = () => toValue(body)
 
   const res = useQuery<T>({
-    queryKey: [requestUrl, body, method],
+    queryKey: computed(() => [requestPath(), requestParams(), requestBody(), method]),
     queryFn: () => weilaApi.value.v2.fetch(requestUrl(), {
-      body: toValue(body),
+      body: requestBody(),
       method,
     }),
     retry: (failCount, error) => shouldRetryQuery(failCount, error),

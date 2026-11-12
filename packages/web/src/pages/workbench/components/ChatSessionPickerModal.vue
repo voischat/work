@@ -52,22 +52,28 @@ const currentActiveType = shallowRef(props.activeType)
 const groupPage = shallowRef(1)
 const groupSearch = shallowRef('')
 const debouncedGroupSearch = useDebounce(groupSearch, 300)
+const groupQuerySize = computed(() => debouncedGroupSearch.value.trim() ? 100 : 10)
 
 const {
   data: groupData,
   isPending: isGroupsPending,
   refetch: refetchGroups,
 } = useWeilaFetch<GroupListResponse>(
-  () => `corp/group/get-my-manage-group-list?page=${groupPage.value}&size=10`,
-  {
-    body: () => ({ key: debouncedGroupSearch.value }),
-  },
+  () => `corp/group/get-my-manage-group-list?page=${groupPage.value}&size=${groupQuerySize.value}`,
 )
 
-const groups = computed(() => groupData.value?.groups ?? [])
+const groups = computed(() => {
+  const list = groupData.value?.groups ?? []
+  const key = debouncedGroupSearch.value.trim().toLowerCase()
+  return key ? list.filter(group => group.name.toLowerCase().includes(key)) : list
+})
 const hasMoreGroups = computed(
-  () => (groupData.value?.count ?? 0) > groupPage.value * 10,
+  () => (groupData.value?.count ?? 0) > groupPage.value * groupQuerySize.value,
 )
+
+watch(debouncedGroupSearch, () => {
+  groupPage.value = 1
+})
 
 watch(
   () => props.visible,

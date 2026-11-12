@@ -1,0 +1,13 @@
+module	item	value	evidence
+org	name	测试企业	agent-browser production /#/contact/org
+org	version	v3.2.0 build 7/3/2026 11:21:54 AM	same
+org	counts	members 4, depts 1, groups 12, devices 0	same
+member	ent97359103	70009790, 企业主, track 15分钟, location 打开, created 12/17/2024	/#/contact/member
+member	70002806	部门管理员, group 1/100, track 关闭, location 关闭, created 7/1/2026	same
+member	波刚	70002373, 成员, group 0/100, track 5分钟, location 打开, created 11/12/2026, Android device account	same
+member	王刚	70001598, 部门管理员, group 0/100, track 5分钟, location 打开, created 11/12/2026	same
+dept	cw	0 users, edit/delete available	/#/contact/dept
+group	验证群01-12	all created 11/5/2026, 排麦, dept 测试企业, 0 members except 验证群01 has 2 (ent97359103, 70002806)	/#/contact/group pages 1-2
+chat	channels	王刚 [语音消息]; 验证群01 (0) 缓存验证8	/#/workbench/chat
+chat	history	暂无数据	/#/message
+workbench	cards	用户轨迹, 消息, 服务号 (disabled)	/#/workbench
