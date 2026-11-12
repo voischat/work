@@ -40,9 +40,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { data: deptData, isPending: isDeptPending } = useWeilaFetch<{
-  depts: DeptModel[]
-}>('corp/address/get-my-manage-dept-list')
+// get-my-manage-dept-list omits the root dept (id 0), hiding members not in any dept
+const { data: deptData, isPending: isDeptPending } = useWeilaFetch<DeptModel[]>('corp/address/get-my-manage-all-dept')
 
 const weilaApi = useWeilaApi()
 const deptStates = shallowRef<DeptState[]>([])
@@ -51,7 +50,7 @@ const selectedMemberIds = computed(() => new Set(props.selected.map(item => item
 watch(
   deptData,
   (data) => {
-    deptStates.value = (data?.depts ?? []).map(dept => ({
+    deptStates.value = (data ?? []).map(dept => ({
       dept,
       expanded: deptStates.value.find(item => item.dept.id === dept.id)?.expanded ?? false,
       loading: false,

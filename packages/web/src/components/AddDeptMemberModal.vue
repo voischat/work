@@ -17,7 +17,7 @@ const open = shallowRef(false)
 const selectedMembers = shallowRef<OrgTreeSelectedItem[]>([])
 const selectedUserIds = computed(() => selectedMembers.value.map(item => item.id))
 
-const { data } = useWeilaFetch<{ depts: Member[], count: number }>('corp/address/get-my-manage-dept-list', {
+const { data: deptMembers } = useWeilaFetch<Member[]>('corp/address/get-dept-all-member', {
   body: { dept_id: props.deptId },
 }, {
   enabled: open,
@@ -48,7 +48,7 @@ const { mutate, isPending } = useWeilaMutation<never, {
           v-model:selected="selectedMembers"
           class="rounded border border-neutral-200"
           select-mode="multi"
-          :disabled-member-ids="data?.depts?.map(i => i.user_id)"
+          :disabled-member-ids="deptMembers?.map(i => i.user_id)"
         />
       </div>
     </template>
