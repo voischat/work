@@ -35,6 +35,6 @@ export function useWeilaFetch<T>(
 
   return {
     ...res,
-    data: computed(() => pickFromResponse(res.data.value, pick)) as ComputedRef<T>,
+    data: computed(() => pickFromResponse(res.data.value, pick)),
   }
 }

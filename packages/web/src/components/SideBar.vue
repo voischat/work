@@ -31,6 +31,7 @@ $inspect(disabledList)
 const { data: corp } = useWeilaFetch<Corp>('corp/org/get-my-org')
 
 const selfInfoStore = useSelfInfoStore()
+const selfInfoType = computed(() => selfInfoStore.selfInfo?.type)
 
 interface Menu {
   [key: string]: {
@@ -63,7 +64,8 @@ const menu = computed<Menu>(() => {
       continue
 
     if (!route?.meta?.roles
-      || (route?.meta?.roles && route?.meta?.roles?.includes(selfInfoStore.selfInfo?.type))
+      || selfInfoType.value === undefined
+      || (route?.meta?.roles && route?.meta?.roles?.includes(selfInfoType.value))
     ) {
       menuItem.submenu.push(route)
     }

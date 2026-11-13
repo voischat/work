@@ -71,7 +71,7 @@ const submit = handleSubmit(async (values: any) => {
 
 // Computed property for fast radio disabled state
 const isFastTrackDisabled = computed(() =>
-  !authStore.vip.vip_supports.find(i => i.name === 'track')?.quick_support,
+  !authStore.vip?.vip_supports.find(i => i.name === 'track')?.quick_support,
 )
 
 // Computed functions for tooltips
@@ -152,7 +152,7 @@ const getFastTrackTooltip = computed(() => () =>
             unchecked-color="#ddd"
           />
         </a-form-item>
-        <a-form-item v-if="authStore.vip.vip_supports.find((i) => i.name === 'track')?.support" field="track" :label="t('change-member.form.track.label')">
+        <a-form-item v-if="authStore.vip?.vip_supports.find((i) => i.name === 'track')?.support" field="track" :label="t('change-member.form.track.label')">
           <a-radio-group v-model="form.track" type="button">
             <a-radio :value="TrackType.Close">
               {{ t('track-type.close') }}

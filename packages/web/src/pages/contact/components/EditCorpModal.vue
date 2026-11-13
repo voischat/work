@@ -16,8 +16,8 @@ const { data: corp } = useWeilaFetch<Corp>('corp/org/get-my-org', {}, {
 const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
 
 const { rules, form, reset, handleSubmit } = useForm(v.object({
-  name: v.optional(v.string(), () => corp.value.name),
-  avatar: v.optional(v.string(), () => corp.value.avatar),
+  name: v.optional(v.string(), () => corp.value?.name),
+  avatar: v.optional(v.string(), () => corp.value?.avatar),
 }), {
   watch: [corp],
 })

@@ -2,7 +2,7 @@
  * The network layer unwraps a `data` object that has exactly one key, while
  * multi-key payloads stay wrapped. `pick` must accept both shapes.
  */
-export function pickFromResponse<T>(value: T, pick?: string[]): any {
+export function pickFromResponse<T>(value: T | undefined, pick?: string[]): T | undefined {
   if (!value || !pick || pick.length === 0 || typeof value !== 'object')
     return value
 
@@ -10,7 +10,7 @@ export function pickFromResponse<T>(value: T, pick?: string[]): any {
 
   if (pick.length === 1) {
     const key = pick[0]!
-    return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : value
+    return Object.prototype.hasOwnProperty.call(record, key) ? record[key] as T : value
   }
 
   const picked: Record<string, unknown> = {}
@@ -22,5 +22,5 @@ export function pickFromResponse<T>(value: T, pick?: string[]): any {
     }
   }
 
-  return found ? picked : value
+  return found ? picked as T : value
 }
