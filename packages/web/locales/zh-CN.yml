@@ -382,9 +382,12 @@ old-password: 旧密码
 online: 在线
 online-docs: 在线文档
 org-tree:
+  dept-member-count: '{count} 人'
   empty:
     dept: 暂无部门
     member: 暂无成员
+  load-error: 加载成员失败
+  select-dept-members: 选择 {name} 的所有成员
 open: 打开
 option:
   a: Option A

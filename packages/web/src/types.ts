@@ -15,16 +15,6 @@ export interface OnSubmitParams<T extends Record<string, any>> {
   errors: Record<keyof T, ValidatedError | undefined>
 }
 
-export interface TreeNodeData {
-  title: string
-  key: string
-  selectable?: boolean
-  checkable?: boolean
-  isLeaf?: boolean
-  children?: TreeNodeData[]
-  disableCheckbox?: boolean
-}
-
 export interface Corp {
   address_ver: number
   avatar: string

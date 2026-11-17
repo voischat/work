@@ -7,6 +7,7 @@ interface Props {
   disabled?: boolean
   memberTitle?: (member: Member) => string
   showActions?: boolean
+  showCheckbox?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -14,6 +15,7 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   memberTitle: (member: Member) => member.name,
   showActions: false,
+  showCheckbox: false,
 })
 
 const emit = defineEmits<{
@@ -55,9 +57,19 @@ function getMemberTypeLabel(member: Member) {
     :class="{
       'org-tree-member-item--selected': selected,
       'org-tree-member-item--disabled': disabled,
+      'org-tree-member-item--checkable': showCheckbox,
     }"
+    :aria-pressed="showCheckbox ? selected : undefined"
     @click="handleClick"
   >
+    <span
+      v-if="showCheckbox"
+      class="org-tree-member-item__check"
+      :class="{ 'is-on': selected }"
+      aria-hidden="true"
+    >
+      <IconCheck v-if="selected" />
+    </span>
     <a-avatar :image-url="member.avatar?.replace(/^https?:/, '')" :size="32">
       <IconUser />
     </a-avatar>
@@ -92,6 +104,28 @@ function getMemberTypeLabel(member: Member) {
   text-align: left;
   cursor: pointer;
   padding: 9px 12px 9px 34px;
+}
+
+.org-tree-member-item--checkable {
+  padding-left: 12px;
+}
+
+.org-tree-member-item__check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--color-border-2);
+  border-radius: 2px;
+  color: #fff;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.org-tree-member-item__check.is-on {
+  border-color: rgb(var(--primary-6));
+  background: rgb(var(--primary-6));
 }
 
 .org-tree-member-item:hover {

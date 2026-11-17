@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { OrgTreeSelectedItem } from '~/components/OrgTree.vue'
+import type { OrgTreeSelectedItem } from '~/components/orgTreeSelection'
 import type { Member } from '~/types/api'
 import Message from '@arco-design/web-vue/es/message'
 import { useQueryClient } from '@tanstack/vue-query'
@@ -17,11 +17,13 @@ const open = shallowRef(false)
 const selectedMembers = shallowRef<OrgTreeSelectedItem[]>([])
 const selectedUserIds = computed(() => selectedMembers.value.map(item => item.id))
 
-const { data: deptMembers } = useWeilaFetch<Member[]>('corp/address/get-dept-all-member', {
+const { data: deptMembers, isPending: isDeptMembersPending } = useWeilaFetch<Member[]>('corp/address/get-dept-all-member', {
   body: { dept_id: props.deptId },
 }, {
   enabled: open,
 })
+
+const disabledMemberIds = computed(() => deptMembers.value?.map(i => i.user_id))
 
 watchEffect(() => {
   if (open.value)
@@ -36,6 +38,8 @@ const { mutate, isPending } = useWeilaMutation<never, {
     Message.success(t('message.success'))
     open.value = false
     qc.invalidateQueries({ queryKey: ['corp/address/get-dept-member-list'] })
+    qc.invalidateQueries({ queryKey: ['corp/address/get-dept-all-member'] })
+    qc.invalidateQueries({ queryKey: ['corp/address/get-my-manage-all-dept'] })
   },
 })
 </script>
@@ -48,7 +52,8 @@ const { mutate, isPending } = useWeilaMutation<never, {
           v-model:selected="selectedMembers"
           class="rounded border border-neutral-200"
           select-mode="multi"
-          :disabled-member-ids="deptMembers?.map(i => i.user_id)"
+          :disabled-member-ids="disabledMemberIds"
+          :disabled-member-ids-loading="isDeptMembersPending"
         />
       </div>
     </template>

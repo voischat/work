@@ -396,9 +396,12 @@ old-password: Old password
 online: Online
 online-docs: Online Docs
 org-tree:
+  dept-member-count: '{count} members'
   empty:
     dept: No departments
     member: No members
+  load-error: Failed to load members
+  select-dept-members: Select all members of {name}
 open: open
 option:
   a: Option A

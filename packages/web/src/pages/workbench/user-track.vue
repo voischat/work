@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { OrgTreeSelectedItem } from '~/components/OrgTree.vue'
+import type { OrgTreeSelectedItem } from '~/components/orgTreeSelection'
 import { Message } from '@arco-design/web-vue'
 import { ElAmap, ElAmapLayerSatellite } from '@vuemap/vue-amap'
 import { ElAmapLoca, ElAmapLocaLine } from '@vuemap/vue-amap-loca'
@@ -25,7 +25,6 @@ const selectedDate = useRouteQuery('date', new Date().toISOString().split('T')[0
 const satelliteVisible = shallowRef(false)
 const capsuleRef = shallowRef<InstanceType<typeof MapStatusCapsule>>()
 
-// 使用composables
 const {
   tracks,
   trackFeatureCollection,
@@ -83,7 +82,8 @@ function onFocusAllMarkers() {
 }
 
 watch(map, (m) => {
-  if (!m) return
+  if (!m)
+    return
   const onInteract = () => capsuleRef.value?.flashMessage()
   m.on('mapmove', onInteract)
   m.on('zoomchange', onInteract)

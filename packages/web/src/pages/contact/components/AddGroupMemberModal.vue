@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { OrgTreeSelectedItem } from '~/components/OrgTree.vue'
+import type { OrgTreeSelectedItem } from '~/components/orgTreeSelection'
 import type { Member } from '~/types/api'
 import { Message } from '@arco-design/web-vue'
 import { useQueryClient } from '@tanstack/vue-query'
@@ -19,9 +19,13 @@ const open = shallowRef(false)
 const selectedMembers = shallowRef<OrgTreeSelectedItem[]>([])
 const selectedUserIds = computed(() => selectedMembers.value.map(item => item.id))
 
-const { data: groupMembers, refetch } = useWeilaFetch<Member[]>('corp/group/get-group-all-member', {
+const { data: groupMembers, refetch, isPending: isGroupMembersPending } = useWeilaFetch<Member[]>('corp/group/get-group-all-member', {
   body: { group_id: props.groupId },
 })
+
+const disabledMemberIds = computed(() => groupMembers.value?.map(i => i.user_id))
+const isMemberEnabled = (member: Member) => member.grp_cnt < member.grp_lmt
+const memberTitle = (member: Member) => `${member.name} (${member.grp_cnt}/${member.grp_lmt})`
 
 watchEffect(() => {
   if (open.value) {
@@ -50,9 +54,10 @@ const { mutate, isPending } = useWeilaMutation('corp/group/add-group-members', {
           v-model:selected="selectedMembers"
           class="rounded border border-neutral-200"
           select-mode="multi"
-          :disabled-member-ids="groupMembers?.map(i => i.user_id)"
-          :is-member-enabled="(member) => member.grp_cnt < member.grp_lmt"
-          :member-title="(member) => `${member.name} (${member.grp_cnt}/${member.grp_lmt})`"
+          :disabled-member-ids="disabledMemberIds"
+          :disabled-member-ids-loading="isGroupMembersPending"
+          :is-member-enabled="isMemberEnabled"
+          :member-title="memberTitle"
         />
       </div>
     </template>

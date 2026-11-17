@@ -17,7 +17,6 @@ declare module 'vue' {
     CertificationTag: typeof import('./components/CertificationTag.vue')['default']
     ChannelAvatar: typeof import('./components/ChannelAvatar.vue')['default']
     ConfirmButtonGroup: typeof import('./components/ConfirmButtonGroup.vue')['default']
-    ContactSelectTree: typeof import('./components/ContactSelectTree.vue')['default']
     CreateMemberModal: typeof import('./components/CreateMemberModal.vue')['default']
     DeleteAccount: typeof import('./components/DeleteAccount.vue')['default']
     DeleteAccountEmail: typeof import('./components/DeleteAccountEmail.vue')['default']
