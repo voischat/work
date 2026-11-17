@@ -24,6 +24,10 @@ const pageSize = shallowRef(10)
 const filterInput = shallowRef('')
 const key = useDebounce(filterInput, 500)
 
+watch(key, () => {
+  curPage.value = 0
+})
+
 const filters = shallowRef<{ [key: string]: any }>({})
 
 const route = useRoute('/contact/dept-[dept_id]-[dept_name]')
