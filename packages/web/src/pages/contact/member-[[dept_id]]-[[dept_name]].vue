@@ -32,6 +32,10 @@ const key = useDebounce(filterInput, 500)
 const curPage = shallowRef(0)
 const pageSize = shallowRef(10)
 
+watch(key, () => {
+  curPage.value = 0
+})
+
 const filters = shallowRef<{ [key: string]: any }>({})
 
 const { data } = useWeilaFetch<{
@@ -89,12 +93,6 @@ async function handleSendMessage(member: Member) {
       Message.error('SDK 初始化失败，请重新登录后再试')
       return
     }
-
-    console.log(
-      'start new session',
-      String(member.user_id),
-      WL_IDbSessionType.SESSION_CORP_INDIVIDUAL_TYPE,
-    )
 
     const session = await core.weila_startNewSession(
       String(member.user_id),

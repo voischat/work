@@ -66,6 +66,7 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
       :pagination="{
         pageSize: 10,
         total: count || 0,
+        current: curPage + 1,
       }"
       :column-resizable="true"
       :scrollbar="true"
