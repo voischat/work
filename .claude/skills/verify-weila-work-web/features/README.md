@@ -9,5 +9,6 @@ One file per user-facing feature. Each says how a user reaches it, how to drive 
 | Chat session picker pager | `chat-session-picker.md` | mapped |
 | Dept list page | `dept-list.md` | mapped; pager missing (known gap) |
 | Org tree department multi-select | `org-tree-multi-select.md` | mapped, driven 2026-11-17 |
+| Member edit permissions | `member-edit-permissions.md` | mapped, driven 2026-11-18 |
 
 Add a row here when you map a feature. Keep journeys honest: if seed data lacks a precondition, record the failure in Gotchas instead of weakening the journey.

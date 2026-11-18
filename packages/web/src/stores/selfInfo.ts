@@ -2,7 +2,11 @@ import type { SelfInfo } from '~/types'
 import { defineStore } from 'pinia'
 
 export const useSelfInfoStore = defineStore('selfInfo', () => {
-  const { data: selfInfo } = useWeilaFetch<SelfInfo>('corp/user/get-selfinfo')
+  const authStore = useAuthStore()
+  const { data: selfInfo } = useWeilaFetch<SelfInfo>('corp/user/get-selfinfo', {}, {
+    // 重新登录后自动获取
+    enabled: computed(() => Boolean(authStore.token)),
+  })
 
   // 权限判断
   const isOwner = computed(() => selfInfo.value?.type === 255)
