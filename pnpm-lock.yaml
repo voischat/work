@@ -581,9 +581,6 @@ importers:
       vue-i18n:
         specifier: 'catalog:'
         version: 11.1.12(vue@3.5.35(typescript@6.0.3))
-      zod:
-        specifier: 'catalog:'
-        version: 4.4.3
       zod-arco-rules:
         specifier: 'catalog:'
         version: 1.0.2(valibot@1.1.0(typescript@6.0.3))(vue@3.5.35(typescript@6.0.3))(zod@4.4.3)
@@ -650,10 +647,10 @@ importers:
         version: 6.0.7(vite@8.1.0(@types/node@24.10.0)(esbuild@0.27.7)(jiti@2.6.1)(less@4.4.2)(terser@5.37.0)(tsx@4.19.3)(yaml@2.9.0))(vue@3.5.35(typescript@6.0.3))
       '@vois/weila-sdk-core':
         specifier: link:/Users/kvoon/weila/weila-work-and-sdk/weila-js-sdk/packages/core
-        version: link:../../../weila-work-and-sdk/weila-js-sdk/packages/core
+        version: link:../../../weila-js-sdk/packages/core
       '@vois/weila-sdk-ui':
         specifier: link:/Users/kvoon/weila/weila-work-and-sdk/weila-js-sdk/packages/ui
-        version: link:../../../weila-work-and-sdk/weila-js-sdk/packages/ui
+        version: link:../../../weila-js-sdk/packages/ui
       '@vuemap/unplugin-resolver':
         specifier: 'catalog:'
         version: 2.0.1(unplugin-vue-components@29.1.0(@babel/parser@7.29.7)(vue@3.5.35(typescript@6.0.3)))
@@ -6296,6 +6293,7 @@ packages:
   image-size@0.5.5:
     resolution: {integrity: sha512-6TDAlDPZxUFCv+fuOkIoXT/V/f3Qbq8e37p+YOiYrUv3v9cc3/6x78VdfPgFVaB9dZYeLUfKgHRebpkm/oP2VQ==}
     engines: {node: '>=0.10.0'}
+    deprecated: Please migrate to image-size@2.x
     hasBin: true
 
   imagemin-gifsicle@7.0.0:

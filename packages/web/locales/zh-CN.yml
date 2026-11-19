@@ -502,10 +502,6 @@ selected: 已选择
 sendSMS:
   success:
     hint: 发送成功，请注意查看短信消息
-service-state:
-  opened: 已开通
-  unauth: 未认证
-  uncreate: 未创建
 shutup: 禁言
 shutup-disable: 不禁言
 shutup-enable: 禁言
@@ -555,46 +551,7 @@ vip:
 weila-number: 微喇号
 weila-number-with-value: '微喇号：{num}'
 workbench:
-  add-customer-service: 添加客服
-  area: 区域
-  auth-info: 认证信息
-  business-license: 营业执照
-  category: 类别
-  confirm: 确定
-  confirm-delete-point: 确定删除该服务点吗？
-  confirm-delete-staff: 确定删除客服
-  contact: 联系方式
-  coordinates: 经纬度
-  create-service: 创建服务点
-  create-service-point: 创建服务点
-  delete: 删除
-  edit: 编辑
-  edit-qualification: 编辑资质
-  id: ID
-  id-colon: ID：
-  loading: 加载中...
-  modify-auth-info: 修改认证信息
-  no-audit-info: 暂无待审核的认证信息
-  pass: 通过
-  platform: 工作台
   ai-agent: AI 助手
-  profile: 简介
-  qualification: 资质信息
-  question-mark: 吗？
-  reject: 拒绝
-  save: 保存
-  service-account: 服务号
-  service-album: 服务号相册
-  service-audit: 服务号审核
-  service-point: 服务点
-  service-point-customer-service: 服务点客服管理
-  service-point-management: 服务点管理
-  staff-management: 客服管理
-  status-colon: 状态：
-  street: 街道
-  submit: 提交
-  type: 类型
-  type-colon: 类型：
   user-track: 用户轨迹
 web-guide: 管理台用户手册
 agent:

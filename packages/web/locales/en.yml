@@ -522,10 +522,6 @@ selected: Selected
 sendSMS:
   success:
     hint: Sent successfully, please pay attention to your message
-service-state:
-  opened: Activated
-  unauth: Unverified
-  uncreate: Not created
 shutup: Mute
 shutup-disable: Not muted.
 shutup-enable: Muted
@@ -574,46 +570,7 @@ vip:
 weila-number: ID
 weila-number-with-value: 'ID: {num}'
 workbench:
-  add-customer-service: Add customer service.
-  area: Region
-  auth-info: Certification Information
-  business-license: Business license
-  category: Category
-  confirm: Sure.
-  confirm-delete-point: Are you sure you want to delete this service point?
-  confirm-delete-staff: Confirm deletion of customer service.
-  contact: Contact information
-  coordinates: Latitude and longitude
-  create-service: Create service point
-  create-service-point: Create service point
-  delete: Delete
-  edit: Edit
-  edit-qualification: Editing qualifications
-  id: ID
-  id-colon: 'ID:'
-  loading: Loading...
-  modify-auth-info: Modify authentication information
-  no-audit-info: No certification information pending review.
-  pass: through
-  platform: Workbench
   ai-agent: AI Assistant
-  profile: Introduction
-  qualification: Qualification Information
-  question-mark: '"Ma?" translates to "Is it?" or "Really?" depending on the context.'
-  reject: Refuse
-  save: Save
-  service-account: Service account
-  service-album: Service account album
-  service-audit: Service account review
-  service-point: Service point
-  service-point-customer-service: Service Point Customer Service Management
-  service-point-management: Service Point Management
-  staff-management: Customer Service Management
-  status-colon: 'Status:'
-  street: Street
-  submit: Submit
-  type: Type
-  type-colon: 'Type:'
   user-track: User trajectory
 web-guide: Web Guide
 agent:

@@ -1,8 +1,4 @@
 <script setup lang="ts">
-import { shallowRef } from 'vue'
-import { useMyBusiness, useServiceLegal } from '~/api'
-import CreateBusinessModal from './service/components/CreateBusinessModal.vue'
-
 const { t } = useI18n()
 
 definePage({
@@ -15,45 +11,6 @@ definePage({
   },
 })
 
-const { data: myBusiness, isPending: isFetchingBusiness } = useMyBusiness()
-const { data: myLegal, isPending: isFetchingLegal } = useServiceLegal()
-
-const isFetchingService = computed(() => isFetchingBusiness.value || isFetchingLegal.value)
-
-const ServiceState = {
-  Uncreated: t('service-state.uncreate'),
-  Unverified: t('service-state.unauth'),
-  Verified: t('service-state.opened'),
-}
-
-const hasBusiness = computed(() => !!myBusiness.value)
-// const hasLicense = computed(() => !!myLegal.value?.merchant?.business_license)
-const isVerified = computed(() => myLegal.value?.state === 8)
-
-const serviceState = computed(() => {
-  if (hasBusiness.value && isVerified.value)
-    return ServiceState.Verified
-
-  if (!hasBusiness.value)
-    return ServiceState.Uncreated
-
-  return ServiceState.Unverified
-})
-
-const serviceRoute = computed(() => {
-  if (hasBusiness.value && isVerified.value)
-    return `/workbench/service/${myBusiness.value?.sid}-${myBusiness.value?.id}`
-
-  if (!isVerified.value)
-    return '/workbench/service/set-license'
-
-  // if (!hasBusiness.value)
-  //   return '/workbench/service/create'
-
-  return '/workbench/service/set-license'
-})
-
-const isCreateBusinessModalOpen = shallowRef(false)
 const enableAgent = import.meta.env.VITE_ENABLE_AGENT === 'true'
 </script>
 
@@ -91,28 +48,6 @@ const enableAgent = import.meta.env.VITE_ENABLE_AGENT === 'true'
         </div>
       </RouterLink>
 
-      <button
-        :disabled="isFetchingService"
-        class="rounded-lg bg-white p-6 shadow-md transition-shadow duration-300 dark:bg-neutral-800 hover:shadow-lg"
-        @click="() => {
-          if (!hasBusiness) {
-            isCreateBusinessModalOpen = true
-          }
-          else {
-            $router.push(serviceRoute)
-          }
-        }"
-      >
-        <div class="mb-4 flex items-center gap3">
-          <a-spin v-if="isFetchingService" />
-          <i v-else class="i-carbon-group text-2xl text-primary-600 dark:text-primary-400" />
-          <h3 class="text-xl text-gray-900 font-semibold dark:text-gray-100">
-            <span>{{ t('workbench.service-account') }}</span>
-            <span v-if="myLegal" ml-2 text-sm font-normal>{{ serviceState }}</span>
-          </h3>
-        </div>
-      </button>
-
       <RouterLink
         v-if="enableAgent"
         to="/agent"
@@ -126,6 +61,5 @@ const enableAgent = import.meta.env.VITE_ENABLE_AGENT === 'true'
         </div>
       </RouterLink>
     </div>
-    <CreateBusinessModal v-model:open="isCreateBusinessModalOpen" />
   </div>
 </template>

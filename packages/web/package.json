@@ -69,7 +69,6 @@
     "vue": "catalog:",
     "vue-echarts": "catalog:",
     "vue-i18n": "catalog:",
-    "zod": "catalog:",
     "zod-arco-rules": "catalog:"
   },
   "devDependencies": {
