@@ -134,7 +134,6 @@ corp:
       title: create corp
   dept-limit: Department limit
   dept-member-limit: Department member limit
-  device-limit: Device limit
   edit: Modify enterprise
   group-limit: Group quantity limit
   group-member-limit: Group member limit
@@ -632,6 +631,9 @@ agent:
   mic-in-use: Microphone is in use by another app. Please close it and try again
 app-guide: App Guide
 tooltips:
+  loc-share:
+    pro-feature: Professional feature
   track:
     power-warning: This frequency consumes high device power, please use with caution
     flagship-feature: Flagship feature
+  vip-unsupported: Vip edition does not include this feature

@@ -136,7 +136,7 @@ const batchResolveSessionProfiles: BatchSessionProfileResolver = async (sessions
 
     // 如果返回的是空对象（没有 sessions 字段），说明接口未按预期返回数据，直接跳过
     if (!Array.isArray(res) && (!res || !('sessions' in res))) {
-      console.warn('[workbench/chat] get-sessions returned unexpected response:', res)
+      console.warn('[workbench/message] get-sessions returned unexpected response:', res)
       return profileMap
     }
 
@@ -165,7 +165,7 @@ const batchResolveSessionProfiles: BatchSessionProfileResolver = async (sessions
     }
   }
   catch (error) {
-    console.warn('[workbench/chat] batch resolve session profiles failed:', error)
+    console.warn('[workbench/message] batch resolve session profiles failed:', error)
   }
 
   return profileMap
@@ -595,7 +595,7 @@ async function handleForwardTargetSelect(target: SessionSelectPayload) {
           onClick: (e: Event) => {
             e.preventDefault()
             void router.push({
-              path: '/workbench/chat',
+              path: '/workbench/message',
               query: {
                 sessionId: target.sessionId,
                 sessionType: String(target.sessionType),

@@ -15,6 +15,9 @@ pkg
 .tar.gz
 .obsidian
 
+# Agent worktrees
+.claude/worktrees/
+
 # Electron build artifacts
 release
 **/release

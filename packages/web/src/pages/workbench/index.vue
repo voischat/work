@@ -80,7 +80,7 @@ const enableAgent = import.meta.env.VITE_ENABLE_AGENT === 'true'
       </RouterLink>
 
       <RouterLink
-        to="/workbench/chat"
+        to="/workbench/message"
         class="rounded-lg bg-white p-6 shadow-md transition-shadow duration-300 dark:bg-neutral-800 hover:shadow-lg"
       >
         <div class="mb-4 flex items-center">
@@ -113,17 +113,6 @@ const enableAgent = import.meta.env.VITE_ENABLE_AGENT === 'true'
         </div>
       </button>
 
-      <!-- <RouterLink
-        to="/workbench/service-adt"
-        class="rounded-lg bg-white p-6 shadow-md transition-shadow duration-300 dark:bg-neutral-800 hover:shadow-lg"
-      >
-        <div class="mb-4 flex items-center">
-          <i class="i-carbon-document-view mr-3 text-2xl text-primary-600 dark:text-primary-400" />
-          <h3 class="text-xl text-gray-900 font-semibold dark:text-gray-100">
-            服务号审核
-          </h3>
-        </div>
-      <!-- Agent -->
       <RouterLink
         v-if="enableAgent"
         to="/agent"

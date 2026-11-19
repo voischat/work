@@ -124,7 +124,6 @@ corp:
       title: 创建企业
   dept-limit: 部门数上限
   dept-member-limit: 部门成员数上限
-  device-limit: 设备数上限
   edit: 修改企业
   group-limit: 群数量上限
   group-member-limit: 群成员数上限
@@ -613,6 +612,9 @@ agent:
   mic-in-use: 麦克风被其他程序占用，请关闭后重试
 app-guide: App 用户手册
 tooltips:
+  loc-share:
+    pro-feature: 专业版功能
   track:
     power-warning: 该频率设备耗电大，请慎重
     flagship-feature: 旗舰版功能
+  vip-unsupported: 当前版本不支持该功能

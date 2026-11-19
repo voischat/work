@@ -54,7 +54,7 @@ async function handleSelect(payload: {
     )
 
     await router.replace({
-      path: '/workbench/chat',
+      path: '/workbench/message',
       query: {
         sessionId: payload.sessionId,
         sessionType: String(payload.sessionType),

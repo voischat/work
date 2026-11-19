@@ -82,6 +82,14 @@ const getFlagshipFeatureTooltip = () => t('tooltips.track.flagship-feature')
 const getFastTrackTooltip = computed(() => () =>
   isFastTrackDisabled.value ? getFlagshipFeatureTooltip() : getPowerWarningTooltip(),
 )
+
+const isLocShareLocked = computed(() =>
+  authStore.vip?.vip_supports.find(i => i.name === 'location')?.support === false,
+)
+
+const getLocShareTooltip = computed(() => () =>
+  isLocShareLocked.value ? t('tooltips.loc-share.pro-feature') : '',
+)
 </script>
 
 <template>
@@ -148,8 +156,9 @@ const getFastTrackTooltip = computed(() => () =>
           field="loc_share" :label="t('member.form.loc_share.label')"
         >
           <a-switch
-            v-model="form.loc_share" :checked-value="1" :unchecked-value="0" :checked-color="themeColor"
-            unchecked-color="#ddd"
+            v-model="form.loc_share" v-tips="getLocShareTooltip"
+            :checked-value="1" :unchecked-value="0" :checked-color="themeColor"
+            :disabled="isLocShareLocked" unchecked-color="#ddd"
           />
         </a-form-item>
         <a-form-item v-if="authStore.vip?.vip_supports.find((i) => i.name === 'track')?.support" field="track" :label="t('change-member.form.track.label')">

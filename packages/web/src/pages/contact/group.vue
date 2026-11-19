@@ -106,7 +106,7 @@ function openGroupChat(group: GroupModel) {
     return
 
   router.push({
-    path: '/workbench/chat',
+    path: '/workbench/message',
     query: {
       sessionId: String(group.id),
       sessionType: '18',

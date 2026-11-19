@@ -3,6 +3,7 @@ import type { RouteRecordNormalized } from 'vue-router'
 import type { VipInfo } from '~/stores/auth'
 import type { Corp } from '~/types'
 import { objectEntries, objectKeys } from '@antfu/utils'
+import { isPathVipGated } from '~/utils/vipGate'
 
 const router = useRouter()
 
@@ -17,16 +18,7 @@ const infoMap = {
   dept_member_limit: 'corp.dept-member-limit',
   group_limit: 'corp.group-limit',
   group_member_limit: 'corp.group-member-limit',
-  // device_limit: 'corp.device-limit',
 }
-
-// const supports = computed(() => !vip.value ? {} : Object.groupBy(vip.value?.vip_supports, i => i.name))
-// $inspect(supports)
-
-const disabledList = computed(() => vip.value?.vip_supports?.filter(i => !i.support).map(i => i.name) || [])
-$inspect(disabledList)
-
-$inspect(disabledList)
 
 const { data: corp } = useWeilaFetch<Corp>('corp/org/get-my-org')
 
@@ -163,7 +155,11 @@ function goTo(path: string) {
         <template #title>
           {{ name }}
         </template>
-        <a-menu-item v-for="i in submenu" :key="i.path" :disabled="disabledList.find(name => i.path.includes(name))">
+        <a-menu-item
+          v-for="i in submenu" :key="i.path"
+          v-tips="() => isPathVipGated(i.path, vip) ? t('tooltips.vip-unsupported') : ''"
+          :disabled="isPathVipGated(i.path, vip)"
+        >
           {{ $t(i.meta.name || '') }}
         </a-menu-item>
       </a-sub-menu>

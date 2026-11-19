@@ -22,7 +22,6 @@ declare module 'vue' {
     DeleteAccountEmail: typeof import('./components/DeleteAccountEmail.vue')['default']
     DeleteAccountPhone: typeof import('./components/DeleteAccountPhone.vue')['default']
     DeleteMemberModal: typeof import('./components/DeleteMemberModal.vue')['default']
-    EditDeviceModal: typeof import('./components/EditDeviceModal.vue')['default']
     EditMemberModal: typeof import('./components/EditMemberModal.vue')['default']
     FileUploader: typeof import('./components/FileUploader.vue')['default']
     Footer: typeof import('./components/footer/index.vue')['default']

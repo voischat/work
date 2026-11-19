@@ -55,6 +55,7 @@ declare global {
   const getCurrentScope: typeof import('vue').getCurrentScope
   const getCurrentWatcher: typeof import('vue').getCurrentWatcher
   const getRootUrl: typeof import('./utils/url')['getRootUrl']
+  const getUnsupportedNames: typeof import('./utils/vipGate').getUnsupportedNames
   const h: typeof import('vue').h
   const hasImageExtension: typeof import('./utils/uploadUrl').hasImageExtension
   const ignorableWatch: typeof import('@vueuse/core').ignorableWatch
@@ -62,6 +63,7 @@ declare global {
   const injectLocal: typeof import('@vueuse/core').injectLocal
   const isDefined: typeof import('@vueuse/core').isDefined
   const isHttpResponseContext: typeof import('./utils/networkErrors').isHttpResponseContext
+  const isPathVipGated: typeof import('./utils/vipGate').isPathVipGated
   const isProxy: typeof import('vue').isProxy
   const isReactive: typeof import('vue').isReactive
   const isReadonly: typeof import('vue').isReadonly
@@ -429,6 +431,7 @@ declare module 'vue' {
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly getCurrentWatcher: UnwrapRef<typeof import('vue')['getCurrentWatcher']>
+    readonly getUnsupportedNames: UnwrapRef<typeof import('./utils/vipGate')['getUnsupportedNames']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly hasImageExtension: UnwrapRef<typeof import('./utils/uploadUrl')['hasImageExtension']>
     readonly ignorableWatch: UnwrapRef<typeof import('@vueuse/core')['ignorableWatch']>
@@ -436,6 +439,7 @@ declare module 'vue' {
     readonly injectLocal: UnwrapRef<typeof import('@vueuse/core')['injectLocal']>
     readonly isDefined: UnwrapRef<typeof import('@vueuse/core')['isDefined']>
     readonly isHttpResponseContext: UnwrapRef<typeof import('./utils/networkErrors')['isHttpResponseContext']>
+    readonly isPathVipGated: UnwrapRef<typeof import('./utils/vipGate')['isPathVipGated']>
     readonly isProxy: UnwrapRef<typeof import('vue')['isProxy']>
     readonly isReactive: UnwrapRef<typeof import('vue')['isReactive']>
     readonly isReadonly: UnwrapRef<typeof import('vue')['isReadonly']>
