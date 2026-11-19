@@ -14,10 +14,6 @@ export const useSelfInfoStore = defineStore('selfInfo', () => {
   const isDeptAdmin = computed(() => selfInfo.value?.is_dept_admin === 1)
 
   // 方法
-  function hasPermission(requiredType: number) {
-    return selfInfo.value?.type === requiredType
-  }
-
   function isCurrentUser(userId: number) {
     return Number(userId) === Number(selfInfo.value?.user_id)
   }
@@ -32,7 +28,6 @@ export const useSelfInfoStore = defineStore('selfInfo', () => {
     isDeptAdmin,
 
     // 方法
-    hasPermission,
     isCurrentUser,
   }
 })

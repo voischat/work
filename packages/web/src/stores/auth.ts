@@ -15,7 +15,7 @@ export interface VipInfo {
 }
 
 // split code
-export interface VipSupport {
+interface VipSupport {
   member_limit?: number
   name: string
   support: boolean

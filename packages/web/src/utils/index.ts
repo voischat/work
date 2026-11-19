@@ -13,5 +13,3 @@ export function openWindow(url: string, opts?: { target?: TargetContext, [key: s
       .join(','),
   )
 }
-
-export default null

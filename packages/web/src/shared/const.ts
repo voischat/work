@@ -1,21 +1,10 @@
 import { shallowRef } from 'vue'
 
-export const isLargeScreen = useMediaQuery('(min-width: 1024px)')
-
 export const defaultArcoSettings = reactive({
-  colorWeak: false,
-  navbar: true,
   menu: true,
   topMenu: false,
-  // hideMenu: useLocalStorage('isHideMenu', computed(() => !isLargeScreen.value)),
-  hideMenu: false,
-  menuCollapse: false,
-  footer: false,
   themeColor: '#165DFF',
-  menuWidth: 220,
-  globalSettings: false,
   device: 'desktop',
-  tabBar: false,
 })
 
 export const AMapKeys = {
@@ -32,13 +21,6 @@ export const baiduSpeechKeys = {
   appId: '7894257',
   apiKey: 'dpLSLgpCkAB2M4RvTOVPdvgL',
   secretKey: 'GqQn0VG3ssty1oHM6IhDkOcmyMzepKPR',
-}
-
-export enum VIP_LEVEL {
-  ORG_VIP_FREE = 0, // 0
-  ORG_VIP_STANDARD = 0x10, // 16
-  ORG_VIP_ULTIMATE = 0x20, // 32
-  ORG_VIP_EXTRA = 0x30, // 48
 }
 
 export const appid = computed(() => {

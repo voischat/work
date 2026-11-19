@@ -3,11 +3,6 @@ import 'vue-router'
 declare module 'vue-router' {
   interface RouteMeta {
     layout?: string
-    menu?: {
-      label: string
-      icon: string
-      order?: number
-    }
     roles?: number[] // Controls roles that have access to the page
     name?: string
     requiresAuth?: boolean // Whether login is required to access the current page (every route must declare)

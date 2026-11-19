@@ -7,16 +7,12 @@
 export {}
 declare global {
   const $inspect: typeof import('./utils/inspect').$inspect
-  const $v1: typeof import('./utils/api')['$v1']
-  const $v2: typeof import('./utils/api')['$v2']
-  const $weilaPublicRequest: typeof import('./utils/api')['$weilaPublicRequest']
   const EffectScope: typeof import('vue').EffectScope
   const UseImage: typeof import('@vueuse/components').UseImage
   const acceptHMRUpdate: typeof import('pinia').acceptHMRUpdate
   const appname: typeof import('./composables/useWeilaApi').appname
   const asyncComputed: typeof import('@vueuse/core').asyncComputed
   const autoResetRef: typeof import('@vueuse/core').autoResetRef
-  const clsx: typeof import('clsx').clsx
   const computed: typeof import('vue').computed
   const computedAsync: typeof import('@vueuse/core').computedAsync
   const computedEager: typeof import('@vueuse/core').computedEager
@@ -50,7 +46,6 @@ declare global {
   const getCurrentInstance: typeof import('vue').getCurrentInstance
   const getCurrentScope: typeof import('vue').getCurrentScope
   const getCurrentWatcher: typeof import('vue').getCurrentWatcher
-  const getRootUrl: typeof import('./utils/url')['getRootUrl']
   const h: typeof import('vue').h
   const ignorableWatch: typeof import('@vueuse/core').ignorableWatch
   const inject: typeof import('vue').inject
@@ -164,7 +159,6 @@ declare global {
   const useAuthStore: typeof import('./stores/auth').useAuthStore
   const useBaiduSpeech: typeof import('./composables/useBaiduSpeech').useBaiduSpeech
   const useBase64: typeof import('@vueuse/core').useBase64
-  const useBaseURL: typeof import('./utils/api')['useBaseURL']
   const useBattery: typeof import('@vueuse/core').useBattery
   const useBluetooth: typeof import('@vueuse/core').useBluetooth
   const useBreakpoints: typeof import('@vueuse/core').useBreakpoints
@@ -177,8 +171,6 @@ declare global {
   const useCloned: typeof import('@vueuse/core').useCloned
   const useColorMode: typeof import('@vueuse/core').useColorMode
   const useConfirmDialog: typeof import('@vueuse/core').useConfirmDialog
-  const useContactStore: typeof import('./stores/contact')['useContactStore']
-  const useCorpStore: typeof import('./stores/corp')['useCorpStore']
   const useCountdown: typeof import('@vueuse/core').useCountdown
   const useCounter: typeof import('@vueuse/core').useCounter
   const useCssModule: typeof import('vue').useCssModule
@@ -192,7 +184,6 @@ declare global {
   const useDebounceFn: typeof import('@vueuse/core').useDebounceFn
   const useDebouncedRefHistory: typeof import('@vueuse/core').useDebouncedRefHistory
   const useDeptList: typeof import('./composables/useDeptList').useDeptList
-  const useDeptTree: typeof import('./composables/useDeptTree').useDeptTree
   const useDeviceMotion: typeof import('@vueuse/core').useDeviceMotion
   const useDeviceOrientation: typeof import('@vueuse/core').useDeviceOrientation
   const useDevicePixelRatio: typeof import('@vueuse/core').useDevicePixelRatio
@@ -216,13 +207,11 @@ declare global {
   const useFileSystemAccess: typeof import('@vueuse/core').useFileSystemAccess
   const useFocus: typeof import('@vueuse/core').useFocus
   const useFocusWithin: typeof import('@vueuse/core').useFocusWithin
-  const useForm: typeof import('./composables/useForm')['useForm']
   const useFps: typeof import('@vueuse/core').useFps
   const useFullscreen: typeof import('@vueuse/core').useFullscreen
   const useGamepad: typeof import('@vueuse/core').useGamepad
   const useGeolocation: typeof import('@vueuse/core').useGeolocation
   const useGroupList: typeof import('./composables/useGroupList').useGroupList
-  const useHead: typeof import('@vueuse/head').useHead
   const useI18n: typeof import('vue-i18n').useI18n
   const useId: typeof import('vue').useId
   const useIdle: typeof import('@vueuse/core').useIdle
@@ -248,7 +237,6 @@ declare global {
   const useMouseInElement: typeof import('@vueuse/core').useMouseInElement
   const useMousePressed: typeof import('@vueuse/core').useMousePressed
   const useMutationObserver: typeof import('@vueuse/core').useMutationObserver
-  const useMyLegal: typeof import('./composables/useMyLegal')['useMyLegal']
   const useNavigatorLanguage: typeof import('@vueuse/core').useNavigatorLanguage
   const useNetwork: typeof import('@vueuse/core').useNetwork
   const useNow: typeof import('@vueuse/core').useNow
@@ -284,7 +272,6 @@ declare global {
   const useScroll: typeof import('@vueuse/core').useScroll
   const useScrollLock: typeof import('@vueuse/core').useScrollLock
   const useSelfInfoStore: typeof import('./stores/selfInfo').useSelfInfoStore
-  const useSeoMeta: typeof import('@vueuse/head').useSeoMeta
   const useSessionStorage: typeof import('@vueuse/core').useSessionStorage
   const useShare: typeof import('@vueuse/core').useShare
   const useSlots: typeof import('vue').useSlots
@@ -318,12 +305,10 @@ declare global {
   const useToString: typeof import('@vueuse/core').useToString
   const useToggle: typeof import('@vueuse/core').useToggle
   const useToggleLocales: typeof import('./composables/useToggleLocales').useToggleLocales
-  const useTrackData: typeof import('./composables/useTrackData')['useTrackData']
   const useTransition: typeof import('@vueuse/core').useTransition
   const useUrlSearchParams: typeof import('@vueuse/core').useUrlSearchParams
   const useUserInfoStore: typeof import('./composables/useUserInfoStore').useUserInfoStore
   const useUserMedia: typeof import('@vueuse/core').useUserMedia
-  const useUserStore: typeof import('./stores/user')['useUserStore']
   const useUserTrack: typeof import('./composables/useTrackData').useUserTrack
   const useVModel: typeof import('@vueuse/core').useVModel
   const useVModels: typeof import('@vueuse/core').useVModels
@@ -341,7 +326,6 @@ declare global {
   const useWindowFocus: typeof import('@vueuse/core').useWindowFocus
   const useWindowScroll: typeof import('@vueuse/core').useWindowScroll
   const useWindowSize: typeof import('@vueuse/core').useWindowSize
-  const utils: typeof import('./utils/index').default
   const watch: typeof import('vue').watch
   const watchArray: typeof import('@vueuse/core').watchArray
   const watchAtMost: typeof import('@vueuse/core').watchAtMost
@@ -358,8 +342,6 @@ declare global {
   const watchTriggerable: typeof import('@vueuse/core').watchTriggerable
   const watchWithFilter: typeof import('@vueuse/core').watchWithFilter
   const weilaFetch: typeof import('./utils/api').weilaFetch
-  const weilaRequest: typeof import('./utils/api').weilaRequest
-  const weilaRequestV2: typeof import('./api/instances/requestV2')['weilaRequestV2']
   const whenever: typeof import('@vueuse/core').whenever
 }
 // for type re-export
@@ -368,7 +350,7 @@ declare global {
   export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
   // @ts-ignore
-  export type { AuthModel, VipInfo, VipSupport } from './stores/auth'
+  export type { AuthModel, VipInfo } from './stores/auth'
   import('./stores/auth')
 }
 
@@ -384,7 +366,6 @@ declare module 'vue' {
     readonly appname: UnwrapRef<typeof import('./composables/useWeilaApi')['appname']>
     readonly asyncComputed: UnwrapRef<typeof import('@vueuse/core')['asyncComputed']>
     readonly autoResetRef: UnwrapRef<typeof import('@vueuse/core')['autoResetRef']>
-    readonly clsx: UnwrapRef<typeof import('clsx')['clsx']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
     readonly computedAsync: UnwrapRef<typeof import('@vueuse/core')['computedAsync']>
     readonly computedEager: UnwrapRef<typeof import('@vueuse/core')['computedEager']>
@@ -584,7 +565,6 @@ declare module 'vue' {
     readonly useGamepad: UnwrapRef<typeof import('@vueuse/core')['useGamepad']>
     readonly useGeolocation: UnwrapRef<typeof import('@vueuse/core')['useGeolocation']>
     readonly useGroupList: UnwrapRef<typeof import('./composables/useGroupList')['useGroupList']>
-    readonly useHead: UnwrapRef<typeof import('@vueuse/head')['useHead']>
     readonly useI18n: UnwrapRef<typeof import('vue-i18n')['useI18n']>
     readonly useId: UnwrapRef<typeof import('vue')['useId']>
     readonly useIdle: UnwrapRef<typeof import('@vueuse/core')['useIdle']>
@@ -645,7 +625,6 @@ declare module 'vue' {
     readonly useScroll: UnwrapRef<typeof import('@vueuse/core')['useScroll']>
     readonly useScrollLock: UnwrapRef<typeof import('@vueuse/core')['useScrollLock']>
     readonly useSelfInfoStore: UnwrapRef<typeof import('./stores/selfInfo')['useSelfInfoStore']>
-    readonly useSeoMeta: UnwrapRef<typeof import('@vueuse/head')['useSeoMeta']>
     readonly useSessionStorage: UnwrapRef<typeof import('@vueuse/core')['useSessionStorage']>
     readonly useShare: UnwrapRef<typeof import('@vueuse/core')['useShare']>
     readonly useSlots: UnwrapRef<typeof import('vue')['useSlots']>
@@ -700,7 +679,6 @@ declare module 'vue' {
     readonly useWindowFocus: UnwrapRef<typeof import('@vueuse/core')['useWindowFocus']>
     readonly useWindowScroll: UnwrapRef<typeof import('@vueuse/core')['useWindowScroll']>
     readonly useWindowSize: UnwrapRef<typeof import('@vueuse/core')['useWindowSize']>
-    readonly utils: UnwrapRef<typeof import('./utils/index')['default']>
     readonly watch: UnwrapRef<typeof import('vue')['watch']>
     readonly watchArray: UnwrapRef<typeof import('@vueuse/core')['watchArray']>
     readonly watchAtMost: UnwrapRef<typeof import('@vueuse/core')['watchAtMost']>
@@ -717,7 +695,6 @@ declare module 'vue' {
     readonly watchTriggerable: UnwrapRef<typeof import('@vueuse/core')['watchTriggerable']>
     readonly watchWithFilter: UnwrapRef<typeof import('@vueuse/core')['watchWithFilter']>
     readonly weilaFetch: UnwrapRef<typeof import('./utils/api')['weilaFetch']>
-    readonly weilaRequest: UnwrapRef<typeof import('./utils/api')['weilaRequest']>
     readonly whenever: UnwrapRef<typeof import('@vueuse/core')['whenever']>
   }
 }

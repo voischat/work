@@ -3,15 +3,9 @@ const { t } = useI18n()
 
 definePage({
   meta: {
-    menu: {
-      label: 'menu.workbench',
-      order: 0,
-      icon: 'icon-common',
-    },
+    name: 'menu.workbench',
   },
 })
-
-const enableAgent = import.meta.env.VITE_ENABLE_AGENT === 'true'
 </script>
 
 <template>
@@ -44,19 +38,6 @@ const enableAgent = import.meta.env.VITE_ENABLE_AGENT === 'true'
           <i class="i-carbon-chat mr-3 text-2xl text-primary-600 dark:text-primary-400" />
           <h3 class="text-xl text-gray-900 font-semibold dark:text-gray-100">
             {{ t('submenu.chat') }}
-          </h3>
-        </div>
-      </RouterLink>
-
-      <RouterLink
-        v-if="enableAgent"
-        to="/agent"
-        class="rounded-lg bg-white p-6 shadow-md transition-shadow duration-300 dark:bg-neutral-800 hover:shadow-lg"
-      >
-        <div class="mb-4 flex items-center">
-          <i class="i-carbon-bot mr-3 text-2xl text-primary-600 dark:text-primary-400" />
-          <h3 class="text-xl text-gray-900 font-semibold dark:text-gray-100">
-            {{ t('workbench.ai-agent') }}
           </h3>
         </div>
       </RouterLink>

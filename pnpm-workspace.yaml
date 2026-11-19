@@ -24,8 +24,6 @@ catalog:
   '@types/md5': ^2.3.6
   '@types/node': ^24.10.0
   '@types/nprogress': ^0.2.3
-  '@types/sortablejs': ^1.15.9
-  '@unhead/vue': ^2.0.19
   '@unocss/eslint-plugin': ^66.5.4
   '@unocss/reset': 66.1.0-beta.3
   '@upstash/context7-sdk': ^0.3.1
@@ -74,23 +72,16 @@ catalog:
   pinia: ^3.0.4
   postcss-html: ^1.8.0
   radix-vue: ^1.9.17
-  rehype-stringify: ^10.0.1
   rollup: ^4.52.5
-  rollup-plugin-visualizer: ^6.0.5
   simple-git-hooks: 2.13.1
   taze: ^19.9.0
   tsdown: ^0.16.7
   typescript: ^6.0.3
   ufo: ^1.6.1
   unbuild: ^3.6.1
-  unified: ^11.0.5
-  unist-util-visit: ^5.0.0
   unocss: ^66.5.4
   unocss-preset-extra: ^1.0.0
   unplugin-auto-import: ^21.0.0
-  unplugin-dist-zip: ^0.0.1
-  unplugin-imagemin: ^0.7.0
-  unplugin-inline-enum: ^0.8.0
   unplugin-unused: ^0.5.7
   unplugin-vue-components: ^29.1.0
   unplugin-vue-macros: ^2.14.5
@@ -100,13 +91,9 @@ catalog:
   video.js: ^8.23.4
   viewerjs: ^1.11.7
   vite: ^8.0.13
-  vite-plugin-compression: ^0.5.1
   vite-plugin-dts: ^5.0.1
-  vite-plugin-imagemin: ^0.6.1
   vite-plugin-mkcert: ^2.0.0
-  vite-plugin-vue-devtools: ^8.0.2
   vite-plugin-vue-layouts: ^0.11.0
-  vite-svg-loader: ^5.1.0
   vitepress: ^2.0.0-alpha.17
   vitest: ^4.1.6
   vue: ^3.5.22

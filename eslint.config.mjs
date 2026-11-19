@@ -6,13 +6,9 @@ import { createAutoInsert } from 'eslint-plugin-unimport'
 
 const ignores = [
   '**/pages-deprecated/**',
-  '**/vender/**',
   '**/assets/**',
-  '**/components-deprecated/**',
   '**/components-depercated/**',
-  '**/mock/**',
   '**/components/ui/**',
-  '**/fixture/**',
 ]
 
 export default antfu(
@@ -31,8 +27,6 @@ export default antfu(
     ignores: [
       '**/webview/**',
       '**/network/**',
-      'packages/web/src/pages/workbench/service/**',
-      'packages/web/src/pages/workbench/service-adt/**',
     ],
   })),
   {

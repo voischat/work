@@ -7,9 +7,9 @@ export interface OrgTreeSelectedItem {
   member: Member
 }
 
-export type DeptCheckState = 'unloaded' | 'loading' | 'empty' | 'none' | 'partial' | 'all'
+type DeptCheckState = 'unloaded' | 'loading' | 'empty' | 'none' | 'partial' | 'all'
 
-export interface DeptCheckInput {
+interface DeptCheckInput {
   loaded: boolean
   loading: boolean
   members: readonly Member[]
@@ -17,7 +17,7 @@ export interface DeptCheckInput {
   isSelectable: (member: Member) => boolean
 }
 
-export interface DeptCheckboxView {
+interface DeptCheckboxView {
   checked: boolean
   indeterminate: boolean
   disabled: boolean

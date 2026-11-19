@@ -6,11 +6,7 @@ import { RouterLink } from 'vue-router'
 
 definePage({
   meta: {
-    menu: {
-      label: 'menu.message',
-      icon: 'icon-message',
-      order: 0,
-    },
+    name: 'menu.message',
   },
 })
 

@@ -2,12 +2,6 @@
 import { objectKeys } from '@antfu/utils'
 import { ref as deepRef, reactive } from 'vue'
 
-definePage({
-  meta: {
-    menu: { label: 'menu.contact', order: 1, icon: 'icon-user-group' },
-  },
-})
-
 const router = useRouter()
 
 const menus = reactive({

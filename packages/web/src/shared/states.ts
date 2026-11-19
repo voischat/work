@@ -1,7 +1,6 @@
 import { useLocalCrypto } from '~/composables/useLocalCrypto'
 
 export const timestamp = useTimestamp({ offset: 0 })
-export const et = computed(() => Math.floor(timestamp.value / 1000))
 
 /**
  * Theme
@@ -116,23 +115,6 @@ export const fileIconsMap = Object.fromEntries(
       return [path.match(/([\w-]*)\.png$/)?.[1].toLowerCase(), fileIcon]
     }),
 ) as Record<string, { default: string }>
-
-// export const hasNewBundle = shallowRef(false)
-export async function hasNewBundle() {
-  if (!import.meta.env.PROD)
-    return false
-
-  const res = await fetch('/build-info.json')
-  if (!res.ok) {
-    return false
-  }
-
-  const { timestamp }: { timestamp: number } = await res.json()
-
-  if (String(timestamp) !== String(__BUILD_TIME__)) {
-    return true
-  }
-}
 
 export const autoLogin = useLocalStorage('auto_login', false)
 

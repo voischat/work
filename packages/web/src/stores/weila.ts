@@ -1,4 +1,4 @@
-import type { WL_ExtEventCallback, WL_IDbUserInfo } from '@vois/weila-sdk-core'
+import type { WL_IDbUserInfo } from '@vois/weila-sdk-core'
 import {
   createWeilaAudioInitController,
   initLogger,
@@ -6,7 +6,6 @@ import {
   setLoggerEnabled,
   WeilaCore,
   WL_ConfigID,
-  WL_ExtEventID,
 } from '@vois/weila-sdk-core'
 import { defineStore } from 'pinia'
 import { shallowRef } from 'vue'
@@ -18,14 +17,8 @@ import { toChatSafeUploadUrl } from '~/utils/uploadUrl'
 export const useWeilaStore = defineStore('weila', () => {
   const core = shallowRef<WeilaCore | null>(null)
   const userInfo = shallowRef<WL_IDbUserInfo | null>(null)
-  const kickoutReason = shallowRef('')
-  const kickoutReasonText = shallowRef('')
-  const audioInitialized = shallowRef(false)
   const audioInitController = createWeilaAudioInitController({
     getCore: () => core.value,
-    setInitialized: (initialized) => {
-      audioInitialized.value = initialized
-    },
     onDeferredInitError: error => console.warn('[Weila] Deferred audio init failed:', error),
     onInitialInitError: error =>
       console.warn(
@@ -71,15 +64,6 @@ export const useWeilaStore = defineStore('weila', () => {
       return toChatSafeUploadUrl(raw, weilaApi.value.v2.request.defaults.baseURL || window.location.href)
     })
 
-    // Register kickout event listener
-    const kickoutHandler: WL_ExtEventCallback = (eventId, eventData) => {
-      if (eventId === WL_ExtEventID.WL_EXT_KICKOUT_IND) {
-        kickoutReason.value = String(eventData.reason)
-        kickoutReasonText.value = eventData.reasonText
-      }
-    }
-    instance.weila_onEvent(kickoutHandler)
-
     core.value = instance
     audioInitController.initializeWithUserGestureRetry()
 
@@ -96,15 +80,6 @@ export const useWeilaStore = defineStore('weila', () => {
     return userInfo.value
   }
 
-  function ensureAudioInitialized(): Promise<boolean> {
-    return audioInitController.ensureInitialized()
-  }
-
-  function clearKickoutState() {
-    kickoutReason.value = ''
-    kickoutReasonText.value = ''
-  }
-
   async function logout() {
     if (core.value) {
       await core.value.weila_logout()
@@ -113,7 +88,6 @@ export const useWeilaStore = defineStore('weila', () => {
     core.value = null
     userInfo.value = null
     tempAccount.value.clear()
-    clearKickoutState()
   }
 
   // Auto-login with stored credentials
@@ -137,15 +111,10 @@ export const useWeilaStore = defineStore('weila', () => {
   return {
     core,
     userInfo,
-    kickoutReason,
-    kickoutReasonText,
-    audioInitialized,
     init,
     login,
     logout,
     autoLogin,
-    clearKickoutState,
-    ensureAudioInitialized,
     tempAccount,
   }
 })

@@ -9,12 +9,11 @@ import { routes } from 'vue-router/auto-routes'
 import App from './App.vue'
 import { vDisabled } from './directives/v-disabled'
 import { vTips } from './directives/v-tips'
-import { vVip } from './directives/v-vip'
 
 import { setup } from './setup'
 import '@valibot/i18n/zh-CN'
-// Styles are imported via arco-plugin. See config/plugin/arcoStyleImport.ts in the directory for details
-// 样式通过 arco-plugin 插件导入。详见目录文件 config/plugin/arcoStyleImport.ts
+// Styles are imported via the Arco plugin.
+// 样式通过 Arco 插件导入。
 // https://arco.design/docs/designlab/use-theme-package
 import '~/assets/style/global.less'
 import 'cropperjs/dist/cropper.min.css'
@@ -60,7 +59,6 @@ setup(
       console.error('app error', [error, instance, info])
     }
 
-    app.directive('vip', vVip)
     app.directive('disabled', vDisabled)
     app.directive('tips', vTips)
   },

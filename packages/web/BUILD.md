@@ -87,7 +87,7 @@ pnpm --filter weila-work-web run electron
 
 ### 2. `vite build` —— 产出 `dist/`
 
-两个入口：`index.html`（main）与 `corp-manager/index.html`。
+单一入口：`index.html`（main）。
 
 ### 3. `node scripts/fix-electron-build.cjs`
 

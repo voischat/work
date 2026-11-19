@@ -30,9 +30,6 @@ binding-phone-form:
     sms-verifycode: 短信验证码
   title: 绑定手机号
 binding-phone-hint: 一个手机号只能绑定一个账号，更换后可使用新手机号登录此账号。对于已绑定其他账号的手机号，本次操作后将与原账号解绑。
-bracket:
-  left: \[
-  right: \]
 breadcrumb:
   binding-phone: 绑定手机
   me: 我
@@ -48,7 +45,6 @@ button:
   add: 添加
   add-device: 新增设备
   add-group-member: 添加群成员
-  add-member: 添加成员
   back: 返回
   cancel: 取消
   checkout: 查看
@@ -91,8 +87,6 @@ change-member:
     title: 更改成员
     track:
       label: 轨迹
-change-member-settings-form:
-  title: Edit Member Info
 chat:
   delete-session:
     content: 确定删除频道 {name} 吗？
@@ -112,8 +106,6 @@ close: 关闭
 colon: ':'
 confirm-password: 确认密码
 controls: 操作
-copy:
-  current-copy: 已复制
 corp:
   create:
     form:
@@ -144,7 +136,6 @@ delete-member-modal:
   confirm-content: 确定要注销该成员吗？此操作无法撤销。
 delete-account-form:
   confirm-content: 确定要注销账号吗？此操作无法撤销。
-  confirm-submit: 确认注销
   title: 注销账号
 department-list: 部门列表
 dept:
@@ -362,7 +353,6 @@ navbar:
   build-time: 构建时间
   settings: 设置
   system-update: 系统有新更新可用
-  version: v
 new-password: 新密码
 no-data: 暂无数据
 no-intro-data: 无描述信息
@@ -399,15 +389,10 @@ org-form:
     label: 头像
   name:
     label: 名称
-organazition: 组织
-parenthesis:
-  left: (
-  right: )
 password: 密码
 person-name: 姓名
 phone: 手机号
 phone-number: 电话号码
-plus: +
 priority: 优先级
 privacy-agreement: 隐私政策
 project:
@@ -483,21 +468,20 @@ reset-password:
   get-sms-code: 获取短信验证码
 reset-password-form:
   title: 重置密码
-reset-pwd:
-  form:
-    phone:
-      errMsg: 输入正确的电话号码
-      placeholder: 你的电话号码
-    title: 重置密码
 search: 搜索
 selected: 已选择
+settings:
+  language: 语言
+  navbar:
+    screen:
+      toFull: 点击切换全屏模式
+      toExit: 点击退出全屏模式
 sendSMS:
   success:
     hint: 发送成功，请注意查看短信消息
 shutup: 禁言
 shutup-disable: 不禁言
 shutup-enable: 禁言
-slash: /
 sms-code: 短信验证码
 sms-verify-code: 短信验证码
 state:
@@ -543,7 +527,6 @@ vip:
 weila-number: 微喇号
 weila-number-with-value: '微喇号：{num}'
 workbench:
-  ai-agent: AI 助手
   user-track: 用户轨迹
 web-guide: 管理台用户手册
 agent:

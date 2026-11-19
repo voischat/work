@@ -47,17 +47,7 @@ export async function loadLanguageAsync(lang: string): Promise<Locale> {
   // If the language hasn't been loaded yet
   const messages = await localesMap[lang]()
 
-  let oldArcoI18nMessage = { OLD_MESSAGE: {} }
-
-  if (lang === 'zh-CN')
-    oldArcoI18nMessage = await import('~/locale/zh-CN')
-  if (lang === 'en')
-    oldArcoI18nMessage = await import('~/locale/en')
-
-  i18n.global.setLocaleMessage(lang, {
-    ...oldArcoI18nMessage.OLD_MESSAGE,
-    ...messages.default,
-  })
+  i18n.global.setLocaleMessage(lang, messages.default)
 
   loadedLanguages.push(lang)
   return setI18nLanguage(lang)

@@ -18,7 +18,6 @@ import { defineConfig } from 'vite'
 import mkcert from 'vite-plugin-mkcert'
 
 import Layouts from 'vite-plugin-vue-layouts'
-import SvgLoader from 'vite-svg-loader'
 
 const now = Date.now()
 
@@ -40,8 +39,7 @@ export default defineConfig(() => {
     build: {
       rollupOptions: {
         input: {
-          'main': resolve(__dirname, 'index.html'),
-          'corp-manager': resolve(__dirname, 'corp-manager/index.html'),
+          main: resolve(__dirname, 'index.html'),
         },
         output: {
           advancedChunks: {
@@ -132,11 +130,6 @@ export default defineConfig(() => {
     plugins: [
       ViteYaml(),
 
-      // InlineEnum(),
-
-      // DO not use it currently, See `https://github.com/posva/unplugin-vue-router/discussions/429`
-      // VueDevTools(),
-
       UnoCSS(),
 
       // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
@@ -150,17 +143,12 @@ export default defineConfig(() => {
         imports: [
           'vue',
           'vue-i18n',
-          '@vueuse/head',
           '@vueuse/core',
           'pinia',
           VueRouterAutoImports,
           {
             from: '@vueuse/components',
             imports: ['UseImage'],
-          },
-          {
-            from: 'clsx',
-            imports: ['clsx'],
           },
         // {
         //   from: '@tanstack/vue-form',
@@ -173,8 +161,6 @@ export default defineConfig(() => {
           'src/stores',
           'src/layout',
           'src/utils',
-          'src/api/instances',
-          'src/api/shared',
         ],
         vueTemplate: true,
         resolvers: [VueAmapResolver()],
@@ -203,8 +189,6 @@ export default defineConfig(() => {
           }),
         },
       }),
-
-      SvgLoader({ svgoConfig: {} }),
 
       // https://github.com/arco-design/arco-plugins/blob/main/packages/plugin-vite-vue/README.md
       Arco({}),

@@ -34,13 +34,6 @@ binding-phone-hint: >-
   can use the new phone number to log into this account. For phone numbers that
   are already linked to other accounts, this operation will unbind them from the
   original account.
-bracket:
-  left: >-
-    It seems that there is no text provided for translation. Please provide the
-    text you would like to have translated from Chinese (zh-CN) to English.
-  right: >-
-    It seems there is no text provided for translation. Please provide the text
-    you would like to have translated from Chinese (zh-CN) to English.
 breadcrumb:
   binding-phone: binding phone
   me: me
@@ -56,7 +49,6 @@ button:
   add: add
   add-device: Add Device
   add-group-member: Add group members
-  add-member: Add Member
   back: Return
   cancel: cancel
   checkout: View
@@ -99,8 +91,6 @@ change-member:
     title: Change Member
     track:
       label: track
-change-member-settings-form:
-  title: Edit Member Info
 chat:
   delete-session:
     content: Delete session {name}?
@@ -117,13 +107,9 @@ chat:
     permission-denied: 'Unable to get location. Please click "Site Permissions" or "Site Settings" next to the address bar and set Location permission to "Allow", then try again'
     failed: Failed to get location ({code})
 close: close
-colon: >-
-  It seems there is no text provided for translation. Please provide the text
-  you would like to have translated from Chinese (zh-CN) to English.
+colon: ':'
 confirm-password: Confirm Password
 controls: Operation
-copy:
-  current-copy: Copied
 corp:
   create:
     form:
@@ -155,7 +141,6 @@ delete-member-modal:
   confirm-content: Are you sure you want to deactivate this member? This action cannot be undone.
 delete-account-form:
   confirm-content: Are you sure you want to deactivate your account? This action cannot be undone.
-  confirm-submit: Confirm Deactivation
   title: Deactivate Account
 department-list: Department List
 dept:
@@ -374,9 +359,6 @@ navbar:
   build-time: Build time
   settings: Settings
   system-update: A new update is available for the system.
-  version: >-
-    It seems that the text you provided is just "v." Please provide more context
-    or additional text for translation.
 new-password: New password
 no-data: No data available.
 no-intro-data: No description information.
@@ -413,21 +395,10 @@ org-form:
     label: Avatar
   name:
     label: Name
-organazition: organazition
-parenthesis:
-  left: >-
-    It seems that your message is incomplete. Please provide the full text you
-    would like to have translated.
-  right: >-
-    It seems there is no text provided for translation. Please provide the text
-    you would like to have translated from Chinese (zh-CN) to English.
 password: Password
 person-name: Name
 phone: phone
 phone-number: Phone Number
-plus: >-
-  It seems there is no text provided for translation. Please provide the text
-  you would like to have translated.
 priority: Priority
 privacy-agreement: Privacy Policy
 project:
@@ -503,23 +474,20 @@ reset-password:
   get-sms-code: Get SMS verification code.
 reset-password-form:
   title: Reset Password
-reset-pwd:
-  form:
-    phone:
-      errMsg: Enter correct phone number
-      placeholder: your phone number
-    title: Reset Password
 search: Search
 selected: Selected
+settings:
+  language: Language
+  navbar:
+    screen:
+      toFull: Click to switch to full screen mode
+      toExit: Click to exit the full screen mode
 sendSMS:
   success:
     hint: Sent successfully, please pay attention to your message
 shutup: Mute
 shutup-disable: Not muted.
 shutup-enable: Muted
-slash: >-
-  It seems that there is no text provided for translation. Please provide the
-  text you would like to have translated from Chinese (zh-CN) to English.
 sms-code: Message Code
 sms-verify-code: SMS verification code
 state:
@@ -562,7 +530,6 @@ vip:
 weila-number: ID
 weila-number-with-value: 'ID: {num}'
 workbench:
-  ai-agent: AI Assistant
   user-track: User trajectory
 web-guide: Web Guide
 agent:
