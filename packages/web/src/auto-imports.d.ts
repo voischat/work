@@ -10,12 +10,9 @@ declare global {
   const $v1: typeof import('./utils/api')['$v1']
   const $v2: typeof import('./utils/api')['$v2']
   const $weilaPublicRequest: typeof import('./utils/api')['$weilaPublicRequest']
-  const $weilaRequestV1: typeof import('./utils/api').$weilaRequestV1
-  const $weilaRequestV2: typeof import('./utils/api').$weilaRequestV2
   const EffectScope: typeof import('vue').EffectScope
   const UseImage: typeof import('@vueuse/components').UseImage
   const acceptHMRUpdate: typeof import('pinia').acceptHMRUpdate
-  const addEventListen: typeof import('./utils/event').addEventListen
   const appname: typeof import('./composables/useWeilaApi').appname
   const asyncComputed: typeof import('@vueuse/core').asyncComputed
   const autoResetRef: typeof import('@vueuse/core').autoResetRef
@@ -44,7 +41,6 @@ declare global {
   const defineAsyncComponent: typeof import('vue').defineAsyncComponent
   const defineComponent: typeof import('vue').defineComponent
   const defineStore: typeof import('pinia').defineStore
-  const downloadFile: typeof import('./utils/file').downloadFile
   const eagerComputed: typeof import('@vueuse/core').eagerComputed
   const effectScope: typeof import('vue').effectScope
   const emojify: typeof import('./utils/emoji').emojify
@@ -55,9 +51,7 @@ declare global {
   const getCurrentScope: typeof import('vue').getCurrentScope
   const getCurrentWatcher: typeof import('vue').getCurrentWatcher
   const getRootUrl: typeof import('./utils/url')['getRootUrl']
-  const getUnsupportedNames: typeof import('./utils/vipGate').getUnsupportedNames
   const h: typeof import('vue').h
-  const hasImageExtension: typeof import('./utils/uploadUrl').hasImageExtension
   const ignorableWatch: typeof import('@vueuse/core').ignorableWatch
   const inject: typeof import('vue').inject
   const injectLocal: typeof import('@vueuse/core').injectLocal
@@ -77,7 +71,6 @@ declare global {
   const mapStores: typeof import('pinia').mapStores
   const mapWritableState: typeof import('pinia').mapWritableState
   const markRaw: typeof import('vue').markRaw
-  const monitor: typeof import('./utils/monitor').default
   const nextTick: typeof import('vue').nextTick
   const onActivated: typeof import('vue').onActivated
   const onBeforeMount: typeof import('vue').onBeforeMount
@@ -119,8 +112,6 @@ declare global {
   const refDefault: typeof import('@vueuse/core').refDefault
   const refThrottled: typeof import('@vueuse/core').refThrottled
   const refWithControl: typeof import('@vueuse/core').refWithControl
-  const regexUrl: typeof import('./utils/index').regexUrl
-  const removeEventListen: typeof import('./utils/event').removeEventListen
   const resolveComponent: typeof import('vue').resolveComponent
   const resolveRef: typeof import('@vueuse/core').resolveRef
   const resolveUnref: typeof import('@vueuse/core').resolveUnref
@@ -387,12 +378,9 @@ declare module 'vue' {
   interface GlobalComponents {}
   interface ComponentCustomProperties {
     readonly $inspect: UnwrapRef<typeof import('./utils/inspect')['$inspect']>
-    readonly $weilaRequestV1: UnwrapRef<typeof import('./utils/api')['$weilaRequestV1']>
-    readonly $weilaRequestV2: UnwrapRef<typeof import('./utils/api')['$weilaRequestV2']>
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
     readonly UseImage: UnwrapRef<typeof import('@vueuse/components')['UseImage']>
     readonly acceptHMRUpdate: UnwrapRef<typeof import('pinia')['acceptHMRUpdate']>
-    readonly addEventListen: UnwrapRef<typeof import('./utils/event')['addEventListen']>
     readonly appname: UnwrapRef<typeof import('./composables/useWeilaApi')['appname']>
     readonly asyncComputed: UnwrapRef<typeof import('@vueuse/core')['asyncComputed']>
     readonly autoResetRef: UnwrapRef<typeof import('@vueuse/core')['autoResetRef']>
@@ -421,7 +409,6 @@ declare module 'vue' {
     readonly defineAsyncComponent: UnwrapRef<typeof import('vue')['defineAsyncComponent']>
     readonly defineComponent: UnwrapRef<typeof import('vue')['defineComponent']>
     readonly defineStore: UnwrapRef<typeof import('pinia')['defineStore']>
-    readonly downloadFile: UnwrapRef<typeof import('./utils/file')['downloadFile']>
     readonly eagerComputed: UnwrapRef<typeof import('@vueuse/core')['eagerComputed']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
     readonly emojify: UnwrapRef<typeof import('./utils/emoji')['emojify']>
@@ -431,9 +418,7 @@ declare module 'vue' {
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly getCurrentWatcher: UnwrapRef<typeof import('vue')['getCurrentWatcher']>
-    readonly getUnsupportedNames: UnwrapRef<typeof import('./utils/vipGate')['getUnsupportedNames']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
-    readonly hasImageExtension: UnwrapRef<typeof import('./utils/uploadUrl')['hasImageExtension']>
     readonly ignorableWatch: UnwrapRef<typeof import('@vueuse/core')['ignorableWatch']>
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
     readonly injectLocal: UnwrapRef<typeof import('@vueuse/core')['injectLocal']>
@@ -453,7 +438,6 @@ declare module 'vue' {
     readonly mapStores: UnwrapRef<typeof import('pinia')['mapStores']>
     readonly mapWritableState: UnwrapRef<typeof import('pinia')['mapWritableState']>
     readonly markRaw: UnwrapRef<typeof import('vue')['markRaw']>
-    readonly monitor: UnwrapRef<typeof import('./utils/monitor')['default']>
     readonly nextTick: UnwrapRef<typeof import('vue')['nextTick']>
     readonly onActivated: UnwrapRef<typeof import('vue')['onActivated']>
     readonly onBeforeMount: UnwrapRef<typeof import('vue')['onBeforeMount']>
@@ -495,8 +479,6 @@ declare module 'vue' {
     readonly refDefault: UnwrapRef<typeof import('@vueuse/core')['refDefault']>
     readonly refThrottled: UnwrapRef<typeof import('@vueuse/core')['refThrottled']>
     readonly refWithControl: UnwrapRef<typeof import('@vueuse/core')['refWithControl']>
-    readonly regexUrl: UnwrapRef<typeof import('./utils/index')['regexUrl']>
-    readonly removeEventListen: UnwrapRef<typeof import('./utils/event')['removeEventListen']>
     readonly resolveComponent: UnwrapRef<typeof import('vue')['resolveComponent']>
     readonly resolveRef: UnwrapRef<typeof import('@vueuse/core')['resolveRef']>
     readonly resolveUnref: UnwrapRef<typeof import('@vueuse/core')['resolveUnref']>

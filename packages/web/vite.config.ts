@@ -16,7 +16,7 @@ import { VueRouterAutoImports } from 'unplugin-vue-router'
 import VueRouter from 'unplugin-vue-router/vite'
 import { defineConfig } from 'vite'
 import mkcert from 'vite-plugin-mkcert'
-import { viteMockServe as ViteMockServe } from 'vite-plugin-mock'
+
 import Layouts from 'vite-plugin-vue-layouts'
 import SvgLoader from 'vite-svg-loader'
 
@@ -59,8 +59,6 @@ export default defineConfig(() => {
     resolve: {
       alias: {
         '~/': `${path.resolve(__dirname, 'src')}/`,
-        'generated/': `${path.resolve(__dirname, 'generated')}/`,
-        'fixture/': `${path.resolve(__dirname, 'fixture')}/`,
       },
       extensions: ['.ts', '.js'],
     },
@@ -132,12 +130,6 @@ export default defineConfig(() => {
     },
 
     plugins: [
-
-      ViteMockServe({
-        mockPath: 'generated/mock',
-        enable: false,
-      }),
-
       ViteYaml(),
 
       // InlineEnum(),
@@ -219,7 +211,8 @@ export default defineConfig(() => {
 
       mkcert(),
 
-      Unused(),
+      // axios and ofetch are peerDependencies of @wl/network, never imported directly.
+      Unused({ ignore: ['axios', 'ofetch'] }),
 
       {
         name: 'vite-plugin-build-info',

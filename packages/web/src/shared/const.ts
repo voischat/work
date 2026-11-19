@@ -16,8 +16,6 @@ export const defaultArcoSettings = reactive({
   globalSettings: false,
   device: 'desktop',
   tabBar: false,
-  menuFromServer: false,
-  serverMenu: [] as any[],
 })
 
 export const AMapKeys = {

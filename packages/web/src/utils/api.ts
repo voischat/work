@@ -12,6 +12,3 @@ export const weilaRequest = {
   post: <T = unknown>(url: string, data?: unknown, config?: Record<string, any>) =>
     useWeilaApi().value.v1.request.post<T>(url, data, config),
 }
-
-export const $weilaRequestV1 = () => useWeilaApi().value.v1.request
-export const $weilaRequestV2 = () => useWeilaApi().value.v2.request

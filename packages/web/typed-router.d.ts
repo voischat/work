@@ -36,11 +36,9 @@ declare module 'vue-router/auto-routes' {
     '/redirect/': RouteRecordInfo<'/redirect/', '/redirect', Record<never, never>, Record<never, never>>,
     '/register/': RouteRecordInfo<'/register/', '/register', Record<never, never>, Record<never, never>>,
     '/reset-password/': RouteRecordInfo<'/reset-password/', '/reset-password', Record<never, never>, Record<never, never>>,
-    '/test': RouteRecordInfo<'/test', '/test', Record<never, never>, Record<never, never>>,
     '/workbench/': RouteRecordInfo<'/workbench/', '/workbench', Record<never, never>, Record<never, never>>,
     '/workbench/message': RouteRecordInfo<'/workbench/message', '/workbench/message', Record<never, never>, Record<never, never>>,
     '/workbench/realtime-location': RouteRecordInfo<'/workbench/realtime-location', '/workbench/realtime-location', Record<never, never>, Record<never, never>>,
-    '/workbench/service-adt/': RouteRecordInfo<'/workbench/service-adt/', '/workbench/service-adt', Record<never, never>, Record<never, never>>,
     '/workbench/user-track': RouteRecordInfo<'/workbench/user-track', '/workbench/user-track', Record<never, never>, Record<never, never>>,
   }
 
@@ -127,10 +125,6 @@ declare module 'vue-router/auto-routes' {
       routes: '/reset-password/'
       views: never
     }
-    'src/pages/test.vue': {
-      routes: '/test'
-      views: never
-    }
     'src/pages/workbench/index.vue': {
       routes: '/workbench/'
       views: never
@@ -141,10 +135,6 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/workbench/realtime-location.vue': {
       routes: '/workbench/realtime-location'
-      views: never
-    }
-    'src/pages/workbench/service-adt/index.vue': {
-      routes: '/workbench/service-adt/'
       views: never
     }
     'src/pages/workbench/user-track.vue': {

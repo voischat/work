@@ -5,10 +5,6 @@ add-device: Add device
 add-member: Add member
 adt: '{0} Certification'
 adt-message: Certification Information
-adt-state:
-  passed: Approved
-  pending: Pending review
-  unpassed: Review not passed.
 auth:
   certified: Certified
   uncertified: Unverified
@@ -176,7 +172,6 @@ device: Device
 device-count: Number of devices
 download-android-app: Android APP download
 edit: Edit
-edit-adt-message: Modify authentication information.
 edit-device: Modify device
 edit-member: Modify member
 error: Error
@@ -227,9 +222,6 @@ img-verify-code: Graphic verification code
 job-number: Job ID
 user-id: User ID
 latitude: latitude
-lega-form:
-  step:
-    success: Certification completed.
 legal:
   enterprise: Enterprise Certification
   identify-number: Document number

@@ -5,10 +5,6 @@ add-device: 新增设备
 add-member: 添加成员
 adt: '{0}认证'
 adt-message: 认证信息
-adt-state:
-  passed: 审核通过
-  pending: 待审核
-  unpassed: 审核未通过
 auth:
   certified: 已认证
   uncertified: 未认证
@@ -165,7 +161,6 @@ device: 设备
 device-count: 设备数量
 download-android-app: 安卓 APP 下载
 edit: 编辑
-edit-adt-message: 修改认证信息
 edit-device: 修改设备
 edit-member: 修改成员
 error: Error
@@ -216,9 +211,6 @@ img-verify-code: 图形验证码
 job-number: 工号
 user-id: 用户ID
 latitude: 纬度
-lega-form:
-  step:
-    success: 认证完成
 legal:
   enterprise: 企业认证
   identify-number: 证件号码

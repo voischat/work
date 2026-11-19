@@ -1,12 +1,3 @@
-export function hasImageExtension(url: string): boolean {
-  try {
-    return /\.(?:apng|avif|gif|jpe?g|png|webp)$/i.test(new URL(url).pathname)
-  }
-  catch {
-    return false
-  }
-}
-
 export function toChatSafeUploadUrl(raw: unknown, baseUrl: string): string {
   const value = typeof raw === 'string'
     ? raw

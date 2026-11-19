@@ -1,6 +1,6 @@
 import type { VipInfo } from '~/stores/auth'
 
-export function getUnsupportedNames(vip: VipInfo | undefined): string[] {
+function getUnsupportedNames(vip: VipInfo | undefined): string[] {
   return vip?.vip_supports?.filter(i => !i.support).map(i => i.name) || []
 }
 

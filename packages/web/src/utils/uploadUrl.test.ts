@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { hasImageExtension, toChatSafeUploadUrl } from './uploadUrl'
+import { toChatSafeUploadUrl } from './uploadUrl'
 
 describe('toChatSafeUploadUrl', () => {
   it('keeps an absolute upload url and upgrades http to https', () => {
@@ -24,12 +24,5 @@ describe('toChatSafeUploadUrl', () => {
 
   it('rejects a missing url', () => {
     expect(() => toChatSafeUploadUrl('', 'https://app.example.com/v2/')).toThrow()
-  })
-})
-
-describe('hasImageExtension', () => {
-  it('detects image extensions on the pathname', () => {
-    expect(hasImageExtension('https://cdn.example.com/a.png')).toBe(true)
-    expect(hasImageExtension('https://cdn.example.com/a')).toBe(false)
   })
 })

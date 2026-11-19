@@ -8,9 +8,8 @@ Vue 3 + TS monorepo (pnpm workspaces). Enterprise comms: contacts, messaging, de
 - **HTTP**: Axios + ofetch
 - **Router**: Vue Router + auto-routing (unplugin-vue-router)
 - **State**: Pinia
-- **Forms**: Valibot + Zod
+- **Forms**: Valibot
 - **Maps**: Vue AMap (Gaode)
-- **Charts**: Vue ECharts
 - **Query**: TanStack Vue Query
 - **i18n**: Vue i18n
 
@@ -62,7 +61,7 @@ Pipeline: `scripts/prepare-agent.cjs` (clean eve caches → eve build `.output` 
    pnpm --filter weila-work-cli publish:skills
    ```
 
-   Public skill repo: `https://github.com/kvoon9/skills-weila-work-cli`  
+   Public skill repo: `https://github.com/kvoon9/skills-weila-work-cli`
    Install by users: `npx skills add kvoon9/skills-weila-work-cli`
 
 3. **Verify**
@@ -125,4 +124,3 @@ login account by using `agent-browser`:
    - 关闭 `agent-browser` 会话。
    - 停止 `pnpm dev:prod` 后台进程。
    - 检查 `git status`，撤销无关文件变更（如 `packages/web/src/components.d.ts` 等自动生成的文件）。
-
