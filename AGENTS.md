@@ -40,7 +40,7 @@ Vue 3 + TS monorepo (pnpm workspaces). Enterprise comms: contacts, messaging, de
 
 start dev server via `nr dev:prod`:
 
-login account by using `agent-browser`:
+login account by using `ego-browser` (ego lite). The shared helpers in `.claude/skills/lib/ego-driver.mjs` cover login, CDP network capture, and route mocking; the drive recipes live in `.claude/skills/verify-weila-work-web/SKILL.md`.
 
 - **Account**: `70009790`
 - **Password**: `123456`
@@ -56,14 +56,18 @@ login account by using `agent-browser`:
    默认监听 `https://localhost:5173`
 
 2. **登录并截图**
-   使用 `agent-browser` 登录测试账号，按实际交互操作后截图：
+   使用 `ego-browser` 登录测试账号，按实际交互操作后截图：
    - 账号：`70009790`
    - 密码：`123456`
-   - 示例命令：
-     ```bash
-     agent-browser open https://localhost:5173 --ignore-https-errors --session-name weila-work-docs
-     agent-browser snapshot -i
-     agent-browser screenshot docs/assets/xxx.png
+   - 示例脚本（通过 `ego-browser nodejs` 运行）：
+     ```js
+     const driver = await import('<仓库绝对路径>/.claude/skills/lib/ego-driver.mjs')
+     const task = await taskSpace('weila docs screenshots')
+     const page = task.page('p1')
+     await driver.ensureLogin(page, 'https://localhost:5173', '70009790', '123456')
+     console.log(await page.snapshot())
+     await page.screenshot({ path: '<仓库绝对路径>/docs/assets/xxx.png' }) // 必须绝对路径
+     await task.finish({ keep: [] })
      ```
    - 新截图统一保存到 `docs/assets/`，使用 kebab-case 描述性文件名。
    - 更新现有截图时尽量保持同名，避免修改 markdown 引用。
@@ -81,6 +85,6 @@ login account by using `agent-browser`:
    确保无构建错误，且 `docs/.vitepress/dist/` 中生成了新增/修改的页面和图片。
 
 5. **清理环境**
-   - 关闭 `agent-browser` 会话。
+   - 用 `task.finish({ keep: [] })` 结束 `ego-browser` TaskSpace。
    - 停止 `pnpm dev:prod` 后台进程。
    - 检查 `git status`，撤销无关文件变更（如 `packages/web/src/components.d.ts` 等自动生成的文件）。

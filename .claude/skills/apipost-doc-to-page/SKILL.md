@@ -9,16 +9,18 @@ The user pastes a `docs.apipost.net` link and asks for a new page. The doc is an
 
 ## 1. Render the doc
 
-Never `WebFetch` or plain-`fetch` an Apipost doc URL; it returns only the app shell. Open it in agent-browser and read the rendered tree, then walk the endpoint tree in the left nav (each endpoint is a row like `POST 创建应用`).
+Never `WebFetch` or plain-`fetch` an Apipost doc URL; it returns only the app shell. Open it in ego-browser and read the rendered tree, then walk the endpoint tree in the left nav (each endpoint is a row like `POST 创建应用`).
 
-```bash
-agent-browser open "<doc url>" --ignore-https-errors
-agent-browser wait 3000
-agent-browser get text body          # rendered doc: host, path, query, body, response example
-agent-browser snapshot               # nav refs, to click sibling endpoints
+```js
+const task = await taskSpace('weila apipost doc <slug>')
+const page = task.page('p1')
+await page.goto('<doc url>', { timeout: 30000 })
+await page.waitForTimeout(3000)
+console.log(await page.evaluate(() => document.body.textContent)) // host, path, query, body, response example
+console.log(await page.snapshot()) // nav refs, to click sibling endpoints
 ```
 
-If a page renders empty, capture the backing docs request with `agent-browser network har start` / reload / `network har stop` and read the JSON, or grep the app JS bundle for the docs API host. Do not spend long bundle-hunting; the rendered tree is faster.
+If a page renders empty, capture the backing docs requests instead. `await page.cdp("Network.enable")` before the reload, then drain `page.events()` through the pump in `.claude/skills/lib/ego-driver.mjs` and read the request URLs and response bodies (`Network.getResponseBody` works while the document that received them is still loaded), or grep the app JS bundle for the docs API host. Do not spend long bundle-hunting; the rendered tree is faster. End the flow with `await task.finish({ keep: [] })`.
 
 Extract, for every endpoint: HTTP method, full relative path, query params, request body, and the response example. Note the host shown in each example; a `localhost` example is the doc author's machine, not a deployment.
 
@@ -29,7 +31,7 @@ Write down each fact you will rely on, and mark whether it is doc-derived or wir
 ## 3. Probe every route against a reachable backend
 
 - Pick the target host from `packages/web/vite.config.ts` (read it, do not trust memory). Under `pnpm dev:prod` both `/v1` and `/v2` go to `https://api.voischat.cn`; plain `pnpm dev` sends `/v2` to `http://localhost:8090` (local corp backend, usually not running).
-- Get a live auth query. Auth rides in the query string (`appid`, `et`, `sign`, `uuid`, `token`), attached by the network layer, not headers. Harvest one from the logged-in console (`network har start` / reload / `network har stop`) and reuse its query, swapping only the host or path. Do not re-sign by hand.
+- Get a live auth query. Auth rides in the query string (`appid`, `et`, `sign`, `uuid`, `token`), attached by the network layer, not headers. Harvest one from the logged-in console (enable `Network`, reload, drain the pump) and reuse its query, swapping only the host or path. Do not re-sign by hand.
 - Run a liveness control. `corp/user/get-selfinfo` on the same host with the same token: 200 means the host and auth are fine.
 - Classify. Bare `404 page not found` = route absent. `HTTP 200` with an `errcode` = route live, errcode is business logic (for example `45112 此功能需要终极版或更高版本`, an edition gate; or `40004`, app not owned).
 - If a documented path 404s, probe sibling path variants in the same namespace before concluding the backend is uncompiled; prefer the variant that returns 200 plus errcode.
@@ -52,12 +54,12 @@ A workbench page is three auto-discovered pieces. No central route or menu regis
 
 ## 5. Verify
 
-Use [verify-weila-work-web](../verify-weila-work-web/SKILL.md) for the mechanics (login, drive, evidence, backend probing, mocks, `get box`).
+Use [verify-weila-work-web](../verify-weila-work-web/SKILL.md) for the mechanics (login, drive, evidence, backend probing, mocks, box measurement).
 
-- If the backend is absent, mock each endpoint with `agent-browser network route "**/v2/<path>*" --body fixture.json`. The body must be the raw envelope `{errcode:0, errmsg, data:...}`. Mock secrets must be plain literal dummies such as `sk-test-0000`, never placeholder-shaped strings.
+- If the backend is absent, mock each endpoint with a CDP Fetch interception that fulfills `*<path>*` from the fixture, armed before the navigation that fires the request (cross-ref [verify-weila-work-web](../verify-weila-work-web/SKILL.md), Helpers, and the working script at `../verify-vip-edition-flags/verify-edition.mjs`). The body must be the raw envelope `{errcode:0, errmsg, data:...}`. Mock secrets must be plain literal dummies such as `sk-test-0000`, never placeholder-shaped strings.
 - Exercise every flow you shipped: list, create, delete, reveal and copy, pagination.
 - Then do one zero-mock load of every flow before handover. Mock-verified is a proxy, not proof.
-- When a control changes cell content in an Arco auto-fit table (for example a mask/reveal toggle), measure the column with `get box` before and after and assert the width is unchanged.
+- When a control changes cell content in an Arco auto-fit table (for example a mask/reveal toggle), measure the column box with `page.evaluate` getBoundingClientRect before and after and assert the width is unchanged.
 - If a blocker deferred a verification, re-open the deferred list the moment it clears; the list is empty before merge.
 
 ## 6. Hand over

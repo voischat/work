@@ -12,77 +12,107 @@
 
 Login, open 群组管理, click the zero-member group 验证群02 (id 80001120), then 添加群成员. For the department modal, open 部门管理, click cw (id 67), then 添加成员.
 
-## Driving it with agent-browser
+## Driving it with ego-browser
+
+`BASE` is the `Local:` URL from the dev-server log. One TaskSpace drives every script below. It starts here and ends at `task.finish`. Each later script resumes the same TaskSpace by the id the first run prints, then re-obtains the page with `task.page("p1")`.
 
 Open the group modal:
 
-```bash
-agent-browser --session verify open "$BASE/#/contact/group-80001120-%E9%AA%8C%E8%AF%81%E7%BE%A402" --ignore-https-errors
-sleep 5
-agent-browser --session verify find role button click --name "添加群成员"
-sleep 2
+```js
+const driver = await import('<repo>/.claude/skills/lib/ego-driver.mjs') // <repo> = absolute path to the weila-work checkout
+const task = await taskSpace('weila verify org-tree-multi-select')
+const page = task.page('p1')
+console.log(await driver.ensureLogin(page, BASE, '70009790', '123456'))
+
+await page.goto(`${BASE}/#/contact/group-80001120-%E9%AA%8C%E8%AF%81%E7%BE%A402`)
+await page.waitForTimeout(5000)
+await page.click('loc=role:button[name="添加群成员"]', { label: 'open add-group-member modal' })
+await page.waitForTimeout(2000)
 ```
 
 Check the first department. Let `N` be the enabled member row count.
 
-```bash
-agent-browser --session verify get count '.org-tree__dept:nth-of-type(1) .org-tree-member-item:not(.org-tree-member-item--disabled)'
-agent-browser --session verify click '.org-tree__dept:nth-of-type(1) .arco-checkbox'
-sleep 1
-agent-browser --session verify get attr '.org-tree__dept:nth-of-type(1) .arco-checkbox' class
-# arco-checkbox-checked
-agent-browser --session verify get count '.org-tree-member-item[aria-pressed="true"]'
-# N
+```js
+console.log(await page.evaluate(sel => document.querySelectorAll(sel).length, '.org-tree__dept:nth-of-type(1) .org-tree-member-item:not(.org-tree-member-item--disabled)'))
+await page.click('.org-tree__dept:nth-of-type(1) .arco-checkbox')
+await page.waitForTimeout(1000)
+console.log(await page.evaluate(sel => document.querySelector(sel)?.className, '.org-tree__dept:nth-of-type(1) .arco-checkbox'))
+// arco-checkbox-checked
+console.log(await page.evaluate(sel => document.querySelectorAll(sel).length, '.org-tree-member-item[aria-pressed="true"]'))
+// N
 ```
 
 Partial, partial to all, all to none:
 
-```bash
-agent-browser --session verify click '.org-tree__dept:nth-of-type(1) .org-tree-member-item:nth-of-type(1)'
-agent-browser --session verify get attr '.org-tree__dept:nth-of-type(1) .arco-checkbox' class
-# arco-checkbox-indeterminate
-agent-browser --session verify click '.org-tree__dept:nth-of-type(1) .arco-checkbox'
-agent-browser --session verify click '.org-tree__dept:nth-of-type(1) .arco-checkbox'
+```js
+await page.click('.org-tree__dept:nth-of-type(1) .org-tree-member-item:nth-of-type(1)')
+console.log(await page.evaluate(sel => document.querySelector(sel)?.className, '.org-tree__dept:nth-of-type(1) .arco-checkbox'))
+// arco-checkbox-indeterminate
+await page.click('.org-tree__dept:nth-of-type(1) .arco-checkbox')
+await page.click('.org-tree__dept:nth-of-type(1) .arco-checkbox')
 ```
 
 Load a collapsed department on check. Read the current department shape first.
 
-```bash
-agent-browser --session verify scrollintoview '.org-tree__dept:nth-of-type(2) .arco-checkbox'
-agent-browser --session verify click '.org-tree__dept:nth-of-type(2) .arco-checkbox'
-sleep 2
-agent-browser --session verify get attr '.org-tree__dept:nth-of-type(2) .org-tree__dept-button' aria-expanded
-# true
-agent-browser --session verify get attr '.org-tree__dept:nth-of-type(2) .arco-checkbox' class
-# arco-checkbox-checked when the department has selectable members
-# arco-checkbox-disabled when the department is empty
-agent-browser --session verify get count '.org-tree__dept:nth-of-type(2) .org-tree-member-item:not(.org-tree-member-item--disabled)'
-# M, the number of selectable members the department actually returned
+```js
+await page.evaluate(sel => document.querySelector(sel).scrollIntoView(), '.org-tree__dept:nth-of-type(2) .arco-checkbox')
+await page.click('.org-tree__dept:nth-of-type(2) .arco-checkbox')
+await page.waitForTimeout(2000)
+console.log(await page.evaluate(sel => document.querySelector(sel)?.getAttribute('aria-expanded'), '.org-tree__dept:nth-of-type(2) .org-tree__dept-button'))
+// true
+console.log(await page.evaluate(sel => document.querySelector(sel)?.className, '.org-tree__dept:nth-of-type(2) .arco-checkbox'))
+// arco-checkbox-checked when the department has selectable members
+// arco-checkbox-disabled when the department is empty
+console.log(await page.evaluate(sel => document.querySelectorAll(sel).length, '.org-tree__dept:nth-of-type(2) .org-tree-member-item:not(.org-tree-member-item--disabled)'))
+// M, the number of selectable members the department actually returned
 ```
 
 The current seed data has cw empty, so the expected branch is `arco-checkbox-disabled` with 0 rows. To run the non-empty branch, use a department that still has selectable members and check it while collapsed.
 
 Submit and capture the payload. Check the first department, then uncheck members until 2 remain, so the payload is small and still proves the department materialization.
 
-```bash
-agent-browser --session verify get count '.org-tree-member-item[aria-pressed="true"]'
-agent-browser --session verify network har start /tmp/add-members.har
-agent-browser --session verify click '.arco-modal-footer .arco-btn-primary'
-sleep 3
-agent-browser --session verify network har stop /tmp/add-members.har
-jq -r '.log.entries[] | select(.request.url | contains("add-group-members")) | .request.postData.text' /tmp/add-members.har
+```js
+const fs = await import('node:fs')
+
+// raw CDP events carry the POST body; makePump keeps only method, url, and status
+const seen = new Map()
+async function drain(rounds = 8, gapMs = 250) {
+  for (let i = 0; i < rounds; i++) {
+    if (i)
+      await page.waitForTimeout(gapMs)
+    for (const ev of await page.events()) {
+      const p = ev.params || {}
+      if (ev.method === 'Network.requestWillBeSent' && p.request)
+        seen.set(p.requestId, p.request)
+    }
+  }
+}
+
+await page.cdp('Network.enable') // once per script, before the action
+console.log(await page.evaluate(sel => document.querySelectorAll(sel).length, '.org-tree-member-item[aria-pressed="true"]'))
+await page.click('.arco-modal-footer .arco-btn-primary')
+await page.waitForTimeout(3000)
+await drain(8, 250) // events buffer until read
+
+const add = [...seen.values()].find(r => r.url.includes('add-group-members'))
+fs.writeFileSync('/tmp/add-members.json', JSON.stringify({
+  method: add?.method,
+  url: add ? driver.scrubUrl(add.url) : null, // scrub auth before sharing
+  postData: add?.postData,
+}, null, 2))
+console.log(add?.postData)
 ```
 
 Pass: the body is `{ group_id, user_ids }` with exactly the 2 user ids still selected.
 
 Reopen and assert the added members are disabled. The first department is already expanded, so do not click its header; that would collapse it.
 
-```bash
-agent-browser --session verify find role button click --name "添加群成员"
-sleep 2
-agent-browser --session verify scrollintoview '.org-tree__dept:nth-of-type(1) .org-tree-member-item--disabled'
-agent-browser --session verify get count '.org-tree__dept:nth-of-type(1) .org-tree-member-item--disabled'
-# at least 2, including the submitted ids
+```js
+await page.click('loc=role:button[name="添加群成员"]', { label: 'reopen add-group-member modal' })
+await page.waitForTimeout(2000)
+await page.evaluate(sel => document.querySelector(sel).scrollIntoView(), '.org-tree__dept:nth-of-type(1) .org-tree-member-item--disabled')
+console.log(await page.evaluate(sel => document.querySelectorAll(sel).length, '.org-tree__dept:nth-of-type(1) .org-tree-member-item--disabled'))
+// at least 2, including the submitted ids
 ```
 
 If every member of that department is now in the group, its checkbox must be `arco-checkbox-disabled`. Otherwise it stays enabled and unchecked.
@@ -91,20 +121,29 @@ Cleanup: close the modal, select each added row, close the edit modal, click 删
 
 Solo and shared-row regressions:
 
-```bash
-agent-browser --session verify open "$BASE/#/workbench/user-track" --ignore-https-errors
-sleep 10
-agent-browser --session verify get count '.org-tree__dept-row .arco-checkbox'
-# 0
-agent-browser --session verify get count '.org-tree-member-item__check'
-# 0
-agent-browser --session verify get attr '.org-tree-member-item' aria-pressed
-# no value
+```js
+await page.goto(`${BASE}/#/workbench/user-track`)
+await page.waitForTimeout(10000)
+console.log(await page.evaluate(sel => document.querySelectorAll(sel).length, '.org-tree__dept-row .arco-checkbox'))
+// 0
+console.log(await page.evaluate(sel => document.querySelectorAll(sel).length, '.org-tree-member-item__check'))
+// 0
+console.log(await page.evaluate(sel => document.querySelector(sel)?.getAttribute('aria-pressed'), '.org-tree-member-item'))
+// no value
 ```
 
-For `GroupSettings`, open a group chat, click 群组设置, then `get count 'button.org-tree-member-item'` equals the member rows and `get count '.org-tree-member-item__check'` is 0.
+For `GroupSettings`, open a group chat, click 群组设置, then `await page.evaluate(sel => document.querySelectorAll(sel).length, 'button.org-tree-member-item')` equals the member rows and `await page.evaluate(sel => document.querySelectorAll(sel).length, '.org-tree-member-item__check')` is 0.
 
-Keyboard: focus `.org-tree__dept:nth-of-type(1) .arco-checkbox input`, press Space, and expect the department to become checked. Focus a member row button and press Space to toggle that row.
+Keyboard: focus `.org-tree__dept:nth-of-type(1) .arco-checkbox input` and press Space, and expect the department to become checked. Focus a member row button and press Space to toggle that row.
+
+```js
+await page.evaluate(sel => document.querySelector(sel).focus(), '.org-tree__dept:nth-of-type(1) .arco-checkbox input')
+await page.keyboard.press('Space')
+await page.evaluate(sel => document.querySelector(sel).focus(), '.org-tree__dept:nth-of-type(1) .org-tree-member-item:nth-of-type(1)')
+await page.keyboard.press('Space')
+
+await task.finish({ keep: [] })
+```
 
 ## Gotchas
 
@@ -114,5 +153,5 @@ Keyboard: focus `.org-tree__dept:nth-of-type(1) .arco-checkbox input`, press Spa
 - The member row is a button with `aria-pressed`, not a native checkbox. Query `aria-pressed`, not `:checked`.
 - An unexpanded department is `unloaded`: its checkbox is enabled and a click loads it. A department whose members are all disabled becomes `empty` and its checkbox is disabled.
 - The first transform of a heavy workbench page can leave it blank. Reload once and wait 10 seconds before calling it a break.
-- The modal body is a scroll container. Use `scrollintoview` before clicking a control near the bottom; otherwise the fixed footer intercepts the click.
+- The modal body is a scroll container. Call `await page.evaluate(sel => document.querySelector(sel).scrollIntoView(), sel)` before clicking a control near the bottom; otherwise the fixed footer intercepts the click.
 - The first department is auto-expanded on open. Do not click its header before counting its rows; that collapses it.

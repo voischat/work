@@ -10,13 +10,29 @@
 
 Login, click 部门管理 in the left menu.
 
-## Driving it with agent-browser
+## Driving it with ego-browser
 
-```bash
-agent-browser --session verify find text "部门管理" click
-sleep 3
-agent-browser --session verify network requests --filter "get-my-manage-dept-list" | tail -1
-agent-browser --session verify snapshot -c | grep -E 'cell "' | sed 's/.*cell "//;s/".*//' | head -6
+`BASE` is the `Local:` URL from the dev-server log.
+
+```js
+const driver = await import('<repo>/.claude/skills/lib/ego-driver.mjs') // <repo> = absolute path to the weila-work checkout
+const task = await taskSpace('weila verify dept-list')
+const page = task.page('p1')
+console.log(await driver.ensureLogin(page, BASE, '70009790', '123456'))
+
+const { pump, requests } = driver.makePump(page, null)
+await page.cdp('Network.enable') // once per script, before the action
+await page.click('text=部门管理', { label: 'open dept list' })
+await page.waitForTimeout(3000)
+await pump(8, 250) // events buffer until read
+
+console.log([...requests.values()].filter(r => r.url.includes('get-my-manage-dept-list'))
+  .map(r => `${r.method} ${driver.scrubUrl(r.url)} ${r.status ?? '…'}`).join('\n'))
+
+// rows, deterministically; await page.snapshot() is the semantic alternative
+console.log(await page.evaluate(() => [...document.querySelectorAll('.arco-table td')].map(td => td.textContent.trim()).join(' | ')))
+
+await task.finish({ keep: [] })
 ```
 
 Pass: the initial request carries `page=0&size=10` and rows render. With more depts than one page, a pager click sends the next 0-based index.

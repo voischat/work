@@ -1,6 +1,6 @@
 ---
 name: verify-vip-edition-flags
-description: Prove VIP edition gating (标准版/专业版/旗舰版/终极版) in weila-work-web — sidebar graying + hover hints, member/device modal 轨迹/位置共享/1分钟 gating — by mocking only corp/org/get-my-vip per edition with an agent-browser route and asserting the real logged-in UI. Use after changes to SideBar.vue, EditMemberModal.vue, CreateMemberModal.vue, AddDeviceModal.vue, stores/auth.ts, or anything reading vip_supports, and also when adding or changing any page or endpoint that may be edition-gated: new workbench routes, and any corp endpoint that can return errcode 45112, even when the code never reads vip_supports.
+description: Prove VIP edition gating (标准版/专业版/旗舰版/终极版) in weila-work-web — sidebar graying + hover hints, member/device modal 轨迹/位置共享/1分钟 gating — by mocking only corp/org/get-my-vip per edition with an ego-browser CDP Fetch interception and asserting the real logged-in UI. Use after changes to SideBar.vue, EditMemberModal.vue, CreateMemberModal.vue, AddDeviceModal.vue, stores/auth.ts, or anything reading vip_supports, and also when adding or changing any page or endpoint that may be edition-gated: new workbench routes, and any corp endpoint that can return errcode 45112, even when the code never reads vip_supports.
 ---
 
 # Verify vip-edition-flags
@@ -32,20 +32,21 @@ Same as [verify-weila-work-web](../verify-weila-work-web/SKILL.md): `pnpm dev:pr
 .claude/skills/verify-vip-edition-flags/verify-edition.sh flagship     # mocked 旗舰版
 ```
 
-Per edition the script logs in (QA account), installs `network route "**/corp/org/get-my-vip*" --body fixtures/<edition>.json` BEFORE the post-login vip fetch, then asserts sidebar enabled/disabled/hover-hint per item, the home-page vip_name badge, and 轨迹/位置共享/1分钟 state + hover hints in the edit-member, create-member, and add-device modals. Screenshots and `assertions.log` land in `/tmp/weila-vip-verify/<edition>/` (override with `OUT=`). Exit 0 = every assertion passed. Each edition runs in its own agent-browser session (`verify-edition-<edition>`), so the three can run concurrently against one dev server.
+Per edition the script logs in (QA account), arms a CDP Fetch interception that fulfills `*corp/org/get-my-vip*` from `fixtures/<edition>.json` BEFORE the post-login vip fetch, then asserts sidebar enabled/disabled/hover-hint per item, the home-page vip_name badge, and 轨迹/位置共享/1分钟 state + hover hints in the edit-member, create-member, and add-device modals. Screenshots and `assertions.log` land in `/tmp/weila-vip-verify/<edition>/` (override with `OUT=`). Exit 0 = every assertion passed. Each edition runs in its own ego-browser TaskSpace, so no page state is shared; the script holds the interception for its whole run, so run editions sequentially rather than concurrently.
 
 ## Refreshing fixtures from the real backend
 
-`fixtures/professional.json` is the verbatim real response captured 2026-11-18 (account 70009790, 已认证·专业版). To re-capture after backend changes:
+`fixtures/professional.json` is the verbatim real response captured 2026-11-18 (account 70009790, 已认证·专业版). To re-capture after backend changes, run a logged-in page under `Network.enable`, reload, and copy the body of the `get-my-vip` response the moment its `loadingFinished` lands (`Network.getResponseBody` only works while the document that received it is still loaded):
 
-```bash
-agent-browser --session <s> network har start
-agent-browser --session <s> reload   # after a logged-in session exists
-agent-browser --session <s> network har stop /tmp/vip.har
-python3 -c "import json;h=json.load(open('/tmp/vip.har'));print([e['response']['content'].get('text','') for e in h['log']['entries'] if 'get-my-vip' in e['request']['url']][0])"
+```js
+await page.cdp('Network.enable')
+// after ensureLogin(...), reload and pump page.events() in a loop;
+// on Network.loadingFinished for a request whose url has get-my-vip:
+const r = await page.cdp('Network.getResponseBody', { requestId })
+// r.base64Encoded ? Buffer.from(r.body, "base64") : r.body  → write to fixtures/<edition>.json
 ```
 
-Do not reconstruct the request by hand — auth is query-string (`appid/et/sign/uuid/token`, sign = md5 middle-8), and HAR capture needs none of it. Standard/flagship fixtures are the professional capture with flags flipped per the matrix.
+Do not reconstruct the request by hand — auth is query-string (`appid/et/sign/uuid/token`, sign = md5 middle-8), and the live capture needs none of it. Standard/flagship fixtures are the professional capture with flags flipped per the matrix.
 
 ## Gotchas
 
@@ -60,4 +61,4 @@ Do not reconstruct the request by hand — auth is query-string (`appid/et/sign/
 
 ## Cleanup
 
-The script traps EXIT: unroutes and closes its own session. Stop the dev server you started (background task or `kill %<job>`), never by process name.
+On success the script disables the interception and finishes its TaskSpace. A failed run leaves its TaskSpace open for debugging and prints its id; close it with `taskSpace(<id>).finish({ keep: [] })`. Stop the dev server you started (background task or `kill %<job>`), never by process name.

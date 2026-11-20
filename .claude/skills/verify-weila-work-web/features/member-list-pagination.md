@@ -10,16 +10,36 @@
 
 Login, click 成员管理, or open a department from 部门管理. The shared member table renders with its pager.
 
-## Driving it with agent-browser
+## Driving it with ego-browser
 
-```bash
-agent-browser --session verify open "$BASE/#/contact/member"
-sleep 4
-agent-browser --session verify network requests --filter "get-member-list" | tail -1
-agent-browser --session verify snapshot -c | grep -E 'cell "' | sed 's/.*cell "//;s/".*//' | head -8
-agent-browser --session verify click ".arco-pagination-item:nth-of-type(2)"
-sleep 2
-agent-browser --session verify network requests --filter "get-member-list" | tail -1
+`BASE` is the `Local:` URL from the dev-server log.
+
+```js
+const driver = await import('<repo>/.claude/skills/lib/ego-driver.mjs') // <repo> = absolute path to the weila-work checkout
+const task = await taskSpace('weila verify member-list-pagination')
+const page = task.page('p1')
+console.log(await driver.ensureLogin(page, BASE, '70009790', '123456'))
+
+const { pump, requests } = driver.makePump(page, null)
+await page.cdp('Network.enable') // once per script, before the action
+await page.goto(`${BASE}/#/contact/member`)
+await page.waitForTimeout(4000)
+await pump(8, 250) // events buffer until read
+
+console.log([...requests.values()].filter(r => r.url.includes('get-member-list'))
+  .map(r => `${r.method} ${driver.scrubUrl(r.url)} ${r.status ?? '…'}`).join('\n'))
+
+// rows, deterministically; await page.snapshot() is the semantic alternative
+console.log(await page.evaluate(() => [...document.querySelectorAll('.arco-table td')].map(td => td.textContent.trim()).join(' | ')))
+
+// the click cannot fire while seed data fits one page (see Gotchas)
+await page.click(`xpath=(//li[normalize-space(.)="2"])[1]`, { label: 'go to page 2' })
+await page.waitForTimeout(2000)
+await pump(6, 250)
+console.log([...requests.values()].filter(r => r.url.includes('get-member-list'))
+  .map(r => `${r.method} ${driver.scrubUrl(r.url)} ${r.status ?? '…'}`).join('\n'))
+
+await task.finish({ keep: [] })
 ```
 
 Pass: initial request `page=0&size=10`; pager click issues `page=1&size=10`.
