@@ -9,8 +9,6 @@ export const appname = 'weila-work-web'
 
 export function getApiBaseUrl() {
   // Electron 打包后使用 file:// 协议，相对路径会解析成本地文件，必须改用绝对后端地址
-  if (typeof window !== 'undefined' && window.electronAPI?.apiBaseUrl)
-    return window.electronAPI.apiBaseUrl
 
   return `${getRootUrl(window.location.href)}/v2`
 }

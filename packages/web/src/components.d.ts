@@ -10,7 +10,6 @@ declare module 'vue' {
   export interface GlobalComponents {
     AddDeptMemberModal: typeof import('./components/AddDeptMemberModal.vue')['default']
     AddDeviceModal: typeof import('./components/AddDeviceModal.vue')['default']
-    AgentChatPanel: typeof import('./components/AgentChatPanel.vue')['default']
     AvatarUploader: typeof import('./components/AvatarUploader.vue')['default']
     BindingPhone: typeof import('./components/BindingPhone.vue')['default']
     Breadcrumb: typeof import('./components/breadcrumb/index.vue')['default']

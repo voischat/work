@@ -1,30 +1,7 @@
 <script setup lang="ts">
-import { useRouteQuery } from '@vueuse/router'
 import { shallowRef } from 'vue'
 
 const sidebarCollapsed = shallowRef(false)
-const agentCollapsed = shallowRef(true)
-
-const aiQuery = useRouteQuery('ai', '' as string)
-const aiEnabledStorage = useLocalStorage('weila-work-ai-panel-enabled', false)
-
-function resolveAiEnabled() {
-  if (aiQuery.value === 'true')
-    return true
-  if (aiQuery.value === 'false')
-    return false
-  return aiEnabledStorage.value
-}
-
-const isAiEnabled = shallowRef(resolveAiEnabled())
-
-watch(aiQuery, () => {
-  isAiEnabled.value = resolveAiEnabled()
-})
-
-watch(isAiEnabled, (enabled) => {
-  aiEnabledStorage.value = enabled
-})
 </script>
 
 <template>
@@ -42,26 +19,6 @@ watch(isAiEnabled, (enabled) => {
       <div flex-1 of-auto>
         <router-view />
       </div>
-      <!-- Agent Chat Panel -->
-      <template v-if="isAiEnabled">
-        <div
-          :class="agentCollapsed ? 'w-0 border-l-0 opacity-0' : 'w-[360px] border-l border-neutral-200 opacity-100'"
-          class="transition-all duration-300 overflow-hidden shrink-0 h-full"
-        >
-          <AgentChatPanel />
-        </div>
-        <a-button
-          :class="agentCollapsed ? 'right-0' : 'right-[359px]'"
-          class="agent-toggle absolute top-1/2 -translate-y-1/2 z-50 transition-all duration-300"
-          size="small"
-          @click="agentCollapsed = !agentCollapsed"
-        >
-          <template #icon>
-            <icon-left v-if="agentCollapsed" />
-            <icon-right v-else />
-          </template>
-        </a-button>
-      </template>
       <a-button
         :class="sidebarCollapsed ? 'left-0' : 'left-[199px]'"
         class="sidebar-toggle absolute top-1/2 -translate-y-1/2 z-50 transition-all duration-300"
@@ -78,8 +35,7 @@ watch(isAiEnabled, (enabled) => {
 </template>
 
 <style scoped>
-.sidebar-toggle,
-.agent-toggle {
+.sidebar-toggle {
   width: 24px;
   height: 32px;
   padding: 0;
@@ -88,16 +44,5 @@ watch(isAiEnabled, (enabled) => {
   border-radius: 0 16px 16px 0;
   background: var(--color-bg-2);
   box-shadow: none;
-}
-
-.agent-toggle {
-  border-left: 1px solid var(--color-border-3);
-  border-right: 0;
-  border-radius: 16px 0 0 16px;
-}
-
-.agent-toggle:has(> span > .icon-left),
-.agent-toggle:has(> span > [class*="icon-left"]) {
-  border-radius: 16px 0 0 16px;
 }
 </style>

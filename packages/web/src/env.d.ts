@@ -3,13 +3,6 @@
 
 declare const __BUILD_TIME__: number
 
-interface Window {
-  electronAPI?: {
-    agentHost?: string
-    apiBaseUrl?: string
-  }
-}
-
 declare module '*.vue' {
   import type { DefineComponent } from 'vue'
 

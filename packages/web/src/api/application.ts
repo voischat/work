@@ -9,11 +9,3 @@ export interface AppListResponse {
   apps: AppItem[]
   count: number
 }
-
-export interface CreateAppBody {
-  name: string
-}
-
-export interface DeleteAppBody {
-  appid: string
-}

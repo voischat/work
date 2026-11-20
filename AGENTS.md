@@ -28,47 +28,6 @@ Vue 3 + TS monorepo (pnpm workspaces). Enterprise comms: contacts, messaging, de
 | `pnpm test` | Vitest |
 | `pnpm release` | Bump version + release |
 
-## Electron Packaging
-
-Desktop build (embeds the eve agent). Full guide + troubleshooting: `packages/web/BUILD.md`.
-
-```bash
-# Unpacked dir build, fastest for local verification
-pnpm --filter weila-work-web run electron:build:dir
-# Full build (win = NSIS installer, mac = arm64 dir)
-pnpm --filter weila-work-web run electron:build
-```
-
-Pipeline: `scripts/prepare-agent.cjs` (clean eve caches → eve build `.output` → build self-contained `weila-work-cli` bundle via tsdown `noExternal` → assemble a minimal flat `agent-deploy` = `.output` + `node_modules/weila-work-cli` + `.env`, no pnpm deploy / no symlinks / no third-party deps) → `vite build` → `scripts/fix-electron-build.cjs` → `electron-builder`. Windows output is a self-contained NSIS installer `packages/web/release/<version>/WeilaWork-<version>-win-x64-setup.exe` — share that (runs on any machine); never a hand-made zip.
-
-## CLI Release Flow
-
-`packages/cli` publishes `weila-work-cli` to npm and keeps the agent skill in sync.
-
-1. **Bump and publish the CLI**
-   ```bash
-   cd packages/cli
-   pnpm bump        # bumps version and creates a git tag
-   npm publish      # requires npm OTP
-   ```
-
-2. **Sync the agent skill**
-   Skill source lives in `packages/cli/skills/weila-work-cli/`. The sync script reads the CLI version from `packages/cli/package.json`, updates `SKILL.md` metadata, mirrors the skill to the workspace agent directory (`../.agents/skills/weila-work-cli/`), and pushes to the public skill repo.
-   ```bash
-   # Sync to local agent only
-   pnpm --filter weila-work-cli sync:skills
-
-   # Sync and push to GitHub
-   pnpm --filter weila-work-cli publish:skills
-   ```
-
-   Public skill repo: `https://github.com/kvoon9/skills-weila-work-cli`
-   Install by users: `npx skills add kvoon9/skills-weila-work-cli`
-
-3. **Verify**
-   - Check npm version at `https://www.npmjs.com/package/weila-work-cli`
-   - Check the skill repo has the latest `skills/weila-work-cli/SKILL.md`
-
 ## Code Style
 
 - ESLint: `@antfu/eslint-config` with Vue i18n plugin + TanStack Query rules

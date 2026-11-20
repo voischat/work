@@ -21,9 +21,6 @@
       // alias matches tsconfig paths, so resolution is unaffected.
       "vite": { "config": [] },
       "entry": [
-        // wired through electron-builder.yml and the `electron` script
-        "electron/main.cjs",
-        "electron/preload.js",
         // auto-read by unplugin-vue-macros during the vite build
         "vue-macros.config.ts",
         // manual packaging helper (also the only consumer of root zx)

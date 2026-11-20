@@ -15,14 +15,6 @@ export const AMapKeys = {
 
 // Baidu speech-to-text (app: weila-work-web-audio-to-text).
 // NOTE: these are client credentials — they are compiled into the web bundle.
-// Acceptable for the internal management console; move to a server-side proxy
-// if this ever ships to an untrusted/public web target.
-export const baiduSpeechKeys = {
-  appId: '7894257',
-  apiKey: 'dpLSLgpCkAB2M4RvTOVPdvgL',
-  secretKey: 'GqQn0VG3ssty1oHM6IhDkOcmyMzepKPR',
-}
-
 export const appid = computed(() => {
   const demo = '102036'
   const normal = '102065'
