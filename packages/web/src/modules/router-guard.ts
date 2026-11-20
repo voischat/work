@@ -37,7 +37,7 @@ export const install: UserModule = ({ app, router }) => {
     else {
       const authStore = app.runWithContext(() => useAuthStore())
       await until(() => authStore.vip !== undefined).toBeTruthy({ timeout: VIP_QUERY_TIMEOUT })
-      if (isPathVipGated(to.path, authStore.vip)) {
+      if (isPathVipGated(to.path, authStore.vip, to.meta.vip)) {
         Message.warning(i18n.global.t('tooltips.vip-unsupported'))
         next({ path: '/contact/org', replace: true })
         return

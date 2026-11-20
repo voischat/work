@@ -1,6 +1,6 @@
 ---
 name: verify-weila-work-web
-description: Drive the real Weila Work web console (packages/web, Vue 3 + Arco, https localhost dev server) through agent-browser to prove a change works — login with the QA account, exercise a page or list like a user, capture requests and rendered rows as evidence. Use when a change to pages/, components/, composables/, stores/, or api/ needs runtime verification, a screenshot, or a before/after data comparison.
+description: Drive the real Weila Work web console (packages/web, Vue 3 + Arco, https localhost dev server) through agent-browser to prove a change works — log in with the QA account, exercise a page or list like a user, capture requests and rendered rows as evidence, and discover whether and where a backend endpoint is deployed. Use whenever work needs runtime verification, a screenshot, a before/after data comparison, or proof that a page or endpoint works: any new or changed page, any mock-verified flow you are about to hand over, any user report of an errcode or a 404, and any check of which host or port serves a v2 endpoint.
 ---
 
 # Verify weila-work-web
@@ -64,6 +64,18 @@ Notes that cost an hour if unknown:
 - Login creds: `70009790` / `123456`. Do not check 记住密码.
 - `network requests` shows query params with the token masked; that mask is agent-browser's, not the app's.
 - Arco's `@page-change` event and its pager UI are 1-based; the wire `page` param is 0-based (PR #4). UI page N sends `page=N-1`.
+- A long-idle session silently bounces to `#/login`. Before asserting a failure after minutes of idle, run `get url`; if it shows `#/login`, re-login and retry before concluding the page is broken.
+
+## Backend probing
+
+When an endpoint 404s, or you must find which host serves a documented route, probe instead of asking the human.
+
+- Harvest a fresh auth query from a logged-in console. Auth rides in the query string (`appid`, `et`, `sign`, `uuid`, `token`), not headers. Capture one v2 request with `network har start` / reload / `network har stop`, then reuse its full query string and swap only the host or path. Do not re-sign by hand.
+- Classify each response. A bare `404 page not found` means the route is absent. `HTTP 200` with an `errcode` means the route is live and the errcode is business logic, not a missing route.
+- Keep a liveness control. Call `corp/user/get-selfinfo` with the same token on the same host. If it returns 200 and your target 404s, the route is missing on that host, not an auth or proxy problem.
+- Sweep candidates before asking. Try the known hosts and local ports, then report a per-host classification.
+
+Proxy targets live in `packages/web/vite.config.ts`, keyed on `NODE_ENV`. `pnpm dev:prod` (`NODE_ENV=production`) sends both `/v1` and `/v2` to `https://api.voischat.cn`; plain `pnpm dev` sends `/v1` to `http://demo.weila.hk` and `/v2` to `http://localhost:8090` (the local corp backend, usually not running). Read the file for current targets instead of trusting memory. The proxy is dev-only; packaged prod uses same-origin `/v2` or Electron `WEILA_API_BASE_URL`.
 
 ## Evidence
 
@@ -72,8 +84,10 @@ Capture to `$CLAUDE_JOB_DIR/tmp/` (a per-job scratch dir that survives app teard
 - The request that proves the behavior: full line from `network requests --filter <endpoint>` (method, URL with query params, status).
 - The rendered result: row cells or `screenshot $CLAUDE_JOB_DIR/tmp/<kebab-name>.png`.
 - Before/after equivalence: capture both the request line and the rows on the same page before the change, then after, and diff them yourself; identical rows with the intended request delta is the pass bar.
+- Mock secrets must be plain literal dummies like `sk-test-0000`, never placeholder-shaped strings; the harness substitutes placeholder tokens with real values, which then land in screenshots.
+- Scrub real `sign`/`token` query strings from anything you capture or share. A masked token in `network requests` is agent-browser's mask; HAR and probe output carry the real value.
 
-Proof standards: drive the real UI path (menu click or real route), never an internal setter; capture the action's request and the resulting visible state together; a claim about data equality needs the actual row values from both runs, not a 200 status alone.
+Proof standards: drive the real UI path (menu click or real route), never an internal setter; capture the action's request and the resulting visible state together; a claim about data equality needs the actual row values from both runs, not a 200 status alone. Mock-verified is a proxy, not proof: before handover, load the page with zero mocks and run every flow you shipped, in both locales when you changed i18n'd UI. If a blocker forced you to defer a verification, re-open the whole deferred list the moment it clears; the list is empty before merge.
 
 ## Cleanup
 
@@ -85,7 +99,10 @@ Stop the dev-server background task you started. Do not delete `$CLAUDE_JOB_DIR/
 
 ## Helpers
 
-None. The drive is three agent-browser primitives (open/snapshot, fill/click/find, network requests); wrapping them would hide the real selectors.
+The drive stays on three thin agent-browser primitives (open/snapshot, fill/click/find, network requests). Two techniques are not obvious and are worth reaching for directly:
+
+- Mock a not-yet-deployed endpoint with `agent-browser --session verify network route "**/v2/<path>*" --body fixture.json --allow-origin <origin>`, installed BEFORE the navigation that fires the request. The body must be the raw backend envelope `{errcode:0, errmsg, data:...}`, not the already-unwrapped shape. Unroute when done. See `../verify-vip-edition-flags/SKILL.md` for a working script.
+- Measure layout stability with `agent-browser --session verify get box "<selector>"`. Read the box before and after the interaction. When a control changes cell content in an Arco auto-fit table (mask/reveal, long value), assert the column width is unchanged by the toggle.
 
 ## Feature map
 

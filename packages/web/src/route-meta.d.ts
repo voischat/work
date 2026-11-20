@@ -6,6 +6,7 @@ declare module 'vue-router' {
     roles?: number[] // Controls roles that have access to the page
     name?: string
     requiresAuth?: boolean // Whether login is required to access the current page (every route must declare)
+    vip?: string // vip_supports flag name that gates this route (e.g. 'api'); preferred over path-substring matching
     // icon?: string // The icon show in the side menu
     // locale?: string // The locale name show in side menu and breadcrumb
     // hideInMenu?: boolean // If true, it is not displayed in the side menu

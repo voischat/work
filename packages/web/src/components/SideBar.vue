@@ -157,8 +157,8 @@ function goTo(path: string) {
         </template>
         <a-menu-item
           v-for="i in submenu" :key="i.path"
-          v-tips="() => isPathVipGated(i.path, vip) ? t('tooltips.vip-unsupported') : ''"
-          :disabled="isPathVipGated(i.path, vip)"
+          v-tips="() => isPathVipGated(i.path, vip, i.meta?.vip) ? t('tooltips.vip-unsupported') : ''"
+          :disabled="isPathVipGated(i.path, vip, i.meta?.vip)"
         >
           {{ $t(i.meta.name || '') }}
         </a-menu-item>

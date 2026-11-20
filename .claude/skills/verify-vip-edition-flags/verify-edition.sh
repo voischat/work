@@ -27,17 +27,17 @@ AB="agent-browser --session $SESS"
 case "$EDITION" in
   standard)
     EDITION_NAME='标准版'
-    SIDEBAR_DISABLED='实时位置 轨迹'; SIDEBAR_ENABLED='消息'
+    SIDEBAR_DISABLED='实时位置 轨迹 应用管理'; SIDEBAR_ENABLED='消息'
     EDIT_TRACK=absent; FAST=absent; FAST_TITLE=''
     LOC_DISABLED=true; LOC_TITLE='专业版功能' ;;
   professional)
     EDITION_NAME='专业版'
-    SIDEBAR_DISABLED=''; SIDEBAR_ENABLED='消息 实时位置 轨迹'
+    SIDEBAR_DISABLED='应用管理'; SIDEBAR_ENABLED='消息 实时位置 轨迹'
     EDIT_TRACK=present; FAST=disabled; FAST_TITLE='旗舰版功能'
     LOC_DISABLED=false; LOC_TITLE='' ;;
   flagship)
     EDITION_NAME='旗舰版'
-    SIDEBAR_DISABLED=''; SIDEBAR_ENABLED='消息 实时位置 轨迹'
+    SIDEBAR_DISABLED=''; SIDEBAR_ENABLED='消息 实时位置 轨迹 应用管理'
     EDIT_TRACK=present; FAST=enabled; FAST_TITLE='该频率设备耗电大，请慎重'
     LOC_DISABLED=false; LOC_TITLE='' ;;
 esac
@@ -212,11 +212,18 @@ case "$EDITION" in
   standard)
     check_route_guard "#/workbench/realtime-location" blocked
     check_route_guard "#/workbench/user-track" blocked
-    check_route_guard "#/workbench/message" allowed ;;
-  *)
+    check_route_guard "#/workbench/message" allowed
+    check_route_guard "#/workbench/application" blocked ;;
+  professional)
     check_route_guard "#/workbench/realtime-location" allowed
     check_route_guard "#/workbench/user-track" allowed
-    check_route_guard "#/workbench/message" allowed ;;
+    check_route_guard "#/workbench/message" allowed
+    check_route_guard "#/workbench/application" blocked ;;
+  flagship)
+    check_route_guard "#/workbench/realtime-location" allowed
+    check_route_guard "#/workbench/user-track" allowed
+    check_route_guard "#/workbench/message" allowed
+    check_route_guard "#/workbench/application" allowed ;;
 esac
 
 $AB network requests --filter get-my-vip > "$OUT/requests.txt" 2>&1

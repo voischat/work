@@ -14,7 +14,7 @@
         { "device_limit": 100000, "name": "device", "support": true },
         { "name": "track", "quick_support": true, "support": true },
         { "name": "location", "support": true },
-        { "name": "api", "support": false },
+        { "name": "api", "support": true },
         { "name": "message", "support": true }
       ]
     }

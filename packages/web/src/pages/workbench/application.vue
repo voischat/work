@@ -9,6 +9,7 @@ definePage({
   meta: {
     name: 'submenu.application',
     roles: [255],
+    vip: 'api',
   },
 })
 
