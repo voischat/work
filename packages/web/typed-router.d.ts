@@ -37,6 +37,7 @@ declare module 'vue-router/auto-routes' {
     '/register/': RouteRecordInfo<'/register/', '/register', Record<never, never>, Record<never, never>>,
     '/reset-password/': RouteRecordInfo<'/reset-password/', '/reset-password', Record<never, never>, Record<never, never>>,
     '/workbench/': RouteRecordInfo<'/workbench/', '/workbench', Record<never, never>, Record<never, never>>,
+    '/workbench/application': RouteRecordInfo<'/workbench/application', '/workbench/application', Record<never, never>, Record<never, never>>,
     '/workbench/message': RouteRecordInfo<'/workbench/message', '/workbench/message', Record<never, never>, Record<never, never>>,
     '/workbench/realtime-location': RouteRecordInfo<'/workbench/realtime-location', '/workbench/realtime-location', Record<never, never>, Record<never, never>>,
     '/workbench/user-track': RouteRecordInfo<'/workbench/user-track', '/workbench/user-track', Record<never, never>, Record<never, never>>,
@@ -127,6 +128,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/workbench/index.vue': {
       routes: '/workbench/'
+      views: never
+    }
+    'src/pages/workbench/application.vue': {
+      routes: '/workbench/application'
       views: never
     }
     'src/pages/workbench/message.vue': {

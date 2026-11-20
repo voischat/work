@@ -31,6 +31,18 @@ definePage({
       </RouterLink>
 
       <RouterLink
+        to="/workbench/application"
+        class="rounded-lg bg-white p-6 shadow-md transition-shadow duration-300 dark:bg-neutral-800 hover:shadow-lg"
+      >
+        <div class="mb-4 flex items-center">
+          <i class="i-carbon-api mr-3 text-2xl text-primary-600 dark:text-primary-400" />
+          <h3 class="text-xl text-gray-900 font-semibold dark:text-gray-100">
+            {{ t('submenu.application') }}
+          </h3>
+        </div>
+      </RouterLink>
+
+      <RouterLink
         to="/workbench/message"
         class="rounded-lg bg-white p-6 shadow-md transition-shadow duration-300 dark:bg-neutral-800 hover:shadow-lg"
       >

@@ -5,6 +5,12 @@ add-device: Add device
 add-member: Add member
 adt: '{0} Certification'
 adt-message: Certification Information
+application:
+  app-id: App ID
+  app-key: App Key
+  create: Create Application
+  name-label: Application Name
+  no-permission: Only the enterprise owner can manage applications
 auth:
   certified: Certified
   uncertified: Unverified
@@ -493,6 +499,7 @@ sms-verify-code: SMS verification code
 state:
   online: Online status
 submenu:
+  application: Application Management
   chat: Chat
   dept-manage: Dept Management
   group-manage: Group Management

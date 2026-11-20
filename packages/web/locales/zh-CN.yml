@@ -5,6 +5,12 @@ add-device: 新增设备
 add-member: 添加成员
 adt: '{0}认证'
 adt-message: 认证信息
+application:
+  app-id: 应用 ID
+  app-key: 应用密钥
+  create: 创建应用
+  name-label: 应用名称
+  no-permission: 仅企业主可管理应用
 auth:
   certified: 已认证
   uncertified: 未认证
@@ -487,6 +493,7 @@ sms-verify-code: 短信验证码
 state:
   online: 在线
 submenu:
+  application: 应用管理
   chat: 消息
   dept-manage: 部门管理
   group-manage: 群组管理
