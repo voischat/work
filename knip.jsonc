@@ -1,0 +1,59 @@
+{
+  // knip finds unused files, exports and dependencies across the monorepo.
+  // Run: pnpm knip  (gate must stay green; fix new findings, don't ignore them)
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": [
+        // consumed by `pnpm run up` (taze)
+        "taze.config.js",
+        // manual QA harness scripts, run ad hoc
+        "qa/**/*.mjs",
+        // user manual site, driven by root docs: scripts
+        "docs/.vitepress/config.mts"
+      ]
+    },
+    "packages/web": {
+      // knip cannot load vite.config.ts here: unplugin-auto-import resolves
+      // its presets at config-load time and rejects @vueuse/core in knip's
+      // environment (documented knip known issue). The override disables only
+      // the loading; knip still analyzes the file statically. The single ~
+      // alias matches tsconfig paths, so resolution is unaffected.
+      "vite": { "config": [] },
+      "entry": [
+        // wired through electron-builder.yml and the `electron` script
+        "electron/main.cjs",
+        "electron/preload.js",
+        // auto-read by unplugin-vue-macros during the vite build
+        "vue-macros.config.ts",
+        // manual packaging helper (also the only consumer of root zx)
+        "scripts/archive.ts"
+      ],
+      "ignoreDependencies": [
+        // icon sets resolved to CSS by UnoCSS/Iconify at build time
+        "@iconify-json/carbon",
+        "@iconify-json/ph",
+        "@iconify-json/svg-spinners",
+        // loaded through component auto-import resolvers in vite.config.ts
+        "@vuemap/vue-amap",
+        "@vuemap/vue-amap-loca"
+      ]
+    }
+  },
+  "rules": {
+    // TrackType members are used inside .vue script/template blocks (group
+    // page, EditMemberModal); knip's enum-member tracing does not follow
+    // member access there
+    "enumMembers": "off"
+  },
+  "ignore": [
+    // Injected into the Arco theme through a less `hack` string in
+    // vite.config.ts (line ~84); invisible to static import analysis
+    "packages/web/src/assets/style/breakpoint.less",
+    // Generated build output
+    "**/dist/**",
+    "**/.output/**",
+    // AudioWorklet bundles fetched at runtime by URL (same pattern as weila-js-sdk)
+    "packages/web/public/*.worklet.iife.js"
+  ]
+}

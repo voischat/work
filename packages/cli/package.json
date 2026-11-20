@@ -10,14 +10,14 @@
     "url": "git+https://github.com/kvoon9/weila-work.git",
     "directory": "packages/cli"
   },
-  "bin": {
-    "weila-work-cli": "dist/cli.mjs"
-  },
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs"
     }
+  },
+  "bin": {
+    "weila-work-cli": "dist/cli.mjs"
   },
   "files": [
     "dist"
@@ -33,16 +33,16 @@
     "publish:skills": "node ../../scripts/sync-skills-to-repo.mjs --push"
   },
   "dependencies": {
-    "cac": "^6.7.14",
-    "md5": "^2.3.0",
-    "unstorage": "^1.17.3"
+    "@wl/network": "catalog:",
+    "cac": "catalog:",
+    "md5": "catalog:",
+    "unstorage": "catalog:"
   },
   "devDependencies": {
     "@types/md5": "catalog:",
     "@types/node": "catalog:",
-    "@wl/network": "npm:@vois/weila-network@^0.0.7",
-    "bumpp": "^11.1.0",
-    "tsdown": "^0.16.7",
+    "bumpp": "catalog:",
+    "tsdown": "catalog:",
     "typescript": "catalog:"
   }
 }

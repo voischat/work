@@ -23,6 +23,7 @@ Vue 3 + TS monorepo (pnpm workspaces). Enterprise comms: contacts, messaging, de
 | `pnpm build:staging` | Staging build |
 | `pnpm lint` | ESLint |
 | `pnpm lint:fix` | ESLint + fix |
+| `pnpm knip` | Unused files, exports, dependencies (must report zero findings) |
 | `pnpm typecheck` | TypeScript check |
 | `pnpm test` | Vitest |
 | `pnpm release` | Bump version + release |

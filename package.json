@@ -5,13 +5,7 @@
   "description": "",
   "author": "",
   "license": "ISC",
-  "pnpm": {
-    "overrides": {
-      "@wl/network": "npm:@vois/weila-network@^0.0.7"
-    }
-  },
   "keywords": [],
-  "main": "index.js",
   "scripts": {
     "dev": "pnpm -C packages/web run dev",
     "dev:prod": "pnpm -C packages/web run dev:prod",
@@ -30,11 +24,11 @@
     "cli:start": "pnpm -C packages/cli start",
     "agent:dev": "pnpm -C packages/agent run dev",
     "agent:build": "pnpm -C packages/agent run build",
-    "electron": "pnpm -C packages/web run electron"
+    "electron": "pnpm -C packages/web run electron",
+    "knip": "knip"
   },
   "dependencies": {
-    "dayjs": "catalog:",
-    "valibot": "catalog:"
+    "dayjs": "catalog:"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:",
@@ -46,12 +40,11 @@
     "eslint-factory": "catalog:",
     "eslint-plugin-format": "catalog:",
     "eslint-plugin-unimport": "catalog:",
+    "knip": "catalog:",
     "lint-staged": "catalog:",
-    "octokit": "catalog:",
-    "oxc-minify": "0.137.0",
+    "oxc-minify": "catalog:",
     "simple-git-hooks": "catalog:",
-    "unbuild": "catalog:",
-    "vite-plugin-dts": "catalog:",
+    "taze": "catalog:",
     "vitepress": "catalog:"
   },
   "simple-git-hooks": {

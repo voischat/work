@@ -20,7 +20,7 @@ const emojiIdMap = Object.fromEntries(
     .map(([path, loadEmoji]) => [path.match(/([\w-]*)\.png$/)?.[1], loadEmoji]),
 ) as Record<string, { default: string }>
 
-export const emojiList = [
+const emojiList = [
   '[微笑]',
   '[呲牙]',
   '[傲慢]',

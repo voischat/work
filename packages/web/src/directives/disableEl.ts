@@ -1,6 +1,6 @@
 import { objectEntries } from '@antfu/utils'
 
-export type AnyFn = (...args: any[]) => any
+type AnyFn = (...args: any[]) => any
 
 const events = ['click', 'keydown', 'keyup', 'mousedown', 'mouseup', 'touchend', 'touch', 'touchstart']
 
@@ -8,7 +8,7 @@ export interface DisableElement extends HTMLElement {
   killerEvent: AnyFn
 }
 
-export function addKillerEvent(el: DisableElement) {
+function addKillerEvent(el: DisableElement) {
   const killerEvent = (e: Event) => {
     e.stopImmediatePropagation()
     e.preventDefault()
