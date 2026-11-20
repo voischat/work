@@ -12,7 +12,7 @@ const { t } = useI18n()
 const router = useRouter()
 function back() {
   // warning： Go to the node that has the permission
-  router.push('/workbench')
+  router.push('/contact/org')
 }
 </script>
 
