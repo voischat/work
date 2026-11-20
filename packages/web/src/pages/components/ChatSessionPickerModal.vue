@@ -4,7 +4,7 @@ import type { GroupModel } from '~/api/contact'
 import type { Member } from '~/types/api'
 import { WL_IDbSessionType } from '@vois/weila-sdk-core'
 import { computed, shallowRef, watch } from 'vue'
-import CreateGroupModal from '../../contact/components/CreateGroupModal.vue'
+import CreateGroupModal from '../contact/components/CreateGroupModal.vue'
 
 export interface SessionSelectPayload {
   sessionId: string

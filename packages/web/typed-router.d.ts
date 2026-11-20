@@ -125,19 +125,19 @@ declare module 'vue-router/auto-routes' {
       routes: '/reset-password/'
       views: never
     }
-    'src/pages/workbench/application.vue': {
+    'src/pages/workbench-application.vue': {
       routes: '/workbench/application'
       views: never
     }
-    'src/pages/workbench/message.vue': {
+    'src/pages/workbench-message.vue': {
       routes: '/workbench/message'
       views: never
     }
-    'src/pages/workbench/realtime-location.vue': {
+    'src/pages/workbench-realtime-location.vue': {
       routes: '/workbench/realtime-location'
       views: never
     }
-    'src/pages/workbench/user-track.vue': {
+    'src/pages/workbench-user-track.vue': {
       routes: '/workbench/user-track'
       views: never
     }

@@ -12,6 +12,8 @@ import ChatLauncher from './components/ChatLauncher.vue'
 import ChatSessionPickerModal from './components/ChatSessionPickerModal.vue'
 
 definePage({
+  path: '/workbench/message',
+  name: '/workbench/message',
   meta: {
     name: 'submenu.chat',
   },

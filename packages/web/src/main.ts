@@ -1,4 +1,3 @@
-import type { RouteRecordRaw } from 'vue-router'
 import type { UserModule } from './types'
 import { Notification } from '@arco-design/web-vue'
 import { installWeilaAudioRuntimePatch } from '@vois/weila-sdk-core'
@@ -28,21 +27,13 @@ import '@vois/weila-sdk-ui/index.css'
 
 installWeilaAudioRuntimePatch()
 
-// workbench has no index page, but unplugin-vue-router still emits a shell route
-// for the folder. Redirect it so the bare /workbench URL renders nothing.
-const appRoutes: RouteRecordRaw[] = setupLayouts(routes).map(route =>
-  route.path === '/workbench'
-    ? { ...route, redirect: '/contact/org' } as RouteRecordRaw
-    : route,
-)
-
 setup(
   // the root component
   App,
   // vue-router options
   {
     history: createWebHashHistory(),
-    routes: appRoutes,
+    routes: setupLayouts(routes),
     scrollBehavior() {
       return { top: 0 }
     },

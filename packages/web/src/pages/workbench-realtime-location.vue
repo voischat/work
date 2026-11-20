@@ -6,6 +6,8 @@ import { useDeptList } from '~/composables/useDeptList'
 import { useGroupList } from '~/composables/useGroupList'
 
 definePage({
+  path: '/workbench/realtime-location',
+  name: '/workbench/realtime-location',
   meta: {
     name: 'submenu.realtime-location',
   },

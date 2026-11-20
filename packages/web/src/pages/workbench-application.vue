@@ -6,6 +6,8 @@ import { ref as deepRef, shallowRef } from 'vue'
 import CreateApplicationModal from './components/CreateApplicationModal.vue'
 
 definePage({
+  path: '/workbench/application',
+  name: '/workbench/application',
   meta: {
     name: 'submenu.application',
     roles: [255],

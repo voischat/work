@@ -12,6 +12,8 @@ import { useMapInteraction } from '~/composables/useMapInteraction'
 import { useUserTrack } from '~/composables/useTrackData'
 
 definePage({
+  path: '/workbench/user-track',
+  name: '/workbench/user-track',
   meta: {
     name: 'submenu.user-track',
   },
