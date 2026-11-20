@@ -45,7 +45,7 @@ title: 成员轨迹
 - 轨迹点时间轴展示
 - 快速定位到特定位置
 
-![](../assets/Screenshot-2025-10-13-at-11.33.15-AM.png)
-![](../assets/Screenshot-2025-10-13-at-11.33.44-AM.png)
- ![](../assets/Screenshot-2025-10-13-at-11.34.24-AM.png)
-![](../assets/Screenshot-2025-10-13-at-11.35.41-AM.png)
+![Screenshot 2025 10 13 at 11 33 15 AM](../assets/Screenshot-2025-10-13-at-11.33.15-AM.png)
+![Screenshot 2025 10 13 at 11 33 44 AM](../assets/Screenshot-2025-10-13-at-11.33.44-AM.png)
+ ![Screenshot 2025 10 13 at 11 34 24 AM](../assets/Screenshot-2025-10-13-at-11.34.24-AM.png)
+![Screenshot 2025 10 13 at 11 35 41 AM](../assets/Screenshot-2025-10-13-at-11.35.41-AM.png)

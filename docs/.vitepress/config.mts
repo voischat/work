@@ -2,8 +2,8 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: "微喇企业管理台用户手册",
-  description: "微喇企业管理台用户手册",
+  title: '微喇企业管理台用户手册',
+  description: '微喇企业管理台用户手册',
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
@@ -47,6 +47,6 @@ export default defineConfig({
       },
     ],
 
-    socialLinks: []
-  }
+    socialLinks: [],
+  },
 })

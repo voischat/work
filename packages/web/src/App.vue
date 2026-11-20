@@ -73,7 +73,9 @@ weilaApi.value.hook('request:prepare', async (ctx) => {
 
   try {
     const request = ctx?.request || ctx?.url || ''
-    const url = typeof request === 'string' ? request : request.url || ''
+    const url = typeof request === 'string'
+      ? request
+      : request.url || ''
     const isPublic = PUBLIC_PATH_KEYWORDS.some(keyword => url.includes(keyword))
 
     if (isPublic || !needRefresh())
@@ -164,7 +166,9 @@ function onError(error: any) {
   }
 
   if (typeof error?.response?.status === 'number') {
-    const statusText = error.response.statusText ? `: ${error.response.statusText}` : ''
+    const statusText = error.response.statusText
+      ? `: ${error.response.statusText}`
+      : ''
     toastError(`${error.response.status}${statusText}`)
     return
   }

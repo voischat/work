@@ -10,8 +10,8 @@ title: 搜索与过滤
 
 - 支持按姓名、工号、微啦号、手机号搜索
 
-![](../assets/Screenshot-2025-10-13-at-11.55.25-AM.png)
+![Screenshot 2025 10 13 at 11 55 25 AM](../assets/Screenshot-2025-10-13-at-11.55.25-AM.png)
 
 ## 表单过滤
 
-![](../assets/Screenshot-2025-10-13-at-11.53.26-AM.png)
+![Screenshot 2025 10 13 at 11 53 26 AM](../assets/Screenshot-2025-10-13-at-11.53.26-AM.png)

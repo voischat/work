@@ -143,7 +143,9 @@ export default defineConfig(() => {
           'src/utils',
         ],
         vueTemplate: true,
-        resolvers: [VueAmapResolver()],
+        resolvers: [
+          VueAmapResolver(),
+        ],
       }),
 
       // https://github.com/antfu/unplugin-vue-components
@@ -176,7 +178,9 @@ export default defineConfig(() => {
       mkcert(),
 
       // axios and ofetch are peerDependencies of @wl/network, never imported directly.
-      Unused({ ignore: ['axios', 'ofetch'] }),
+      Unused({
+        ignore: ['axios', 'ofetch'],
+      }),
 
       {
         name: 'vite-plugin-build-info',

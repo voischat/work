@@ -25,9 +25,15 @@ const { mutateAsync, isPending } = useWeilaMutation<{
   onSuccess() {
     open.value = false
     Message.success(t('message.success'))
-    qc.invalidateQueries({ queryKey: ['corp/group/get-group-member-list'] })
-    qc.invalidateQueries({ queryKey: ['corp/group/get-group-all-member'] })
-    qc.invalidateQueries({ queryKey: ['corp/group/get-group-all-member/self-membership'] })
+    qc.invalidateQueries({
+      queryKey: ['corp/group/get-group-member-list'],
+    })
+    qc.invalidateQueries({
+      queryKey: ['corp/group/get-group-all-member'],
+    })
+    qc.invalidateQueries({
+      queryKey: ['corp/group/get-group-all-member/self-membership'],
+    })
     emits('success')
   },
 })

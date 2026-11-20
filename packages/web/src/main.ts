@@ -31,7 +31,9 @@ installWeilaAudioRuntimePatch()
 // workbench has no index page, but unplugin-vue-router still emits a shell route
 // for the folder. Redirect it so the bare /workbench URL renders nothing.
 const appRoutes: RouteRecordRaw[] = setupLayouts(routes).map(route =>
-  route.path === '/workbench' ? { ...route, redirect: '/contact/org' } as RouteRecordRaw : route,
+  route.path === '/workbench'
+    ? { ...route, redirect: '/contact/org' } as RouteRecordRaw
+    : route,
 )
 
 setup(
@@ -59,7 +61,9 @@ setup(
 
     app.config.errorHandler = (error: any, instance, info) => {
       Notification.error({
-        title: (error.message || error.stack) ? String(error?.message) + String(error?.stack) : String(error),
+        title: (error.message || error.stack)
+          ? String(error?.message) + String(error?.stack)
+          : String(error),
         content: info,
       })
 

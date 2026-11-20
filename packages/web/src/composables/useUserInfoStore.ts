@@ -79,7 +79,9 @@ export function useUserInfoStore() {
     }
     else if (type === 'individual') {
       const member = await fetchMember(id)
-      return member ? [member] : []
+      return member
+        ? [member]
+        : []
     }
     else {
       return await fetchGroupMembers(id)

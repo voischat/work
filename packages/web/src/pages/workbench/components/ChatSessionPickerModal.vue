@@ -52,7 +52,9 @@ const currentActiveType = shallowRef(props.activeType)
 const groupPage = shallowRef(0)
 const groupSearch = shallowRef('')
 const debouncedGroupSearch = useDebounce(groupSearch, 300)
-const groupQuerySize = computed(() => debouncedGroupSearch.value.trim() ? 100 : 10)
+const groupQuerySize = computed(() => debouncedGroupSearch.value.trim()
+  ? 100
+  : 10)
 
 const {
   data: groupData,
@@ -65,7 +67,9 @@ const {
 const groups = computed(() => {
   const list = groupData.value?.groups ?? []
   const key = debouncedGroupSearch.value.trim().toLowerCase()
-  return key ? list.filter(group => group.name.toLowerCase().includes(key)) : list
+  return key
+    ? list.filter(group => group.name.toLowerCase().includes(key))
+    : list
 })
 const hasMoreGroups = computed(
   () => (groupData.value?.count ?? 0) > (groupPage.value + 1) * groupQuerySize.value,

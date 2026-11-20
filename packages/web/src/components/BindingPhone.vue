@@ -28,7 +28,9 @@ const { mutate, isPending } = useWeilaMutation('corp/user/bind-phone', {
     open.value = false
     Message.success(t('message.success'))
     reset()
-    qc.invalidateQueries({ queryKey: ['corp/user/get-selfinfo'] })
+    qc.invalidateQueries({
+      queryKey: ['corp/user/get-selfinfo'],
+    })
   },
 })
 

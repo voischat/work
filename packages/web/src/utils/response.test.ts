@@ -8,12 +8,21 @@ describe('pickFromResponse', () => {
   })
 
   it('picks a key from a multi-key payload', () => {
-    const payload = { count: 1, tracks: [{ lat: 1 }] }
-    expect(pickFromResponse(payload, ['tracks'])).toEqual([{ lat: 1 }])
+    const payload = {
+      count: 1,
+      tracks: [
+        { lat: 1 },
+      ],
+    }
+    expect(pickFromResponse(payload, ['tracks'])).toEqual([
+      { lat: 1 },
+    ])
   })
 
   it('returns arrays that the network layer already unwrapped', () => {
-    const points = [{ id: 1 }]
+    const points = [
+      { id: 1 },
+    ]
     expect(pickFromResponse(points, ['points'])).toBe(points)
   })
 
@@ -29,7 +38,9 @@ describe('pickFromResponse', () => {
   })
 
   it('returns the original value when no requested key exists', () => {
-    const payload = { business: { sid: 1 } }
+    const payload = {
+      business: { sid: 1 },
+    }
     expect(pickFromResponse(payload, ['legal'])).toBe(payload)
   })
 })

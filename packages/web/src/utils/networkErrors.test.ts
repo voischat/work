@@ -3,8 +3,13 @@ import { isHttpResponseContext, rethrowAxiosErrors } from './networkErrors'
 
 describe('isHttpResponseContext', () => {
   it('recognizes the ofetch context thrown for an HTTP error', () => {
-    expect(isHttpResponseContext({ request: 'url', response: { status: 500 } })).toBe(true)
-    expect(isHttpResponseContext({ response: { status: 404 } })).toBe(true)
+    expect(isHttpResponseContext({
+      request: 'url',
+      response: { status: 500 },
+    })).toBe(true)
+    expect(isHttpResponseContext({
+      response: { status: 404 },
+    })).toBe(true)
   })
 
   it('does not treat business or transport errors as HTTP contexts', () => {
@@ -17,7 +22,15 @@ describe('isHttpResponseContext', () => {
 describe('rethrowAxiosErrors', () => {
   it('reports the error and rejects instead of resolving undefined', async () => {
     const report = vi.fn(async (_error: unknown) => {})
-    const request = { interceptors: { response: { handlers: [{ rejected: report }] } } }
+    const request = {
+      interceptors: {
+        response: {
+          handlers: [
+            { rejected: report },
+          ],
+        },
+      },
+    }
 
     rethrowAxiosErrors(request)
 
@@ -27,7 +40,15 @@ describe('rethrowAxiosErrors', () => {
   })
 
   it('leaves handlers without a rejection callback alone', () => {
-    const request = { interceptors: { response: { handlers: [{ rejected: undefined }] } } }
+    const request = {
+      interceptors: {
+        response: {
+          handlers: [
+            { rejected: undefined },
+          ],
+        },
+      },
+    }
     expect(() => rethrowAxiosErrors(request)).not.toThrow()
   })
 })

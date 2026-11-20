@@ -14,7 +14,9 @@ const props = defineProps<{
 
 const voiceUrl = computed(() => props.content.url)
 const displayDuration = computed(() => props.content.duration || 0)
-const displayDurationText = computed(() => displayDuration.value ? `${displayDuration.value}"` : '')
+const displayDurationText = computed(() => displayDuration.value
+  ? `${displayDuration.value}"`
+  : '')
 
 const { data: mp3Url } = useQuery({
   queryKey: computed(() => ['/corp/web/ptturl-to-mp3url', voiceUrl.value]),

@@ -20,8 +20,12 @@ const { mutate, isPending } = useWeilaMutation<never, {
     open.value = false
     Message.success(t('message.success'))
 
-    qc.invalidateQueries({ queryKey: ['corp/address/get-member-list'] })
-    qc.invalidateQueries({ queryKey: ['corp/address/get-dept-member-list'] })
+    qc.invalidateQueries({
+      queryKey: ['corp/address/get-member-list'],
+    })
+    qc.invalidateQueries({
+      queryKey: ['corp/address/get-dept-member-list'],
+    })
   },
 })
 </script>

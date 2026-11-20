@@ -29,8 +29,12 @@ const { mutate, isPending } = useWeilaMutation('corp/group/create-group', {
   onSuccess() {
     reset()
     Message.success(t('message.success'))
-    qc.invalidateQueries({ queryKey: ['corp/group/get-group-list'] })
-    qc.invalidateQueries({ queryKey: ['corp/group/get-my-manage-group-list'] })
+    qc.invalidateQueries({
+      queryKey: ['corp/group/get-group-list'],
+    })
+    qc.invalidateQueries({
+      queryKey: ['corp/group/get-my-manage-group-list'],
+    })
     emit('success')
   },
 })

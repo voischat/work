@@ -56,12 +56,17 @@ function call(origin, path, query) {
   for (const [k, v] of new URLSearchParams(path.split('?')[1] || ''))
     url.searchParams.set(k, v)
 
-  const client = url.protocol === 'http:' ? httpRequest : httpsRequest
+  const client = url.protocol === 'http:'
+    ? httpRequest
+    : httpsRequest
   const body = '{}'
   return new Promise((resolve) => {
     const req = client(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+      },
       rejectUnauthorized: false,
       timeout: 6000,
     }, (res) => {
@@ -83,8 +88,11 @@ function classify({ status, text }) {
   if (status === 200) {
     try {
       const body = JSON.parse(text)
-      if (typeof body.errcode !== 'undefined')
-        return body.errcode === 0 ? 'live (errcode 0)' : `live (errcode ${body.errcode} ${body.errmsg ?? ''})`.trim()
+      if (typeof body.errcode !== 'undefined') {
+        return body.errcode === 0
+          ? 'live (errcode 0)'
+          : `live (errcode ${body.errcode} ${body.errmsg ?? ''})`.trim()
+      }
     }
     catch {}
     return 'live (200, non-JSON)'

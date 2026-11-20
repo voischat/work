@@ -41,7 +41,9 @@ const { mutateAsync, isPending } = useWeilaMutation<{
     reset()
     open.value = false
     Message.success(t('message.success'))
-    qc.invalidateQueries({ queryKey: ['corp/org/get-my-org'] })
+    qc.invalidateQueries({
+      queryKey: ['corp/org/get-my-org'],
+    })
   },
 })
 

@@ -43,9 +43,21 @@ const {
 } = useMapInteraction(tracks)
 
 const trackFields = [
-  { key: 'created', label: t('time'), formatter: (v: number) => new Date(v * 1000).toLocaleString() },
-  { key: 'lng', label: t('longitude'), formatter: (v: number) => v.toFixed(6) },
-  { key: 'lat', label: t('latitude'), formatter: (v: number) => v.toFixed(6) },
+  {
+    key: 'created',
+    label: t('time'),
+    formatter: (v: number) => new Date(v * 1000).toLocaleString(),
+  },
+  {
+    key: 'lng',
+    label: t('longitude'),
+    formatter: (v: number) => v.toFixed(6),
+  },
+  {
+    key: 'lat',
+    label: t('latitude'),
+    formatter: (v: number) => v.toFixed(6),
+  },
 ]
 
 function handleTrackClick(item: any, index: number) {

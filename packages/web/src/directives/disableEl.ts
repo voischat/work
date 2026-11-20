@@ -2,7 +2,16 @@ import { objectEntries } from '@antfu/utils'
 
 type AnyFn = (...args: any[]) => any
 
-const events = ['click', 'keydown', 'keyup', 'mousedown', 'mouseup', 'touchend', 'touch', 'touchstart']
+const events = [
+  'click',
+  'keydown',
+  'keyup',
+  'mousedown',
+  'mouseup',
+  'touchend',
+  'touch',
+  'touchstart',
+]
 
 export interface DisableElement extends HTMLElement {
   killerEvent: AnyFn

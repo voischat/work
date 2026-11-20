@@ -62,7 +62,9 @@ describe('computeDeptCheckState', () => {
     expect(computeDeptCheckState({
       loaded: false,
       loading: true,
-      members: [member(1)],
+      members: [
+        member(1),
+      ],
       selectedIds: new Set(),
       isSelectable: () => true,
     })).toBe('loading')
@@ -82,7 +84,10 @@ describe('computeDeptCheckState', () => {
     expect(computeDeptCheckState({
       loaded: true,
       loading: false,
-      members: [member(1), member(2)],
+      members: [
+        member(1),
+        member(2),
+      ],
       selectedIds: new Set([1]),
       isSelectable: () => false,
     })).toBe('empty')
@@ -92,7 +97,10 @@ describe('computeDeptCheckState', () => {
     expect(computeDeptCheckState({
       loaded: true,
       loading: false,
-      members: [member(1), member(2)],
+      members: [
+        member(1),
+        member(2),
+      ],
       selectedIds: new Set(),
       isSelectable: () => true,
     })).toBe('none')
@@ -102,7 +110,10 @@ describe('computeDeptCheckState', () => {
     expect(computeDeptCheckState({
       loaded: true,
       loading: false,
-      members: [member(1), member(2)],
+      members: [
+        member(1),
+        member(2),
+      ],
       selectedIds: new Set([1]),
       isSelectable: () => true,
     })).toBe('partial')
@@ -112,7 +123,10 @@ describe('computeDeptCheckState', () => {
     expect(computeDeptCheckState({
       loaded: true,
       loading: false,
-      members: [member(1), member(2)],
+      members: [
+        member(1),
+        member(2),
+      ],
       selectedIds: new Set([1, 2]),
       isSelectable: () => true,
     })).toBe('all')
@@ -122,7 +136,10 @@ describe('computeDeptCheckState', () => {
     expect(computeDeptCheckState({
       loaded: true,
       loading: false,
-      members: [member(1), member(2)],
+      members: [
+        member(1),
+        member(2),
+      ],
       selectedIds: new Set([2]),
       isSelectable: entry => entry.user_id === 2,
     })).toBe('all')
@@ -132,7 +149,10 @@ describe('computeDeptCheckState', () => {
     expect(computeDeptCheckState({
       loaded: true,
       loading: false,
-      members: [member(1), member(2)],
+      members: [
+        member(1),
+        member(2),
+      ],
       selectedIds: new Set([99]),
       isSelectable: () => true,
     })).toBe('none')
@@ -216,24 +236,35 @@ describe('toggleMemberInSelection', () => {
     const entry = member(1)
 
     expect(toggleMemberInSelection([], entry, 4, () => true)).toEqual([
-      { type: 'member', id: 1, deptId: 4, member: entry },
+      {
+        type: 'member',
+        id: 1,
+        deptId: 4,
+        member: entry,
+      },
     ])
   })
 
   it('removes a selected member by user id', () => {
-    const selected = [item(1, 4)]
+    const selected = [
+      item(1, 4),
+    ]
 
     expect(toggleMemberInSelection(selected, member(1), 4, () => true)).toEqual([])
   })
 
   it('refuses a non-selectable member with the same reference', () => {
-    const selected = [item(1)]
+    const selected = [
+      item(1),
+    ]
 
     expect(toggleMemberInSelection(selected, member(2), 1, () => false)).toBe(selected)
   })
 
   it('does not mutate the input', () => {
-    const selected = [item(1)]
+    const selected = [
+      item(1),
+    ]
 
     toggleMemberInSelection(selected, member(2), 1, () => true)
 
@@ -243,64 +274,98 @@ describe('toggleMemberInSelection', () => {
 
 describe('addDeptToSelection', () => {
   it('adds every selectable member that is not selected yet', () => {
-    const selected = [item(1, 1)]
+    const selected = [
+      item(1, 1),
+    ]
 
-    expect(ids(addDeptToSelection(selected, [member(1), member(2), member(3)], 2, () => true))).toEqual([1, 2, 3])
+    expect(ids(addDeptToSelection(selected, [
+      member(1),
+      member(2),
+      member(3),
+    ], 2, () => true))).toEqual([1, 2, 3])
   })
 
   it('filters out non-selectable members', () => {
-    const result = addDeptToSelection([], [member(1), member(2)], 2, entry => entry.user_id === 2)
+    const result = addDeptToSelection([], [
+      member(1),
+      member(2),
+    ], 2, entry => entry.user_id === 2)
 
     expect(ids(result)).toEqual([2])
   })
 
   it('dedupes repeated members in the input list', () => {
-    expect(ids(addDeptToSelection([], [member(2), member(2)], 2, () => true))).toEqual([2])
+    expect(ids(addDeptToSelection([], [
+      member(2),
+      member(2),
+    ], 2, () => true))).toEqual([2])
   })
 
   it('preserves existing items and their department', () => {
     const existing = item(1, 9)
-    const result = addDeptToSelection([existing], [member(2)], 2, () => true)
+    const result = addDeptToSelection([existing], [
+      member(2),
+    ], 2, () => true)
 
     expect(result[0]).toBe(existing)
     expect(result[0].deptId).toBe(9)
   })
 
   it('is idempotent and returns the input reference when nothing is added', () => {
-    const first = addDeptToSelection([], [member(1)], 2, () => true)
-    const second = addDeptToSelection(first, [member(1)], 2, () => true)
+    const first = addDeptToSelection([], [
+      member(1),
+    ], 2, () => true)
+    const second = addDeptToSelection(first, [
+      member(1),
+    ], 2, () => true)
 
     expect(second).toBe(first)
   })
 
   it('returns the input reference when no member is selectable', () => {
-    const selected = [item(1)]
+    const selected = [
+      item(1),
+    ]
 
-    expect(addDeptToSelection(selected, [member(2)], 2, () => false)).toBe(selected)
+    expect(addDeptToSelection(selected, [
+      member(2),
+    ], 2, () => false)).toBe(selected)
   })
 })
 
 describe('removeDeptFromSelection', () => {
   it('removes items that came from the matching department', () => {
-    const selected = [item(1, 7), item(2, 8)]
+    const selected = [
+      item(1, 7),
+      item(2, 8),
+    ]
 
     expect(ids(removeDeptFromSelection(selected, 7, new Set()))).toEqual([2])
   })
 
   it('removes items whose id is in the known member list', () => {
-    const selected = [item(1, 7), item(2, 8)]
+    const selected = [
+      item(1, 7),
+      item(2, 8),
+    ]
 
     expect(ids(removeDeptFromSelection(selected, 7, new Set([2])))).toEqual([])
   })
 
   it('keeps items from other departments that are not in the known list', () => {
-    const selected = [item(1, 7), item(2, 8), item(3, 9)]
+    const selected = [
+      item(1, 7),
+      item(2, 8),
+      item(3, 9),
+    ]
 
     expect(ids(removeDeptFromSelection(selected, 7, new Set([2])))).toEqual([3])
   })
 
   it('returns the input reference when nothing matches', () => {
-    const selected = [item(1, 7)]
+    const selected = [
+      item(1, 7),
+    ]
 
     expect(removeDeptFromSelection(selected, 8, new Set([2]))).toBe(selected)
   })
@@ -308,13 +373,19 @@ describe('removeDeptFromSelection', () => {
 
 describe('pruneSelection', () => {
   it('removes items that are no longer selectable', () => {
-    const selected = [item(1), item(2)]
+    const selected = [
+      item(1),
+      item(2),
+    ]
 
     expect(ids(pruneSelection(selected, entry => entry.user_id === 1))).toEqual([1])
   })
 
   it('returns the input reference when every item is selectable', () => {
-    const selected = [item(1), item(2)]
+    const selected = [
+      item(1),
+      item(2),
+    ]
 
     expect(pruneSelection(selected, () => true)).toBe(selected)
   })
@@ -332,8 +403,14 @@ describe('createCommitQueue', () => {
     })
 
     await Promise.all([
-      queue.commit(current => [...current, createSelectedItem(member(1), 1)]),
-      queue.commit(current => [...current, createSelectedItem(member(2), 2)]),
+      queue.commit(current => [
+        ...current,
+        createSelectedItem(member(1), 1),
+      ]),
+      queue.commit(current => [
+        ...current,
+        createSelectedItem(member(2), 2),
+      ]),
     ])
 
     expect(ids(state)).toEqual([1, 2])
@@ -341,7 +418,9 @@ describe('createCommitQueue', () => {
   })
 
   it('skips the write when the applied result is the current reference', async () => {
-    let state: OrgTreeSelectedItem[] = [item(1)]
+    let state: OrgTreeSelectedItem[] = [
+      item(1),
+    ]
     let writes = 0
     const queue = createCommitQueue({
       read: () => state,
@@ -355,7 +434,9 @@ describe('createCommitQueue', () => {
     await queue.commit(current => current)
 
     expect(writes).toBe(0)
-    expect(state).toEqual([item(1)])
+    expect(state).toEqual([
+      item(1),
+    ])
   })
 
   it('waits for the flush before starting the next commit', async () => {
@@ -373,16 +454,27 @@ describe('createCommitQueue', () => {
       }),
     })
 
-    const first = queue.commit(current => [...current, item(1)])
-    const second = queue.commit(current => [...current, item(2)])
+    const first = queue.commit(current => [
+      ...current,
+      item(1),
+    ])
+    const second = queue.commit(current => [
+      ...current,
+      item(2),
+    ])
 
     await new Promise(resolve => setTimeout(resolve, 0))
-    expect(events).toEqual([[1]])
+    expect(events).toEqual([
+      [1],
+    ])
 
     releases[0]()
     await first
     await new Promise(resolve => setTimeout(resolve, 0))
-    expect(events).toEqual([[1], [1, 2]])
+    expect(events).toEqual([
+      [1],
+      [1, 2],
+    ])
 
     releases[1]()
     await second

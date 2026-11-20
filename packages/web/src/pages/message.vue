@@ -32,7 +32,9 @@ const { data: groups } = useQuery<GroupModel[]>({
   enabled: computed(() => Boolean(corp.value)),
   queryKey: ['groups', '/corp/web/group-getall', corp],
   queryFn: () => weilaFetch('/corp/web/group-getall', {
-    body: { org_num: String(corp.value!.num) },
+    body: {
+      org_num: String(corp.value!.num),
+    },
   }).then((i: any) => i.groups),
 })
 

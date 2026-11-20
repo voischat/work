@@ -37,7 +37,9 @@ function parseErrcode(error: unknown): number | undefined {
 
   try {
     const parsed = JSON.parse(message)
-    return typeof parsed?.errcode === 'number' ? parsed.errcode : undefined
+    return typeof parsed?.errcode === 'number'
+      ? parsed.errcode
+      : undefined
   }
   catch {
     return undefined

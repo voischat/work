@@ -23,7 +23,9 @@ const { form, rules, handleSubmit, reset } = useForm(v.object({
   group_id: v.optional(v.number(), () => props.group?.id),
   avatar: v.optional(v.string(), () => props.group?.avatar),
 }), {
-  watch: [() => props.group],
+  watch: [
+    () => props.group,
+  ],
 })
 
 const { mutateAsync: change, isPending } = useWeilaMutation('corp/group/change-group', {

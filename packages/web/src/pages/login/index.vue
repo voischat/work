@@ -154,7 +154,10 @@ const login = handleLogin((values: any) => {
     Message.error(t('form.error.privacy-agreement-required'))
     return
   }
-  passwordLogin({ ...values, password: md5(values.password) })
+  passwordLogin({
+    ...values,
+    password: md5(values.password),
+  })
 })
 
 const loginBySms = handleSmsLogin((values: any) => {

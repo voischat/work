@@ -1,7 +1,7 @@
 {
   "name": "weila-crop-mgr",
   "version": "1.0.0",
-  "packageManager": "pnpm@10.20.0",
+  "packageManager": "pnpm@11.28.13",
   "description": "",
   "author": "",
   "license": "ISC",
@@ -36,7 +36,6 @@
     "eslint-plugin-unimport": "catalog:",
     "knip": "catalog:",
     "lint-staged": "catalog:",
-    "oxc-minify": "catalog:",
     "simple-git-hooks": "catalog:",
     "taze": "catalog:",
     "vitepress": "catalog:"

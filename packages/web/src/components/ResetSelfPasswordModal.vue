@@ -23,7 +23,10 @@ const { mutate, isPending } = useWeilaMutation('corp/user/change-password', {
 })
 
 const submit = handleSubmit((values) => {
-  mutate(Object.fromEntries(objectEntries(values).map(([key, value]) => [key, md5(value)])))
+  mutate(Object.fromEntries(objectEntries(values).map(([key, value]) => [
+    key,
+    md5(value),
+  ])))
 })
 </script>
 

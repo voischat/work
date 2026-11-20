@@ -42,12 +42,34 @@ const {
 
 const locationFields = [
   { key: 'userName' },
-  { key: 'user_num', label: t('weila-number') },
-  { key: 'phone', label: t('phone') },
-  { key: 'ts', label: t('time'), formatter: (v: number) => new Date(v * 1000).toLocaleString() },
-  { key: 'lng', label: t('longitude'), formatter: (v: number) => v.toFixed(6) },
-  { key: 'lat', label: t('latitude'), formatter: (v: number) => v.toFixed(6) },
-  { key: 'spd', label: t('speed'), formatter: (v: number) => `${v.toFixed(2)} km/h` },
+  {
+    key: 'user_num',
+    label: t('weila-number'),
+  },
+  {
+    key: 'phone',
+    label: t('phone'),
+  },
+  {
+    key: 'ts',
+    label: t('time'),
+    formatter: (v: number) => new Date(v * 1000).toLocaleString(),
+  },
+  {
+    key: 'lng',
+    label: t('longitude'),
+    formatter: (v: number) => v.toFixed(6),
+  },
+  {
+    key: 'lat',
+    label: t('latitude'),
+    formatter: (v: number) => v.toFixed(6),
+  },
+  {
+    key: 'spd',
+    label: t('speed'),
+    formatter: (v: number) => `${v.toFixed(2)} km/h`,
+  },
 ]
 
 const locationListItems = computed(() => {
@@ -91,7 +113,9 @@ const canFetch = computed(() => selectedId.value !== undefined)
 const latestLocationDate = computed(() => {
   if (!locations.value?.length)
     return undefined
-  const latest = locations.value.reduce((max, loc) => loc.ts > max.ts ? loc : max)
+  const latest = locations.value.reduce((max, loc) => loc.ts > max.ts
+    ? loc
+    : max)
   return new Date(latest.ts * 1000).toLocaleString()
 })
 
@@ -114,7 +138,8 @@ watch([selectedType, selectedId], async ([type, id]) => {
 }, { immediate: true })
 
 watch(map, (m) => {
-  if (!m) return
+  if (!m)
+    return
   const onInteract = () => capsuleRef.value?.flashMessage()
   m.on('mapmove', onInteract)
   m.on('zoomchange', onInteract)

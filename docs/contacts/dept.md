@@ -33,11 +33,11 @@ title: 部门管理
 - 可视化部门树结构
 - 可查看部门内现有成员列表
 
-![](../assets/Screenshot-2025-10-13-at-11.28.46-AM.png)
+![Screenshot 2025 10 13 at 11 28 46 AM](../assets/Screenshot-2025-10-13-at-11.28.46-AM.png)
 
-![](../assets/Screenshot-2025-10-13-at-11.29.33-AM.png)
+![Screenshot 2025 10 13 at 11 29 33 AM](../assets/Screenshot-2025-10-13-at-11.29.33-AM.png)
 
-![](../assets/Screenshot-2025-10-13-at-11.30.04-AM.png)
+![Screenshot 2025 10 13 at 11 30 04 AM](../assets/Screenshot-2025-10-13-at-11.30.04-AM.png)
 
 ## 给部门成员发送消息
 

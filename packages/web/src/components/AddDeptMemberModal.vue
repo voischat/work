@@ -37,9 +37,15 @@ const { mutate, isPending } = useWeilaMutation<never, {
   onSuccess() {
     Message.success(t('message.success'))
     open.value = false
-    qc.invalidateQueries({ queryKey: ['corp/address/get-dept-member-list'] })
-    qc.invalidateQueries({ queryKey: ['corp/address/get-dept-all-member'] })
-    qc.invalidateQueries({ queryKey: ['corp/address/get-my-manage-all-dept'] })
+    qc.invalidateQueries({
+      queryKey: ['corp/address/get-dept-member-list'],
+    })
+    qc.invalidateQueries({
+      queryKey: ['corp/address/get-dept-all-member'],
+    })
+    qc.invalidateQueries({
+      queryKey: ['corp/address/get-my-manage-all-dept'],
+    })
   },
 })
 </script>

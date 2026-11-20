@@ -23,7 +23,12 @@ export function useWeilaFetch<T>(
   const requestBody = () => toValue(body)
 
   const res = useQuery<T>({
-    queryKey: computed(() => [requestPath(), requestParams(), requestBody(), method]),
+    queryKey: computed(() => [
+      requestPath(),
+      requestParams(),
+      requestBody(),
+      method,
+    ]),
     queryFn: () => weilaApi.value.v2.fetch(requestUrl(), {
       body: requestBody(),
       method,

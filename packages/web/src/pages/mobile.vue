@@ -11,7 +11,9 @@ definePage({
 const { t } = useI18n()
 
 // 获取当前网站根地址
-const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+const baseUrl = typeof window !== 'undefined'
+  ? window.location.origin
+  : ''
 // 生成二维码
 const qrcode = useQRCode(baseUrl)
 

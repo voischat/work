@@ -147,7 +147,11 @@ export function useRealtimeLocation(
     status,
   } = useWeilaFetch<RealtimeLocationModel[]>('corp/loc/get-realtime-location', {
     body: () => {
-      const sessionType = selectedType.value === 'dept' ? 20 : selectedType.value === 'individual' ? 17 : 18
+      const sessionType = selectedType.value === 'dept'
+        ? 20
+        : selectedType.value === 'individual'
+          ? 17
+          : 18
       return {
         session_id: selectedId.value,
         session_type: sessionType,

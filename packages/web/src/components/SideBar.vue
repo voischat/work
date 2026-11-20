@@ -34,8 +34,14 @@ interface Menu {
 
 const menu = computed<Menu>(() => {
   const data = {
-    contact: { name: t('menu.contact'), submenu: [] },
-    workbench: { name: t('menu.workbench'), submenu: [] },
+    contact: {
+      name: t('menu.contact'),
+      submenu: [],
+    },
+    workbench: {
+      name: t('menu.workbench'),
+      submenu: [],
+    },
   }
   const routeList = router.getRoutes().filter((i: any) => i?.meta?.name)
 
@@ -57,8 +63,7 @@ const menu = computed<Menu>(() => {
 
     if (!route?.meta?.roles
       || selfInfoType.value === undefined
-      || (route?.meta?.roles && route?.meta?.roles?.includes(selfInfoType.value))
-    ) {
+      || (route?.meta?.roles && route?.meta?.roles?.includes(selfInfoType.value))) {
       menuItem.submenu.push(route)
     }
   }

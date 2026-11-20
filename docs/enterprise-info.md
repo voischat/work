@@ -17,17 +17,17 @@ title: 企业信息
   - 群组数量
   - 设备数量
 
-![](./assets/corp-info.png)
-![](./assets/Screenshot-2025-10-13-at-11.59.11-AM.png)
+![corp info](./assets/corp-info.png)
+![Screenshot 2025 10 13 at 11 59 11 AM](./assets/Screenshot-2025-10-13-at-11.59.11-AM.png)
 
 ## 2.2 企业认证
 
-![](./assets/corp-info_legal-button.png)
-![](./assets/legal.png)
+![corp info legal button](./assets/corp-info_legal-button.png)
+![legal](./assets/legal.png)
 
 **认证流程：**
 
-#### 第一步：填写认证信息
+### 第一步：填写认证信息
 
 **企业认证需要提供：**
 
@@ -35,7 +35,7 @@ title: 企业信息
 - 统一社会信用代码（18位）
 - 营业执照照片
 
-#### 第二步：提交审核
+### 第二步：提交审核
 
 - 提交认证信息后等待平台审核
 - 审核状态分为：待审核、审核通过、审核失败

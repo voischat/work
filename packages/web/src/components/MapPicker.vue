@@ -68,8 +68,7 @@ function checkCoordsValue(coords: UnwrapRef<ReturnType<typeof useGeolocation>['c
   if (coords.longitude === 0
     || coords.latitude === 0
     || coords.longitude === Infinity
-    || coords.latitude === Infinity
-  ) {
+    || coords.latitude === Infinity) {
     return false
   }
 

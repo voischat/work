@@ -51,8 +51,12 @@ const qc = useQueryClient()
 const { mutate, isPending } = useWeilaMutation('corp/address/add-device', {
   onSuccess() {
     Message.success(t('message.success'))
-    qc.invalidateQueries({ queryKey: ['corp/address/get-member-list'] })
-    qc.invalidateQueries({ queryKey: ['corp/address/get-dept-member-list'] })
+    qc.invalidateQueries({
+      queryKey: ['corp/address/get-member-list'],
+    })
+    qc.invalidateQueries({
+      queryKey: ['corp/address/get-dept-member-list'],
+    })
     open.value = false
     reset()
   },
@@ -80,7 +84,9 @@ const getFlagshipFeatureTooltip = () => t('tooltips.track.flagship-feature')
 
 // Conditional tooltip for fast radio
 const getFastTrackTooltip = computed(() => () =>
-  isFastTrackDisabled.value ? getFlagshipFeatureTooltip() : getPowerWarningTooltip(),
+  isFastTrackDisabled.value
+    ? getFlagshipFeatureTooltip()
+    : getPowerWarningTooltip(),
 )
 
 const isLocShareLocked = computed(() =>
@@ -88,7 +94,9 @@ const isLocShareLocked = computed(() =>
 )
 
 const getLocShareTooltip = computed(() => () =>
-  isLocShareLocked.value ? t('tooltips.loc-share.pro-feature') : '',
+  isLocShareLocked.value
+    ? t('tooltips.loc-share.pro-feature')
+    : '',
 )
 </script>
 

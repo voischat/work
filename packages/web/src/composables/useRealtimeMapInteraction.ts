@@ -189,7 +189,9 @@ export function useRealtimeMapInteraction(
       <div color-black>
         <h3 class="text-lg font-semibold mb-2">${userInfo?.name || `用户${extData.uid}`}</h3>
         <div class="mb-2 ">
-          ${info ? (info.province + info.city + info.district + info.township + info.Address) : t('loading')}
+          ${info
+            ? (info.province + info.city + info.district + info.township + info.Address)
+            : t('loading')}
         </div>
         ${userInfo?.user_num
           ? `
@@ -232,7 +234,9 @@ export function useRealtimeMapInteraction(
         return
 
       if (!infoWindow.value) {
-        infoWindow.value = new AMap.InfoWindow({ offset: new AMap.Pixel(0, -30) })
+        infoWindow.value = new AMap.InfoWindow({
+          offset: new AMap.Pixel(0, -30),
+        })
       }
 
       infoWindow.value?.setContent(content)

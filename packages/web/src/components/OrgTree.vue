@@ -87,7 +87,13 @@ watch(
         existing.dept = dept
         return existing
       }
-      return { dept, expanded: false, loading: false, loaded: false, members: [] }
+      return {
+        dept,
+        expanded: false,
+        loading: false,
+        loaded: false,
+        members: [],
+      }
     })
 
     const first = deptStates.value[0]
@@ -98,7 +104,11 @@ watch(
 )
 
 watch(
-  [disabledIdSet, () => props.selected, () => props.isMemberEnabled],
+  [
+    disabledIdSet,
+    () => props.selected,
+    () => props.isMemberEnabled,
+  ],
   () => {
     void commitSelection(current => pruneSelection(current, isMemberSelectable))
   },
@@ -191,7 +201,9 @@ function selectMember(member: Member, dept: DeptModel) {
       emit('update:selected', next)
   }
   else {
-    emit('update:selected', [createSelectedItem(member, dept.id)])
+    emit('update:selected', [
+      createSelectedItem(member, dept.id),
+    ])
   }
 
   emit('selectMember', member)

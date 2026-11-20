@@ -56,14 +56,20 @@ function handleEditMember(member: Member) {
 }
 
 function handleMembersChanged() {
-  qc.invalidateQueries({ queryKey: ['corp/group/get-group-all-member'] })
-  qc.invalidateQueries({ queryKey: ['corp/group/get-group'] })
+  qc.invalidateQueries({
+    queryKey: ['corp/group/get-group-all-member'],
+  })
+  qc.invalidateQueries({
+    queryKey: ['corp/group/get-group'],
+  })
   emits('success')
 }
 
 function handleGroupUpdated() {
   refetchGroup()
-  qc.invalidateQueries({ queryKey: ['corp/group/get-group'] })
+  qc.invalidateQueries({
+    queryKey: ['corp/group/get-group'],
+  })
   emits('success')
 }
 

@@ -58,6 +58,7 @@ const payload: Reactive<any> = reactive({
 
 const users = reactive<Record<string, any['data']['users'][number]>>({})
 
+// eslint-disable-next-line @tanstack/query/exhaustive-deps -- payload is mutated by pageParam and its identity never changes
 const { data, fetchNextPage } = useInfiniteQuery({
   enabled: computed(() => Boolean(date.value)),
   initialPageParam: INIT_ID,

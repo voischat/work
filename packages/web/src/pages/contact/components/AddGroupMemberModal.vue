@@ -38,9 +38,15 @@ const { mutate, isPending } = useWeilaMutation('corp/group/add-group-members', {
   onSuccess() {
     Message.success(t('message.success'))
     open.value = false
-    qc.invalidateQueries({ queryKey: ['corp/group/get-group-member-list'] })
-    qc.invalidateQueries({ queryKey: ['corp/group/get-group-all-member'] })
-    qc.invalidateQueries({ queryKey: ['corp/group/get-group-all-member/self-membership'] })
+    qc.invalidateQueries({
+      queryKey: ['corp/group/get-group-member-list'],
+    })
+    qc.invalidateQueries({
+      queryKey: ['corp/group/get-group-all-member'],
+    })
+    qc.invalidateQueries({
+      queryKey: ['corp/group/get-group-all-member/self-membership'],
+    })
     emits('success')
   },
 })

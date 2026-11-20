@@ -26,7 +26,7 @@ title: 成员管理
 
 3. 点击"提交"完成创建
 
-![](../assets/Screenshot-2025-10-13-at-11.28.23-AM.png)
+![Screenshot 2025 10 13 at 11 28 23 AM](../assets/Screenshot-2025-10-13-at-11.28.23-AM.png)
 
 ## 新增设备
 
@@ -35,7 +35,7 @@ title: 成员管理
 2. 填写设备信息
 3. 完成设备添加
 
-![](../assets/Screenshot-2025-10-13-at-11.28.29-AM.png)
+![Screenshot 2025 10 13 at 11 28 29 AM](../assets/Screenshot-2025-10-13-at-11.28.29-AM.png)
 
 ## 成员操作
 
@@ -54,7 +54,7 @@ title: 成员管理
 - 将成员从系统中移除
 - 操作前会有二次确认提示
 
-![](../assets/Screenshot-2025-10-13-at-11.31.33-AM.png)
+![Screenshot 2025 10 13 at 11 31 33 AM](../assets/Screenshot-2025-10-13-at-11.31.33-AM.png)
 
 ### 发送消息
 在成员列表的"操作"列中，悬停或点击下拉箭头，选择"发送消息"，页面将跳转至工作台会话并打开与该成员的单聊会话。

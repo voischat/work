@@ -14,11 +14,13 @@ const menus = reactive({
 const selectedKeys = deepRef<(string | undefined)[]>([])
 
 watch(router.currentRoute, (curRoute) => {
-  selectedKeys.value = [objectKeys(menus).find((menu) => {
-    return Boolean(curRoute.matched.find((i) => {
-      return i.path.includes(menu)
-    }))
-  })]
+  selectedKeys.value = [
+    objectKeys(menus).find((menu) => {
+      return Boolean(curRoute.matched.find((i) => {
+        return i.path.includes(menu)
+      }))
+    }),
+  ]
 }, { immediate: true })
 </script>
 

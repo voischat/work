@@ -15,7 +15,9 @@ export function $inspect(...args: MaybeRefOrGetter[]) {
   if (import.meta.env.DEV) {
     watchImmediate(args, (cur) => {
       logFn(type, ...cur.map((arg) => {
-        return isFunction(arg) ? arg() : unref(arg)
+        return isFunction(arg)
+          ? arg()
+          : unref(arg)
       }))
     })
   }

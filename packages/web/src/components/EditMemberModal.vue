@@ -38,7 +38,9 @@ const { form, rules, handleSubmit, reset } = useForm(v.object({
   loc_share: v.optional(v.number(), () => props.member?.loc_share),
   track: v.optional(v.number(), () => props.member?.track),
 }), {
-  watch: [() => props.member],
+  watch: [
+    () => props.member,
+  ],
 })
 
 const { data: depts } = useWeilaFetch<{
@@ -58,12 +60,23 @@ const { mutate: edit, isPending } = useWeilaMutation('corp/address/change-member
     open.value = false
     Message.success(t('message.success'))
 
-    qc.invalidateQueries({ queryKey: ['corp/address/get-member-list'] })
-    qc.invalidateQueries({ queryKey: ['corp/address/get-dept-member-list'] })
-    qc.invalidateQueries({ queryKey: ['corp/address/get-my-manage-dept-list'] })
-    qc.invalidateQueries({ queryKey: ['corp/group/get-group-all-member'] })
-    if (selfInfoStore.isCurrentUser(Number(form.value.user_id)))
-      qc.invalidateQueries({ queryKey: ['corp/user/get-selfinfo'] })
+    qc.invalidateQueries({
+      queryKey: ['corp/address/get-member-list'],
+    })
+    qc.invalidateQueries({
+      queryKey: ['corp/address/get-dept-member-list'],
+    })
+    qc.invalidateQueries({
+      queryKey: ['corp/address/get-my-manage-dept-list'],
+    })
+    qc.invalidateQueries({
+      queryKey: ['corp/group/get-group-all-member'],
+    })
+    if (selfInfoStore.isCurrentUser(Number(form.value.user_id))) {
+      qc.invalidateQueries({
+        queryKey: ['corp/user/get-selfinfo'],
+      })
+    }
 
     emits('success')
     // web 修改成员资料后服务端不会推送 SDK 事件，手动触发 session 列表刷新
@@ -92,7 +105,9 @@ const getFlagshipFeatureTooltip = () => t('tooltips.track.flagship-feature')
 
 // Conditional tooltip for fast radio
 const getFastTrackTooltip = computed(() => () =>
-  isFastTrackDisabled.value ? getFlagshipFeatureTooltip() : getPowerWarningTooltip(),
+  isFastTrackDisabled.value
+    ? getFlagshipFeatureTooltip()
+    : getPowerWarningTooltip(),
 )
 
 const isLocShareLocked = computed(() =>
@@ -100,7 +115,9 @@ const isLocShareLocked = computed(() =>
 )
 
 const getLocShareTooltip = computed(() => () =>
-  isLocShareLocked.value ? t('tooltips.loc-share.pro-feature') : '',
+  isLocShareLocked.value
+    ? t('tooltips.loc-share.pro-feature')
+    : '',
 )
 </script>
 

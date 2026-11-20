@@ -36,8 +36,10 @@ async function main() {
     }
     if (msg.method === 'Fetch.requestPaused') {
       const { requestId, request } = msg.params
-      const delay = request.url.includes('get-selfinfo') ? 5000 : 0
-      setTimeout(() => send('Fetch.continueRequest', { requestId }), delay)
+      const delay = request.url.includes('get-selfinfo')
+        ? 5000
+        : 0
+      setTimeout(send, delay, 'Fetch.continueRequest', { requestId })
     }
   })
 
@@ -50,7 +52,11 @@ async function main() {
   }
 
   await new Promise(r => ws.addEventListener('open', r, { once: true }))
-  await send('Fetch.enable', { patterns: [{ urlPattern: '*get-selfinfo*', requestStage: 'Request' }] })
+  await send('Fetch.enable', {
+    patterns: [
+      { urlPattern: '*get-selfinfo*', requestStage: 'Request' },
+    ],
+  })
   await send('Page.enable')
   await send('Runtime.enable')
 

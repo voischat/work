@@ -20,7 +20,9 @@ const { deptOptions } = useDeptList()
 const { groupOptions } = useGroupList()
 
 const currentOptions = computed(() => {
-  return selectedType.value === 'dept' ? deptOptions.value : groupOptions.value
+  return selectedType.value === 'dept'
+    ? deptOptions.value
+    : groupOptions.value
 })
 
 // 切换类型时清空已选的部门/群组

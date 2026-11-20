@@ -47,7 +47,9 @@ export function computeDeptCheckState(input: DeptCheckInput): DeptCheckState {
   if (!selectedCount)
     return 'none'
 
-  return selectedCount === selectable.length ? 'all' : 'partial'
+  return selectedCount === selectable.length
+    ? 'all'
+    : 'partial'
 }
 
 export function toCheckboxView(state: DeptCheckState, blocked: boolean): DeptCheckboxView {
@@ -70,7 +72,10 @@ export function toggleMemberInSelection(
   if (selected.some(item => item.id === member.user_id))
     return selected.filter(item => item.id !== member.user_id)
 
-  return [...selected, createSelectedItem(member, deptId)]
+  return [
+    ...selected,
+    createSelectedItem(member, deptId),
+  ]
 }
 
 export function addDeptToSelection(
@@ -90,7 +95,12 @@ export function addDeptToSelection(
     added.push(createSelectedItem(member, deptId))
   }
 
-  return added.length ? [...selected, ...added] : selected
+  return added.length
+    ? [
+        ...selected,
+        ...added,
+      ]
+    : selected
 }
 
 export function removeDeptFromSelection(
@@ -99,7 +109,9 @@ export function removeDeptFromSelection(
   knownMemberIds: ReadonlySet<number>,
 ): OrgTreeSelectedItem[] {
   const next = selected.filter(item => item.deptId !== deptId && !knownMemberIds.has(item.id))
-  return next.length === selected.length ? selected : next
+  return next.length === selected.length
+    ? selected
+    : next
 }
 
 export function pruneSelection(
@@ -107,7 +119,9 @@ export function pruneSelection(
   isSelectable: (member: Member) => boolean,
 ): OrgTreeSelectedItem[] {
   const next = selected.filter(item => isSelectable(item.member))
-  return next.length === selected.length ? selected : next
+  return next.length === selected.length
+    ? selected
+    : next
 }
 
 export function createCommitQueue(deps: {

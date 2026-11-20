@@ -12,7 +12,9 @@ describe('shouldRetryQuery', () => {
   })
 
   it('reads the errcode from a plain object carrying the JSON message', () => {
-    expect(shouldRetryQuery(0, { message: JSON.stringify({ errcode: 20 }) })).toBe(false)
+    expect(shouldRetryQuery(0, {
+      message: JSON.stringify({ errcode: 20 }),
+    })).toBe(false)
   })
 
   it('retries a transport error for three retries, four attempts total', () => {
@@ -23,8 +25,12 @@ describe('shouldRetryQuery', () => {
   })
 
   it('does not retry an error that already has an HTTP response', () => {
-    expect(shouldRetryQuery(0, { response: { status: 500 } })).toBe(false)
-    expect(shouldRetryQuery(0, { response: { status: 404 } })).toBe(false)
+    expect(shouldRetryQuery(0, {
+      response: { status: 500 },
+    })).toBe(false)
+    expect(shouldRetryQuery(0, {
+      response: { status: 404 },
+    })).toBe(false)
   })
 
   it('retries when the message is not the business-error JSON', () => {

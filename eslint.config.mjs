@@ -9,6 +9,7 @@ const ignores = [
   '**/assets/**',
   '**/components-depercated/**',
   '**/components/ui/**',
+  '**/public/**',
   // Agent-runtime scripts: they execute inside ego-browser's embedded Node
   // runtime (top-level await, injected CFG global, console output), not the app.
   '.claude/skills/**/*.mjs',
@@ -30,6 +31,8 @@ export default antfu(
     ignores: [
       '**/webview/**',
       '**/network/**',
+      '**/*.md',
+      '**/*.md/**',
     ],
   })),
   {

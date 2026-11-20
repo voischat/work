@@ -41,7 +41,9 @@ const api = new WeilaApiClass(
 
   // '102065',
   // '3c227f2cbc2084ebdd9617fd283c42c7',
-  { baseURL: getApiBaseUrl() },
+  {
+    baseURL: getApiBaseUrl(),
+  },
 )
 
 api.fetch = withHttpErrorHook(api, api.fetch)

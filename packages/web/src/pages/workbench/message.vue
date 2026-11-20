@@ -49,10 +49,14 @@ function parseSessionType(value: unknown) {
     return undefined
 
   const sessionType = Number(value)
-  return Number.isFinite(sessionType) ? sessionType : undefined
+  return Number.isFinite(sessionType)
+    ? sessionType
+    : undefined
 }
 
-const selectedSessionId = shallowRef(typeof route.query.sessionId === 'string' ? route.query.sessionId : '')
+const selectedSessionId = shallowRef(typeof route.query.sessionId === 'string'
+  ? route.query.sessionId
+  : '')
 const selectedSessionType = shallowRef<number | undefined>(parseSessionType(route.query.sessionType))
 const chatPanelRef = shallowRef<InstanceType<typeof WlChatPanel>>()
 const mapPickerRef = shallowRef<{ captureImage: () => Promise<File> }>()
@@ -71,19 +75,25 @@ const forwardingMsg = shallowRef<WL_IDbMsgData>()
 const isForwarding = shallowRef(false)
 const realtimeLocationPanelId = computed(() => {
   const id = Number(selectedSessionId.value)
-  return Number.isFinite(id) && id > 0 ? id : undefined
+  return Number.isFinite(id) && id > 0
+    ? id
+    : undefined
 })
 const realtimeLocationPanelType = computed(() => {
   const sessionType = selectedSessionType.value
   if (sessionType === undefined)
     return 'group'
-  return isIndividualSessionType(sessionType) ? 'individual' : 'group'
+  return isIndividualSessionType(sessionType)
+    ? 'individual'
+    : 'group'
 })
 const selectedGroupId = computed(() => {
   if (selectedSessionType.value === undefined || !isGroupSessionType(selectedSessionType.value))
     return undefined
   const id = Number(selectedSessionId.value)
-  return Number.isFinite(id) && id > 0 ? id : undefined
+  return Number.isFinite(id) && id > 0
+    ? id
+    : undefined
 })
 const panelWidth = shallowRef(384)
 
@@ -109,7 +119,9 @@ const selectedSessionKey = computed(() => {
 
 const isSelectedSessionUnavailable = computed(() => {
   const key = selectedSessionKey.value
-  return key ? invalidSessionKeys.has(key) : false
+  return key
+    ? invalidSessionKeys.has(key)
+    : false
 })
 
 const batchResolveSessionProfiles: BatchSessionProfileResolver = async (sessions) => {
@@ -140,7 +152,9 @@ const batchResolveSessionProfiles: BatchSessionProfileResolver = async (sessions
       return profileMap
     }
 
-    const returnedItems = Array.isArray(res) ? res : res.sessions ?? []
+    const returnedItems = Array.isArray(res)
+      ? res
+      : res.sessions ?? []
 
     const returnedMap = new Map<string, CorpSessionItem>()
     for (const item of returnedItems)
@@ -178,6 +192,7 @@ function handleInvalidSessionsChange(keys: Set<string>) {
 }
 
 // 检查当前用户是否仍在选中的群组中
+// eslint-disable-next-line @tanstack/query/exhaustive-deps -- enabled already gates on isSelectedSessionUnavailable
 const { data: isInSelectedGroup } = useQuery<boolean>({
   enabled: computed(() => Boolean(selfUserId.value && selectedGroupId.value && !isSelectedSessionUnavailable.value)),
   queryKey: ['corp/group/get-group-all-member/self-membership', selectedGroupId, selfUserId],
@@ -229,7 +244,9 @@ const pendingDeleteSessionName = computed(() => {
 watch(
   () => route.query.sessionId,
   (sessionId) => {
-    selectedSessionId.value = typeof sessionId === 'string' ? sessionId : ''
+    selectedSessionId.value = typeof sessionId === 'string'
+      ? sessionId
+      : ''
   },
 )
 
@@ -251,8 +268,12 @@ async function ensureSelectedSession() {
     return
 
   await core.weila_startNewSession(sessionId, sessionType, {
-    sessionName: typeof route.query.sessionName === 'string' ? route.query.sessionName : undefined,
-    sessionAvatar: typeof route.query.sessionAvatar === 'string' ? route.query.sessionAvatar : undefined,
+    sessionName: typeof route.query.sessionName === 'string'
+      ? route.query.sessionName
+      : undefined,
+    sessionAvatar: typeof route.query.sessionAvatar === 'string'
+      ? route.query.sessionAvatar
+      : undefined,
   })
 }
 
@@ -267,7 +288,9 @@ watch([selectedSessionId, selectedSessionType], ([sessionId, sessionType]) => {
     query: {
       ...route.query,
       sessionId: sessionId || undefined,
-      sessionType: sessionId && sessionType !== undefined ? String(sessionType) : undefined,
+      sessionType: sessionId && sessionType !== undefined
+        ? String(sessionType)
+        : undefined,
     },
   })
 })
@@ -419,7 +442,12 @@ async function handleLocationPicked(value: MapPickerValue) {
 
   isSendingLocation.value = true
 
-  const address = value.Address || [value.province, value.city, value.district, value.township].filter(Boolean).join('')
+  const address = value.Address || [
+    value.province,
+    value.city,
+    value.district,
+    value.township,
+  ].filter(Boolean).join('')
   const locationName = address || '位置'
 
   try {

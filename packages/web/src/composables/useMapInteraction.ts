@@ -166,7 +166,9 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
         return
 
       if (!infoWindow.value) {
-        infoWindow.value = new AMap.InfoWindow({ offset: new AMap.Pixel(0, -30) })
+        infoWindow.value = new AMap.InfoWindow({
+          offset: new AMap.Pixel(0, -30),
+        })
       }
 
       infoWindow.value?.setContent(content)

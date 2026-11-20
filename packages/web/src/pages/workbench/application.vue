@@ -25,11 +25,15 @@ const revealedAppId = shallowRef<string>()
 const { copy } = useClipboard()
 
 function toggleKey(app: AppItem) {
-  revealedAppId.value = revealedAppId.value === app.app_id ? undefined : app.app_id
+  revealedAppId.value = revealedAppId.value === app.app_id
+    ? undefined
+    : app.app_id
 }
 
 function maskedKey(key: string) {
-  return key.length <= 8 ? '••••••••' : `${key.slice(0, 4)}••••${key.slice(-4)}`
+  return key.length <= 8
+    ? '••••••••'
+    : `${key.slice(0, 4)}••••${key.slice(-4)}`
 }
 
 async function copyKey(key: string) {

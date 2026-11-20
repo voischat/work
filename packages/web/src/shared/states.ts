@@ -112,7 +112,10 @@ export const emojiMap = Object.fromEntries(
 export const fileIconsMap = Object.fromEntries(
   Object.entries(import.meta.glob('~/assets/file/**/*.png', { eager: true }))
     .map(([path, fileIcon]) => {
-      return [path.match(/([\w-]*)\.png$/)?.[1].toLowerCase(), fileIcon]
+      return [
+        path.match(/([\w-]*)\.png$/)?.[1].toLowerCase(),
+        fileIcon,
+      ]
     }),
 ) as Record<string, { default: string }>
 
