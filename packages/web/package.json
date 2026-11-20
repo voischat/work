@@ -22,9 +22,10 @@
     "prepare": "simple-git-hooks",
     "lint": "eslint .",
     "archive": "esno scripts/archive.ts",
+    "upload": "esno scripts/upload-release.ts",
     "test": "vitest",
     "release": "npx bumpp",
-    "pack": "nr release && nr build && nr archive"
+    "pack": "nr release && nr build && nr archive && nr upload"
   },
   "dependencies": {
     "@antfu/utils": "catalog:",
