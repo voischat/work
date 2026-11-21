@@ -265,6 +265,9 @@ async function ensureSelectedSession() {
   const sessionType = selectedSessionType.value
   if (!core || !sessionId || sessionType === undefined)
     return
+  // 登录完成后 SDK 才会初始化本地数据库，提前查询会在控制台抛出 getSession 空引用
+  if (!userInfo.value)
+    return
 
   if (core.weila_getSession(sessionId, sessionType))
     return
@@ -297,9 +300,18 @@ watch([selectedSessionId, selectedSessionType], ([sessionId, sessionType]) => {
   })
 })
 
-watch([weilaCore, selectedSessionId, selectedSessionType], () => {
-  void ensureSelectedSession()
-}, { immediate: true })
+watch(
+  [
+    weilaCore,
+    userInfo,
+    selectedSessionId,
+    selectedSessionType,
+  ],
+  () => {
+    void ensureSelectedSession()
+  },
+  { immediate: true },
+)
 
 function handleDeleteSessionRequest(session: WL_IDbSession) {
   pendingDeleteSession.value = session
