@@ -9,6 +9,8 @@ const { t } = useI18n()
 
 const open = defineModel('open', { default: false })
 
+const formRef = useTemplateRef('formRef')
+
 const { form, rules, handleSubmit, reset } = useForm(v.object({
   phone: v.pipe(v.string(() => t('form.error.phone-nonempty'))),
   country_code: v.optional(v.string(), '86'),
@@ -39,6 +41,8 @@ const submit = handleSubmit((values: any) => {
   mutate(values)
 })
 
+const confirmSubmit = () => formRef.value?.handleSubmit(new Event('submit'))
+
 const verifyImageAnswer = shallowRef('')
 const { data: verifyImageData, refetch: refreshImageCode } = useWeilaFetch<{ id: string, image: string }>(
   'common/get-image-verifycode?width=160&height=80',
@@ -55,7 +59,7 @@ const { data: verifyImageData, refetch: refreshImageCode } = useWeilaFetch<{ id:
       <div>{{ t('delete-account-form.title') }}</div>
     </template>
 
-    <a-form style="margin: 0 auto; width: fit-content;" :model="form" :rules layout="vertical" @submit="submit">
+    <a-form ref="formRef" style="margin: 0 auto; width: fit-content;" :model="form" :rules layout="vertical" @submit="submit">
       <a-form-item field="phone" hide-label>
         <a-input-group>
           <a-select v-model="form.country_code" style="width: 100px">
@@ -107,7 +111,7 @@ const { data: verifyImageData, refetch: refreshImageCode } = useWeilaFetch<{ id:
         <a-popconfirm
           :content="t('delete-account-form.confirm-content')"
           type="warning"
-          @ok="submit"
+          @ok="confirmSubmit"
         >
           <a-button mla type="primary" :loading="isPending">
             {{ t('button.submit') }}
