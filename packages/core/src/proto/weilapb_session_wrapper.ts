@@ -166,12 +166,11 @@ const WeilaPBSessionWrapper = {
         {
           msgData.msgType = WL.Session.MessageType.MSG_TYPE_AUDIO
 
-          if (typeof data === 'string') {
-            msgData.audioData = { url: data }
-          } else {
-            const audioPayload: Uint8Array = data
+          if (data instanceof Uint8Array) {
             // Copy the caller's buffer so the frame owns its bytes.
-            msgData.audioData = { payload: audioPayload.slice() }
+            msgData.audioData = { payload: data.slice() }
+          } else {
+            msgData.audioData = { url: data }
           }
         }
 

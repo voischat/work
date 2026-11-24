@@ -201,7 +201,7 @@ export default class WLFriendModule {
           if (!inviteeUserInfo) return
 
           const inviteInfo = ntfFriendInvite.inviteInfo!
-          const userInfos = await WeilaDB.getInstance().convertFromUserRaw([inviteeUserInfo])
+          const userInfos = WeilaDB.getInstance().convertFromUserRaw([inviteeUserInfo])
           await WeilaDB.getInstance().putUserInfo(userInfos[0])
 
           const inviteNotifyData: WL_FriendInviteInfo = {
@@ -480,11 +480,11 @@ export default class WLFriendModule {
       wllog('getDeviceSubFriends', rsp)
 
       if (rsp.friendInfos) {
-        const friendInfos: WL_IDbFriendInfo[] = await WeilaDB.getInstance().convertFromFriendRaw(
+        const friendInfos: WL_IDbFriendInfo[] = WeilaDB.getInstance().convertFromFriendRaw(
           rsp.friendInfos,
         )
 
-        const userInfos: WL_IDbUserInfo[] = await WeilaDB.getInstance().convertFromUserRaw(
+        const userInfos: WL_IDbUserInfo[] = WeilaDB.getInstance().convertFromUserRaw(
           rsp.userInfos ?? [],
         )
 

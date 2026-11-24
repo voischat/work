@@ -780,7 +780,7 @@ export default class WLGroupModule {
               groupAttributes.push(groupAttribute)
               const memberInfoList = rspGroupInfo.memberInfoList ?? []
 
-              const memberInfos: WL_IDbMemberInfo[] = await dbInstance.convertFromMemberRaw(
+              const memberInfos: WL_IDbMemberInfo[] = dbInstance.convertFromMemberRaw(
                 groupId,
                 memberInfoList,
               )
@@ -1153,9 +1153,7 @@ export default class WLGroupModule {
       let groupList: WL_IDbGroup[] = []
 
       if (rspGetSubGroupAttribute.groupAttrList && rspGetSubGroupAttribute.groupAttrList.length) {
-        groupList = await WeilaDB.getInstance().convertFromGroupRaw(
-          rspGetSubGroupAttribute.groupAttrList,
-        )
+        groupList = WeilaDB.getInstance().convertFromGroupRaw(rspGetSubGroupAttribute.groupAttrList)
       }
 
       return groupList

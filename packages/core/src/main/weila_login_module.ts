@@ -259,7 +259,7 @@ export default class WLLoginModule {
         return Promise.reject('登录响应缺少用户信息')
       }
 
-      const dbUserInfos = await WeilaDB.getInstance().convertFromUserRaw([rawUserInfo])
+      const dbUserInfos = WeilaDB.getInstance().convertFromUserRaw([rawUserInfo])
 
       const tokenInfo: WL_IDbSetting = {
         id: WL_IDbSettingID.SETTING_LOGIN_TOKEN,

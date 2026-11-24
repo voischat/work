@@ -68,7 +68,7 @@ type PttActor = {
   getSnapshot(): PttState
   subscribe(observer: (state: PttState) => void): { unsubscribe(): void }
   send(event: PttFsmEvent): void
-  start(): unknown
+  start(): void
 }
 
 /** Ring-tone source, injectable so specs can observe playback orchestration. */
@@ -142,7 +142,8 @@ export default class WLPttFsm {
         onReleaseTalk: this.onReleaseTalk.bind(this),
       },
       guards: {
-        burstPacketFull: ({ context }: { context: PttFsmContext }) => this.burstPacketFull(context),
+        burstPacketFull: ({ context: guardContext }: { context: PttFsmContext }) =>
+          this.burstPacketFull(guardContext),
       },
       actors: {
         checkHistoryList: fromPromise(() => this.checkHistoryList()),

@@ -1,5 +1,7 @@
+/* oxlint-disable import/default -- worker-rspack-loader supplies this module's default export */
 // @ts-ignore
 import Network from 'main/weila_network.worker'
+/* oxlint-enable import/default */
 import WeilaPbDispatcher from 'main/weila_pb_dispatcher'
 import WeilaNetworkGateway from 'main/weila_network_gateway'
 import WeilaMainFsmHost from 'main/weila_main_fsm_host'
@@ -54,6 +56,7 @@ import {
 import { dbEnum } from 'db/db_enum'
 import { getLogger } from 'log/weila_log'
 import { fetchAudioDataFromUrl, getMsgDataIdByCombo } from 'main/weila_utils'
+import { isRecord } from 'main/weila_type_guards'
 import WLLoginModule from 'main/weila_login_module'
 import WLSessionModule from 'main/weila_session_module'
 import WLFriendModule from 'main/weila_friend_module'
@@ -786,7 +789,7 @@ class WeilaCore implements WL_CoreInterface {
       let extra = session.extra
 
       if (profile?.memberCount !== undefined || profile?.extra !== undefined) {
-        const baseExtra = session.extra && typeof session.extra === 'object' ? session.extra : {}
+        const baseExtra = isRecord(session.extra) ? session.extra : {}
         extra = { ...baseExtra }
 
         if (profile?.memberCount !== undefined) extra.memberCount = profile.memberCount

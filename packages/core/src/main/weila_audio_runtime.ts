@@ -12,13 +12,14 @@ interface WL_PatchedWindow extends Window {
 function patchAudioWorkletAddModule(options: Required<WL_AudioRuntimePatchOptions>): void {
   if (typeof AudioWorklet === 'undefined' || !AudioWorklet.prototype?.addModule) return
 
+  // oxlint-disable-next-line typescript/unbound-method -- every call below passes the instance with .call(this)
   const originalAddModule = AudioWorklet.prototype.addModule
   const workletRedirects = [options.playerWorkletUrl, options.recorderWorkletUrl]
 
-  const workletMap: Record<string, string> = {
-    'weila_player.worklet.js': options.playerWorkletUrl,
-    'weila_recorder.worklet.js': options.recorderWorkletUrl,
-  }
+  const workletMap = new Map([
+    ['weila_player.worklet.js', options.playerWorkletUrl],
+    ['weila_recorder.worklet.js', options.recorderWorkletUrl],
+  ])
 
   let workletCallIndex = 0
 
@@ -33,7 +34,7 @@ function patchAudioWorkletAddModule(options: Required<WL_AudioRuntimePatchOption
     }
 
     const fileName = url.split('/').pop()
-    const redirectTarget = fileName ? workletMap[fileName] : undefined
+    const redirectTarget = fileName ? workletMap.get(fileName) : undefined
 
     if (redirectTarget) return originalAddModule.call(this, redirectTarget, ...args)
 
