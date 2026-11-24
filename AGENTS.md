@@ -26,7 +26,7 @@ Repository-specific rules:
 ## Toolchain
 
 - Node >= 22.18 (the Oxlint and Oxfmt configs use Node's type stripping), pnpm 11.28.13.
-- One lockfile, one catalog in `pnpm-workspace.yaml`. Dependencies use `catalog:` everywhere. The named `web` catalog pins the website's `vue`/`vue-tsc` pair, because neither vue-tsc 3.1.1 nor 3.3.x satisfies both the UI d.ts build and the website template typings.
+- One lockfile, one catalog in `pnpm-workspace.yaml`. Dependencies use `catalog:` everywhere. Software Composition Analysis: dependency advisories surface through Dependabot alerts, but Dependabot's update and security-PR jobs are disabled because it cannot edit pnpm catalog entries. Bump versions with `pnpm up` or a catalog edit, and pin transitive security floors in the `overrides` block; `pnpm audit` must stay clean. The named `web` catalog pins the website's `vue`/`vue-tsc` pair, because neither vue-tsc 3.1.1 nor 3.3.x satisfies both the UI d.ts build and the website template typings.
 - Lint and format run as two tracks:
   - `packages/*` and `apps/playground-vue3` use Oxlint and Oxfmt (`oxlint.config.ts`, `oxfmt.config.ts`). The lint-budget gate lives at `packages/core/scripts/lint-budget.mjs`.
   - `apps/website` uses ESLint (`eslint.config.mjs`).
