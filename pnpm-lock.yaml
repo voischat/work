@@ -252,9 +252,6 @@ catalogs:
     oxlint:
       specifier: ^1.94.0
       version: 1.94.0
-    oxlint-tsgolint:
-      specifier: ^7.0.2007
-      version: 7.0.2008
     pinia:
       specifier: ^4.1.0
       version: 4.1.0
@@ -482,9 +479,6 @@ importers:
       oxlint:
         specifier: 'catalog:'
         version: 1.94.0(oxlint-tsgolint@7.0.2008)
-      oxlint-tsgolint:
-        specifier: 'catalog:'
-        version: 7.0.2008
       pkg-pr-new:
         specifier: 'catalog:'
         version: 0.0.94
@@ -503,6 +497,9 @@ importers:
       tsnapi:
         specifier: 'catalog:'
         version: 1.6.1(msw@2.12.0(@types/node@26.6.6)(typescript@6.0.3))(srvx@1.0.8)(vitest@5.1.1)
+      tsrs:
+        specifier: catalog:native
+        version: 0.25.0-ts7.1.0-beta
       turbo:
         specifier: 'catalog:'
         version: 2.11.13
@@ -16935,6 +16932,7 @@ snapshots:
       '@oxlint-tsgolint/linux-x64': 7.0.2008
       '@oxlint-tsgolint/win32-arm64': 7.0.2008
       '@oxlint-tsgolint/win32-x64': 7.0.2008
+    optional: true
 
   oxlint@1.94.0(oxlint-tsgolint@7.0.2008):
     optionalDependencies:
