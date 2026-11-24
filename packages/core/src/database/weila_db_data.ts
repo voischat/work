@@ -1,4 +1,5 @@
 import { WL } from 'proto/weilapb'
+import { isRecord, isString, type JsonValue } from 'main/weila_type_guards'
 import { dbEnum } from './db_enum'
 
 // 存入数据库的设置项
@@ -93,15 +94,15 @@ interface SessionExtraProfile {
   sessionAvatar?: string
 }
 
-function getSessionExtraProfile(extra: any): SessionExtraProfile {
-  if (!extra || typeof extra !== 'object') {
+function getSessionExtraProfile(extra: JsonValue | undefined): SessionExtraProfile {
+  if (!isRecord(extra)) {
     return {}
   }
 
-  return {
-    sessionName: extra.sessionName || extra.name || extra.nick,
-    sessionAvatar: extra.sessionAvatar || extra.avatar,
-  }
+  const sessionName = [extra.sessionName, extra.name, extra.nick].find(isString)
+  const sessionAvatar = [extra.sessionAvatar, extra.avatar].find(isString)
+
+  return { sessionName, sessionAvatar }
 }
 
 function inheritSessionProfile(session: WL_IDbSession, existingSession?: WL_IDbSession): void {
@@ -109,10 +110,7 @@ function inheritSessionProfile(session: WL_IDbSession, existingSession?: WL_IDbS
     return
   }
 
-  const extra =
-    existingSession.extra && typeof existingSession.extra === 'object'
-      ? { ...existingSession.extra }
-      : {}
+  const extra = isRecord(existingSession.extra) ? { ...existingSession.extra } : {}
 
   const { sessionName, sessionAvatar } = getSessionExtraProfile(extra)
 

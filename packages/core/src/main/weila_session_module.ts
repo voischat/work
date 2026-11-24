@@ -36,6 +36,7 @@ import { WeilaDB } from 'db/weila_db'
 import { WLBuildMsgRet } from 'proto/weilapb_wrapper_data'
 import { getLogger } from 'log/weila_log'
 import WLPttFsm from 'main/weila_pttFsm'
+import { isRecord, type JsonValue } from 'main/weila_type_guards'
 import {
   decompositionAudioData,
   fetchAudioDataFromUrl,
@@ -80,11 +81,7 @@ interface WL_ActiveSessionInfo {
   sessionType: number
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
-}
-
-function isDeepEqual(a: unknown, b: unknown): boolean {
+function isDeepEqual(a: JsonValue, b: JsonValue): boolean {
   if (a === b) return true
 
   if (!isRecord(a) || !isRecord(b)) return false
