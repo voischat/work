@@ -33,8 +33,7 @@
     "dev": "tsdown --watch",
     "typecheck": "vue-tsc --noEmit",
     "story": "storybook dev -p 6006",
-    "build:story": "storybook build",
-    "typecheck:tsc": "vue-tsc --noEmit"
+    "build:story": "storybook build"
   },
   "dependencies": {
     "@vois/weila-sdk-core": "workspace:*"

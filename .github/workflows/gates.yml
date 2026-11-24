@@ -24,19 +24,25 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run fmt:check
-      - run: pnpm run build:sdk --force
+      - run: pnpm run build:sdk
       - run: pnpm run api:snapshot
-      - run: pnpm run typecheck:sdk --force
-      - run: pnpm run typecheck:tsc:sdk --force
+      - run: pnpm run typecheck:sdk
+      - run: pnpm run typecheck:tsc:sdk
       - run: pnpm run typecheck:parity
       - run: pnpm run typecheck:strict-budget
       - run: pnpm knip
       - run: pnpm run lint:sdk
       - run: pnpm run test:scripts
-      - run: pnpm run test:sdk --force
+      - run: pnpm run test:sdk
+      # Browsers change only when the Playwright version changes; keep them across runs.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: playwright-${{ runner.os }}-
       - run: pnpm -C packages/core exec playwright install --with-deps chromium
       - run: pnpm -C packages/core run test:dist
-      - run: pnpm run build:story --force
+      - run: pnpm run build:story
 
   web:
     runs-on: ubuntu-24.04
@@ -51,6 +57,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run lint:web
-      - run: pnpm exec turbo run typecheck --filter=weila-work-web
+      - run: pnpm exec turbo run typecheck --filter=weila-work-web --filter=@weilasdk/playground-vue3
       - run: pnpm exec turbo run test --filter=weila-work-web -- --passWithNoTests
       - run: pnpm exec turbo run build --filter=weila-work-web
