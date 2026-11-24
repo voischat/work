@@ -22,7 +22,7 @@
     "floating-vue": "catalog:",
     "pinia": "catalog:",
     "vue": "catalog:",
-    "vue-router": "^5.0.4"
+    "vue-router": "catalog:playground"
   },
   "devDependencies": {
     "@iconify/tailwind4": "catalog:",

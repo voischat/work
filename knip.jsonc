@@ -17,11 +17,9 @@
         "docs/void.config.ts",
         // commit-hook and release script specs, run through `node --test`
         "scripts/*.spec.mjs",
-        // manual QA harness scripts, run ad hoc
-        "qa/**/*.mjs",
         // agent verification scripts, run ad hoc through ego-browser
         ".claude/skills/**/*.mjs",
-        // manual backend probe
+        // repo scripts, including the manifest policy check
         "scripts/*.mjs",
         // user manual site, driven by root docs: scripts
         "docs/.vitepress/config.mts",
@@ -37,8 +35,6 @@
       "entry": [
         // auto-read by unplugin-vue-macros during the vite build
         "vue-macros.config.ts",
-        // read by `void deploy`
-        "void.config.ts",
         // manual release helpers (the only consumers of root zx)
         "scripts/archive.ts",
         "scripts/upload-release.ts",
@@ -48,9 +44,6 @@
         "@iconify-json/carbon",
         "@iconify-json/ph",
         "@iconify-json/svg-spinners",
-        // loaded through component auto-import resolvers in vite.config.ts
-        "@vuemap/vue-amap",
-        "@vuemap/vue-amap-loca",
       ],
     },
     "packages/core": {
@@ -67,12 +60,6 @@
       // Icons are resolved at build time from CSS: `@plugin "@iconify/tailwind4"`
       // auto-discovers installed @iconify-json/* packages (see style.postcss.css)
       "ignoreDependencies": ["@iconify-json/carbon"],
-      "entry": [
-        // read by `void deploy`
-        "void.config.ts",
-      ],
-    },
-    "apps/playground-vue3": {
       "entry": [
         // read by `void deploy`
         "void.config.ts",
