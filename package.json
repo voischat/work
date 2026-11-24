@@ -77,7 +77,8 @@
     "typescript": "catalog:",
     "vitepress": "catalog:",
     "void": "1.11.0",
-    "vue-tsc": "catalog:"
+    "vue-tsc": "catalog:",
+    "wrangler": "^4.167.0"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm exec nano-staged"

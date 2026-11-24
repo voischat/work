@@ -62,7 +62,7 @@ Run from the repo root.
 
 ## Deployments
 
-`void.config.ts` in each deployable directory pins the Cloudflare Worker name and account, and `.github/workflows/deploy.yml` builds and deploys on every push to `main` with `void deploy --platform cloudflare --dir ... --skip-build` (the `CLOUDFLARE_API_TOKEN` repo secret). The targets are `apps/website`, `apps/playground-vue3`, `packages/ui` (Storybook) and `docs` (VitePress). Void deploys a static SPA or site behind a Worker with Workers Assets; production only, no per-PR previews.
+`.github/workflows/deploy.yml` builds and deploys all four sites on every push to `main`, using the `CLOUDFLARE_API_TOKEN` repo secret. `apps/website` and `apps/playground-vue3` deploy with `wrangler deploy`; their `wrangler.jsonc` pins the Worker name, account and assets directory, and `infra/cloudflare/proxy-worker.ts` serves the SPA while proxying `/v1/*` and `/v2/*` to `https://api.voischat.cn` so the same-origin API paths work in production. `packages/ui` (Storybook) and `docs` (VitePress) deploy with `void deploy --platform cloudflare --dir ... --skip-build`, naming their Worker in `void.config.ts`. Production only, no per-PR previews. Worker names are `weila-web`, `weila-playground`, `weila-ui` and `weila-docs` under the account's workers.dev subdomain.
 
 ## Skills
 
