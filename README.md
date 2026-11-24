@@ -10,6 +10,19 @@
 | `apps/playground-vue3` | SDK 联调 playground                                                            |
 | `docs`                 | VitePress 用户手册                                                             |
 
+## 在线地址
+
+每次 push 到 `main`，`.github/workflows/deploy.yml` 会构建并部署全部四个站点到 Cloudflare Workers：
+
+| 站点                            | 地址                                                      |
+| ------------------------------- | --------------------------------------------------------- |
+| 企业管理台（`apps/website`）    | https://work-web.vois-app-webview-next.workers.dev        |
+| SDK Playground                  | https://work-playground.vois-app-webview-next.workers.dev |
+| 组件 Storybook（`packages/ui`） | https://work-ui.vois-app-webview-next.workers.dev         |
+| 用户手册（`docs`，VitePress）   | https://work-docs.vois-app-webview-next.workers.dev       |
+
+企业管理台通过同源代理访问后端：`/v1/*` 与 `/v2/*` 由 Worker 转发到 `https://api.voischat.cn`。
+
 ## 开始
 
 ```bash
