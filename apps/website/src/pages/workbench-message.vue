@@ -688,7 +688,7 @@ async function handleForwardTargetSelect(target: SessionSelectPayload) {
             <template #icon>
               <icon-location />
             </template>
-            成员位置
+            {{ $t('chat.member-location') }}
           </a-button>
           <a-button
             v-if="selectedGroupId !== undefined && !isSelectedSessionUnavailable"
@@ -712,7 +712,7 @@ async function handleForwardTargetSelect(target: SessionSelectPayload) {
       >
         <div h-full flex flex-col>
           <div class="flex justify-between items-center p-3 border-b">
-            <span font-medium>成员位置</span>
+            <span font-medium>{{ $t('chat.member-location') }}</span>
             <a-button status="danger" type="text" @click="showLocationPanel = false">
               <template #icon>
                 <icon-close />

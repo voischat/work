@@ -63,7 +63,7 @@ const submit = handleSubmit(async (values: any) => {
   <div pt8>
     <a-form :rules layout="vertical" mxa w500px border p8 rounded-lg :model="form" @submit="submit">
       <h1 text-2xl text-center leading-loose font-semibold>
-        创建企业
+        {{ $t('org.create-org') }}
       </h1>
       <a-form-item field="name" label="企业名">
         <a-input v-model="form.name" :max-length="20" show-word-limit />

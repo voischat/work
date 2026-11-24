@@ -20,7 +20,7 @@ function back() {
     <a-result class="result" status="404" subtitle="not found" />
     <div class="operation-row">
       <a-button key="back" type="primary" @click="back">
-        back
+        {{ $t('back') }}
       </a-button>
     </div>
   </div>
