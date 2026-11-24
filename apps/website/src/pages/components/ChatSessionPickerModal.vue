@@ -187,7 +187,7 @@ function handleSelectGroup(group: GroupModel) {
               </a-list>
 
               <div v-if="groups.length === 0" class="py-6 text-center text-sm text-neutral-400">
-                暂无群组
+                {{ $t('chat.empty-groups') }}
               </div>
 
               <CreateGroupModal @success="refetchGroups">
@@ -196,7 +196,7 @@ function handleSelectGroup(group: GroupModel) {
                     <template #icon>
                       <icon-plus />
                     </template>
-                    创建群组
+                    {{ $t('group.create') }}
                   </a-button>
                 </template>
               </CreateGroupModal>
@@ -208,14 +208,14 @@ function handleSelectGroup(group: GroupModel) {
                 :disabled="groupPage <= 0"
                 @click="goPrev"
               >
-                上一页
+                {{ $t('chat.previous-page') }}
               </a-button>
               <a-button
                 size="mini"
                 :disabled="!hasMoreGroups"
                 @click="goNext"
               >
-                下一页
+                {{ $t('chat.next-page') }}
               </a-button>
             </div>
           </div>

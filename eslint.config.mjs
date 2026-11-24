@@ -35,6 +35,20 @@ export default antfu(
     ignores: ['**/webview/**', '**/network/**', '**/*.md', '**/*.md/**'],
   })),
   {
+    files: ['apps/website/**/*.vue'],
+    rules: {
+      '@intlify/vue-i18n/no-raw-text': [
+        'warn',
+        {
+          // Punctuation, separators and the country-code prefix carry no words to translate.
+          ignorePattern: '^[^\\p{L}]+$',
+          // Legal footer text is the same in every locale.
+          ignoreText: ['Copyright © 2025-2026 Voistech All Rights Reserved.', '粤ICP备05000494号'],
+        },
+      ],
+    },
+  },
+  {
     settings: {
       'vue-i18n': {
         localeDir: './apps/website/locales/*.{json,json5,yaml,yml}', // extens

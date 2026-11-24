@@ -98,8 +98,14 @@ chat:
     content: 确定删除频道 {name} 吗？
     success: 删除成功
     title: 删除频道
+  empty-groups: 暂无群组
+  member-location: 成员位置
+  next-page: 下一页
   not-in-group: 您不在群组中
   placeholder: 输入消息...
+  previous-page: 上一页
+  session-unavailable: 会话不可用
+  start-conversation: 发起对话
   sdk-loading: SDK 初始化中...
   select-session: 请选择一个频道
   location:
@@ -174,6 +180,7 @@ form:
     old-password-nonempty: 旧密码不能为空
     password-nonempty: 密码不能为空
     phone-maxLength: 手机号最多11位
+    privacy-agreement-required: 请先同意隐私政策
     phone-minLength: 手机号至少11位
     phone-nonempty: 手机号不能为空
     verify-code-nonempty: 验证码不能为空

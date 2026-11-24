@@ -84,7 +84,7 @@ async function handleSelect(payload: {
       <template #icon>
         <IconMessage />
       </template>
-      <span>发起对话</span>
+      <span>{{ $t('chat.start-conversation') }}</span>
     </a-button>
   </div>
 
