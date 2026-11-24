@@ -1,0 +1,1883 @@
+// @ts-ignore
+import Network from 'main/weila_network.worker'
+import WeilaPbDispatcher from 'main/weila_pb_dispatcher'
+import WeilaNetworkGateway from 'main/weila_network_gateway'
+import WeilaMainFsmHost from 'main/weila_main_fsm_host'
+import { fsmEvents, mainFsm } from 'fsm/weila_fsmScript'
+import type { MainActor } from 'fsm/weila_fsmScript'
+import { createActor } from 'xstate'
+import Long from 'long'
+
+import {
+  WL_CoreInterface,
+  WL_LoginParam,
+  WL_NetworkEvent,
+  WL_NetworkEventID,
+  WL_PbMsgHandler,
+  WL_PromiseCallback,
+} from 'main/weila_internal_data'
+import { WLBuildMsgRet } from 'proto/weilapb_wrapper_data'
+import {
+  WL_IDbAudioData,
+  WL_IDbExtension,
+  WL_IDbExtensionInfo,
+  WL_IDbFileData,
+  WL_IDbFriend,
+  WL_IDbGroup,
+  WL_IDbGroupAuthType,
+  WL_IDbGroupMember,
+  WL_IDbGroupPublicType,
+  WL_IDbGroupType,
+  WL_IDbLocationInfo,
+  WL_IDbLocationShared,
+  WL_IDbMsgData,
+  WL_IDbMsgDataStatus,
+  WL_IDbMsgDataType,
+  WL_IDbNotification,
+  WL_IDbServiceSession,
+  WL_IDbServiceSessionInfo,
+  WL_IDbServiceStaffInfo,
+  WL_IDbSession,
+  WL_IDbSessionSetting,
+  WL_IDbSessionSettingParams,
+  WL_IDbSessionType,
+  WL_GroupProfileResolver,
+  WL_Profile,
+  WL_ProfileResolver,
+  WL_SessionProfileResolver,
+  WL_SessionProfileUpdate,
+  WL_IDbSettingID,
+  WL_IDbUserInfo,
+  isGroupSessionType,
+  isIndividualSessionType,
+} from 'db/weila_db_data'
+import { dbEnum } from 'db/db_enum'
+import { getLogger } from 'log/weila_log'
+import { fetchAudioDataFromUrl, getMsgDataIdByCombo } from 'main/weila_utils'
+import WLLoginModule from 'main/weila_login_module'
+import WLSessionModule from 'main/weila_session_module'
+import WLFriendModule from 'main/weila_friend_module'
+import WLGroupModule from 'main/weila_group_module'
+import WLLocationModule from 'main/weila_location_module'
+import WLUserModule from 'main/weila_user_module'
+import { WeilaDB } from 'db/weila_db'
+import { TinyEmitter } from 'tiny-emitter'
+import {
+  WL_AnswerStatus,
+  WL_DataPrepareState,
+  WL_ExtEventCallback,
+  WL_ExtEventID,
+  WL_PttAudioPlaySource,
+  WL_PttAudioPlayState,
+  WL_SubscribeMap,
+  WL_SubscribeTopic,
+} from 'main/weila_external_data'
+import { AliOssHelper } from 'main/weila_ali_oss'
+import { TextMsgDataParser } from 'proto/weilapb_textmsg_parser'
+import WLBusinessModule from 'main/weila_business_module'
+
+const wllog = getLogger('CORE:info')
+const wlerr = getLogger('CORE:err')
+
+function isCoreMethodName<T extends object>(name: string, target: T): name is keyof T & string {
+  return name in target
+}
+
+interface WL_SubscribeRequest {
+  topic: WL_SubscribeTopic
+  callback: WL_SubscribeMap[WL_SubscribeTopic]['callback']
+  options?: WL_SubscribeMap[WL_SubscribeTopic]['options']
+}
+
+function isSessionListRequest(request: WL_SubscribeRequest): request is WL_SubscribeRequest & {
+  topic: 'sessionList'
+  callback: WL_SubscribeMap['sessionList']['callback']
+  options?: WL_SubscribeMap['sessionList']['options']
+} {
+  return request.topic === 'sessionList'
+}
+
+function isMessagesRequest(request: WL_SubscribeRequest): request is WL_SubscribeRequest & {
+  topic: 'messages'
+  callback: WL_SubscribeMap['messages']['callback']
+  options?: WL_SubscribeMap['messages']['options']
+} {
+  return request.topic === 'messages'
+}
+
+export interface WL_InitOptions {
+  appId?: string
+  appKey?: string
+  webSock?: string
+}
+
+export interface WL_LoginOptions {
+  /**
+   * Whether the SDK should MD5 the password before sending it.
+   * Defaults to true for backward compatibility.
+   */
+  md5?: boolean
+}
+
+export type WL_FileUploader = (file: File, fileName: string) => Promise<string>
+
+class WeilaCore implements WL_CoreInterface {
+  readonly maxRetryLoginTimes = 2
+  mainFsm?: typeof mainFsm
+  mainFsmService!: MainActor
+  network?: Network
+  pbDispatcher: WeilaPbDispatcher
+  networkGateway: WeilaNetworkGateway
+  pbMsgHandlerList: Map<number, WL_PbMsgHandler>
+  loginUserInfo?: WL_IDbUserInfo
+  loginModule: WLLoginModule
+  sessionModule: WLSessionModule
+  friendModule: WLFriendModule
+  groupModule: WLGroupModule
+  businessModule: WLBusinessModule
+  locationModule: WLLocationModule
+  userModule: WLUserModule
+  isLoginReady: boolean
+  emitter: TinyEmitter
+  profileResolver?: WL_ProfileResolver
+  groupProfileResolver?: WL_GroupProfileResolver
+  sessionProfileResolver?: WL_SessionProfileResolver
+  fileUploader?: WL_FileUploader
+  resolvingSessionProfileKeys: Set<string>
+
+  constructor() {
+    this.emitter = new TinyEmitter()
+    this.isLoginReady = false
+    this.resolvingSessionProfileKeys = new Set()
+    this.pbDispatcher = new WeilaPbDispatcher((reqData) => {
+      this.sendNetworkEvent(WL_NetworkEventID.NET_SEND_DATA_EVT, reqData)
+    })
+    this.pbMsgHandlerList = new Map<number, WL_PbMsgHandler>()
+    this.networkGateway = new WeilaNetworkGateway({
+      sendToFsm: (event) => this.mainFsmService.send(event),
+      dispatcher: this.pbDispatcher,
+      pbMsgHandlers: this.pbMsgHandlerList,
+    })
+
+    this.network = new Network()
+    this.network.addEventListener('message', this.onNetworkMessage.bind(this))
+
+    this.loginModule = new WLLoginModule(this)
+    this.friendModule = new WLFriendModule(this)
+    this.groupModule = new WLGroupModule(this)
+    this.businessModule = new WLBusinessModule(this)
+    this.sessionModule = new WLSessionModule(this)
+    this.locationModule = new WLLocationModule(this)
+    this.userModule = new WLUserModule(this)
+
+    // 状态机在模块之后构建：宿主的依赖可以直接取到已构造的模块。
+    this.mainFsm = new WeilaMainFsmHost({
+      sendNetworkEvent: (event, data) => this.sendNetworkEvent(event, data),
+      sendExtEvent: (event, data) => this.sendExtEvent(event, data),
+      sendToFsm: (event) => this.mainFsmService.send(event),
+      setLoginUserInfo: (userInfo) => {
+        this.loginUserInfo = userInfo
+      },
+      setLoginReady: (ready) => {
+        this.isLoginReady = ready
+      },
+      requestLogout: () => this.weila_logout(),
+      checkWaitingTimeouts: () => this.pbDispatcher.checkTimeouts(),
+      maxRetryLoginTimes: this.maxRetryLoginTimes,
+      loginModule: this.loginModule,
+      friendModule: this.friendModule,
+      groupModule: this.groupModule,
+      businessModule: this.businessModule,
+      sessionModule: this.sessionModule,
+    }).buildMachine()
+
+    // 主要状态机的激活
+    this.mainFsmService = createActor(this.mainFsm, { input: { loginParam: null, core: this } })
+
+    const previousState = { current: this.mainFsmService.getSnapshot() }
+    this.mainFsmService.subscribe((state: { value: unknown }) => {
+      wllog(
+        '从状态:%s ===> 状态:%s',
+        JSON.stringify(previousState.current.value),
+        JSON.stringify(state.value),
+      )
+      previousState.current = state
+    })
+    this.mainFsmService.start()
+  }
+
+  sendExtEvent(event: WL_ExtEventID, data: any): void {
+    this.emitter.emit('ext_event', event, data)
+  }
+
+  getLoginUserInfo(): WL_IDbUserInfo {
+    if (!this.loginUserInfo) {
+      throw new Error('尚未登录，无法获取用户信息')
+    }
+
+    return this.loginUserInfo
+  }
+
+  registerPbMsgHandler(serviceId: number, handler: WL_PbMsgHandler): void {
+    this.pbMsgHandlerList.set(serviceId, handler)
+  }
+
+  rspPbMsg(seq: number, resultCode: number, data: any): void {
+    this.pbDispatcher.rspPbMsg(seq, resultCode, data)
+  }
+
+  async executeCoreFunc(funcName: string, ...argvs: any[]): Promise<any> {
+    if (isCoreMethodName<WeilaCore>(funcName, this)) {
+      return this[funcName](...argvs)
+    }
+
+    return Promise.reject(new Error('Not Support Function:' + funcName))
+  }
+
+  sendPbMsg(buildPbMsg: WLBuildMsgRet, timeout?: number): Promise<any> {
+    return this.pbDispatcher.sendPbMsg(buildPbMsg, timeout)
+  }
+
+  private sendNetworkEvent(eventId: WL_NetworkEventID, eventData: any) {
+    const netEvent: WL_NetworkEvent = { eventId, eventData }
+    this.network.postMessage(netEvent, [])
+  }
+
+  private onNetworkMessage(event: MessageEvent<WL_NetworkEvent>) {
+    this.networkGateway.onNetworkMessage(event)
+  }
+
+  /**
+   * 注册微喇SDK的事件回调函数，所有的SDK外发信息都会发到这个回调函数中去
+   * @param callback 事件回调函数，回调的事件在weila_external_data.d.ts定义
+   */
+  public weila_onEvent(callback: WL_ExtEventCallback): void {
+    this.emitter.on('ext_event', callback)
+  }
+
+  /**
+   * 微喇初始化，使用微喇的时候，首先需要调用此函数进行初始化
+   * 第一次初始化会有一点慢，因为需要下载比较大的数据。后续数据缓存后
+   * 就会比较快了。建议初始化的时候，屏蔽屏幕的操作
+   */
+  public async weila_init(options?: WL_InitOptions): Promise<boolean> {
+    const { appId, appKey, webSock } = options ?? {}
+
+    if (webSock) {
+      this.weila_setWebSock(webSock)
+    }
+
+    if (options && ('appId' in options || 'appKey' in options)) {
+      if (!appId || !appKey) {
+        return Promise.reject(new Error('appId and appKey must be provided together'))
+      }
+
+      this.weila_setAuthInfo(appId, appKey)
+    }
+
+    return new Promise<boolean>((resolve, reject) => {
+      const callback: WL_PromiseCallback = { resolve, reject }
+      this.mainFsmService.send({ type: fsmEvents.FSM_LOAD_RESOURCE_EVT, data: callback })
+    })
+  }
+
+  /**
+   * 注册服务器，注册过程包括联网。注册会自动重试数次，如果数次失败后才会告知失败
+   * @param account 微喇号或手机号
+   * @param password 密码
+   * @param countryCode 如果是微喇号，则必须是'0'，否则是国家码，如'86'
+   * @param options 登录选项。默认会对 password 做 MD5；如果 password 已经是 MD5，传 { md5: false }
+   * 返回Promise，成功带回登录用户的信息，失败则告知失败信息
+   */
+  public async weila_login(
+    account: string,
+    password: string,
+    countryCode: string,
+    options: WL_LoginOptions = {},
+  ): Promise<WL_IDbUserInfo> {
+    return new Promise<WL_IDbUserInfo>((resolve, reject) => {
+      const params: WL_LoginParam = {
+        retryCount: 0,
+        callback: { resolve, reject },
+        account,
+        password,
+        countryCode,
+        md5: options.md5 ?? true,
+      }
+
+      this.mainFsmService.send({ type: fsmEvents.FSM_LOGIN_SERVER_EVT, data: params })
+    })
+  }
+
+  /**
+   * 微喇音频初始化，此函数必须在网页的某个事件中执行，如点击。因为根据网页的规则，如果不是人为的触发音频初始化，初始化会失败
+   * 所以此函数的调用必须放到网页的人为事件中操作，可以建议放到登陆的按钮事件中操作
+   */
+  public async weila_audioInit(): Promise<boolean> {
+    return this.sessionModule.initAudioSystem()
+  }
+
+  /**
+   * 播放单条语音，如果连续执行，会停止前一条的播放才会播放新的
+   * @param audioMsgData 单条语音消息
+   */
+  public async weila_playSingle(audioMsgData: WL_IDbMsgData): Promise<boolean> {
+    const ready = await this.sessionModule.prepareSinglePlayback(audioMsgData)
+
+    if (!ready) {
+      this.notifySinglePlayFailed(audioMsgData)
+
+      return false
+    }
+
+    return this.sessionModule.playSingleAudioItem(audioMsgData)
+  }
+
+  /**
+   * 一次没能开始的播放也要给终点通知：按单发家族发出 PLAYING_END，
+   * 否则调用方的播放态（如UI的播放指示）会一直挂着
+   * @param msgData 播放失败的消息
+   */
+  private notifySinglePlayFailed(msgData: WL_IDbMsgData): void {
+    this.sendExtEvent(WL_ExtEventID.WL_EXT_PTT_PLAY_IND, {
+      msgData,
+      indData: {
+        source: WL_PttAudioPlaySource.PTT_AUDIO_SRC_SINGLE,
+        state: WL_PttAudioPlayState.PTT_AUDIO_PLAYING_END,
+      },
+    })
+  }
+
+  /**
+   * 停止单条语音的播放
+   */
+  public weila_stopSingle(): Promise<void> {
+    return this.sessionModule.stopPlayAudio()
+  }
+
+  /**
+   * 暂停单条语音的播放，播放位置保留在原地
+   */
+  public weila_pauseSingle(): void {
+    this.sessionModule.pausePlayAudio()
+  }
+
+  /**
+   * 恢复已暂停的单条语音，从上次暂停的位置继续播放
+   */
+  public weila_resumeSingle(): void {
+    this.sessionModule.resumePlayAudio()
+  }
+
+  /**
+   * 查询单条语音当前播放到的毫秒数；暂停期间数值冻结，未在播放时为 0
+   * @returns 已播放毫秒数
+   */
+  public weila_getSinglePlayProgress(): Promise<number> {
+    return this.sessionModule.getSinglePlayProgressMs()
+  }
+
+  /**
+   * 播放历史语音，播放一组的语音
+   * @param audioMsgDatas 一组的语音
+   */
+  public async weila_playHistoryList(audioMsgDatas: WL_IDbMsgData[]): Promise<boolean> {
+    audioMsgDatas = audioMsgDatas.filter((value) => {
+      return (
+        value.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE &&
+        value.status !== WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_ERR
+      )
+    })
+
+    for (let msgData of audioMsgDatas) {
+      const audioData = msgData.audioData
+
+      if (audioData && !audioData.data && audioData.audioUrl) {
+        const audioUrl = audioData.audioUrl.replace(/^http(?!s)/, 'https')
+        msgData.audioData = await this.weila_fetchAudioData(audioUrl)
+
+        if (!msgData.audioData) {
+          msgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_ERR
+        }
+
+        await WeilaDB.getInstance().putMsgData(msgData)
+      }
+    }
+
+    audioMsgDatas = audioMsgDatas.filter((value) => {
+      return value.status !== WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_ERR
+    })
+
+    return this.sessionModule.playHistoryAudioItems(audioMsgDatas)
+  }
+
+  /**
+   * 依据消息所在数据库的id获取对应的消息信息
+   * @param comboId  数据库中的comboId
+   */
+  public async weila_getMsgData(comboId: string): Promise<WL_IDbMsgData | undefined> {
+    return WeilaDB.getInstance().getMsgData(comboId)
+  }
+
+  /**
+   * 先从本地数据库中获取消息数据，如果本地不够，则会自动从服务器中拉取
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   * @param fromMsgId 指定的消息id， 如果是0，则会从最新的消息往后取count条
+   * @param count 指定数量
+   * 返回对应的消息数组，数量不一定等于指定数量，因为可能不存在
+   */
+  public async weila_getMsgDatas(
+    sessionId: string,
+    sessionType: number,
+    fromMsgId: number,
+    count: number,
+  ): Promise<WL_IDbMsgData[]> {
+    const result = await this.sessionModule.getMsgDatas(sessionId, sessionType, fromMsgId, count)
+
+    return (result ?? []).toReversed()
+  }
+
+  /**
+   * 申请发言
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   */
+  public async weila_requestTalk(sessionId: string, sessionType: number): Promise<boolean> {
+    return this.sessionModule.requestTalk(sessionId, sessionType)
+  }
+
+  /**
+   * 释放发言
+   */
+  public async weila_releaseTalk(): Promise<boolean> {
+    return this.sessionModule.releaseTalk()
+  }
+
+  /**
+   * 登出系统
+   */
+  public async weila_logout(): Promise<boolean> {
+    this.sessionModule.clearActiveSessionState()
+
+    this.mainFsmService.send({ type: 'FSM_LOGOUT_EVT' })
+
+    return true
+  }
+
+  /**
+   * 从本地数据库中获取指定群的群成员信息
+   * @param groupId 群id
+   * 返回群成员数组
+   */
+  public async weila_getGroupMembers(groupId: string): Promise<WL_IDbGroupMember[]> {
+    return WeilaDB.getInstance().getGroupMembers(groupId)
+  }
+
+  /**
+   * 从本地数据库中获取指定id的群信息
+   * @param groupId 群id
+   * 可能返回undefined，因为可能不存在
+   */
+  public async weila_getGroup(groupId: string): Promise<WL_IDbGroup | undefined> {
+    let group = await WeilaDB.getInstance().getGroup(groupId)
+
+    if ((group?.name && group.avatar) || !this.groupProfileResolver) {
+      return group
+    }
+
+    const profile = await this.resolveGroupProfile(groupId)
+
+    if (!profile?.name && !profile?.avatar) {
+      return group
+    }
+
+    group = {
+      ...group,
+      groupId,
+      groupNum: group?.groupNum || groupId,
+      groupType: group?.groupType ?? WL_IDbGroupType.GROUP_TEMP,
+      groupClass: group?.groupClass ?? 0,
+      name: profile.name || group?.name || groupId,
+      pinyinName: group?.pinyinName || '',
+      avatar: profile.avatar || group?.avatar || '',
+      memberCount: group?.memberCount ?? 0,
+      memberLimit: group?.memberLimit ?? 0,
+      memberVersion: group?.memberVersion ?? 0,
+      version: group?.version ?? 0,
+      ownerId: group?.ownerId ?? 0,
+      speechEnable: group?.speechEnable ?? false,
+      audioQuality: group?.audioQuality ?? 0,
+      authType: dbEnum<WL_IDbGroupAuthType>(group?.authType),
+      publicType: dbEnum<WL_IDbGroupPublicType>(group?.publicType),
+      burstType: group?.burstType ?? 0,
+      created: group?.created ?? 0,
+    }
+    await WeilaDB.getInstance().putGroup(group)
+
+    return group
+  }
+
+  /**
+   * 从服务器获取群信息。如果临时会话刚建立的时候，如果发现此会话的群不存在，则可以通过此接口获取
+   * @param groupId
+   */
+  public async weila_getGroupFromServer(groupId: string): Promise<WL_IDbGroup | undefined> {
+    return await this.groupModule.getGroupFromServer(groupId)
+  }
+
+  /**
+   * 获取用户加入的所有群信息，从本地数据库中获取
+   */
+  public async weila_getAllGroups(): Promise<WL_IDbGroup[]> {
+    return WeilaDB.getInstance().getGroups()
+  }
+
+  /**
+   * 修改群主为指定的owner
+   * @param groupId
+   * @param ownerUserId
+   */
+  public async weila_changeGroupOwner(groupId: string, ownerUserId: number): Promise<boolean> {
+    return this.groupModule.changeGroupOwner(groupId, ownerUserId)
+  }
+
+  /**
+   * 退出群。如果群主是本人而且群成员超过1，则不可以直接退群，必须先变更群主为其他成员再退出或直接解散群
+   * @param groupId
+   */
+  public async weila_quitGroup(groupId: string): Promise<boolean> {
+    return this.groupModule.quitGroup(groupId)
+  }
+
+  /**
+   * 使设备退出指定id列表代表的所有群
+   * @param groupIds 群id列表
+   * @param subUserId 设备id
+   */
+  public async weila_quitGroupsForDevice(groupIds: string[], subUserId: number): Promise<boolean> {
+    for (const groupId of groupIds) {
+      await this.groupModule.quitGroup(groupId, subUserId)
+    }
+
+    return true
+  }
+
+  /**
+   * 踢出群成员
+   * @param groupId 群id
+   * @param memberUserIds 成员id列表
+   */
+  public async weila_deleteMembers(groupId: string, memberUserIds: number[]): Promise<boolean> {
+    return this.groupModule.deleteGroupMembers(groupId, memberUserIds)
+  }
+
+  /**
+   * 从数据库中获取指定群的管理者群成员
+   * @param groupId 群id
+   */
+  public async weila_getGroupAdminMembers(groupId: string): Promise<WL_IDbGroupMember[]> {
+    return WeilaDB.getInstance().getGroupAdminMembers(groupId)
+  }
+
+  /**
+   * 更改群友类型，例如可以提升管理员或降级为普通成员
+   * @param groupId 群id
+   * @param memberUserId 成员的user id
+   * @param memberType 类型 WL_IDbMemberType
+   */
+  public async weila_changeMemberType(
+    groupId: string,
+    memberUserId: number,
+    memberType: number,
+  ): Promise<boolean> {
+    return this.groupModule.changeMemberType(groupId, memberUserId, memberType)
+  }
+
+  /**
+   * 邀请用户加入群
+   * @param groupId 群id
+   * @param userIds 用户id列表
+   */
+  public async weila_inviteUserJoinGroup(groupId: string, userIds: number[]): Promise<boolean> {
+    return this.groupModule.inviteUser(groupId, userIds)
+  }
+
+  /**
+   * 让设备加入到指定的群
+   * @param groupId 群id
+   * @param userIds 设备id列表
+   */
+  public async weila_addDeviceMembers(groupId: string, userIds: number[]): Promise<number[]> {
+    return this.groupModule.addSubDeviceMember(groupId, userIds)
+  }
+
+  /**
+   * 从数据库中获取用户id对应的用户信息
+   * @param userId 用户id
+   */
+  public async weila_getUserInfo(userId: number): Promise<WL_IDbUserInfo | undefined> {
+    let userInfo = await WeilaDB.getInstance().getUser(userId)
+
+    const hasResolvedProfile = Boolean(
+      userInfo?.nick &&
+      userInfo.avatar &&
+      userInfo.weilaNum &&
+      userInfo.weilaNum !== String(userId),
+    )
+
+    if (hasResolvedProfile || !this.profileResolver) {
+      return userInfo
+    }
+
+    const profile = await this.resolveProfile(userId)
+
+    if (!profile?.name && !profile?.avatar && !profile?.weilaNum) {
+      return userInfo
+    }
+
+    const weilaNum =
+      profile.weilaNum ||
+      (userInfo?.weilaNum && userInfo.weilaNum !== String(userId) ? userInfo.weilaNum : '')
+
+    userInfo = {
+      ...userInfo,
+      userId,
+      weilaNum,
+      sex: userInfo?.sex ?? 0,
+      nick: profile.name || userInfo?.nick || String(userId),
+      pinyinName: userInfo?.pinyinName || '',
+      avatar: profile.avatar || userInfo?.avatar || '',
+      status: userInfo?.status ?? 0,
+      userType: userInfo?.userType ?? 0,
+      created: userInfo?.created ?? 0,
+    }
+    await WeilaDB.getInstance().putUserInfo(userInfo)
+
+    return userInfo
+  }
+
+  /**
+   * 从数据库中获取id数组代表的一批用户信息
+   * @param userIdList 用户id列表
+   */
+  public async weila_getUserInfos(userIdList: number[]): Promise<WL_IDbUserInfo[]> {
+    return WeilaDB.getInstance().getUserInfos(userIdList)
+  }
+
+  /**
+   * 从数据库中获取指定id数组的好友
+   * @param userIds 如果为空，则获取所有的好友信息
+   */
+  public async weila_getFriends(userIds?: number[]): Promise<WL_IDbFriend[]> {
+    return WeilaDB.getInstance().getFriends(userIds)
+  }
+
+  /**
+   * 从内存中获取会话
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   */
+  public weila_getSession(sessionId: string, sessionType: number): WL_IDbSession | undefined {
+    const sessionList = this.sessionModule.getSessionList()
+
+    const index = sessionList.findIndex((value) => {
+      return (
+        value.sessionId === sessionId &&
+        value.sessionType === dbEnum<WL_IDbSessionType>(sessionType)
+      )
+    })
+
+    return index !== -1 ? sessionList[index] : undefined
+  }
+
+  /**
+   * 获取内存中的会话列表
+   */
+  public weila_getSessions(): WL_IDbSession[] {
+    return this.sessionModule.getSessionList()?.slice()
+  }
+
+  /**
+   * 从数据库中获取会话信息
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   */
+  public async weila_getSessionFromDb(
+    sessionId: string,
+    sessionType: number,
+  ): Promise<WL_IDbSession | undefined> {
+    return WeilaDB.getInstance().getSession(sessionId, sessionType)
+  }
+
+  /**
+   * 从数据库中获取所有会话信息
+   */
+  public async weila_getSessionsFromDb(): Promise<WL_IDbSession[]> {
+    const sessions = await WeilaDB.getInstance().getSessions()
+
+    // Fill in lastMsgData for sessions that don't have it
+    for (const session of sessions) {
+      if (!session.lastMsgData) {
+        const lastMsg = await WeilaDB.getInstance().getLastMsgData(
+          session.sessionId,
+          session.sessionType,
+        )
+
+        if (lastMsg) {
+          session.lastMsgData = lastMsg
+        }
+      }
+    }
+
+    sessions.forEach((session) => {
+      void this.resolveSessionProfile(session)
+    })
+
+    return sessions
+  }
+
+  /**
+   * 触发 session 列表刷新。
+   * 当 web 接口修改了群/成员资料但服务端没有推送 SDK 事件时，
+   * 可以调用此方法通知 UI 重新拉取 session 列表（resolver 会覆盖名称/头像）。
+   */
+  public weila_refreshSessionList(): void {
+    this.sendExtEvent(WL_ExtEventID.WL_EXT_SESSION_UPDATED_IND, {})
+  }
+
+  private async resolveSessionProfile(session: WL_IDbSession): Promise<void> {
+    const key = `${session.sessionId}_${session.sessionType}`
+
+    if (this.resolvingSessionProfileKeys.has(key)) return
+
+    this.resolvingSessionProfileKeys.add(key)
+
+    try {
+      let profile: WL_SessionProfileUpdate | null | undefined
+
+      if (isIndividualSessionType(session.sessionType)) {
+        const userProfile = await this.resolveProfile(Number(session.sessionId))
+        profile = userProfile
+          ? {
+              sessionName: userProfile.name,
+              sessionAvatar: userProfile.avatar,
+            }
+          : null
+      } else if (isGroupSessionType(session.sessionType)) {
+        const groupProfile = await this.resolveGroupProfile(session.sessionId)
+        profile = groupProfile
+          ? {
+              sessionName: groupProfile.name,
+              sessionAvatar: groupProfile.avatar,
+              memberCount: groupProfile.memberCount,
+              extra: groupProfile.extra,
+            }
+          : null
+      } else if (this.sessionProfileResolver) {
+        profile = await this.sessionProfileResolver(session)
+      }
+
+      const sessionName = profile?.sessionName?.trim()
+
+      if (!sessionName) return
+
+      // 把 resolver 提供的额外信息（如群人数）合并到 session.extra
+      let extra = session.extra
+
+      if (profile?.memberCount !== undefined || profile?.extra !== undefined) {
+        const baseExtra = session.extra && typeof session.extra === 'object' ? session.extra : {}
+        extra = { ...baseExtra }
+
+        if (profile?.memberCount !== undefined) extra.memberCount = profile.memberCount
+
+        if (profile?.extra !== undefined) Object.assign(extra, profile.extra)
+      }
+
+      await this.weila_updateSessionProfile(session.sessionId, session.sessionType, {
+        ...profile,
+        sessionName,
+        extra,
+      })
+    } catch (err) {
+      wlerr('补全会话资料失败:', err)
+    } finally {
+      this.resolvingSessionProfileKeys.delete(key)
+    }
+  }
+
+  private async resolveProfile(userId: number): Promise<WL_Profile | null | undefined> {
+    if (!this.profileResolver || !Number.isFinite(userId)) return null
+
+    try {
+      return await this.profileResolver(userId)
+    } catch (err) {
+      wlerr('补全用户资料失败:', err)
+
+      return null
+    }
+  }
+
+  private async resolveGroupProfile(groupId: string): Promise<WL_Profile | null | undefined> {
+    if (!this.groupProfileResolver) return null
+
+    try {
+      return await this.groupProfileResolver(groupId)
+    } catch (err) {
+      wlerr('补全群资料失败:', err)
+
+      return null
+    }
+  }
+
+  public weila_setProfileResolver(resolver?: WL_ProfileResolver): void {
+    this.profileResolver = resolver
+  }
+
+  public weila_setGroupProfileResolver(resolver?: WL_GroupProfileResolver): void {
+    this.groupProfileResolver = resolver
+  }
+
+  /**
+   * 设置会话资料补全回调。业务层可在企业会话缺少名称/头像时提供资料来源。
+   * 传入 undefined 可取消补全。
+   */
+  public weila_setSessionProfileResolver(resolver?: WL_SessionProfileResolver): void {
+    this.sessionProfileResolver = resolver
+  }
+
+  /**
+   * 设置聊天媒体上传回调。业务层可把图片、文件、视频和位置图片改走自己的上传接口。
+   * 不设置时回退到内置 OSS 上传。
+   */
+  public weila_setFileUploader(uploader?: WL_FileUploader): void {
+    this.fileUploader = uploader
+  }
+
+  private async uploadFileToCache(
+    sessionId: string,
+    sessionType: number,
+    fileName: string,
+    data: File,
+  ): Promise<string> {
+    if (this.fileUploader) {
+      const url = await this.fileUploader(data, fileName)
+
+      if (!url) {
+        throw new Error('上传失败: 上传接口未返回文件地址')
+      }
+
+      return url
+    }
+
+    const result = await AliOssHelper.getInstance().uploadToCache(
+      this.loginUserInfo!.userId,
+      sessionId,
+      sessionType,
+      fileName,
+      data,
+    )
+
+    if (result.statusCode !== 200) {
+      throw new Error('上传失败:' + result.statusCode)
+    }
+
+    return result.remoteUrl
+  }
+
+  /**
+   * 更新本地会话资料字段。用于业务层拿到更准确的会话名称/头像后回写 SDK 缓存。
+   * 不接受空白 sessionName，避免把空字符串固化到数据库。
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   * @param profile 会话资料
+   */
+  public async weila_updateSessionProfile(
+    sessionId: string,
+    sessionType: number,
+    profile: WL_SessionProfileUpdate,
+  ): Promise<WL_IDbSession | undefined> {
+    return this.sessionModule.updateSessionProfile(sessionId, sessionType, profile)
+  }
+
+  /**
+   * 清除数据库中的会话所有消息
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   */
+  public async weila_clearSession(sessionId: string, sessionType: number): Promise<boolean> {
+    await WeilaDB.getInstance().delMsgDatas(sessionId, sessionType)
+
+    return true
+  }
+
+  /**
+   * 删除服务器中和数据库以及内存中的会话
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   */
+  public async weila_deleteSession(sessionId: string, sessionType: number): Promise<boolean> {
+    return this.sessionModule.deleteSession(sessionId, sessionType)
+  }
+
+  /**
+   * 设置会话已读，清除未读数
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   * @param msgId 已读消息ID
+   */
+  public async weila_setSessionMsgRead(
+    sessionId: string,
+    sessionType: number,
+    msgId: number,
+  ): Promise<boolean> {
+    return this.sessionModule.setSessionMsgRead(sessionId, sessionType, msgId)
+  }
+
+  /**
+   * 设置当前活跃会话。活跃会话收到新消息时不会增加未读数。
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   */
+  public async weila_setActiveSession(sessionId: string, sessionType: number): Promise<boolean> {
+    return this.sessionModule.setActiveSession(sessionId, sessionType)
+  }
+
+  /**
+   * 清除当前活跃会话状态
+   */
+  public weila_clearActiveSession(): void {
+    this.sessionModule.clearActiveSessionState()
+  }
+
+  /**
+   * 从数据库获取指定的会话配置，如静音，tts或共享
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   */
+  public async weila_getSessionSetting(
+    sessionId: string,
+    sessionType: number,
+  ): Promise<WL_IDbSessionSetting | undefined> {
+    return WeilaDB.getInstance().getSessionSetting(sessionId, sessionType)
+  }
+
+  /**
+   * 从数据库获取所有的会话配置
+   */
+  public async weila_getSessionSettings(): Promise<WL_IDbSessionSetting[]> {
+    return WeilaDB.getInstance().getSessionSettings()
+  }
+
+  /**
+   * 从数据库更新指定会话设置
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   * @param settingParam 更新项，不需要更新的属性则留空
+   */
+  public async weila_updateSessionSetting(
+    sessionId: string,
+    sessionType: number,
+    settingParam: WL_IDbSessionSettingParams,
+  ): Promise<boolean> {
+    return WeilaDB.getInstance().updateSessionSetting(sessionId, sessionType, settingParam)
+  }
+
+  /**
+   * 开启新的会话，如果打算从好友或群中选择一个聊天，则先要执行这个，创建会话, 此时会发送WL_EXT_NEW_SESSION_OPEN_IND到外部
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   * @param extra 会话额外数据（一般用在服务号）
+   */
+  public async weila_startNewSession(
+    sessionId: string,
+    sessionType: number,
+    extra?: any,
+  ): Promise<WL_IDbSession> {
+    return this.sessionModule.startSession(sessionId, sessionType, extra)
+  }
+
+  /**
+   * 从数据库中获取所有系统通知项
+   */
+  public async weila_getAllTypeNotifications(): Promise<WL_IDbNotification[]> {
+    return WeilaDB.getInstance().getAllNotifications()
+  }
+
+  /**
+   * 修改数据库中的通知消息
+   * @param notification
+   */
+  public async weila_updateNotification(notification: WL_IDbNotification): Promise<number> {
+    return WeilaDB.getInstance().putNotification(notification)
+  }
+
+  /**
+   * 发送指定会话的语音信息
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   * @param audioData 微喇服务器URL下载后的完整数据，Unit8Array格式
+   * @returns  Promise<boolean>  true = success, false = failed
+   */
+  public async weila_sendPttAudioData(
+    sessionId: string,
+    sessionType: number,
+    audioData: Uint8Array,
+  ): Promise<boolean> {
+    if (!this.isLoginReady) {
+      return Promise.reject('微喇状态不正确')
+    }
+
+    return this.sessionModule.sendPttMsgByData(sessionId, sessionType, audioData)
+  }
+
+  /**
+   * 撤回指定消息。
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   * @param msgId 要撤回的消息id
+   * @returns 撤回成功返回 true，否则返回错误信息
+   */
+  public async weila_withdrawMsg(
+    sessionId: string,
+    sessionType: number,
+    msgId: number,
+  ): Promise<boolean> {
+    if (!this.isLoginReady) {
+      return Promise.reject('微喇状态不正确')
+    }
+
+    return this.sessionModule.sendMsgData(
+      sessionId,
+      sessionType,
+      msgId,
+      WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE,
+    )
+  }
+
+  /**
+   * 发送音频消息到指定会话。
+   *
+   * @param sessionId - 会话ID。
+   * @param sessionType - 会话类型（例如，个人聊天，群聊）。
+   * @param audioUrl - 要发送的音频文件的URL。
+   * @returns 如果消息发送成功，返回一个解析为 `true` 的 Promise；如果状态不正确，则返回一个带有错误消息的拒绝 Promise。
+   * @throws 如果用户未登录，将拒绝并带有错误消息。
+   */
+  public async weila_sendAudioMsg(
+    sessionId: string,
+    sessionType: number,
+    audioUrl: string,
+    frameCount?: number,
+  ): Promise<boolean> {
+    if (!this.isLoginReady) {
+      return Promise.reject('微喇状态不正确')
+    }
+
+    return this.sessionModule.sendAudioMsg(sessionId, sessionType, audioUrl, frameCount)
+  }
+
+  /**
+   * 使用已有的音频数据发送音频消息到指定会话。
+   *
+   * @param sessionId - 会话ID。
+   * @param sessionType - 会话类型（例如，个人聊天，群聊）。
+   * @param audioData - 音频数据对象，包含 data（Uint8Array）、frameCount 和可选的 audioUrl。
+   * @returns 如果消息发送成功，返回一个解析为 `true` 的 Promise；如果状态不正确，则返回一个带有错误消息的拒绝 Promise。
+   * @throws 如果用户未登录，将拒绝并带有错误消息。
+   */
+  public async weila_sendAudioMsgByData(
+    sessionId: string,
+    sessionType: number,
+    audioData: WL_IDbAudioData,
+  ): Promise<boolean> {
+    if (!this.isLoginReady) {
+      return Promise.reject('微喇状态不正确')
+    }
+
+    if (!audioData.data && !audioData.audioUrl) {
+      return Promise.reject('音频数据不能为空')
+    }
+
+    return this.sessionModule.sendMsgData(
+      sessionId,
+      sessionType,
+      audioData,
+      WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE,
+    )
+  }
+
+  /**
+   * Sends PTT (Push-To-Talk) audio data for a given session.
+   *
+   * @param sessionId - The ID of the session to which the audio data will be sent.
+   * @param sessionType - The type of the session.
+   * @param audioData - The audio data to be sent as a Uint8Array.
+   * @returns A promise that resolves to `true` if the audio data is sent successfully, or rejects with an error message if the state is not correct.
+   * @throws Will reject with an error message if the login state is not ready.
+   */
+  public async weila_sendPTTByAudioData(
+    sessionId: string,
+    sessionType: number,
+    audioData: Uint8Array,
+  ): Promise<boolean> {
+    if (!this.isLoginReady) {
+      return Promise.reject('微喇状态不正确')
+    }
+
+    return this.sessionModule.sendPttPacketsByAudioData(sessionId, sessionType, audioData)
+  }
+
+  /**
+   * 发送指定会话的文字信息
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   * @param text 文字，字符串
+   */
+  public async weila_sendTextMsg(
+    sessionId: string,
+    sessionType: number,
+    text: string,
+  ): Promise<boolean> {
+    if (!this.isLoginReady) {
+      return Promise.reject('微喇状态不正确')
+    }
+
+    const result = await this.sessionModule.sendMsgData(
+      sessionId,
+      sessionType,
+      text,
+      WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE,
+    )
+
+    return result
+  }
+
+  /**
+   * 发送位置信息
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   * @param position 共享位置信息
+   */
+  public async weila_sendPosition(
+    sessionId: string,
+    sessionType: number,
+    position: WL_IDbLocationShared,
+  ): Promise<boolean> {
+    if (!this.isLoginReady) {
+      return Promise.reject('微喇状态不正确')
+    }
+
+    return this.sessionModule.sendMsgData(
+      sessionId,
+      sessionType,
+      position,
+      WL_IDbMsgDataType.WL_DB_MSG_DATA_LOCATION_TYPE,
+    )
+  }
+
+  private async weila_sendFileInfo(
+    sessionId: string,
+    sessionType: number,
+    filename: string,
+    data: File,
+    msgType: WL_IDbMsgDataType,
+  ): Promise<boolean> {
+    if (!this.isLoginReady) {
+      return Promise.reject('微喇状态不正确')
+    }
+
+    const lastMsgData = await WeilaDB.getInstance().getLastMsgData(sessionId, sessionType)
+
+    const seqSetting = await WeilaDB.getInstance().getSettingItem(
+      WL_IDbSettingID.SETTING_MSG_SENDING_SEQ,
+    )
+
+    let index = filename.lastIndexOf('\\')
+
+    if (index === -1) {
+      index = filename.lastIndexOf('/')
+    }
+
+    const fileName = index !== -1 ? filename.substring(index + 1) : filename
+
+    const fileInfo: WL_IDbFileData = {
+      fileName,
+      fileUrl: '',
+      fileThumbnail: TextMsgDataParser.getExtendFileFormatUrl(fileName),
+      fileSize: data.size,
+    }
+
+    const msgData: WL_IDbMsgData = {
+      combo_id: '',
+      fileInfo,
+      msgType,
+      msgId: lastMsgData ? lastMsgData.msgId + 1 : 0,
+      sessionType,
+      sessionId,
+      status: WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_SENDING,
+      senderId: this.getLoginUserInfo().userId,
+      created: new Date().getTime() / 1000,
+      autoReply: 0,
+    }
+
+    msgData.combo_id = getMsgDataIdByCombo(msgData, seqSetting?.data ?? 0)
+
+    if (seqSetting) {
+      seqSetting.data = (seqSetting.data ?? 0) + 1
+      await WeilaDB.getInstance().putSettingItem(seqSetting)
+    }
+
+    await WeilaDB.getInstance().putMsgData(msgData)
+    this.sendExtEvent(WL_ExtEventID.WL_EXT_MSG_SEND_IND, msgData)
+
+    try {
+      fileInfo.fileUrl = await this.uploadFileToCache(
+        sessionId,
+        sessionType,
+        fileInfo.fileName || filename,
+        data,
+      )
+    } catch (error) {
+      wlerr('上传文件失败:', error)
+      msgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_UNSENT
+      await WeilaDB.getInstance().putMsgData(msgData)
+      this.sendExtEvent(WL_ExtEventID.WL_EXT_MSG_SEND_IND, msgData)
+
+      return Promise.reject(error)
+    }
+
+    return this.sessionModule.sendMsgData(sessionId, sessionType, fileInfo, msgType, msgData)
+  }
+
+  /**
+   * 发送图片到指定的会话
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   * @param imageName 图片名字
+   * @param image 图片文件数据，File类型
+   */
+  public async weila_sendImage(
+    sessionId: string,
+    sessionType: number,
+    imageName: string,
+    image: File,
+  ): Promise<boolean> {
+    return this.weila_sendFileInfo(
+      sessionId,
+      sessionType,
+      imageName,
+      image,
+      WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE,
+    )
+  }
+
+  /**
+   * 发送指定的文件数据到会话中
+   * @param sessionId
+   * @param sessionType
+   * @param filename 文件名
+   * @param fileData 文件数据，File类型
+   */
+  public async weila_sendFile(
+    sessionId: string,
+    sessionType: number,
+    filename: string,
+    fileData: File,
+  ): Promise<boolean> {
+    return this.weila_sendFileInfo(
+      sessionId,
+      sessionType,
+      filename,
+      fileData,
+      WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE,
+    )
+  }
+
+  /**
+   * 发送指定的视频文件到会话中
+   * @param sessionId
+   * @param sessionType
+   * @param videoName 视频文件名
+   * @param video 视频内容，File类型
+   */
+  public async weila_sendVideo(
+    sessionId: string,
+    sessionType: number,
+    videoName: string,
+    video: File,
+  ): Promise<boolean> {
+    return this.weila_sendFileInfo(
+      sessionId,
+      sessionType,
+      videoName,
+      video,
+      WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE,
+    )
+  }
+
+  /**
+   * 获取指定会话中共享位置的成员位置信息，返回位置信息列表，代表所有共享用户的位置信息
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   */
+  public async weila_getLocation(
+    sessionId: string,
+    sessionType: number,
+  ): Promise<WL_IDbLocationInfo[]> {
+    return this.locationModule.getLocation(sessionId, sessionType)
+  }
+
+  /**
+   * 应答加群申请
+   * @param groupId 群id
+   * @param joinId 申请入群id
+   * @param answerStatus WL_AnswerStatus类型
+   */
+  public async weila_answerGroupJoin(
+    groupId: string,
+    joinId: number,
+    answerStatus: number,
+  ): Promise<boolean> {
+    return this.groupModule.answerGroupJoin(groupId, joinId, answerStatus)
+  }
+
+  /**
+   * 邀请好友
+   * @param inviteeId 被邀请者用户id
+   * @param detail 详情留言
+   * @param remark 备注
+   */
+  public async weila_inviteFriend(
+    inviteeId: number,
+    detail: string,
+    remark: string,
+  ): Promise<boolean> {
+    return this.friendModule.inviteFriend(inviteeId, detail, remark)
+  }
+
+  /**
+   * 获取在线的好友
+   */
+  public async weila_getOnlineFriends(): Promise<WL_IDbFriend[]> {
+    return this.friendModule.getOnlineFriends()
+  }
+
+  /**
+   * 给设备邀请好友
+   * @param inviteeIds 邀请的好友id
+   * @param subUserId 设备id
+   * @param detail 留言
+   */
+  public async weila_inviteFriendsForDevice(
+    inviteeIds: number[],
+    subUserId: number,
+    detail: string,
+  ): Promise<boolean> {
+    return this.friendModule.inviteFriendsForDevice(inviteeIds, subUserId, detail)
+  }
+
+  /**
+   * 删除设备的好友
+   * @param userIds 好友列表
+   * @param subUserId 设备id
+   */
+  public async weila_deleteFriendsForDevice(
+    userIds: number[],
+    subUserId: number,
+  ): Promise<boolean> {
+    return this.friendModule.deleteFriends(userIds, subUserId)
+  }
+
+  /**
+   * 删除指定用户id数组的所有好友
+   * @param userIds
+   */
+  public async weila_deleteFriends(userIds: number[]): Promise<boolean> {
+    return this.friendModule.deleteFriends(userIds)
+  }
+
+  /**
+   * 应答好友申请
+   * @param inviterUserId 邀请者用户id
+   * @param answerStatus WL_AnswerStatus类型
+   * @param info 留言
+   */
+  public async weila_answerFriendInvite(
+    inviterUserId: number,
+    answerStatus: number,
+    info: string,
+  ): Promise<boolean> {
+    return this.friendModule.answerFriendInvite(inviterUserId, answerStatus, info)
+  }
+
+  /**
+   * 应答群邀请
+   * @param groupId 邀请的群id
+   * @param invitorId 邀请者
+   * @param status WL_AnswerStatus类型
+   */
+  public async weila_answerGroupInvitation(
+    groupId: string,
+    invitorId: number,
+    status: number,
+  ): Promise<boolean> {
+    return this.groupModule.answerGroupInvitation(groupId, invitorId, status)
+  }
+
+  /**
+   * 创建群，可以是普通群或临时群
+   * @param name 群名
+   * @param groupType 群类型（正式或临时）
+   * @param groupIcon 群头像，Blog数据或空用默认
+   * @param publicType 公开或不公开
+   * @param memberUserIdList 邀请的成员用户id
+   */
+  public async weila_createGroup(
+    name: string,
+    groupType: number,
+    groupIcon: Blob | null,
+    publicType: number,
+    memberUserIdList: number[],
+  ): Promise<WL_IDbGroup> {
+    let avatar = ''
+
+    if (groupIcon) {
+      try {
+        const uploadResult = await AliOssHelper.getInstance().uploadToAvatar(
+          this.getLoginUserInfo().userId,
+          true,
+          groupIcon,
+          100,
+          100,
+        )
+
+        if (uploadResult.statusCode === 200) {
+          avatar = uploadResult.remoteUrl
+        }
+
+        wllog('上传头像成功:', uploadResult)
+      } catch (e) {
+        wllog('上传头像失败:', e)
+        avatar = ''
+      }
+    }
+
+    const groupInfo = await this.groupModule.createGroup(
+      name,
+      groupType,
+      avatar,
+      publicType,
+      memberUserIdList,
+    )
+
+    if (!groupInfo) {
+      return Promise.reject(new Error('创建群组失败'))
+    }
+
+    if (dbEnum<WL_IDbGroupType>(groupType) === WL_IDbGroupType.GROUP_TEMP) {
+      await this.weila_startNewSession(groupInfo.groupId, WL_IDbSessionType.SESSION_GROUP_TYPE)
+    }
+
+    return groupInfo
+  }
+
+  /**
+   * 申请加入指定群id的群
+   * @param groupId 群id
+   * @param detail 留言
+   * @param password 如果群有密码，则输入
+   */
+  public async weila_joinGroup(
+    groupId: string,
+    detail?: string,
+    password?: string,
+  ): Promise<boolean> {
+    return this.groupModule.joinGroup(groupId, detail, password)
+  }
+
+  /**
+   * 按照关键字(微喇号或手机号）搜索用户信息
+   * @param key 关键字
+   */
+  public async weila_searchUserInfos(key: string): Promise<WL_IDbUserInfo[]> {
+    return this.userModule.searchUserByNumber(key)
+  }
+
+  /**
+   * 解散指定id的群
+   * @param groupId
+   */
+  public async weila_dismissGroup(groupId: string): Promise<boolean> {
+    return this.groupModule.dismissGroup(groupId)
+  }
+
+  /**
+   * 获取指定群的在线成员
+   * @param groupId
+   */
+  public async weila_getOnlineMemberIds(groupId: string): Promise<number[]> {
+    return this.groupModule.getGroupOnlineMembers(groupId)
+  }
+
+  /**
+   * 刷新数据库存储的消息
+   * @param msgData
+   */
+  public async weila_updateMsgData(msgData: WL_IDbMsgData): Promise<string> {
+    return WeilaDB.getInstance().putMsgData(msgData)
+  }
+
+  /**
+   * 上传图片到服务器，返回上传后的url和其他信息
+   * @param sessionId 会话id
+   * @param sessionType 会话类型
+   * @param imageFile 图片
+   */
+  public async weila_uploadImageCache(
+    sessionId: string,
+    sessionType: number,
+    imageFile: File,
+  ): Promise<string> {
+    const name = new Date().toTimeString() + '_map.png'
+    const url = await this.uploadFileToCache(sessionId, sessionType, name, imageFile)
+    wllog('weila_uploadImageCache', url)
+
+    return url
+  }
+
+  /**
+   * 获取登录扩展信息
+   */
+  public async weila_getExtensions(): Promise<WL_IDbExtension[]> {
+    return this.loginModule.getExtensionList()
+  }
+
+  /**
+   * 更新数据库中的扩展信息
+   * @param extensionInfo
+   */
+  public async weila_putExtension(extensionInfo: WL_IDbExtensionInfo): Promise<number> {
+    return WeilaDB.getInstance().putExtension(extensionInfo)
+  }
+
+  /**
+   * 获取设备id的所有群信息
+   * @param subUserId 设备id
+   */
+  public async weila_getDeviceSubGroups(subUserId: number): Promise<WL_IDbGroup[]> {
+    return this.groupModule.getDeviceSubGroups(subUserId)
+  }
+
+  /**
+   * 获取设备所有的好友
+   * @param subUserId 设备id
+   */
+  public async weila_getDeviceSubFriends(subUserId: number): Promise<WL_IDbFriend[]> {
+    return this.friendModule.getDeviceSubFriends(subUserId)
+  }
+
+  /**
+   * 修改设备的设置
+   * @param cfgKey 设置字段
+   * @param cfgValue 设置值
+   * @param subUserId 设备id
+   */
+  public async weila_setDeviceConfig(
+    cfgKey: string,
+    cfgValue: string,
+    subUserId: number,
+  ): Promise<string> {
+    return this.loginModule.setDeviceConfig(cfgKey, cfgValue, subUserId)
+  }
+
+  /**
+   * 绑定设备
+   * @param verifyCode 设备验证码
+   */
+  public async weila_bindDevice(verifyCode: string): Promise<number> {
+    return this.loginModule.bindDevice(verifyCode)
+  }
+
+  /**
+   * 解除绑定设备
+   * @param deviceUserId 设备UserId
+   */
+  public async weila_unbindDevice(deviceUserId: number): Promise<number> {
+    return this.loginModule.unbindDevice(deviceUserId)
+  }
+
+  /**
+   * 如果此时正在播放实时语音，调用此命令，可以直接跳过当前播放，播放下一条
+   */
+  public weila_playNext() {
+    return this.sessionModule.playNext()
+  }
+
+  /**
+   * 获取指定会话id的服务会话信息
+   * @param sessionId 会话id
+   */
+  public async weila_getServiceSession(
+    sessionId: string,
+  ): Promise<WL_IDbServiceSessionInfo | undefined> {
+    const session: WL_IDbSession | undefined = await WeilaDB.getInstance().getSession(
+      sessionId,
+      WL_IDbSessionType.SESSION_SERVICE_TYPE,
+    )
+
+    if (session) {
+      const serviceId = Long.fromValue(session.sessionId).high
+      const service = await WeilaDB.getInstance().getService(serviceId)
+
+      if (service) {
+        const serviceSession: WL_IDbServiceSession | undefined = session.extra
+
+        if (serviceSession) {
+          return {
+            service,
+            serviceSession,
+            staffs: await WeilaDB.getInstance().getServiceStaffs(serviceSession.staffIds),
+            customer: await WeilaDB.getInstance().getUser(serviceSession.customerId),
+          }
+        }
+      }
+    }
+
+    return this.businessModule.getSessionServiceFromServer(sessionId)
+  }
+
+  /**
+   * 客服接受新的服务会话
+   * @param sessionId 会话id
+   */
+  public async weila_staffAcceptSession(sessionId: string): Promise<boolean> {
+    return this.businessModule.staffAcceptSession(sessionId)
+  }
+
+  /**
+   * 客服退出服务会话，如果会话还有别的客服，则服务会话不结束
+   * @param sessionId 会话id
+   */
+  public async weila_staffExitSession(sessionId: string): Promise<boolean> {
+    return this.businessModule.staffExitSession(sessionId)
+  }
+
+  /**
+   * 客服关闭服务会话，不管里面有没有客服，服务会话会结束
+   * @param sessionId 会话id
+   */
+  public async weila_staffCloseSession(sessionId: string): Promise<boolean> {
+    return this.businessModule.staffCloseSession(sessionId)
+  }
+
+  /**
+   * 邀请其他客服进入客服会话
+   * @param sessionId 会话id
+   * @param userIds 被邀请用户id列表
+   * @param content 内容
+   */
+  public async weila_staffSessionInvite(
+    sessionId: string,
+    userIds: number[],
+    content?: string,
+  ): Promise<boolean> {
+    return this.businessModule.staffSessionInvite(sessionId, userIds, content)
+  }
+
+  /**
+   * 应答其他客服对自己的邀请
+   * @param sessionId 会话id
+   * @param status 应答情况
+   */
+  public async weila_staffAnswerSessionInvite(
+    sessionId: string,
+    status: WL_AnswerStatus,
+  ): Promise<boolean> {
+    return this.businessModule.staffAnswerSessionInvite(sessionId, status)
+  }
+
+  /**
+   * 移除服务会话中的其他客服
+   * @param sessionId 会话id
+   * @param staffIds 被移除的客服id列表
+   */
+  public async weila_staffRemoveSessionStaff(
+    sessionId: string,
+    staffIds: number[],
+  ): Promise<boolean> {
+    return this.businessModule.staffRemoveSessionStaff(sessionId, staffIds)
+  }
+
+  /**
+   * 搜索该服务下的客服
+   * @param serviceId 服务号id
+   * @param pageIndex 页索引
+   * @param pageSize 一页所含返回数量
+   * @param staffClass 客服类型，可选
+   */
+  public async weila_staffSearchStaffs(
+    serviceId: number,
+    pageIndex: number,
+    pageSize: number,
+    staffClass?: number,
+  ): Promise<WL_IDbServiceStaffInfo[]> {
+    return this.businessModule.staffSearchStaffs(serviceId, pageIndex, pageSize, staffClass)
+  }
+
+  /**
+   * 重置服务会话，重置后，服务会自动重新发送新的会话出去给所有客服
+   * @param sessionId 会话id
+   */
+  public async weila_staffResetSession(sessionId: string): Promise<boolean> {
+    return this.businessModule.staffResetSession(sessionId)
+  }
+
+  /**
+   * 获取指定的客服id的客服信息
+   * @param userIds 用户id
+   */
+  public async weila_getStaffInfos(userIds: number[]): Promise<WL_IDbServiceStaffInfo[]> {
+    return WeilaDB.getInstance().getServiceStaffs(userIds)
+  }
+
+  /**
+   * 获取对应于服务号和客户相关的会话id
+   * @param serviceId
+   * @param customerId
+   */
+  public weila_getServiceSessionId(serviceId: number, customerId: number): string {
+    return new Long(customerId, serviceId).toString(10)
+  }
+
+  /**
+   * 根据消息体里面的音频URL，获取音频数据。从服务器取回来的消息如果是音频消息，SDK不会立刻对其下载
+   * 音频数据。如果用户要展示或使用音频数据，则调用此接口来下载，然后再展示和播放
+   * @param url
+   */
+  public async weila_fetchAudioData(url: string): Promise<WL_IDbAudioData | undefined> {
+    return fetchAudioDataFromUrl(url)
+  }
+
+  /**
+   * 设置websock地址，尽早调用，最好在weilaCore创建之后调用
+   * @param webSock
+   */
+  public weila_setWebSock(webSock: string) {
+    this.sendNetworkEvent(WL_NetworkEventID.NET_WEBSOCK_ADDR_SET_EVT, webSock)
+  }
+
+  /**
+   * 设置appid和appkey，尽早调用，最好在登录前调用
+   * @param appId
+   * @param appKey
+   */
+  public weila_setAuthInfo(appId: string, appKey: string) {
+    WeilaDB.setAppAuthInfo(appId, appKey)
+  }
+
+  /**
+   * 获取当前登录用户的token
+   * @returns token
+   */
+  public async weila_get_token(): Promise<string> {
+    const tokenItem = await WeilaDB.getInstance().getSettingItem(
+      WL_IDbSettingID.SETTING_LOGIN_TOKEN,
+    )
+
+    return tokenItem?.data ?? ''
+  }
+
+  /**
+   * 移除通过 weila_onEvent 注册的事件回调函数
+   * @param callback 之前注册的事件回调函数引用
+   */
+  public weila_offEvent(callback: WL_ExtEventCallback): void {
+    this.emitter.off('ext_event', callback)
+  }
+
+  /**
+   * 订阅 SDK 内部数据变化，返回取消订阅函数
+   * @param topic 订阅主题: 'sessionList' | 'messages'
+   * @param callback 订阅回调函数
+   * @param options 订阅选项（筛选条件、是否立即触发等）
+   * @returns 取消订阅函数
+   */
+  public weila_subscribe<T extends WL_SubscribeTopic>(
+    topic: T,
+    callback: WL_SubscribeMap[T]['callback'],
+    options?: WL_SubscribeMap[T]['options'],
+  ): () => void {
+    const request: WL_SubscribeRequest = { topic, callback, options }
+
+    if (isSessionListRequest(request)) {
+      const cb = request.callback
+      const opts = request.options
+
+      const handler: WL_ExtEventCallback = (eventId: WL_ExtEventID, eventData: any) => {
+        if (
+          (eventId === WL_ExtEventID.WL_EXT_DATA_PREPARE_IND &&
+            eventData?.state === WL_DataPrepareState.PREPARE_SUCC_END) ||
+          eventId === WL_ExtEventID.WL_EXT_NEW_SESSION_OPEN_IND ||
+          eventId === WL_ExtEventID.WL_EXT_SESSION_UPDATED_IND
+        ) {
+          cb(this.weila_getSessions())
+        }
+      }
+
+      this.emitter.on('ext_event', handler)
+
+      // immediately: 立即使用当前内存中的会话列表触发回调
+      if (opts?.immediately) {
+        cb(this.weila_getSessions())
+      }
+
+      return () => {
+        this.emitter.off('ext_event', handler)
+      }
+    } else if (isMessagesRequest(request)) {
+      const opts = request.options
+      const cb = request.callback
+      const filter = opts?.filter
+
+      const handler: WL_ExtEventCallback = (eventId: WL_ExtEventID, eventData: any) => {
+        if (
+          eventId === WL_ExtEventID.WL_EXT_NEW_MSG_RECV_IND ||
+          eventId === WL_ExtEventID.WL_EXT_MSG_SEND_IND
+        ) {
+          const msgData: WL_IDbMsgData = eventData
+
+          if (
+            msgData &&
+            filter &&
+            msgData.sessionId === filter.sessionId &&
+            msgData.sessionType === filter.sessionType
+          ) {
+            cb(msgData)
+          }
+        }
+      }
+
+      this.emitter.on('ext_event', handler)
+
+      // immediately: 从数据库加载历史消息并逐条触发回调
+      if (opts?.immediately && filter) {
+        void this.weila_getMsgDatas(filter.sessionId, filter.sessionType, 0, 20).then((msgs) => {
+          for (const msg of msgs) {
+            cb(msg)
+          }
+        })
+      }
+
+      return () => {
+        this.emitter.off('ext_event', handler)
+      }
+    }
+
+    wlerr(`weila_subscribe: unknown topic '${topic}'`)
+
+    return () => {}
+  }
+}
+
+export { WeilaCore }

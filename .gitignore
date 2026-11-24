@@ -1,0 +1,58 @@
+node_modules
+**/node_modules
+*.log
+dist
+**/dist
+.output
+.nuxt
+.env
+.env.*
+!.env.example
+.idea/
+.DS_Store
+.node-modules-inspector
+.vite-inspect
+.zip
+pkg
+.tar.gz
+.obsidian
+*.tgz
+
+# Agent worktrees
+.claude/worktrees/
+
+# Electron build artifacts
+release
+**/release
+agent-deploy
+deploy-temp
+packages/agent-deploy
+
+# VitePress
+/docs/.vitepress/dist
+/docs/.vitepress/cache
+
+.agents/skills/.venv
+
+#Volar generated files (should be in node_modules/.cache/)
+*.vue.js
+*.vue.d.ts
+
+*storybook.log
+storybook-static
+**/.playwright-cli
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Turborepo
+.turbo
+
+test-results/
+playwright-report/
+__pycache__/
+
+# Void deploy state
+.void
+.void-wrangler.jsonc
+*.pem

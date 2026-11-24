@@ -1,0 +1,261 @@
+import {
+  WL_NetworkEvent,
+  WL_NetworkEventID,
+  WL_NetworkState,
+  WL_PbMsgData,
+} from 'main/weila_internal_data'
+import WeilaMsgHeader from 'proto/weilapb_msg_header'
+import { getWebsocketAddr } from 'main/weila_utils'
+
+function getLogger(_tagName: string) {
+  return (..._args: any[]) => {}
+}
+
+const wllog = getLogger('NET:info')
+const wlerr = getLogger('NET:err')
+
+interface WL_WorkerScope {
+  addEventListener(type: 'message', listener: (event: MessageEvent) => void): void
+  postMessage(message: WL_NetworkEvent, options?: StructuredSerializeOptions): void
+}
+
+// The worker bundle aliases this module to a module worker, so `self` is the
+// DedicatedWorkerGlobalScope at runtime; these two members are its full use here.
+function getWorkerScope(): WL_WorkerScope {
+  return {
+    addEventListener: (type, listener) => self.addEventListener(type, listener),
+    postMessage: (message, options) => self.postMessage(message, options),
+  }
+}
+
+class Network {
+  private readonly ctx = getWorkerScope()
+  private readonly maxRecvBufSize = 1024 * 1024
+  private socket?: WebSocket
+  private recvBuffer: Uint8Array
+  private currentRecv: number
+  private isConnected: boolean
+  private sendingPbMsgList: Uint8Array<ArrayBuffer>[]
+  private webSockAddr?: string
+
+  constructor() {
+    this.recvBuffer = new Uint8Array(this.maxRecvBufSize)
+    this.currentRecv = 0
+    this.isConnected = false
+    this.sendingPbMsgList = []
+  }
+
+  public start() {
+    this.ctx.addEventListener('message', this.onMessage.bind(this))
+  }
+
+  private onSocketOpen(event: Event): void {
+    wllog('SOCKET打开处理:', JSON.stringify(event))
+
+    if (this.socket) {
+      let eventData: WL_NetworkState | undefined
+
+      if (this.socket.readyState === WebSocket.CONNECTING) {
+        wllog('SOCKET连接中...')
+        eventData = WL_NetworkState.NET_CONNECTING_STATE
+      } else if (this.socket.readyState === WebSocket.OPEN) {
+        wllog('SOCKET已连接')
+        eventData = WL_NetworkState.NET_CONNECTED_STATE
+        this.isConnected = true
+
+        // Flush frames that were queued while the socket was not open.
+        setTimeout(this.processSending.bind(this), 0)
+      }
+
+      const netEvent: WL_NetworkEvent = {
+        eventId: WL_NetworkEventID.NET_STATE_IND_EVT,
+        eventData,
+      }
+
+      this.ctx.postMessage(netEvent, { transfer: [] })
+    }
+  }
+
+  private onSocketRecv(event: MessageEvent): void {
+    if (this.currentRecv < this.maxRecvBufSize) {
+      const recvData = new Uint8Array(event.data)
+
+      if (recvData.length > 0) {
+        this.recvBuffer.set(recvData, this.currentRecv)
+        this.currentRecv += recvData.length
+
+        while (this.currentRecv >= WeilaMsgHeader.msgHeaderLen) {
+          const weilaHeader = WeilaMsgHeader.parseFromBuffer(this.recvBuffer)
+
+          if (weilaHeader) {
+            const headerValue = weilaHeader.getValue()
+
+            if (this.currentRecv >= headerValue.length) {
+              const wlMsgData: WL_PbMsgData = {
+                header: headerValue,
+                pbMsgData: this.recvBuffer.slice(WeilaMsgHeader.msgHeaderLen, headerValue.length),
+              }
+
+              this.recvBuffer.copyWithin(0, headerValue.length, this.currentRecv)
+              this.currentRecv -= headerValue.length
+
+              const netEvent: WL_NetworkEvent = {
+                eventId: WL_NetworkEventID.NET_MSG_RECV_IND_EVT,
+                eventData: wlMsgData,
+              }
+
+              this.ctx.postMessage(netEvent, { transfer: [] })
+            } else {
+              break
+            }
+          } else {
+            wlerr('!!!!!!!!!!!!!!!严重错误，收到错误的数据!!!!!!!!!!!!!!!!!!!!')
+
+            let buf = this.recvBuffer.reduce((previousValue, currentValue) => {
+              return previousValue + currentValue.toString(16).padStart(2, '0')
+            }, '')
+
+            wllog(buf)
+          }
+        }
+      }
+    }
+  }
+
+  private onSocketClose(event: CloseEvent): void {
+    wllog('SOCKET关闭:', JSON.stringify(event))
+
+    // Unexpected close: keep queued frames so they flush after the FSM
+    // reconnects, as long as that happens inside the request timeout window.
+    if (this.socket) {
+      const closeEvent = event
+      this.socket = undefined
+      wllog('错误码:', closeEvent.code, closeEvent.reason)
+    }
+
+    const netEvent: WL_NetworkEvent = {
+      eventId: WL_NetworkEventID.NET_STATE_IND_EVT,
+      eventData: WL_NetworkState.NET_DISCONNECTED_STATE,
+    }
+
+    this.isConnected = false
+    this.ctx.postMessage(netEvent, { transfer: [] })
+  }
+
+  private disconnect(code: number, reason?: string) {
+    wllog('disconnect ', code, reason)
+
+    if (this.socket) {
+      const netEvent: WL_NetworkEvent = {
+        eventId: WL_NetworkEventID.NET_STATE_IND_EVT,
+        eventData: WL_NetworkState.NET_DISCONNECTING_STATE,
+      }
+
+      this.ctx.postMessage(netEvent, { transfer: [] })
+
+      this.socket.close(code, reason || 'normal close')
+      this.socket = undefined
+      this.isConnected = false
+
+      // An explicit disconnect starts a fresh session on the next connect;
+      // frames queued for the old session must not leak into it.
+      this.sendingPbMsgList = []
+    }
+  }
+
+  private onSocketError(event: Event): void {
+    wlerr('SOCKET错误:' + event)
+    this.disconnect(3000, JSON.stringify(event))
+
+    const netEvent: WL_NetworkEvent = {
+      eventId: WL_NetworkEventID.NET_EXCEPTION_IND_EVT,
+      eventData: JSON.stringify(event),
+    }
+
+    this.isConnected = false
+    this.ctx.postMessage(netEvent, { transfer: [] })
+  }
+
+  private connect() {
+    try {
+      if (this.socket === undefined) {
+        this.socket = new WebSocket(this.webSockAddr ? this.webSockAddr : getWebsocketAddr())
+        wllog('服务器连接中...')
+
+        this.socket.binaryType = 'arraybuffer'
+        this.socket.addEventListener('open', this.onSocketOpen.bind(this))
+        this.socket.addEventListener('message', this.onSocketRecv.bind(this))
+        this.socket.addEventListener('close', this.onSocketClose.bind(this))
+        this.socket.addEventListener('error', this.onSocketError.bind(this))
+      }
+    } catch (e) {
+      wlerr('连接WS Socket 出异常', e)
+      this.socket = undefined
+
+      const netEvent: WL_NetworkEvent = {
+        eventId: WL_NetworkEventID.NET_EXCEPTION_IND_EVT,
+        eventData: e,
+      }
+
+      this.isConnected = false
+      this.ctx.postMessage(netEvent, { transfer: [] })
+    }
+  }
+
+  private processSending(): void {
+    const socket = this.socket
+
+    // Check the socket before dequeuing: shifting first would silently drop
+    // frames that arrive while the socket is connecting or reconnecting.
+    if (!this.isConnected || !socket || socket.readyState !== WebSocket.OPEN) {
+      return
+    }
+
+    const data = this.sendingPbMsgList.shift()
+
+    if (data !== undefined) {
+      wllog('发送了数据')
+      socket.send(data)
+      setTimeout(this.processSending.bind(this), 0)
+    }
+  }
+
+  private onMessage(event: MessageEvent): void {
+    const netEvent: WL_NetworkEvent = event.data
+
+    switch (netEvent.eventId) {
+      case WL_NetworkEventID.NET_WEBSOCK_ADDR_SET_EVT:
+        {
+          this.webSockAddr = netEvent.eventData
+        }
+
+        break
+
+      case WL_NetworkEventID.NET_CONNECT_EVT:
+        {
+          this.connect()
+        }
+
+        break
+
+      case WL_NetworkEventID.NET_DISCONNECT_EVT:
+        {
+          this.disconnect(1000, '正常断网')
+        }
+
+        break
+
+      case WL_NetworkEventID.NET_SEND_DATA_EVT:
+        {
+          this.sendingPbMsgList.push(netEvent.eventData)
+          setTimeout(this.processSending.bind(this), 0)
+        }
+
+        break
+    }
+  }
+}
+
+const network = new Network()
+
+network.start()

@@ -1,0 +1,562 @@
+TTS: TTS
+account:
+  txt: Account
+add-device: Add device
+add-member: Add member
+adt: '{0} Certification'
+adt-message: Certification Information
+application:
+  app-id: App ID
+  app-key: App Key
+  create: Create Application
+  name-label: Application Name
+  no-permission: Only the enterprise owner can manage applications
+auth:
+  certified: Certified
+  uncertified: Unverified
+avatar: Avatar
+back: Return
+batch-operation: Batch Operation
+binding-phone: Bind Phone
+binding-phone-form:
+  err-msg:
+    password: password required
+    phone-format: The phone number format is incorrect.
+    phone-number: phone number Required
+    phone-required: The phone number cannot be empty.
+    verify-code: message code Required
+    verify-image-code: verify image code required
+    verifycode-max: The verification code can be up to 6 digits.
+    verifycode-min: The verification code must be at least 4 digits.
+    verifycode-required: The verification code cannot be empty.
+  placeholder:
+    country-code: Country code
+    image-verifycode: Please enter the graphic verification code.
+    phone: Please enter your phone number.
+    sms-verifycode: SMS verification code
+  title: Binding Phone
+binding-phone-hint: >-
+  A mobile phone number can only be linked to one account. After changing, you
+  can use the new phone number to log into this account. For phone numbers that
+  are already linked to other accounts, this operation will unbind them from the
+  original account.
+breadcrumb:
+  binding-phone: binding phone
+  me: me
+  reset-password: reset password
+btn:
+  create: create
+build-time: Build time
+burst-mode: Burst Mode
+burst-mode-0: Arrange wheat
+burst-mode-1: grab the mic.
+burst-mode-2: Intercom
+button:
+  add: add
+  add-device: Add Device
+  add-group-member: Add group members
+  back: Return
+  cancel: cancel
+  checkout: View
+  confirm: Confirm
+  copied: Copy successful.
+  copy: Copy
+  create: Create
+  create-dept: Create Dept
+  create-group: Create Group
+  create-member: Create Member
+  delete: Delete
+  delete-account: Deactivate Account
+  delete-dept: Delete Dept
+  edit: Edit
+  edit-dept: Edit Dept
+  edit-group: Modify group
+  edit-group-member: Modify group members
+  login: Login
+  ok: Confirm
+  remove: remove
+  reset: reset
+  reset-password: Reset Password
+  save: Save
+  send: Send
+  send-message: Send Message
+  submit: Submit
+  refresh: Refresh
+change-member:
+  form:
+    avatar:
+      label: Avatar
+    gender:
+      label: gender
+    loc_share:
+      label: location share
+    name:
+      label: name
+    phone:
+      label: phone
+    title: Change Member
+    track:
+      label: track
+chat:
+  delete-session:
+    content: Delete session {name}?
+    success: Deleted successfully
+    title: Delete Session
+  not-in-group: You are not in this group
+  placeholder: Type a message...
+  sdk-loading: Initializing SDK...
+  select-session: Select a session to start chatting
+  location:
+    open-in-amap: Open in AMap
+  location-picker:
+    not-supported: Geolocation is not supported by this browser
+    permission-denied: 'Unable to get location. Please click "Site Permissions" or "Site Settings" next to the address bar and set Location permission to "Allow", then try again'
+    failed: Failed to get location ({code})
+close: close
+colon: ':'
+confirm-password: Confirm Password
+controls: Operation
+corp:
+  create:
+    form:
+      title: create corp
+  dept-limit: Department limit
+  dept-member-limit: Department member limit
+  edit: Modify enterprise
+  group-limit: Group quantity limit
+  group-member-limit: Group member limit
+  member: Organizational members
+  member-limit: Member Limit
+  number: Enterprise account
+corp-info: Company Details
+corp-number: Enterprise account
+country-code: {}
+create-member: Create member
+created: created date
+crop:
+  avatar: Crop avatar
+  image: Crop image
+  image-size: Crop image size
+delete:
+  modal:
+    content: Are you sure your want to delete?
+    hint: This action cannot be undone
+    title: Delete
+注销成员: Deactivate Member
+delete-member-modal:
+  confirm-content: Are you sure you want to deactivate this member? This action cannot be undone.
+delete-account-form:
+  confirm-content: Are you sure you want to deactivate your account? This action cannot be undone.
+  title: Deactivate Account
+department-list: Department List
+dept:
+  create: Add Dept
+  edit: Modification Dept
+  form:
+    name:
+      label: name
+      placeholder: name is required
+  name: Dept
+dept-count: Number of departments
+dept-manager: Department Administrator
+device: Device
+device-count: Number of devices
+download-android-app: Android APP download
+edit: Edit
+edit-device: Modify device
+edit-member: Modify member
+error: Error
+famale: Female
+female: Female
+footer:
+  copyright: Copyright © 2025-2026 Voistech All Rights Reserved.
+  icp: Guangdong ICP No. 05000494
+form:
+  error:
+    account-nonempty: The account cannot be empty.
+    name-nonempty: The name cannot be empty.
+    new-password-nonempty: The new password cannot be empty.
+    old-password-nonempty: The old password cannot be empty.
+    password-nonempty: The password cannot be empty.
+    phone-maxLength: ''
+    phone-minLength: The phone number must be at least 11 digits.
+    phone-nonempty: The phone number cannot be empty.
+    verify-code-nonempty: The verification code cannot be empty.
+form-error:
+  password-required: The password cannot be empty.
+  phone-max-length: The phone number length cannot exceed 11 digits.
+  phone-min-length: The phone number length cannot be less than 11 digits.
+  phone-required: The phone number cannot be empty.
+  verifycode-required: The verification code cannot be empty.
+form-placeholder:
+  please-enter-new-password: Please set a new password.
+gender: Gender
+get-sms-code: Get SMS verification code.
+group:
+  name: Group
+  create: Create Group
+  member: Group members
+  my-groups: My Groups
+  settings:
+    created: 'Created: {date}'
+    member-count: 'Members: {count}'
+    members: Members
+    members-count: 'Members ({count})'
+    title: Group Settings
+group-count: Number of groups
+group-list: Group list
+hint:
+  please-select: Please select...
+home: Home
+i-have-read-and-agree: I have read and agree.
+img-verify-code: Graphic verification code
+job-number: Job ID
+user-id: User ID
+latitude: latitude
+legal:
+  enterprise: Enterprise Certification
+  identify-number: Document number
+  label:
+    audit-category: Certification Category
+    audit-status: Review status
+    business-license: Business license
+    cert-number: Document number
+    corp-name: Company Name
+    id-card-front: Front of the ID card
+    id-card-reverse: Back of the ID card
+    org-name: Organization Name
+    reason: Reason
+    update-time: Update time
+  personal: Personal certification
+  placeholder:
+    corp-identify: Please enter the 18-digit unified social credit code.
+    corp-name: Please enter the company name.
+  type:
+    corp: Enterprise Certification
+    personal: Personal certification
+  update-info: Update certification information.
+  value:
+    enterprise: Enterprise
+    failed: Not passed
+    none: None
+    passed: Approved
+    pending: Pending review
+    personal: Personal
+legal-form:
+  error:
+    business-license: Please upload a photo of the business license.
+    corp-identify: The unified social credit code must be 18 digits.
+    identify: The ID number must be 18 digits.
+    identify-card-front: Please upload a photo of the front of your ID card.
+    identify-card-reverse: Please upload a photo of the back of your ID card.
+  placeholder:
+    identify: Please enter an 18-digit ID number.
+  step:
+    description:
+      failed: Review not approved, please resubmit for review.
+      fill-info: Complete the certification information and submit.
+      success: Review approved, certification successful.
+      waiting-verify: We will complete the review within 1-3 working days.
+    failed: Authentication failed.
+    fill-info: Fill in the information.
+    success: Certification completed.
+    waiting-verify: Waiting for review.
+loading: Loading...
+loc_share: location share
+location-detail: Location information
+location-status:
+  idle: Please select member/dept or date
+  loading: Fetching location data...
+  success: Data updated at {date}
+  success-prefix: Data updated at
+  empty: No location data
+  error: Failed to fetch location data
+  focus: Focus all locations
+  list: List
+  track: Track
+login:
+  __i18n_ally_root__:
+    android-download: Android app download
+    cancel: Cancel
+    confirm: Confirm
+    form:
+      privacyAgreement: Privacy Policy
+      successMsg: Login successful.
+    get-sms-code: Get SMS verification code.
+    weila-enterprise: Micro Flare Enterprise Edition
+  form:
+    forgetPassword: forget the password
+    login: Login
+    password:
+      errMsg: password is not filled in
+      placeholder: password
+    register: register
+    rememberPassword: Remember password
+    title: Login
+    userName:
+      errMsg: username is not filled in
+      placeholder: username
+  type:
+    phone: phone
+    username: account
+login-by-password: Account
+login-by-phone: Phone
+login.banner.slogan1: Out-of-the-box high-quality template
+login.banner.slogan2: Built-in solutions to common problems
+login.banner.slogan3: Access visualization enhancement tool AUX
+login.banner.subSlogan1: Rich page templates, covering most typical business scenarios
+login.banner.subSlogan2: Internationalization, routing configuration, state management everything
+login.banner.subSlogan3: Realize flexible block development
+logout: Log out
+longitude: longitude
+male: Male
+manager: Administrator
+map:
+  confirm: Confirm
+  reset: Reset
+member:
+  form:
+    avatar:
+      label: Avatar
+    dept:
+      label: Dept
+    gender:
+      label: Gender
+    job-num:
+      label: Job ID
+    loc_share:
+      label: Share Location
+    name:
+      label: Label
+    password:
+      label: Password
+    phone:
+      label: Phone
+    product:
+      label: Product model
+    track:
+      label: Track
+  state: State
+  online-status: Online Status
+member-count: Number of members
+member-list: Member List
+member-state:
+  enabled: Enabled
+  paused: paused
+member-type:
+  host: Group owner
+  member: Member
+members: Members
+menu:
+  contact: Contact
+  me: Me
+  message: Message
+  workbench: Workbench
+message:
+  get-phone-error: Failed to obtain phone number, please try again.
+  not-support: Not Supported Message
+  please-enter-phone-number: Please enter your phone number.
+  revoke: The message has been recalled.
+  success: Success
+  verify-code-error: Abnormal graphic verification code
+name: Name
+navbar:
+  back: Return
+  build-time: Build time
+  settings: Settings
+  system-update: A new update is available for the system.
+new-password: New password
+no-data: No data available.
+no-intro-data: No description information.
+none: None
+not-supported: Not supported
+offline: Offline
+old-password: Old password
+online: Online
+online-docs: Online Docs
+org-tree:
+  dept-member-count: '{count} members'
+  empty:
+    dept: No departments
+    member: No members
+  load-error: Failed to load members
+  select-dept-members: Select all members of {name}
+open: open
+option:
+  a: Option A
+  b: Option B
+org:
+  auth: Certification
+  auth-failed: Certification not passed.
+  create-org: Create a business.
+  created-date: Created Date
+  devices: Devices
+  enterprise: Enterprise
+  groups: Groups
+  members: Members
+  personal: Personal
+  unauth: Unverified
+org-form:
+  avatar:
+    label: Avatar
+  name:
+    label: Name
+password: Password
+person-name: Name
+phone: phone
+phone-number: Phone Number
+priority: Priority
+privacy-agreement: Privacy Policy
+project:
+  name: Weila Enterprise Manager
+project-name: Weila Enterprise Edition
+mobile:
+  app-download: App Download
+  title: Software Download
+  description: Scan the QR code below or click the button to download the Weila Enterprise Edition APP, manage your business affairs anytime, anywhere
+  qr-code-title: Mobile Access
+  qr-code-label: Weila Enterprise Edition
+  qr-code-benefit-1: Use your mobile browser to scan the QR code for direct access
+  qr-code-benefit-2: No download required, use anytime, anywhere
+  qr-code-benefit-3: Automatically adapts to mobile interface
+  qr-code-benefit-4: Real-time data synchronization
+  android:
+    title: Android Download
+    subtitle: For Android devices
+    description: Download the Weila Enterprise Edition Android app for a smoother mobile office experience
+    button: Download Android Version Now
+    version: Supports Android 5.0 and above
+  ios:
+    title: iOS Download
+    subtitle: For iPhone and iPad
+    description: Download the Weila Enterprise Edition iOS app from the App Store, optimized for Apple devices
+    button: Go to App Store to Download
+    version: Supports iOS 12.0 and above
+  instructions:
+    title: Instructions
+    scan-qr:
+      title: Scan QR Code
+      description: Use your phone camera or scanning tool to scan the QR code above
+    click-download:
+      title: Click to Download
+      description: Click the corresponding download button based on your device type
+    start-using:
+      title: Start Using
+      description: Log in to your account after installation to start using
+  footer:
+    copyright: '©{year}{projectName}.Allrightsreserved.'
+    contact: If you have any questions, please contact technical support
+register:
+  cancel: Cancel
+  confirm: Confirm
+  form:
+    getSMS: Get SMS
+    imgVerifyCode:
+      errMsg: image verify code is needed
+      placeholder: image verify code
+    login: login
+    password:
+      errMsg: password need be filled
+    phone:
+      errMsg: Enter correct phone number
+      placeholder: your phone number
+    sendSMS: send
+    submit: submit
+    successMsg: Success
+    title: Register
+    verifyCode:
+      errMsg: verify code is needed
+      placeholder: verify code
+  get-sms-code: Get SMS verification code.
+  weila-enterprise: Weila Enterprise Edition
+reset-password:
+  button: Reset Password
+  cancel: Cancel
+  confirm: Confirm
+  form:
+    password:
+      label: new password
+    title: Reset Password
+  get-sms-code: Get SMS verification code.
+reset-password-form:
+  title: Reset Password
+search: Search
+selected: Selected
+settings:
+  language: Language
+  navbar:
+    screen:
+      toFull: Click to switch to full screen mode
+      toExit: Click to exit the full screen mode
+sendSMS:
+  success:
+    hint: Sent successfully, please pay attention to your message
+shutup: Mute
+shutup-disable: Not muted.
+shutup-enable: Muted
+sms-code: Message Code
+sms-verify-code: SMS verification code
+state:
+  online: Online status
+submenu:
+  application: Application Management
+  chat: Chat
+  dept-manage: Dept Management
+  group-manage: Group Management
+  member-manage: Member Management
+  user-track: Track
+time: Time
+track: Track
+track-type:
+  close: Close
+  fast: 1 min
+  high: 5 min
+  keep: Keep
+  low: 1 hr
+  medium: 15 min
+type: Type
+user:
+  gender: Gender
+  phone: Phone
+user-count: Number of users
+user-info-loading: Loading user information...
+user-track: User trajectory
+user-type:
+  device: Device
+  member: Member
+  owner: business owner
+v-version: v
+verify-code: Verification code
+verify-image-code: Verify Image Code
+vip:
+  enable:
+    time: Membership effective date
+  expired:
+    time: Membership expiration time
+  level: Membership Level
+weila-number: ID
+weila-number-with-value: 'ID: {num}'
+workbench:
+  user-track: User trajectory
+web-guide: Web Guide
+agent:
+  title: AI Assistant
+  input-placeholder: Message the AI assistant…
+  send: Send
+  no-reply: (no reply)
+  request-failed: Request failed. Please check whether the Agent server is running
+  voice-input: Voice input
+  voice-stop: Stop recording
+  voice-empty: No speech recognized
+  voice-failed: Voice recognition failed
+  mic-denied: Microphone access denied. Please allow microphone permission
+  mic-not-found: No microphone device found. Please check your device and try again
+  mic-in-use: Microphone is in use by another app. Please close it and try again
+app-guide: App Guide
+tooltips:
+  loc-share:
+    pro-feature: Professional feature
+  track:
+    power-warning: This frequency consumes high device power, please use with caution
+    flagship-feature: Flagship feature
+  vip-unsupported: Vip edition does not include this feature

@@ -1,0 +1,63 @@
+import { defineQuery, useQuery } from '@pinia/colada'
+import { useWeilaStore } from '../stores/weila'
+import { storeToRefs } from 'pinia'
+import { watch } from 'vue'
+import type { WL_IDbGroup } from '@vois/weila-sdk-core'
+import { WL_ExtEventID, WL_IDbGroupPublicType } from '@vois/weila-sdk-core'
+import type { WL_ExtEventCallback } from '@vois/weila-sdk-core'
+
+export interface GroupItem {
+  groupId: string
+  name: string
+  avatar?: string
+  memberCount: number
+  isPublic: boolean
+  role?: 'owner' | 'admin' | 'member'
+}
+
+function mapGroupToItem(group: WL_IDbGroup): GroupItem {
+  return {
+    groupId: group.groupId,
+    name: group.name,
+    avatar: group.avatar || undefined,
+    memberCount: group.memberCount,
+    isPublic: group.publicType === WL_IDbGroupPublicType.GROUP_PUBLIC_OPEN,
+  }
+}
+
+export const useGroups = defineQuery(() => {
+  const { core } = storeToRefs(useWeilaStore())
+
+  const queryReturn = useQuery({
+    key: ['groups'],
+    query: async () => {
+      if (!core.value) return [] as GroupItem[]
+      const groups = await core.value.weila_getAllGroups()
+      return groups.map(mapGroupToItem)
+    },
+    enabled: () => core.value !== null,
+  })
+
+  const handler: WL_ExtEventCallback = (eventId) => {
+    if (
+      eventId === WL_ExtEventID.WL_EXT_GROUP_NEW_MEMBER_JOINED_IND ||
+      eventId === WL_ExtEventID.WL_EXT_GROUP_DELETED_IND ||
+      eventId === WL_ExtEventID.WL_EXT_GROUP_MEMBERS_MODIFIED_IND ||
+      eventId === WL_ExtEventID.WL_EXT_GROUP_MODIFIED_IND
+    ) {
+      queryReturn.refetch().catch(console.error)
+    }
+  }
+
+  // Refetch groups when group data changes
+  watch(
+    core,
+    (coreInstance) => {
+      if (!coreInstance) return
+      coreInstance.weila_onEvent(handler)
+    },
+    { immediate: true },
+  )
+
+  return queryReturn
+})

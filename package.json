@@ -1,0 +1,102 @@
+{
+  "name": "weila-work",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Weila monorepo: web SDK packages and the enterprise management app",
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm -C apps/website run dev",
+    "dev:prod": "pnpm -C apps/website run dev:prod",
+    "dev:sdk": "turbo run dev --filter=@vois/weila-sdk-core --filter=@vois/weila-sdk-ui --filter=@weilasdk/playground-vue3",
+    "build": "turbo run build",
+    "build:web": "turbo run build --filter=weila-work-web",
+    "build:staging": "turbo run build:staging --filter=weila-work-web",
+    "build:core": "turbo run build --filter=@vois/weila-sdk-core",
+    "build:ui": "turbo run build --filter=@vois/weila-sdk-ui",
+    "build:story": "turbo run build:story --filter=@vois/weila-sdk-ui",
+    "story": "turbo run story --filter=@vois/weila-sdk-ui",
+    "preview": "pnpm -C apps/website run preview",
+    "typecheck": "turbo run typecheck",
+    "typecheck:sdk": "turbo run typecheck --filter='./packages/*'",
+    "typecheck:tsc": "turbo run typecheck:tsc",
+    "typecheck:parity": "node packages/core/scripts/typecheck-parity.mjs",
+    "typecheck:strict-budget": "node packages/core/scripts/strict-budget.mjs",
+    "test": "turbo run test",
+    "test:run": "turbo run test:run",
+    "test:scripts": "node --test packages/core/scripts/*.spec.mjs scripts/*.spec.mjs",
+    "lint": "pnpm run lint:web && pnpm run lint:sdk",
+    "lint:web": "eslint apps/website",
+    "lint:sdk": "node packages/core/scripts/lint-budget.mjs",
+    "lint:fix": "eslint --fix apps/website",
+    "lint:budget": "node packages/core/scripts/lint-budget.mjs --write",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "knip": "knip",
+    "up": "pnpm dlx taze -Ir major",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "api:snapshot": "tsnapi packages/core",
+    "api:snapshot:update": "tsnapi packages/core -u",
+    "contract:baseline": "node packages/core/scripts/artifact-contract.mjs --write",
+    "contract:check": "node packages/core/scripts/artifact-contract.mjs",
+    "prepare": "simple-git-hooks",
+    "lint:staged": "nano-staged",
+    "build:sdk": "turbo run build --filter='./packages/*'",
+    "typecheck:tsc:sdk": "turbo run typecheck:tsc --filter='./packages/*'",
+    "test:sdk": "turbo run test:run --filter='./packages/*'"
+  },
+  "dependencies": {
+    "dayjs": "catalog:"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "catalog:",
+    "@intlify/eslint-plugin-vue-i18n": "catalog:",
+    "@oxlint/plugins": "catalog:",
+    "@tanstack/eslint-plugin-query": "catalog:",
+    "@unocss/eslint-plugin": "catalog:",
+    "eslint": "catalog:",
+    "eslint-factory": "catalog:",
+    "eslint-plugin-format": "catalog:",
+    "eslint-plugin-slop": "catalog:",
+    "eslint-plugin-sonarjs": "catalog:",
+    "eslint-plugin-unimport": "catalog:",
+    "knip": "catalog:",
+    "nano-staged": "catalog:",
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "oxlint-tsgolint": "catalog:",
+    "pkg-pr-new": "0.0.94",
+    "playwright": "1.59.1",
+    "simple-git-hooks": "catalog:",
+    "taze": "catalog:",
+    "tsdown": "catalog:",
+    "tsnapi": "catalog:",
+    "turbo": "^2.9.18",
+    "typescript": "catalog:",
+    "vitepress": "catalog:",
+    "void": "1.11.0",
+    "vue-tsc": "catalog:"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec nano-staged"
+  },
+  "nano-staged": {
+    "packages/**/*.{js,jsx,ts,tsx,mjs,cjs,vue}": [
+      "oxlint --type-aware",
+      "oxfmt --check"
+    ],
+    "packages/**/*.{json,jsonc,md,mdx,css,pcss,html,yml,yaml}": "oxfmt --check",
+    "apps/playground-vue3/**/*.{js,jsx,ts,tsx,mjs,cjs,vue}": [
+      "oxlint --type-aware",
+      "oxfmt --check"
+    ],
+    "apps/website/**/*.{js,jsx,ts,tsx,mjs,cjs,vue,md,mdx,css,pcss,html,json,jsonc,yml,yaml}": "eslint --fix"
+  },
+  "engines": {
+    "node": ">=22.18",
+    "pnpm": ">=11"
+  },
+  "packageManager": "pnpm@11.28.13"
+}

@@ -1,0 +1,100 @@
+{
+  // knip finds unused files, exports and dependencies across the monorepo.
+  // Run: pnpm knip  (gate must stay green; fix new findings, don't ignore them)
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  // The CI workflow installs the browser through the Playwright CLI, which knip
+  // cannot resolve from a package import.
+  // The parity gate resolves these through require.resolve from packages/core.
+  "ignoreBinaries": [],
+  "workspaces": {
+    ".": {
+      // Resolved dynamically by packages/core/scripts/typecheck-parity.mjs.
+      "ignoreDependencies": ["tsdown", "vue-tsc"],
+      "entry": [
+        // consumed by `pnpm run up` (taze)
+        "taze.config.ts",
+        // read by `void deploy` for the docs site
+        "docs/void.config.ts",
+        // commit-hook and release script specs, run through `node --test`
+        "scripts/*.spec.mjs",
+        // manual QA harness scripts, run ad hoc
+        "qa/**/*.mjs",
+        // agent verification scripts, run ad hoc through ego-browser
+        ".claude/skills/**/*.mjs",
+        // manual backend probe
+        "scripts/*.mjs",
+        // user manual site, driven by root docs: scripts
+        "docs/.vitepress/config.mts",
+      ],
+    },
+    "apps/website": {
+      // knip cannot load vite.config.ts here: unplugin-auto-import resolves
+      // its presets at config-load time and rejects @vueuse/core in knip's
+      // environment (documented knip known issue). The override disables only
+      // the loading; knip still analyzes the file statically. The single ~
+      // alias matches tsconfig paths, so resolution is unaffected.
+      "vite": { "config": [] },
+      "entry": [
+        // auto-read by unplugin-vue-macros during the vite build
+        "vue-macros.config.ts",
+        // read by `void deploy`
+        "void.config.ts",
+        // manual release helpers (the only consumers of root zx)
+        "scripts/archive.ts",
+        "scripts/upload-release.ts",
+      ],
+      "ignoreDependencies": [
+        // icon sets resolved to CSS by UnoCSS/Iconify at build time
+        "@iconify-json/carbon",
+        "@iconify-json/ph",
+        "@iconify-json/svg-spinners",
+        // loaded through component auto-import resolvers in vite.config.ts
+        "@vuemap/vue-amap",
+        "@vuemap/vue-amap-loca",
+      ],
+    },
+    "packages/core": {
+      // Manual script: copies dist/assets into the consuming app's public/
+      // (documented in packages/core/AGENTS.md, used by UniApp integrations)
+      "entry": ["post-copy.js", "scripts/*.spec.mjs"],
+      // Vendored Oxlint plugin. It is loaded by Oxlint, not imported by package code.
+      // weilapb.js is generated protocol code; its default export is unused.
+      "ignore": ["tools/oxlint/anti-slop/**", "src/proto/weilapb.js"],
+      // Invoked by `src/proto/proto_raws/buildjs.sh` through `pnpm exec`, which knip cannot see.
+      "ignoreDependencies": ["protobufjs-cli"],
+    },
+    "packages/ui": {
+      // Icons are resolved at build time from CSS: `@plugin "@iconify/tailwind4"`
+      // auto-discovers installed @iconify-json/* packages (see style.postcss.css)
+      "ignoreDependencies": ["@iconify-json/carbon"],
+      "entry": [
+        // read by `void deploy`
+        "void.config.ts",
+      ],
+    },
+    "apps/playground-vue3": {
+      "entry": [
+        // read by `void deploy`
+        "void.config.ts",
+      ],
+    },
+  },
+  "rules": {
+    // TrackType members are used inside .vue script/template blocks (group
+    // page, EditMemberModal); knip's enum-member tracing does not follow
+    // member access there
+    "enumMembers": "off",
+  },
+  "ignore": [
+    // Injected into the Arco theme through a less `hack` string in
+    // vite.config.ts (line ~84); invisible to static import analysis
+    "apps/website/src/assets/style/breakpoint.less",
+    // AudioWorklet bundles fetched at runtime by URL (same pattern as packages/core)
+    "apps/website/public/*.worklet.iife.js",
+    "apps/playground-vue3/public/**",
+    // tsnapi commits public-API snapshots under __snapshots__/tsnapi/
+    "**/__snapshots__/**",
+    // Generated build output, gitignored but present on disk after builds
+    "**/dist/**",
+  ],
+}

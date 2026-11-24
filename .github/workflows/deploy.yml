@@ -1,0 +1,47 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.28.13
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build:web
+      - run: pnpm exec turbo run build --filter=@weilasdk/playground-vue3
+      - run: pnpm run build:story
+      - run: pnpm run docs:build
+      - name: Deploy website
+        working-directory: apps/website
+        run: pnpm exec void deploy --platform cloudflare --dir dist --spa --skip-build
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - name: Deploy playground
+        working-directory: apps/playground-vue3
+        run: pnpm exec void deploy --platform cloudflare --dir dist --spa --skip-build
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - name: Deploy UI storybook
+        working-directory: packages/ui
+        run: pnpm exec void deploy --platform cloudflare --dir storybook-static --spa --skip-build
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - name: Deploy docs
+        working-directory: docs
+        run: pnpm exec void deploy --platform cloudflare --dir .vitepress/dist --skip-build
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

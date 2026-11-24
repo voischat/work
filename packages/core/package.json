@@ -1,0 +1,77 @@
+{
+  "name": "@vois/weila-sdk-core",
+  "version": "1.1.4",
+  "private": false,
+  "description": "微喇网页SDK",
+  "keywords": [],
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Jack Chen",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kvoon9/weila-js-sdk.git",
+    "directory": "packages/core"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "dist/weilasdk.mjs",
+  "module": "dist/weilasdk.mjs",
+  "types": "dist/weilasdk.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/weilasdk.d.ts",
+      "import": "./dist/weilasdk.mjs"
+    },
+    "./data": {
+      "types": "./dist/weilasdk_data.d.ts",
+      "import": "./dist/weilasdk_data.mjs"
+    },
+    "./log": {
+      "types": "./dist/weilasdk_log.d.ts",
+      "import": "./dist/weilasdk_log.mjs"
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:run": "vitest run",
+    "test:dist": "playwright test",
+    "build": "pnpm run build:worklets && rspack build --config rspack.config.mts && pnpm run build:declarations",
+    "build:dev": "pnpm run build:worklets && rspack build --config rspack.config.mts --mode development && pnpm run build:declarations",
+    "build:watch": "pnpm run build:worklets && rspack build --config rspack.config.mts --watch",
+    "build:worklets": "rspack build --config rspack.worklets.config.mts",
+    "build:declarations": "tsc -p tsconfig.build.json --emitDeclarationOnly",
+    "dev": "pnpm run build:watch",
+    "typecheck": "tsrs --noEmit --fast",
+    "typecheck:tsc": "tsc --noEmit",
+    "test:integration": "pnpm run build && playwright test --config playwright.integration.config.ts"
+  },
+  "dependencies": {
+    "ali-oss": "^6.23.0",
+    "crypto-js": "catalog:",
+    "debug": "^4.4.3",
+    "dexie": "^4.4.7",
+    "long": "^5.3.2",
+    "protobufjs": "^8.8.1",
+    "tiny-emitter": "^2.1.0",
+    "tiny-pinyin": "^1.3.2",
+    "xstate": "^5.33.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.59.1",
+    "@rspack/cli": "^2.3.3",
+    "@rspack/core": "^2.3.3",
+    "@types/ali-oss": "^6.16.3",
+    "@types/crypto-js": "catalog:",
+    "@types/debug": "^4.1.7",
+    "@types/node": "catalog:",
+    "fake-indexeddb": "^6.2.8",
+    "gently-copy": "^3.2.0",
+    "jsdom": "catalog:",
+    "playwright": "catalog:",
+    "protobufjs-cli": "^2.7.1",
+    "tsrs": "0.25.0-ts7.1.0-beta",
+    "typescript": "^7.0.2",
+    "vitest": "catalog:",
+    "worker-rspack-loader": "^3.1.5"
+  }
+}

@@ -1,0 +1,3 @@
+[mcp_servers.eslint]
+args = ["@eslint/mcp@latest"]
+command = "npx"

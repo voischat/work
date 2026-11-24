@@ -1,0 +1,76 @@
+import antfu from '@antfu/eslint-config'
+import vueI18n from '@intlify/eslint-plugin-vue-i18n'
+import pluginQuery from '@tanstack/eslint-plugin-query'
+import { createSimplePlugin } from 'eslint-factory'
+import { createAutoInsert } from 'eslint-plugin-unimport'
+
+const ignores = [
+  '**/pages-deprecated/**',
+  '**/assets/**',
+  '**/components-depercated/**',
+  '**/components/ui/**',
+  '**/public/**',
+  // The SDK packages run on Oxlint/Oxfmt (see oxlint.config.ts).
+  'packages/**',
+  // The SDK playground keeps the SDK code style and runs on Oxlint too.
+  'apps/playground-vue3/**',
+  // Agent-runtime scripts: they execute inside ego-browser's embedded Node
+  // runtime (top-level await, injected CFG global, console output), not the app.
+  '.claude/skills/**/*.mjs',
+]
+
+export default antfu(
+  {
+    formatters: false,
+    unocss: false,
+    vue: true,
+    pnpm: true,
+    typescript: true,
+    ignores,
+  },
+  pluginQuery.configs['flat/recommended'],
+  // NOTE: disable temporarily
+  vueI18n.configs['flat/recommended'].map((i) => ({
+    ...i,
+    ignores: ['**/webview/**', '**/network/**', '**/*.md', '**/*.md/**'],
+  })),
+  {
+    settings: {
+      'vue-i18n': {
+        localeDir: './apps/website/locales/*.{json,json5,yaml,yml}', // extens
+        messageSyntaxVersion: '^10.0.7',
+      },
+    },
+  },
+  createAutoInsert({
+    imports: [
+      {
+        from: 'vue',
+        name: 'shallowRef',
+      },
+      {
+        from: 'vue',
+        name: 'ref',
+        as: 'deepRef',
+      },
+    ],
+    ignores: ['**/webview/**'],
+  }),
+  createSimplePlugin({
+    name: 'no-ref',
+    exclude: ['**/*.md', '**/*.md/**'],
+    create(context) {
+      return {
+        CallExpression(node) {
+          if (node.callee.type === 'Identifier' && node.callee.name === 'ref') {
+            context.report({
+              node,
+              message: 'Usage of ref() is restricted. Use shallowRef() or deepRef() instead.',
+            })
+          }
+        },
+      }
+    },
+    ignores,
+  }),
+)

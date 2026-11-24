@@ -1,0 +1,56 @@
+name: Gates
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: gates-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    # Playwright 1.59.1 has no ubuntu-26.04 support; keep the runner pinned to 24.04.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.28.13
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run fmt:check
+      - run: pnpm run build:sdk --force
+      - run: pnpm run api:snapshot
+      - run: pnpm run typecheck:sdk --force
+      - run: pnpm run typecheck:tsc:sdk --force
+      - run: pnpm run typecheck:parity
+      - run: pnpm run typecheck:strict-budget
+      - run: pnpm knip
+      - run: pnpm run lint:sdk
+      - run: pnpm run test:scripts
+      - run: pnpm run test:sdk --force
+      - run: pnpm -C packages/core exec playwright install --with-deps chromium
+      - run: pnpm -C packages/core run test:dist
+      - run: pnpm run build:story --force
+
+  web:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.28.13
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint:web
+      - run: pnpm exec turbo run typecheck --filter=weila-work-web
+      - run: pnpm exec turbo run test --filter=weila-work-web -- --passWithNoTests
+      - run: pnpm exec turbo run build --filter=weila-work-web
