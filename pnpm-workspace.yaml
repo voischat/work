@@ -24,7 +24,6 @@ packages:
 overrides:
   '@intlify/message-compiler': ^11.4.23
   '@wl/network': npm:@vois/weila-network@^0.0.7
-  vite: npm:rolldown-vite@latest
   # Security floors for transitive runtime dependencies (Dependabot alerts; the
   # direct parents pin ranges that still resolve to vulnerable versions).
   '@intlify/shared': ^11.4.23

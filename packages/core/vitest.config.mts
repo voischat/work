@@ -4,7 +4,23 @@ import { defineConfig } from 'vitest/config'
 
 const root = path.dirname(fileURLToPath(import.meta.url))
 
+// Vite 8 ships `vite:wasm-helper`, which instantiates `.wasm` as an ESM module
+// before `assetsInclude` gets a say. The SDK imports its wasm for its URL
+// (rspack asset/resource semantics), so keep that behavior in tests.
+const wasmAsAssetUrl = {
+  name: 'wasm-as-asset-url',
+  enforce: 'pre' as const,
+  load(id: string) {
+    const file = id.split('?')[0]
+
+    return file.endsWith('.wasm')
+      ? `export default ${JSON.stringify(`/${path.relative(root, file)}`)}`
+      : undefined
+  },
+}
+
 export default defineConfig({
+  plugins: [wasmAsAssetUrl],
   resolve: {
     alias: {
       audio: path.resolve(root, 'src/audio'),
@@ -15,8 +31,6 @@ export default defineConfig({
       proto: path.resolve(root, 'src/proto'),
     },
   },
-  // The wasm import in weila_config registers a resource URL, matching the
-  // rspack asset/resource semantics; resolve it as an asset instead of ESM.
   assetsInclude: ['**/*.wasm'],
   test: {
     environment: 'jsdom',
