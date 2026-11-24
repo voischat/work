@@ -43,12 +43,10 @@
     "contract:check": "node packages/core/scripts/artifact-contract.mjs",
     "prepare": "simple-git-hooks",
     "lint:staged": "nano-staged",
+    "manifests": "node scripts/manifest-checks.mjs",
     "build:sdk": "turbo run build --filter='./packages/*'",
     "typecheck:tsc:sdk": "turbo run typecheck:tsc --filter='./packages/*'",
     "test:sdk": "turbo run test:run --filter='./packages/*'"
-  },
-  "dependencies": {
-    "dayjs": "catalog:"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:",
@@ -67,18 +65,18 @@
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
     "oxlint-tsgolint": "catalog:",
-    "pkg-pr-new": "0.0.94",
-    "playwright": "1.59.1",
+    "pkg-pr-new": "catalog:",
+    "playwright": "catalog:",
     "simple-git-hooks": "catalog:",
     "taze": "catalog:",
     "tsdown": "catalog:",
     "tsnapi": "catalog:",
-    "turbo": "^2.9.18",
+    "turbo": "catalog:",
     "typescript": "catalog:",
     "vitepress": "catalog:",
-    "void": "1.11.0",
+    "void": "catalog:",
     "vue-tsc": "catalog:",
-    "wrangler": "^4.167.0"
+    "wrangler": "catalog:"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm exec nano-staged"

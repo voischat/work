@@ -19,7 +19,6 @@
     "preview-https": "vite preview --host",
     "typecheck": "vue-tsc --noEmit --skipLibCheck",
     "up": "taze -I major",
-    "prepare": "simple-git-hooks",
     "lint": "eslint .",
     "archive": "esno scripts/archive.ts",
     "upload": "esno scripts/upload-release.ts",
@@ -47,6 +46,7 @@
     "browser-image-compression": "catalog:",
     "cropperjs": "catalog:",
     "crypto-js": "catalog:",
+    "dayjs": "catalog:",
     "floating-vue": "catalog:",
     "html-to-image": "catalog:",
     "md5": "catalog:",
@@ -61,6 +61,7 @@
     "viewerjs": "catalog:",
     "vue": "catalog:web",
     "vue-i18n": "catalog:",
+    "vue-router": "catalog:",
     "zod-arco-rules": "catalog:"
   },
   "devDependencies": {
@@ -79,8 +80,6 @@
     "@vois/weila-sdk-core": "workspace:*",
     "@vois/weila-sdk-ui": "workspace:*",
     "@vuemap/unplugin-resolver": "catalog:",
-    "@vuemap/vue-amap": "catalog:",
-    "@vuemap/vue-amap-loca": "catalog:",
     "@wl/network": "catalog:",
     "bumpp": "catalog:",
     "cross-env": "catalog:",
@@ -88,7 +87,6 @@
     "esno": "catalog:",
     "jiti": "catalog:",
     "less": "catalog:",
-    "simple-git-hooks": "catalog:",
     "taze": "catalog:",
     "typescript": "catalog:",
     "unocss": "catalog:",
@@ -102,7 +100,6 @@
     "vite-plugin-mkcert": "catalog:",
     "vite-plugin-vue-layouts": "catalog:",
     "vitest": "catalog:",
-    "vue-router": "catalog:",
     "vue-tsc": "catalog:web",
     "zx": "catalog:"
   }
