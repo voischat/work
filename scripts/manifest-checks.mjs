@@ -80,7 +80,7 @@ export function duplicateScriptNames(source) {
   return duplicates
 }
 
-export function checkManifest({ path, manifest, catalogs = new Set(['']) }) {
+export function checkManifest({ path, manifest, source = '', catalogs = new Set(['']) }) {
   const problems = []
   const counts = new Map()
 
@@ -111,7 +111,7 @@ export function checkManifest({ path, manifest, catalogs = new Set(['']) }) {
     if (count > 1) problems.push(`${path} declares ${name} in ${count} dependency fields`)
   }
 
-  for (const name of duplicateScriptNames(manifest.__source ?? ''))
+  for (const name of duplicateScriptNames(source))
     problems.push(`${path} defines script ${name} twice`)
 
   if (path !== 'package.json') {
@@ -135,7 +135,8 @@ function main() {
     problems.push(
       ...checkManifest({
         path: relative(ROOT, path),
-        manifest: { ...JSON.parse(source), __source: source },
+        manifest: JSON.parse(source),
+        source,
         catalogs,
       }),
     )
