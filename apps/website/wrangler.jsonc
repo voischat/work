@@ -1,6 +1,6 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
-  "name": "weila-web",
+  "name": "work-web",
   "main": "../../infra/cloudflare/proxy-worker.ts",
   "account_id": "f1aeb479314b25d24bd6626e9e5bbfe9",
   "compatibility_date": "2026-11-24",
