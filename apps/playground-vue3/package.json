@@ -11,7 +11,7 @@
     "preview:https": "vite preview",
     "predev": "node scripts/sync-worklets.mjs",
     "prebuild": "node scripts/sync-worklets.mjs",
-    "typecheck:tsc": "vue-tsc -b"
+    "typecheck": "vue-tsc -b"
   },
   "dependencies": {
     "@pinia/colada": "catalog:",
