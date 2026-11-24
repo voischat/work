@@ -12,7 +12,7 @@ export default defineConfig({
     notFound: 'single-page-application',
   },
   cloudflare: {
-    name: 'weila-work-sdk-ui',
+    name: 'weila-ui',
     account_id: 'f1aeb479314b25d24bd6626e9e5bbfe9',
   },
 })

@@ -3,6 +3,9 @@ minimumReleaseAgeExclude:
   - '@intlify/message-compiler@11.4.23'
   - '@intlify/shared@11.4.23'
   - '@tanstack/eslint-plugin-query@5.108.1'
+  - '@cloudflare/workers-utils@0.57.0'
+  - miniflare@5.20261123.0-beta
+  - wrangler@4.167.0
 trustPolicy: no-downgrade
 # pnpm 11 rejects these locked versions as trust downgrades on a clean install.
 trustPolicyExclude:
