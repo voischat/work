@@ -8,8 +8,9 @@
   "ignoreBinaries": [],
   "workspaces": {
     ".": {
-      // Resolved dynamically by packages/core/scripts/typecheck-parity.mjs.
-      "ignoreDependencies": ["tsdown", "vue-tsc"],
+      // tsdown and vue-tsc are resolved by packages/core/scripts/typecheck-parity.mjs.
+      // tsrs is oxlint's type-aware backend, resolved at runtime rather than imported.
+      "ignoreDependencies": ["tsdown", "tsrs", "vue-tsc"],
       "entry": [
         // consumed by `pnpm run up` (taze)
         "taze.config.ts",
