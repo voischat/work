@@ -13,7 +13,6 @@ This repository merged `weila-js-sdk` and `weila-work` into one pnpm workspace. 
 │   ├── website/         # Enterprise console, Vue 3 + Arco (was packages/web)
 │   └── playground-vue3/ # SDK playground, Vue 3 + Vite
 ├── docs/                # VitePress user manual (and the audio flow docs)
-├── qa/                  # manual QA runs and test cases
 ├── scripts/             # repo scripts, including the commit-hook spec
 └── .claude/skills/      # agent skills (SDK integration, verifications)
 ```

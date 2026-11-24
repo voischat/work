@@ -17,8 +17,6 @@
         "docs/void.config.ts",
         // commit-hook and release script specs, run through `node --test`
         "scripts/*.spec.mjs",
-        // manual QA harness scripts, run ad hoc
-        "qa/**/*.mjs",
         // agent verification scripts, run ad hoc through ego-browser
         ".claude/skills/**/*.mjs",
         // manual backend probe
