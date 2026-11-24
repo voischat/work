@@ -24,6 +24,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run fmt:check
+      - run: pnpm run manifests
       - run: pnpm run build:sdk
       - run: pnpm run api:snapshot
       - run: pnpm run typecheck:sdk
