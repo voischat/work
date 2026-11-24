@@ -1,3 +1,5 @@
+// window.__sdk and window.__ready are the built bundle's public surface.
+/* oxlint-disable no-underscore-dangle */
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import vm from 'node:vm'
@@ -59,9 +61,9 @@ test('wasm and wav assets are served with a body', async () => {
 test('WeilaCore constructs in the browser', async () => {
   const result = await page.evaluate(() => {
     try {
-      new window.__sdk.WeilaCore()
+      const core = new window.__sdk.WeilaCore()
 
-      return 'ok'
+      return core ? 'ok' : 'missing'
     } catch (error) {
       return String(error)
     }
@@ -74,6 +76,7 @@ test('worklet bundles register their processors', () => {
   const registered: string[] = []
 
   const sandbox = {
+    // oxlint-disable-next-line typescript/no-extraneous-class -- the worklet bundle only needs the global to exist
     AudioWorkletProcessor: class {},
     Blob,
     console,

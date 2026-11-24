@@ -101,8 +101,19 @@ export default defineConfig({
       rules: {
         // Antfu enables this rule universally; oxlint applies it to every file it parses.
         'slop/no-em-dash': 'error',
+        // The SDK awaits protocol replies and IndexedDB writes in order. Parallelising
+        // those loops would reorder frames on the wire and break transaction ordering,
+        // so the rule's advice never applies to this codebase.
+        'no-await-in-loop': 'off',
         ...SLOP_RULES,
         ...SONAR_RULES,
+      },
+    },
+    {
+      files: ['packages/core/src/database/**'],
+      rules: {
+        // Dexie's Collection#reverse is not Array#reverse; `toReversed` does not exist there.
+        'unicorn/no-array-reverse': 'off',
       },
     },
     {
@@ -133,7 +144,8 @@ export default defineConfig({
         'anti-slop/no-reduce-accumulator-copy': 'warn',
         'anti-slop/no-reflect-apply': 'warn',
         'anti-slop/no-reflect-get': 'warn',
-        'anti-slop/no-runtime-typeof': 'warn',
+        // A type predicate is the parser at the boundary; the rule's own option allows its typeof.
+        'anti-slop/no-runtime-typeof': ['warn', { allowInTypeGuards: true }],
         'anti-slop/no-shape-in-symbol-names': 'warn',
         'anti-slop/no-unknown-parameters': 'warn',
         'anti-slop/no-unknown-returns': 'warn',

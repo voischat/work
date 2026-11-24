@@ -164,7 +164,7 @@ class Network {
   }
 
   private onSocketError(event: Event): void {
-    wlerr('SOCKET错误:' + event)
+    wlerr('SOCKET错误:' + event.type)
     this.disconnect(3000, JSON.stringify(event))
 
     const netEvent: WL_NetworkEvent = {

@@ -5,8 +5,8 @@ export interface WL_AudioInitializable {
 export interface WL_AudioInitControllerOptions {
   getCore: () => WL_AudioInitializable | null | undefined
   setInitialized?: (initialized: boolean) => void
-  onDeferredInitError?: (error: unknown) => void
-  onInitialInitError?: (error: unknown) => void
+  onDeferredInitError?: (error: Error) => void
+  onInitialInitError?: (error: Error) => void
   targetWindow?: Window
   gestureEvents?: Array<keyof WindowEventMap>
 }
@@ -19,6 +19,11 @@ export interface WL_AudioInitController {
 }
 
 const DEFAULT_GESTURE_EVENTS: Array<keyof WindowEventMap> = ['pointerdown', 'keydown', 'touchstart']
+
+/** Normalises a catch binding into the Error the callbacks receive. */
+function toError(cause: unknown): Error {
+  return cause instanceof Error ? cause : new Error(String(cause))
+}
 
 export function createWeilaAudioInitController(
   options: WL_AudioInitControllerOptions,
@@ -95,14 +100,14 @@ export function createWeilaAudioInitController(
 
   function handleDeferredAudioInit(): void {
     void ensureInitialized().catch((error) => {
-      options.onDeferredInitError?.(error)
+      options.onDeferredInitError?.(toError(error))
       armInitListener()
     })
   }
 
   function initializeWithUserGestureRetry(): void {
     void ensureInitialized().catch((error) => {
-      options.onInitialInitError?.(error)
+      options.onInitialInitError?.(toError(error))
       armInitListener()
     })
   }
