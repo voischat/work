@@ -102,8 +102,14 @@ chat:
     content: Delete session {name}?
     success: Deleted successfully
     title: Delete Session
+  empty-groups: No groups yet
+  member-location: Member locations
+  next-page: Next page
   not-in-group: You are not in this group
   placeholder: Type a message...
+  previous-page: Previous page
+  session-unavailable: This session is unavailable
+  start-conversation: Start a conversation
   sdk-loading: Initializing SDK...
   select-session: Select a session to start chatting
   location:
@@ -179,6 +185,7 @@ form:
     old-password-nonempty: The old password cannot be empty.
     password-nonempty: The password cannot be empty.
     phone-maxLength: ''
+    privacy-agreement-required: Please agree to the Privacy Policy first.
     phone-minLength: The phone number must be at least 11 digits.
     phone-nonempty: The phone number cannot be empty.
     verify-code-nonempty: The verification code cannot be empty.
