@@ -332,6 +332,58 @@ interface WL_IDbLocationShared {
   mapUrl?: string
 }
 
+type WL_IDbServicePayload =
+  | {
+      type: 'qrcode'
+      url?: string
+      name?: string
+      desc?: string
+      sessionId?: string
+      sessionType?: number
+    }
+  | {
+      type: 'session-member-change'
+      action: 'join' | 'exit'
+      members: Array<{ userId: number; nick: string }>
+    }
+  | { type: 'group-destroy' }
+  | {
+      type: 'alarm-power'
+      userId?: number
+      userNumber?: string
+      userNick?: string
+      userAvatar?: string
+      timestamp?: number
+      info?: string
+    }
+  | {
+      type: 'alarm-geofence'
+      userId?: number
+      userNumber?: string
+      userNick?: string
+      userAvatar?: string
+      geofenceId?: number
+      latitude?: number
+      longitude?: number
+      locationType?: number
+      transitionType?: number
+      timestamp?: number
+      address?: string
+    }
+  | {
+      type: 'alarm-sos'
+      userId?: number
+      userNumber?: string
+      userNick?: string
+      userAvatar?: string
+      latitude?: number
+      longitude?: number
+      locationType?: number
+      timestamp?: number
+      address?: string
+      info?: string
+    }
+
 interface WL_IDbPttData {
   seq: number
   seqInPackage: number
@@ -359,6 +411,7 @@ interface WL_IDbMsgData {
   location?: WL_IDbLocationShared
   switchData?: string
   serviceData?: string
+  servicePayload?: WL_IDbServicePayload
   withdrawMsgId?: number
   pttData?: WL_IDbPttData
 }
@@ -514,6 +567,7 @@ export {
   WL_IDbAudioData,
   WL_IDbFileData,
   WL_IDbLocationShared,
+  WL_IDbServicePayload,
   WL_IDbPttData,
   WL_IDbMsgData,
   WL_IDbLocationInfo,
