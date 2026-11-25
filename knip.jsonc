@@ -37,7 +37,6 @@
       "entry": [
         // auto-read by unplugin-vue-macros during the vite build
         "vue-macros.config.ts",
-        "scripts/migrate-explicit-imports.mjs",
       ],
       "ignoreDependencies": [
         // icon sets resolved to CSS by UnoCSS/Iconify at build time
