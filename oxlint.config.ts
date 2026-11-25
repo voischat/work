@@ -121,6 +121,31 @@ export default defineConfig({
       plugins: ['vue'],
     },
     {
+      files: SOURCE_FILES,
+      rules: {
+        // Stylesheets and polyfill entry points are side-effect modules by design.
+        'import/no-unassigned-import': [
+          'warn',
+          { allow: ['**/*.css', '**/*.pcss', 'fake-indexeddb/auto'] },
+        ],
+      },
+    },
+    {
+      files: ['packages/core/src/audio/**'],
+      rules: {
+        // Every postMessage here targets an AudioWorkletNode MessagePort, whose
+        // second argument is a transfer list; targetOrigin does not exist there.
+        'unicorn/require-post-message-target-origin': 'off',
+      },
+    },
+    {
+      files: ['packages/core/tests/**'],
+      rules: {
+        // The built bundle's public surface is window.__sdk / window.__ready.
+        'no-underscore-dangle': ['warn', { allow: ['__sdk', '__ready'] }],
+      },
+    },
+    {
       files: ['**/test/**', '**/*.test.ts', '**/*.spec.ts'],
       rules: {
         'no-console': 'off',

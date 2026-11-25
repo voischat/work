@@ -30,8 +30,7 @@ async function openCoreSession(options: CoreSessionOptions = {}) {
 /** Playwright test with a logged-in `core` session and an audio-enabled `coreAudio` variant. */
 export const test = base.extend<{ core: CoreSession; coreAudio: CoreSession }>({
   core: [
-    // eslint-disable-next-line no-empty-pattern -- Playwright requires this exact signature
-    async ({}, use) => {
+    async (_fixtures, use) => {
       const session = await openCoreSession()
 
       try {
@@ -43,8 +42,7 @@ export const test = base.extend<{ core: CoreSession; coreAudio: CoreSession }>({
     { scope: 'worker' },
   ],
   coreAudio: [
-    // eslint-disable-next-line no-empty-pattern -- Playwright requires this exact signature
-    async ({}, use) => {
+    async (_fixtures, use) => {
       const session = await openCoreSession({ launchArgs: AUDIO_LAUNCH_ARGS })
 
       try {

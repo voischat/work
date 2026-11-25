@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import type { Reactive } from 'vue'
 import { useInfiniteQuery } from '@tanstack/vue-query'
-import { reactive, shallowRef } from 'vue'
+import { computed, shallowRef } from 'vue'
 
 import MessageFileContent from '~/components/MessageFileContent.vue'
 import MessageLocationContent from '~/components/MessageLocationContent.vue'
@@ -40,50 +39,39 @@ const route = useRoute('/message/[group_id]-[group_name]')
 const messageContainerEl = useTemplateRef('messageContainerEl')
 const { arrivedState } = useScroll(messageContainerEl)
 
-const INIT_ID = 0
-const pageSize = shallowRef(20)
-
 function getToday() {
   return new Date().toISOString().split('T')[0]
 }
 
 const date = shallowRef(getToday())
 
-const payload: Reactive<any> = reactive({
-  group_id: Number(route.params.group_id),
-  msg_id: INIT_ID,
-  msg_count: pageSize,
-  date,
-})
-
-const users = reactive<Record<string, any['data']['users'][number]>>({})
-
-// eslint-disable-next-line @tanstack/query/exhaustive-deps -- payload is mutated by pageParam and its identity never changes
 const { data, fetchNextPage } = useInfiniteQuery({
   enabled: computed(() => Boolean(date.value)),
-  initialPageParam: INIT_ID,
-  queryKey: ['/corp/web/message-get-group-history-message', date],
-  queryFn: async ({ pageParam = INIT_ID }) => {
-    payload.msg_id = pageParam
-
-    return await weilaFetch<any>('/corp/web/message-get-group-history-message', {
-      body: payload,
+  initialPageParam: 0,
+  queryKey: ['/corp/web/message-get-group-history-message', date, route.params.group_id],
+  queryFn: async ({ pageParam = 0 }) => {
+    const res = await weilaFetch<any>('/corp/web/message-get-group-history-message', {
+      body: {
+        group_id: Number(route.params.group_id),
+        msg_id: pageParam,
+        msg_count: 20,
+        date: date.value,
+      },
     })
-      .then((i: any) => {
-        for (const user of i.users) {
-          users[user.user_id] = user
-        }
-        return i
-      })
-      .then((i: any) => i.messages)
+
+    return { messages: res.messages, users: res.users }
   },
   getNextPageParam: (lastPage) => {
-    if (lastPage.length < pageSize.value)
+    if (lastPage.messages.length < 20)
       return undefined
 
-    return Math.min(...lastPage.map((i: any) => i.msg_id))
+    return Math.min(...lastPage.messages.map((i: any) => i.msg_id))
   },
 })
+
+const users = computed<Record<string, any['data']['users'][number]>>(() =>
+  Object.fromEntries((data.value?.pages ?? []).flatMap(page => page.users.map((user: any) => [user.user_id, user]))),
+)
 
 watch(arrivedState, ({ top }) => {
   if (top)
@@ -110,7 +98,7 @@ $inspect(data)
         dark:bg-dark-800
       >
         <template v-for="page in data?.pages">
-          <li v-for="message in page" id="message-list" :key="message.msg_id" flex gap1 p-3>
+          <li v-for="message in page.messages" id="message-list" :key="message.msg_id" flex gap1 p-3>
             <section>
               <a-avatar :image-url="users[message.user_id]?.avatar">
                 <IconUser />

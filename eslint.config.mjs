@@ -35,6 +35,13 @@ export default antfu(
     ignores: ['**/webview/**', '**/network/**', '**/*.md', '**/*.md/**'],
   })),
   {
+    // A debug-inspection helper: console output is the utility's entire job.
+    files: ['apps/website/src/utils/inspect.ts'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
+  {
     files: ['apps/website/**/*.vue'],
     rules: {
       '@intlify/vue-i18n/no-raw-text': [
