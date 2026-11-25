@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - v*
+      - '@vois/weila-sdk-core@*'
+      - '@vois/weila-sdk-ui@*'
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.28.13
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      - name: Verify tag version
+        run: node scripts/release-check.mjs
+      - name: Publish npm package
+        if: startsWith(github.ref_name, '@vois/')
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: node scripts/release-publish.mjs
+      - name: Create GitHub release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/release-notes.mjs

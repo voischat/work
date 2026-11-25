@@ -38,8 +38,6 @@
         // auto-read by unplugin-vue-macros during the vite build
         "vue-macros.config.ts",
         // manual release helpers (the only consumers of root zx)
-        "scripts/archive.ts",
-        "scripts/upload-release.ts",
       ],
       "ignoreDependencies": [
         // icon sets resolved to CSS by UnoCSS/Iconify at build time

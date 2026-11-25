@@ -28,7 +28,6 @@ Vue 3 + TS 企业管理台（`apps/website`）。企业通讯：通讯录、消�
 | `pnpm knip` | 未使用文件、导出、依赖（必须零发现） |
 | `pnpm -C apps/website run typecheck` | TypeScript 检查 |
 | `pnpm test` | Vitest |
-| `pnpm -C apps/website run release` | 版本升级 + 发布 |
 
 ## Code Style
 

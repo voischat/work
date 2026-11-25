@@ -20,11 +20,7 @@
     "typecheck": "vue-tsc --noEmit --skipLibCheck",
     "up": "taze -I major",
     "lint": "eslint .",
-    "archive": "esno scripts/archive.ts",
-    "upload": "esno scripts/upload-release.ts",
     "test": "vitest run",
-    "release": "npx bumpp",
-    "pack": "nr release && nr build && nr archive && nr upload",
     "test:watch": "vitest"
   },
   "dependencies": {
@@ -65,7 +61,6 @@
     "zod-arco-rules": "catalog:"
   },
   "devDependencies": {
-    "@antfu/ni": "catalog:",
     "@arco-plugins/vite-vue": "catalog:",
     "@iconify-json/carbon": "catalog:",
     "@iconify-json/ph": "catalog:",
@@ -81,10 +76,8 @@
     "@vois/weila-sdk-ui": "workspace:*",
     "@vuemap/unplugin-resolver": "catalog:",
     "@wl/network": "catalog:",
-    "bumpp": "catalog:",
     "cross-env": "catalog:",
     "eslint": "catalog:",
-    "esno": "catalog:",
     "jiti": "catalog:",
     "less": "catalog:",
     "taze": "catalog:",
@@ -100,7 +93,6 @@
     "vite-plugin-mkcert": "catalog:",
     "vite-plugin-vue-layouts": "catalog:",
     "vitest": "catalog:",
-    "vue-tsc": "catalog:web",
-    "zx": "catalog:"
+    "vue-tsc": "catalog:web"
   }
 }
