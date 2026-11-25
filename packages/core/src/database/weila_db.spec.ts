@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto'
 import { afterEach, describe, expect, it } from 'vitest'
 import { Dexie } from 'dexie'
+import Long from 'long'
 import { WL } from 'proto/weilapb'
 import { WeilaDB } from './weila_db'
 import {
@@ -86,10 +87,10 @@ function makeServiceRaw(
 ): WL.Session.IMsgData {
   return {
     senderId: 7,
-    sessionId,
+    sessionId: Long.fromString(sessionId),
     sessionType: WL.Common.SessionType.SESSION_TYPE_SINGLE,
     msgId,
-    created: 2000 + msgId,
+    created: Long.fromNumber(2000 + msgId),
     msgType: WL.Session.MessageType.MSG_TYPE_SERVICE,
     serviceData,
   }
@@ -149,6 +150,42 @@ describe('WeilaDB service messages', () => {
     expect(messages[0].msgType).toBe(WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE)
     expect(messages[0].fileInfo?.fileUrl).toBe(CAPTURED_IMAGE_URL)
     expect(messages[0].serviceData).toBeUndefined()
+  })
+
+  it('repairs service messages already stored as legacy rows', async () => {
+    const db = await openDb(nextUserId(), CURRENT_DB_VERSION)
+    const legacyMessage: WL_IDbMsgData = {
+      combo_id: '4800_1_22',
+      senderId: 7,
+      sessionId: '4800',
+      sessionType: WL.Common.SessionType.SESSION_TYPE_SINGLE,
+      msgId: 22,
+      msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE,
+      created: 2022,
+      autoReply: 0,
+      status: WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_READ,
+      serviceData: CAPTURED_IMAGE_SERVICE_DATA,
+    }
+    const session = makeSession('4800')
+    session.lastMsgId = legacyMessage.msgId
+    session.lastMsgData = { ...legacyMessage }
+
+    await db.msgDatas.put(legacyMessage)
+    await db.sessions.put(session)
+
+    await expect(db.repairLegacyServiceMsgDatas()).resolves.toBe(1)
+
+    const repairedMessage = await db.getMsgData(legacyMessage.combo_id)
+    expect(repairedMessage?.msgType).toBe(WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE)
+    expect(repairedMessage?.fileInfo?.fileUrl).toBe(CAPTURED_IMAGE_URL)
+    expect(repairedMessage?.serviceData).toBeUndefined()
+
+    const repairedSession = await db.getSession(session.sessionId, session.sessionType)
+    expect(repairedSession?.lastMsgData?.msgType).toBe(WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE)
+    expect(repairedSession?.lastMsgData?.fileInfo?.fileUrl).toBe(CAPTURED_IMAGE_URL)
+    expect(repairedSession?.lastMsgData?.serviceData).toBeUndefined()
+
+    await expect(db.repairLegacyServiceMsgDatas()).resolves.toBe(0)
   })
 })
 
