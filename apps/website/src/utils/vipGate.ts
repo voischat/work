@@ -1,10 +1,16 @@
-import type { VipInfo } from '~/stores/auth'
+import type { VipFlag, VipInfo } from '~/stores/auth'
+import { objectEntries } from '@antfu/utils'
 
-function getUnsupportedNames(vip: VipInfo | undefined): string[] {
-  return vip?.vip_supports?.filter(i => !i.support).map(i => i.name) || []
+function getUnsupportedNames(vip: VipInfo | undefined): VipFlag[] {
+  const supports = vip?.supports
+  if (!supports)
+    return []
+  return objectEntries(supports)
+    .filter(([, supported]) => !supported)
+    .map(([name]) => name)
 }
 
-export function isPathVipGated(path: string, vip: VipInfo | undefined, flag?: string): boolean {
+export function isPathVipGated(path: string, vip: VipInfo | undefined, flag?: VipFlag): boolean {
   const unsupported = getUnsupportedNames(vip)
   if (flag)
     return unsupported.includes(flag)

@@ -83,7 +83,7 @@ const submit = handleSubmit(async (values: any) => {
 })
 
 const isFastTrackDisabled = computed(() =>
-  !authStore.vip?.vip_supports.find(i => i.name === 'track')?.quick_support,
+  !authStore.vip?.supports.track_quick,
 )
 
 const getPowerWarningTooltip = () => t('tooltips.track.power-warning')
@@ -96,7 +96,7 @@ const getFastTrackTooltip = computed(() => () =>
 )
 
 const isLocShareLocked = computed(() =>
-  authStore.vip?.vip_supports.find(i => i.name === 'location')?.support === false,
+  authStore.vip?.supports.location === false,
 )
 
 const getLocShareTooltip = computed(() => () =>
@@ -172,7 +172,7 @@ const getLocShareTooltip = computed(() => () =>
         <a-form-item field="is_dept_admin" :label="t('dept-manager')">
           <a-switch v-model="form.is_dept_admin" :checked-value="1" :unchecked-value="0" :checked-color="themeColor" unchecked-color="#ddd" />
         </a-form-item>
-        <a-form-item v-if="authStore.vip?.vip_supports.find((i) => i.name === 'track')?.support" field="track" :label="t('change-member.form.track.label')">
+        <a-form-item v-if="authStore.vip?.supports.track" field="track" :label="t('change-member.form.track.label')">
           <a-radio-group v-model="form.track" type="button">
             <a-radio :value="TrackType.Close">
               {{ t('track-type.close') }}

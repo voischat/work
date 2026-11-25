@@ -2,36 +2,31 @@
   "errcode": 0,
   "errmsg": "请求成功",
   "data": {
-    "vip": {
-      "vip": 16,
-      "vip_name": "标准版",
-      "vip_expired": 1787846400,
-      "vip_created": 1787846400,
-      "vip_supports": [
-        {
-          "member_batch_create": false,
-          "member_limit": 100,
-          "name": "member",
-          "support": true
-        },
-        {
-          "dept_limit": 30,
-          "dept_member_limit": 100,
-          "name": "dept",
-          "support": true
-        },
-        {
-          "group_limit": 100,
-          "group_member_limit": 500,
-          "name": "group",
-          "support": true
-        },
-        { "device_limit": 100000, "name": "device", "support": true },
-        { "name": "track", "quick_support": false, "support": false },
-        { "name": "location", "support": false },
-        { "name": "api", "support": false },
-        { "name": "message", "support": true }
-      ]
+    "membership": {
+      "level": 16,
+      "name": "标准版",
+      "expired": 1787846400,
+      "created": 1787846400,
+      "member_limit": 100,
+      "dept_limit": 30,
+      "dept_member_limit": 100,
+      "group_limit": 100,
+      "group_member_limit": 500,
+      "device_limit": 100000,
+      "device_group_limit": 10,
+      "supports": {
+        "api": false,
+        "dept": true,
+        "device": true,
+        "group": true,
+        "location": false,
+        "member": true,
+        "member_batch_create": false,
+        "message": true,
+        "simcard": true,
+        "track": false,
+        "track_quick": false
+      }
     }
   }
 }
