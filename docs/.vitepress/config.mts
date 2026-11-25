@@ -45,6 +45,10 @@ export default defineConfig({
           },
         ],
       },
+      {
+        text: '开发',
+        items: [{ text: '本地开发环境', link: '/development' }],
+      },
     ],
 
     socialLinks: [],
