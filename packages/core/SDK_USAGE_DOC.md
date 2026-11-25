@@ -11,11 +11,10 @@ npm install @vois/weila-sdk-core
 每个 PR 和 `main` 分支的最新提交都会通过 [pkg.pr.new](https://github.com/stackblitz-labs/pkg.pr.new) 发布预览包：
 
 ```bash
-pnpm add --config.block-exotic-subdeps=false \
-  https://pkg.pr.new/voischat/work/@vois/weila-sdk-core@<PR 编号或 commit SHA>
+pnpm add https://pkg.pr.new/voischat/work/@vois/weila-sdk-core@<PR 编号或 commit SHA>
 ```
 
-pnpm 11 起默认禁止 URL 形式的传递依赖，安装预览包时需要 `--config.block-exotic-subdeps=false`。
+core 预览包没有 URL 形式的传递依赖，不需要额外配置。UI 预览包把 core 声明为 peer dependency，安装 UI 时请把同一次发布的 core 和 UI 两个 URL 一起传给 `pnpm add`。
 
 ## 模块格式
 

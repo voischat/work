@@ -875,9 +875,6 @@ importers:
 
   packages/ui:
     dependencies:
-      '@vois/weila-sdk-core':
-        specifier: workspace:*
-        version: link:../core
       floating-vue:
         specifier: ^5.1.1
         version: 5.2.2(vue@3.5.45(typescript@6.0.3))
@@ -915,6 +912,9 @@ importers:
       '@vitest/browser-playwright':
         specifier: 'catalog:'
         version: 4.1.12(msw@2.12.0(@types/node@26.6.6)(typescript@6.0.3))(playwright@1.59.1)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(less@4.9.1(supports-color@10.2.2))(terser@5.37.0)(tsx@4.23.15)(yaml@2.9.1))(vitest@5.1.1)
+      '@vois/weila-sdk-core':
+        specifier: workspace:*
+        version: link:../core
       '@vue/test-utils':
         specifier: 'catalog:'
         version: 2.6.0(@vue/compiler-dom@3.5.45)(@vue/server-renderer@3.5.42)(vue@3.5.45(typescript@6.0.3))
