@@ -17,6 +17,7 @@ const CURRENT_DB_VERSION = 3
 
 const CAPTURED_IMAGE_URL =
   'http://weilacache.oss-cn-shenzhen.aliyuncs.com/media/cg/80001922/20261125/1875437_142130_1.jpg'
+
 const CAPTURED_IMAGE_SERVICE_DATA = JSON.stringify({
   service_type: 'image',
   content: { url: CAPTURED_IMAGE_URL },
@@ -141,6 +142,7 @@ describe('WeilaDB messages', () => {
 describe('WeilaDB service messages', () => {
   it('converts an image service message into an image message', async () => {
     const db = await openDb(nextUserId(), CURRENT_DB_VERSION)
+
     const messages = db.convertFromMsgDataRaws(
       [makeServiceRaw('4700', 21, CAPTURED_IMAGE_SERVICE_DATA)],
       7,
@@ -154,6 +156,7 @@ describe('WeilaDB service messages', () => {
 
   it('repairs service messages already stored as legacy rows', async () => {
     const db = await openDb(nextUserId(), CURRENT_DB_VERSION)
+
     const legacyMessage: WL_IDbMsgData = {
       combo_id: '4800_1_22',
       senderId: 7,
@@ -166,6 +169,7 @@ describe('WeilaDB service messages', () => {
       status: WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_READ,
       serviceData: CAPTURED_IMAGE_SERVICE_DATA,
     }
+
     const session = makeSession('4800')
     session.lastMsgId = legacyMessage.msgId
     session.lastMsgData = { ...legacyMessage }
