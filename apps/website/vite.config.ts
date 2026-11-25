@@ -25,9 +25,9 @@ export default defineConfig(() => {
     ? 'http://demo.weila.hk'
     : 'https://api.voischat.cn'
 
-  const proxyTargetV2 = isDev
+  const proxyTargetV2 = process.env.WEILA_V2_PROXY || (isDev
     ? 'http://localhost:8090'
-    : 'https://api.voischat.cn'
+    : 'https://api.voischat.cn')
 
   return {
     base: './',

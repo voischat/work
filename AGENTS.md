@@ -42,6 +42,7 @@ Repository-specific rules:
 - `packages/core/.env` deliberately does not exist. The SDK bundle must not embed app credentials; consumers pass `appId`/`appKey` to `weila_init`.
 - Claude Code worktrees copy the three repo-level files through `.worktreeinclude`. Other worktree tools do not, so run `pnpm env:setup` inside a fresh worktree.
 - The verification skills read `WEILA_QA_ACCOUNT` / `WEILA_QA_PASSWORD` from the environment; keep real values out of git.
+- `WEILA_V2_PROXY` retargets the dev server's `/v2` proxy for testing another backend, for example `WEILA_V2_PROXY=http://192.168.1.29 pnpm dev:prod`. Without it the profile defaults apply.
 
 ## Commands
 
