@@ -48,8 +48,6 @@ export const useAuthStore = defineStore('auth', () => {
   function needRefresh() {
     const expireTime = loginTime.value + (expiresIn.value / 2) * 1000
     const now = Date.now()
-    // eslint-disable-next-line no-console
-    console.log('expiresIn.value', expiresIn.value)
     return expireTime < now
   }
 

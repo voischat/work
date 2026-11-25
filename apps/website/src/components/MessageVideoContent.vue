@@ -1,10 +1,6 @@
-<!-- eslint-disable vue/prop-name-casing -->
 <script setup lang="ts">
-import type videojs from 'video.js'
 import { VideoPlayer } from '@videojs-player/vue'
 import { shallowRef } from 'vue'
-
-type VideoJsPlayer = ReturnType<typeof videojs>
 
 defineProps<{
   content: {
@@ -16,17 +12,6 @@ defineProps<{
 }>()
 
 const visible = shallowRef(false)
-
-const player = shallowRef<VideoJsPlayer>()
-
-function handleMounted(payload: any) {
-  player.value = payload.player
-}
-
-function handleEvent(log: any) {
-  // eslint-disable-next-line no-console
-  console.info(log)
-}
 </script>
 
 <template>
@@ -40,10 +25,7 @@ function handleEvent(log: any) {
         autoplay
         :src="content.video_url" class="video-player vjs-big-play-centered h75vh rounded"
         :poster="content.image" crossorigin="anonymous" controls playsinline :volume="0.6" :height="320"
-        :playback-rates="[0.7, 1.0, 1.5, 2.0]" :prefer-full-window="true" @mounted="handleMounted" @ready="handleEvent"
-        @play="handleEvent"
-        @pause="handleEvent" @ended="handleEvent" @loadeddata="handleEvent" @waiting="handleEvent" @playing="handleEvent"
-        @canplay="handleEvent" @canplaythrough="handleEvent" @timeupdate="() => handleEvent(player?.currentTime())"
+        :playback-rates="[0.7, 1.0, 1.5, 2.0]" :prefer-full-window="true"
       />
     </template>
   </TheModal>

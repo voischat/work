@@ -7,7 +7,6 @@ import { isFunction } from '@antfu/utils'
  * @author kvoon
  */
 export function $inspect(...args: MaybeRefOrGetter[]) {
-  /* eslint-disable no-console */
   let logFn = console.log
   // TODO: change type
   const type: 'init' | 'update' = 'update'

@@ -194,10 +194,14 @@ function handleInvalidSessionsChange(keys: Set<string>) {
 }
 
 // 检查当前用户是否仍在选中的群组中
-// eslint-disable-next-line @tanstack/query/exhaustive-deps -- enabled already gates on isSelectedSessionUnavailable
 const { data: isInSelectedGroup } = useQuery<boolean>({
   enabled: computed(() => Boolean(selfUserId.value && selectedGroupId.value && !isSelectedSessionUnavailable.value)),
-  queryKey: ['corp/group/get-group-all-member/self-membership', selectedGroupId, selfUserId],
+  queryKey: [
+    'corp/group/get-group-all-member/self-membership',
+    selectedGroupId,
+    selfUserId,
+    isSelectedSessionUnavailable,
+  ],
   queryFn: async () => {
     const groupId = selectedGroupId.value
     if (!groupId || isSelectedSessionUnavailable.value)

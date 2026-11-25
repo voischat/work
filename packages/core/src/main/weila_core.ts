@@ -55,7 +55,7 @@ import {
 import { dbEnum } from 'db/db_enum'
 import { getLogger } from 'log/weila_log'
 import { fetchAudioDataFromUrl, getMsgDataIdByCombo } from 'main/weila_utils'
-import { isRecord } from 'main/weila_type_guards'
+import { isCallable, isRecord } from 'main/weila_type_guards'
 import WLLoginModule from 'main/weila_login_module'
 import WLSessionModule from 'main/weila_session_module'
 import WLFriendModule from 'main/weila_friend_module'
@@ -80,10 +80,6 @@ import WLBusinessModule from 'main/weila_business_module'
 
 const wllog = getLogger('CORE:info')
 const wlerr = getLogger('CORE:err')
-
-function isCallable(value: unknown): value is (...args: any[]) => any {
-  return typeof value === 'function'
-}
 
 interface WL_SubscribeRequest {
   topic: WL_SubscribeTopic
