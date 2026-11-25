@@ -12,6 +12,7 @@ import { computed, h, onMounted, reactive, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useWeilaApi } from '~/composables/useWeilaApi'
+import { useAuthStore } from '~/stores/auth'
 import { useSelfInfoStore } from '~/stores/selfInfo'
 import { useWeilaStore } from '~/stores/weila'
 import ChatLauncher from './components/ChatLauncher.vue'
@@ -32,13 +33,33 @@ const weilaApi = useWeilaApi()
 
 const weilaStore = useWeilaStore()
 const { core: weilaCore, userInfo } = storeToRefs(weilaStore)
+const authStore = useAuthStore()
+
+type SdkInitState = 'initializing' | 'ready' | 'missing-credentials' | 'login-failed'
+const sdkInitState = shallowRef<SdkInitState>('initializing')
 
 async function initSdk() {
-  if (weilaCore.value && userInfo.value)
+  if (weilaCore.value && userInfo.value) {
+    sdkInitState.value = 'ready'
     return weilaCore.value
+  }
 
+  sdkInitState.value = 'initializing'
   const loggedIn = await weilaStore.autoLogin()
-  return loggedIn ? weilaCore.value : null
+  if (loggedIn && weilaCore.value && userInfo.value) {
+    sdkInitState.value = 'ready'
+    return weilaCore.value
+  }
+
+  if (weilaStore.autoLoginError)
+    console.warn('[WorkbenchChat] SDK auto login failed:', weilaStore.autoLoginError)
+  sdkInitState.value = weilaStore.hasSavedCredentials ? 'login-failed' : 'missing-credentials'
+  return null
+}
+
+async function relogin() {
+  await weilaStore.logout()
+  authStore.logout()
 }
 
 onMounted(() => {
@@ -660,10 +681,27 @@ async function handleForwardTargetSelect(target: SessionSelectPayload) {
 
 <template>
   <div h-full>
-    <div v-if="!weilaCore" class="flex items-center justify-center h-full text-neutral-400">
+    <div v-if="sdkInitState === 'initializing'" class="flex items-center justify-center h-full text-neutral-400">
       {{ t('chat.sdk-loading') }}
     </div>
-    <div v-else class="flex h-full">
+    <div v-else-if="sdkInitState === 'missing-credentials'" class="flex flex-col items-center justify-center h-full gap-3 text-neutral-500">
+      <span>{{ t('chat.sdk-missing-credentials') }}</span>
+      <a-button type="primary" @click="relogin">
+        {{ t('chat.sdk-relogin') }}
+      </a-button>
+    </div>
+    <div v-else-if="sdkInitState === 'login-failed'" class="flex flex-col items-center justify-center h-full gap-3 text-neutral-500">
+      <span>{{ t('chat.sdk-login-failed') }}</span>
+      <div class="flex gap-2">
+        <a-button type="primary" @click="initSdk">
+          {{ t('chat.sdk-retry') }}
+        </a-button>
+        <a-button @click="relogin">
+          {{ t('chat.sdk-relogin') }}
+        </a-button>
+      </div>
+    </div>
+    <div v-else-if="weilaCore && userInfo" class="flex h-full">
       <WlChatPanel
         ref="chatPanelRef" v-model:selected-session-id="selectedSessionId"
         v-model:selected-session-type="selectedSessionType" :core="weilaCore" :current-user-id="currentUserId"

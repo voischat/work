@@ -111,6 +111,10 @@ chat:
   session-unavailable: This session is unavailable
   start-conversation: Start a conversation
   sdk-loading: Initializing SDK...
+  sdk-missing-credentials: No SDK credentials found. Please sign in again.
+  sdk-login-failed: SDK login failed. Retry or sign in again.
+  sdk-retry: Retry
+  sdk-relogin: Sign in again
   select-session: Select a session to start chatting
   location:
     open-in-amap: Open in AMap
