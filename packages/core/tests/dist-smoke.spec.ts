@@ -1,5 +1,4 @@
 // window.__sdk and window.__ready are the built bundle's public surface.
-/* oxlint-disable no-underscore-dangle */
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import vm from 'node:vm'
@@ -22,6 +21,10 @@ let server: Awaited<ReturnType<typeof startServer>>
 let browser: Browser
 let page: Page
 const consoleErrors: string[] = []
+
+// The worklet bundle subclasses AudioWorkletProcessor; a plain constructor is
+// all the sandbox needs.
+function AudioWorkletProcessor() {}
 
 test.beforeAll(async () => {
   server = await startServer()
@@ -76,8 +79,7 @@ test('worklet bundles register their processors', () => {
   const registered: string[] = []
 
   const sandbox = {
-    // oxlint-disable-next-line typescript/no-extraneous-class -- the worklet bundle only needs the global to exist
-    AudioWorkletProcessor: class {},
+    AudioWorkletProcessor,
     Blob,
     console,
     currentTime: 0,

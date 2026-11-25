@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-unassigned-import
 import 'fake-indexeddb/auto'
 import { afterEach, describe, expect, it } from 'vitest'
 import { Dexie } from 'dexie'

@@ -58,7 +58,6 @@ function handleLocationClick(location: {
   name: string
   address: string
 }) {
-  // eslint-disable-next-line no-console
   console.log('[Playground] Location clicked:', location)
 }
 </script>

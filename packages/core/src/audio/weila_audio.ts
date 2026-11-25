@@ -1,4 +1,4 @@
-/* oxlint-disable import/default -- the worklet loader inlines these bundles and supplies the default export */
+/* oxlint-disable import/default -- worklet-inline-loader emits these as URL strings */
 import PlayerWorklet from './weila_player.worklet.js'
 import RecorderWorklet from './weila_recorder.worklet.js'
 /* oxlint-enable import/default */
@@ -270,7 +270,6 @@ class WLAudio {
 
     if (node) {
       wllog('发送播放器事件:', event)
-      // eslint-disable-next-line unicorn/require-post-message-target-origin
       node.port.postMessage({ event: event, data: data })
     }
   }
@@ -498,7 +497,6 @@ class WLAudio {
       compoArray.putArrays(opusData)
 
       const compoBuffer = compoArray.getCompoArray()
-      // eslint-disable-next-line unicorn/require-post-message-target-origin
       this.requirePlayerWorkNode(playerType).port.postMessage(
         {
           event: WLAudioPlayerEvent.WL_WORKLET_NODE_PUT_DATA,
@@ -543,7 +541,6 @@ class WLAudio {
     wllog('发送录音器事件%d', event)
 
     if (this.recorderWorkNode) {
-      // eslint-disable-next-line unicorn/require-post-message-target-origin
       this.recorderWorkNode.port.postMessage({ event: event, data: data })
     }
   }

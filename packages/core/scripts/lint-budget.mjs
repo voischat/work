@@ -47,7 +47,7 @@ function runLint() {
   try {
     const output = execFileSync(
       join(REPO, 'node_modules/.bin/oxlint'),
-      ['--type-aware', '--format', 'json', '.'],
+      ['--type-aware', '--report-unused-disable-directives', '--format', 'json', '.'],
       {
         cwd: REPO,
         encoding: 'utf8',

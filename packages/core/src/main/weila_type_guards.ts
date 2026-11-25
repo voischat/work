@@ -15,4 +15,8 @@ function isString(value: unknown): value is string {
   return typeof value === 'string'
 }
 
-export { isRecord, isString }
+function isCallable(value: unknown): value is (...args: any[]) => any {
+  return typeof value === 'function'
+}
+
+export { isCallable, isRecord, isString }

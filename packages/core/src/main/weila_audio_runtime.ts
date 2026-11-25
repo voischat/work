@@ -1,3 +1,5 @@
+import { isCallable } from 'main/weila_type_guards'
+
 const PATCH_MARK = '__weilaAudioRuntimePatched__'
 
 export interface WL_AudioRuntimePatchOptions {
@@ -12,8 +14,12 @@ interface WL_PatchedWindow extends Window {
 function patchAudioWorkletAddModule(options: Required<WL_AudioRuntimePatchOptions>): void {
   if (typeof AudioWorklet === 'undefined' || !AudioWorklet.prototype?.addModule) return
 
-  // oxlint-disable-next-line typescript/unbound-method -- every call below passes the instance with .call(this)
-  const originalAddModule = AudioWorklet.prototype.addModule
+  const originalAddModule = Object.getOwnPropertyDescriptor(
+    AudioWorklet.prototype,
+    'addModule',
+  )?.value
+
+  if (!isCallable(originalAddModule)) return
   const workletRedirects = [options.playerWorkletUrl, options.recorderWorkletUrl]
 
   const workletMap = new Map([
