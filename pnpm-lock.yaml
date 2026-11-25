@@ -201,9 +201,6 @@ catalogs:
     '@iconify-json/ph':
       specifier: ^1.2.2
       version: 1.2.2
-    '@iconify-json/svg-spinners':
-      specifier: ^1.2.4
-      version: 1.2.4
     '@iconify/tailwind4':
       specifier: ^1.2.3
       version: 1.2.3
@@ -282,9 +279,6 @@ catalogs:
     '@types/nprogress':
       specifier: ^0.2.3
       version: 0.2.3
-    '@unocss/eslint-plugin':
-      specifier: ^66.13.0
-      version: 66.13.0
     '@unocss/reset':
       specifier: 66.1.0-beta.3
       version: 66.1.0-beta.3
@@ -369,9 +363,6 @@ catalogs:
     eslint-factory:
       specifier: ^0.1.2
       version: 0.1.2
-    eslint-plugin-format:
-      specifier: ^2.0.1
-      version: 2.0.1
     eslint-plugin-slop:
       specifier: 0.1.3
       version: 0.1.3
@@ -393,9 +384,6 @@ catalogs:
     html-to-image:
       specifier: ^1.11.13
       version: 1.11.13
-    jiti:
-      specifier: ^2.7.0
-      version: 2.7.0
     jsdom:
       specifier: ^29.1.1
       version: 29.1.1
@@ -613,9 +601,6 @@ importers:
       '@tanstack/eslint-plugin-query':
         specifier: 'catalog:'
         version: 5.108.4(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)
-      '@unocss/eslint-plugin':
-        specifier: 'catalog:'
-        version: 66.13.0(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)
       bumpp:
         specifier: 'catalog:'
         version: 12.3.0
@@ -628,9 +613,6 @@ importers:
       eslint-factory:
         specifier: 'catalog:'
         version: 0.1.2(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)
-      eslint-plugin-format:
-        specifier: 'catalog:'
-        version: 2.0.1(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))
       eslint-plugin-slop:
         specifier: 'catalog:'
         version: 0.1.3(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))
@@ -876,9 +858,6 @@ importers:
       '@iconify-json/ph':
         specifier: 'catalog:'
         version: 1.2.2
-      '@iconify-json/svg-spinners':
-        specifier: 'catalog:'
-        version: 1.2.4
       '@kvoon/utils':
         specifier: 'catalog:'
         version: 0.3.1
@@ -921,9 +900,6 @@ importers:
       eslint:
         specifier: 'catalog:'
         version: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
-      jiti:
-        specifier: 'catalog:'
-        version: 2.7.0
       less:
         specifier: 'catalog:'
         version: 4.9.1(supports-color@10.2.2)
@@ -2043,9 +2019,6 @@ packages:
 
   '@iconify-json/simple-icons@1.2.103':
     resolution: {integrity: sha512-FMn+aVTsqQdYOwf5reCXXtfWapb+4ijI6WrU8ej1spWXWfA+d41TBXcKagHFwiHZyqt7kP7F04AiG1dYj2R06w==}
-
-  '@iconify-json/svg-spinners@1.2.4':
-    resolution: {integrity: sha512-ayn0pogFPwJA1WFZpDnoq9/hjDxN+keeCMyThaX4d3gSJ3y0mdKUxIA/b1YXWGtY9wVtZmxwcvOIeEieG4+JNg==}
 
   '@iconify/tailwind4@1.2.3':
     resolution: {integrity: sha512-z8SKiMHRASJKF/IY//87MF88lcB7ulxh8vlhQXXLWsBkNtOh6ese9R41MyGpQeqXdRvQVt+/fX2glQtHFjQ+MA==}
@@ -10771,15 +10744,19 @@ snapshots:
 
   '@docsearch/sidepanel-js@4.7.1': {}
 
-  '@dprint/formatter@0.5.1': {}
+  '@dprint/formatter@0.5.1':
+    optional: true
 
-  '@dprint/markdown@0.21.1': {}
+  '@dprint/markdown@0.21.1':
+    optional: true
 
-  '@dprint/toml@0.7.0': {}
+  '@dprint/toml@0.7.0':
+    optional: true
 
   '@drizzle-team/brocli@0.10.2': {}
 
-  '@dual-bundle/import-meta-resolve@4.2.1': {}
+  '@dual-bundle/import-meta-resolve@4.2.1':
+    optional: true
 
   '@e18e/eslint-plugin@0.8.1(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(oxlint@1.94.0(oxlint-tsgolint@7.0.2008))':
     dependencies:
@@ -11151,10 +11128,6 @@ snapshots:
       '@iconify/types': 2.0.0
 
   '@iconify-json/simple-icons@1.2.103':
-    dependencies:
-      '@iconify/types': 2.0.0
-
-  '@iconify-json/svg-spinners@1.2.4':
     dependencies:
       '@iconify/types': 2.0.0
 
@@ -13211,6 +13184,7 @@ snapshots:
       - '@typescript/native'
       - supports-color
       - typescript
+    optional: true
 
   '@unocss/extractor-arbitrary-variants@66.13.0':
     dependencies:
@@ -15428,6 +15402,7 @@ snapshots:
     dependencies:
       eslint: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       prettier-linter-helpers: 1.0.0
+    optional: true
 
   eslint-json-compat-utils@0.2.3(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(jsonc-eslint-parser@3.3.0):
     dependencies:
@@ -15439,7 +15414,8 @@ snapshots:
     dependencies:
       eslint: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
 
-  eslint-parser-plain@0.1.1: {}
+  eslint-parser-plain@0.1.1:
+    optional: true
 
   eslint-plugin-antfu@3.3.1(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2)):
     dependencies:
@@ -15471,6 +15447,7 @@ snapshots:
       oxfmt: 0.35.0
       prettier: 3.10.1
       synckit: 0.11.13
+    optional: true
 
   eslint-plugin-import-lite@0.6.0(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2)):
     dependencies:
@@ -15810,7 +15787,8 @@ snapshots:
 
   fast-deep-equal@3.1.3: {}
 
-  fast-diff@1.3.0: {}
+  fast-diff@1.3.0:
+    optional: true
 
   fast-glob@3.3.3:
     dependencies:
@@ -17516,6 +17494,7 @@ snapshots:
       '@oxfmt/binding-win32-arm64-msvc': 0.35.0
       '@oxfmt/binding-win32-ia32-msvc': 0.35.0
       '@oxfmt/binding-win32-x64-msvc': 0.35.0
+    optional: true
 
   oxfmt@0.80.0:
     dependencies:
@@ -17788,8 +17767,10 @@ snapshots:
   prettier-linter-helpers@1.0.0:
     dependencies:
       fast-diff: 1.3.0
+    optional: true
 
-  prettier@3.10.1: {}
+  prettier@3.10.1:
+    optional: true
 
   pretty-format@27.5.1:
     dependencies:
@@ -18525,6 +18506,7 @@ snapshots:
     dependencies:
       '@dual-bundle/import-meta-resolve': 4.2.1
       '@pkgr/core': 0.3.6
+    optional: true
 
   tabbable@6.5.2: {}
 
