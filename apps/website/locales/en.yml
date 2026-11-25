@@ -494,6 +494,58 @@ sendSMS:
 shutup: Mute
 shutup-disable: Not muted.
 shutup-enable: Muted
+simcard:
+  no-permission: Only the enterprise owner can manage SIM cards
+  tabs:
+    stats: Statistics
+    orders: Order History
+  stats:
+    expiring-in-30d: Expiring within 1 month
+    expiring-in-30d-hint: Expires within 30 days, excluding expired
+    renewable: Renewable
+    renewable-hint: Valid for less than 6 months, including expired
+    select-window-hint: Click a stat card above to view its cards
+  card:
+    iccid: ICCID
+    expiry-date: Expiry date
+    model: Device model
+    imei: IMEI
+    user-num: Weila number
+    user-nick: Device nickname
+    expired: Expired
+    empty: No SIM cards
+    selected-total: 'Selected {selected} / {total}'
+    export-selected: Export selected
+  renew:
+    action: Renew
+    title: Renew SIM card
+    creating: Creating renewal order...
+    product-name: Product name
+    product-desc: Product description
+    amount: Amount
+    order-no: Order number
+    notice: Online payment is not available on the web yet
+    failed: Failed to create the renewal order
+    close: Close
+  orders:
+    order-no: Order number
+    iccid: ICCID
+    amount: Amount
+    amount-yuan: Amount (yuan)
+    pay-status: Payment status
+    charge-status: Charge status
+    paid: Paid
+    unpaid: Unpaid
+    charged: Charged
+    uncharged: Not charged
+    order-desc: Order description
+    created: Created
+    empty: No paid orders
+    export: Export orders
+  export:
+    card-file: SIM Cards
+    order-file: Renewal Orders
+    failed: Export failed
 sms-code: Message Code
 sms-verify-code: SMS verification code
 state:
@@ -504,6 +556,7 @@ submenu:
   dept-manage: Dept Management
   group-manage: Group Management
   member-manage: Member Management
+  simcard: SIM Card Management
   user-track: Track
 time: Time
 track: Track

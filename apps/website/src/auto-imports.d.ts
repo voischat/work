@@ -43,7 +43,10 @@ declare global {
   const eagerComputed: typeof import('@vueuse/core').eagerComputed
   const effectScope: typeof import('vue').effectScope
   const emojify: typeof import('./utils/emoji').emojify
+  const exportFileName: typeof import('./utils/simcard').exportFileName
+  const exportXlsx: typeof import('./utils/simcardExport').exportXlsx
   const extendRef: typeof import('@vueuse/core').extendRef
+  const formatFen: typeof import('./utils/simcard').formatFen
   const getActivePinia: typeof import('pinia').getActivePinia
   const getApiBaseUrl: typeof import('./composables/useWeilaApi').getApiBaseUrl
   const getCurrentInstance: typeof import('vue').getCurrentInstance
@@ -54,6 +57,7 @@ declare global {
   const inject: typeof import('vue').inject
   const injectLocal: typeof import('@vueuse/core').injectLocal
   const isDefined: typeof import('@vueuse/core').isDefined
+  const isExpired: typeof import('./utils/simcard').isExpired
   const isHttpResponseContext: typeof import('./utils/networkErrors').isHttpResponseContext
   const isPathVipGated: typeof import('./utils/vipGate').isPathVipGated
   const isProxy: typeof import('vue').isProxy
@@ -102,6 +106,7 @@ declare global {
   const reactiveComputed: typeof import('@vueuse/core').reactiveComputed
   const reactiveOmit: typeof import('@vueuse/core').reactiveOmit
   const reactivePick: typeof import('@vueuse/core').reactivePick
+  const readErrorMessage: typeof import('./utils/simcard').readErrorMessage
   const readImageFile: typeof import('./utils/file').readImageFile
   const readonly: typeof import('vue').readonly
   const ref: typeof import('vue').ref
@@ -127,11 +132,16 @@ declare global {
   const templateRef: typeof import('@vueuse/core').templateRef
   const throttledRef: typeof import('@vueuse/core').throttledRef
   const throttledWatch: typeof import('@vueuse/core').throttledWatch
+  const toCardExportRow: typeof import('./utils/simcard').toCardExportRow
   const toChatSafeUploadUrl: typeof import('./utils/uploadUrl').toChatSafeUploadUrl
+  const toCreatedOrder: typeof import('./utils/simcard').toCreatedOrder
+  const toOrderExportRow: typeof import('./utils/simcard').toOrderExportRow
+  const toOrderRecord: typeof import('./utils/simcard').toOrderRecord
   const toRaw: typeof import('vue').toRaw
   const toReactive: typeof import('@vueuse/core').toReactive
   const toRef: typeof import('vue').toRef
   const toRefs: typeof import('vue').toRefs
+  const toSimCard: typeof import('./utils/simcard').toSimCard
   const toValue: typeof import('vue').toValue
   const triggerRef: typeof import('vue').triggerRef
   const tryOnBeforeMount: typeof import('@vueuse/core').tryOnBeforeMount
@@ -279,6 +289,7 @@ declare global {
   const useSelfInfoStore: typeof import('./stores/selfInfo').useSelfInfoStore
   const useSessionStorage: typeof import('@vueuse/core').useSessionStorage
   const useShare: typeof import('@vueuse/core').useShare
+  const useSimcardRenewal: typeof import('./composables/useSimcardRenewal').useSimcardRenewal
   const useSlots: typeof import('vue').useSlots
   const useSmsCountdown: typeof import('./composables/useSmsCountdown').useSmsCountdown
   const useSorted: typeof import('@vueuse/core').useSorted
@@ -355,8 +366,14 @@ declare global {
   export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
   // @ts-ignore
+  export type { RenewalState } from './composables/useSimcardRenewal'
+  import('./composables/useSimcardRenewal')
+  // @ts-ignore
   export type { AuthModel, VipInfo } from './stores/auth'
   import('./stores/auth')
+  // @ts-ignore
+  export type { SimCard, RenewOrderRecord, CreatedRenewOrder, RenewOrderStatusLabels } from './utils/simcard'
+  import('./utils/simcard')
 }
 
 // for vue template auto import
@@ -399,7 +416,10 @@ declare module 'vue' {
     readonly eagerComputed: UnwrapRef<typeof import('@vueuse/core')['eagerComputed']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
     readonly emojify: UnwrapRef<typeof import('./utils/emoji')['emojify']>
+    readonly exportFileName: UnwrapRef<typeof import('./utils/simcard')['exportFileName']>
+    readonly exportXlsx: UnwrapRef<typeof import('./utils/simcardExport')['exportXlsx']>
     readonly extendRef: UnwrapRef<typeof import('@vueuse/core')['extendRef']>
+    readonly formatFen: UnwrapRef<typeof import('./utils/simcard')['formatFen']>
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>
     readonly getApiBaseUrl: UnwrapRef<typeof import('./composables/useWeilaApi')['getApiBaseUrl']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
@@ -410,6 +430,7 @@ declare module 'vue' {
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
     readonly injectLocal: UnwrapRef<typeof import('@vueuse/core')['injectLocal']>
     readonly isDefined: UnwrapRef<typeof import('@vueuse/core')['isDefined']>
+    readonly isExpired: UnwrapRef<typeof import('./utils/simcard')['isExpired']>
     readonly isHttpResponseContext: UnwrapRef<typeof import('./utils/networkErrors')['isHttpResponseContext']>
     readonly isPathVipGated: UnwrapRef<typeof import('./utils/vipGate')['isPathVipGated']>
     readonly isProxy: UnwrapRef<typeof import('vue')['isProxy']>
@@ -458,6 +479,7 @@ declare module 'vue' {
     readonly reactiveComputed: UnwrapRef<typeof import('@vueuse/core')['reactiveComputed']>
     readonly reactiveOmit: UnwrapRef<typeof import('@vueuse/core')['reactiveOmit']>
     readonly reactivePick: UnwrapRef<typeof import('@vueuse/core')['reactivePick']>
+    readonly readErrorMessage: UnwrapRef<typeof import('./utils/simcard')['readErrorMessage']>
     readonly readImageFile: UnwrapRef<typeof import('./utils/file')['readImageFile']>
     readonly readonly: UnwrapRef<typeof import('vue')['readonly']>
     readonly ref: UnwrapRef<typeof import('vue')['ref']>
@@ -481,11 +503,16 @@ declare module 'vue' {
     readonly templateRef: UnwrapRef<typeof import('@vueuse/core')['templateRef']>
     readonly throttledRef: UnwrapRef<typeof import('@vueuse/core')['throttledRef']>
     readonly throttledWatch: UnwrapRef<typeof import('@vueuse/core')['throttledWatch']>
+    readonly toCardExportRow: UnwrapRef<typeof import('./utils/simcard')['toCardExportRow']>
     readonly toChatSafeUploadUrl: UnwrapRef<typeof import('./utils/uploadUrl')['toChatSafeUploadUrl']>
+    readonly toCreatedOrder: UnwrapRef<typeof import('./utils/simcard')['toCreatedOrder']>
+    readonly toOrderExportRow: UnwrapRef<typeof import('./utils/simcard')['toOrderExportRow']>
+    readonly toOrderRecord: UnwrapRef<typeof import('./utils/simcard')['toOrderRecord']>
     readonly toRaw: UnwrapRef<typeof import('vue')['toRaw']>
     readonly toReactive: UnwrapRef<typeof import('@vueuse/core')['toReactive']>
     readonly toRef: UnwrapRef<typeof import('vue')['toRef']>
     readonly toRefs: UnwrapRef<typeof import('vue')['toRefs']>
+    readonly toSimCard: UnwrapRef<typeof import('./utils/simcard')['toSimCard']>
     readonly toValue: UnwrapRef<typeof import('vue')['toValue']>
     readonly triggerRef: UnwrapRef<typeof import('vue')['triggerRef']>
     readonly tryOnBeforeMount: UnwrapRef<typeof import('@vueuse/core')['tryOnBeforeMount']>
@@ -633,6 +660,7 @@ declare module 'vue' {
     readonly useSelfInfoStore: UnwrapRef<typeof import('./stores/selfInfo')['useSelfInfoStore']>
     readonly useSessionStorage: UnwrapRef<typeof import('@vueuse/core')['useSessionStorage']>
     readonly useShare: UnwrapRef<typeof import('@vueuse/core')['useShare']>
+    readonly useSimcardRenewal: UnwrapRef<typeof import('./composables/useSimcardRenewal')['useSimcardRenewal']>
     readonly useSlots: UnwrapRef<typeof import('vue')['useSlots']>
     readonly useSmsCountdown: UnwrapRef<typeof import('./composables/useSmsCountdown')['useSmsCountdown']>
     readonly useSorted: UnwrapRef<typeof import('@vueuse/core')['useSorted']>

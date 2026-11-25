@@ -40,6 +40,7 @@ declare module 'vue' {
     OrgTree: typeof import('./components/OrgTree.vue')['default']
     OrgTreeMemberItem: typeof import('./components/OrgTreeMemberItem.vue')['default']
     RealtimeLocationPanel: typeof import('./components/RealtimeLocationPanel.vue')['default']
+    RenewSimcardModal: typeof import('./components/RenewSimcardModal.vue')['default']
     RequiredLabel: typeof import('./components/RequiredLabel.vue')['default']
     ResetMemberPasswordModal: typeof import('./components/ResetMemberPasswordModal.vue')['default']
     ResetSelfPasswordModal: typeof import('./components/ResetSelfPasswordModal.vue')['default']

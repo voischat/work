@@ -318,6 +318,9 @@ catalogs:
     vue-tsc:
       specifier: ^3.2.6
       version: 3.3.14
+    write-excel-file:
+      specifier: ^4.1.1
+      version: 4.1.1
     zod-arco-rules:
       specifier: ^1.0.2
       version: 1.0.2
@@ -617,6 +620,9 @@ importers:
       vue-i18n:
         specifier: 'catalog:'
         version: 11.4.23(vue@3.5.35(typescript@6.0.3))
+      write-excel-file:
+        specifier: 'catalog:'
+        version: 4.1.1
       zod-arco-rules:
         specifier: 'catalog:'
         version: 1.0.2(valibot@1.5.0(typescript@6.0.3))(vue@3.5.35(typescript@6.0.3))(zod@4.6.7)
@@ -9814,6 +9820,10 @@ packages:
 
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
+
+  write-excel-file@4.1.1:
+    resolution: {integrity: sha512-MUnCnNtQrcZek832ZcU24uU0rSphFmKPD1DvIjXOlygVb93CV7Tme6H3jUTkxsMmjB2W7HIzERzjqTi5kui71A==}
+    engines: {node: '>=18'}
 
   ws@8.21.0:
     resolution: {integrity: sha512-Vsp28b7DRcimFQvrqu2Wek3z1iYxDCWqHYB8Qsnk/S4RfaCQzPGPyBNuVjJV3cd6UiKtUtp6sNM77gWvzcCH+g==}
@@ -19080,6 +19090,10 @@ snapshots:
     optional: true
 
   wrappy@1.0.2: {}
+
+  write-excel-file@4.1.1:
+    dependencies:
+      fflate: 0.8.3
 
   ws@8.21.0: {}
 

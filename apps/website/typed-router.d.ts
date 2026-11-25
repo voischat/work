@@ -39,6 +39,7 @@ declare module 'vue-router/auto-routes' {
     '/workbench/application': RouteRecordInfo<'/workbench/application', '/workbench/application', Record<never, never>, Record<never, never>>,
     '/workbench/message': RouteRecordInfo<'/workbench/message', '/workbench/message', Record<never, never>, Record<never, never>>,
     '/workbench/realtime-location': RouteRecordInfo<'/workbench/realtime-location', '/workbench/realtime-location', Record<never, never>, Record<never, never>>,
+    '/workbench/simcard/stats': RouteRecordInfo<'/workbench/simcard/stats', '/workbench/simcard/stats', Record<never, never>, Record<never, never>>,
     '/workbench/user-track': RouteRecordInfo<'/workbench/user-track', '/workbench/user-track', Record<never, never>, Record<never, never>>,
   }
 
@@ -135,6 +136,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/workbench-realtime-location.vue': {
       routes: '/workbench/realtime-location'
+      views: never
+    }
+    'src/pages/workbench-simcard.vue': {
+      routes: '/workbench/simcard/stats'
       views: never
     }
     'src/pages/workbench-user-track.vue': {

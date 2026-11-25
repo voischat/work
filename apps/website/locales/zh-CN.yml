@@ -488,6 +488,58 @@ sendSMS:
 shutup: 禁言
 shutup-disable: 不禁言
 shutup-enable: 禁言
+simcard:
+  no-permission: 仅企业主可管理流量卡
+  tabs:
+    stats: 统计
+    orders: 订单记录
+  stats:
+    expiring-in-30d: 1个月内到期
+    expiring-in-30d-hint: 30 天内到期，不含已过期
+    renewable: 可续费
+    renewable-hint: 有效期在 6 个月内，含已过期
+    select-window-hint: 点击上方统计卡查看对应卡列表
+  card:
+    iccid: ICCID
+    expiry-date: 到期日
+    model: 设备型号
+    imei: IMEI
+    user-num: 微喇号
+    user-nick: 设备昵称
+    expired: 已过期
+    empty: 暂无流量卡
+    selected-total: '已选 {selected} / 共 {total}'
+    export-selected: 导出选中
+  renew:
+    action: 续费
+    title: 续费流量卡
+    creating: 正在创建续费订单...
+    product-name: 商品名称
+    product-desc: 商品描述
+    amount: 金额
+    order-no: 订单号
+    notice: 网页端在线支付接口待接入
+    failed: 续费订单创建失败
+    close: 关闭
+  orders:
+    order-no: 订单号
+    iccid: ICCID
+    amount: 金额
+    amount-yuan: 金额(元)
+    pay-status: 支付状态
+    charge-status: 续费状态
+    paid: 已支付
+    unpaid: 未支付
+    charged: 已到账
+    uncharged: 未到账
+    order-desc: 订单描述
+    created: 创建时间
+    empty: 暂无已支付订单
+    export: 导出订单
+  export:
+    card-file: 流量卡
+    order-file: 续费订单
+    failed: 导出失败
 sms-code: 短信验证码
 sms-verify-code: 短信验证码
 state:
@@ -499,6 +551,7 @@ submenu:
   group-manage: 群组管理
   member-manage: 成员管理
   realtime-location: 实时位置
+  simcard: 流量卡管理
   user-track: 轨迹
 time: 时间
 track: 轨迹

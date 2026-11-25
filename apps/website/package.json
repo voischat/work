@@ -61,6 +61,7 @@
     "viewerjs": "catalog:",
     "vue": "catalog:web",
     "vue-i18n": "catalog:",
+    "write-excel-file": "catalog:",
     "zod-arco-rules": "catalog:"
   },
   "devDependencies": {
