@@ -14,6 +14,13 @@ import {
 
 const CURRENT_DB_VERSION = 3
 
+const CAPTURED_IMAGE_URL =
+  'http://weilacache.oss-cn-shenzhen.aliyuncs.com/media/cg/80001922/20261125/1875437_142130_1.jpg'
+const CAPTURED_IMAGE_SERVICE_DATA = JSON.stringify({
+  service_type: 'image',
+  content: { url: CAPTURED_IMAGE_URL },
+})
+
 const TABLE_NAMES = [
   'sessions',
   'session_setting',
@@ -72,6 +79,22 @@ function makeMessage(sessionId: string, msgId: number): WL_IDbMsgData {
   }
 }
 
+function makeServiceRaw(
+  sessionId: string,
+  msgId: number,
+  serviceData: string,
+): WL.Session.IMsgData {
+  return {
+    senderId: 7,
+    sessionId,
+    sessionType: WL.Common.SessionType.SESSION_TYPE_SINGLE,
+    msgId,
+    created: 2000 + msgId,
+    msgType: WL.Session.MessageType.MSG_TYPE_SERVICE,
+    serviceData,
+  }
+}
+
 afterEach(() => {
   WeilaDB.close()
 })
@@ -111,6 +134,21 @@ describe('WeilaDB messages', () => {
 
     await expect(db.getSession(session.sessionId, session.sessionType)).resolves.toBeUndefined()
     await expect(db.getMsgData(message.combo_id)).resolves.toBeUndefined()
+  })
+})
+
+describe('WeilaDB service messages', () => {
+  it('converts an image service message into an image message', async () => {
+    const db = await openDb(nextUserId(), CURRENT_DB_VERSION)
+    const messages = db.convertFromMsgDataRaws(
+      [makeServiceRaw('4700', 21, CAPTURED_IMAGE_SERVICE_DATA)],
+      7,
+    )
+
+    expect(messages).toHaveLength(1)
+    expect(messages[0].msgType).toBe(WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE)
+    expect(messages[0].fileInfo?.fileUrl).toBe(CAPTURED_IMAGE_URL)
+    expect(messages[0].serviceData).toBeUndefined()
   })
 })
 
