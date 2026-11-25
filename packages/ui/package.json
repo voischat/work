@@ -35,9 +35,6 @@
     "story": "storybook dev -p 6006",
     "build:story": "storybook build"
   },
-  "dependencies": {
-    "@vois/weila-sdk-core": "workspace:*"
-  },
   "devDependencies": {
     "@iconify-json/carbon": "catalog:",
     "@iconify/tailwind4": "catalog:",
@@ -50,6 +47,7 @@
     "@tailwindcss/postcss": "catalog:",
     "@vitejs/plugin-vue": "catalog:",
     "@vitest/browser-playwright": "catalog:",
+    "@vois/weila-sdk-core": "workspace:*",
     "@vue/test-utils": "catalog:",
     "autoprefixer": "catalog:",
     "jsdom": "catalog:",
@@ -66,6 +64,7 @@
     "vue-tsc": "catalog:"
   },
   "peerDependencies": {
+    "@vois/weila-sdk-core": "workspace:^",
     "floating-vue": "^5.1.1",
     "vue": "^3.5.0"
   }
