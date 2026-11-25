@@ -24,7 +24,7 @@
     "typecheck:strict-budget": "node packages/core/scripts/strict-budget.mjs",
     "test": "turbo run test",
     "test:run": "turbo run test:run",
-    "test:scripts": "node --test packages/core/scripts/*.spec.mjs release/*.spec.ts scripts/*.spec.ts",
+    "test:scripts": "node --test packages/core/scripts/*.spec.mjs scripts/*.spec.ts scripts/release/*.spec.ts",
     "lint": "pnpm run lint:web && pnpm run lint:sdk && pnpm run lint:comments",
     "lint:web": "eslint apps/website --max-warnings 0",
     "lint:sdk": "node packages/core/scripts/lint-budget.mjs",

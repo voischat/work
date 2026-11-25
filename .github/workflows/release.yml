@@ -35,16 +35,16 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
       - name: Verify tag version
-        run: node release/check.ts
+        run: node scripts/release/check.ts
       - name: Publish npm package
         if: startsWith(github.ref_name, '@vois/')
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: node release/publish.ts
+        run: node scripts/release/publish.ts
       - name: Build website archive
         if: startsWith(github.ref_name, 'v')
-        run: node release/archive.ts
+        run: node scripts/release/archive.ts
       - name: Create GitHub release
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node release/notes.ts
+        run: node scripts/release/notes.ts

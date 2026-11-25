@@ -19,13 +19,13 @@
         "docs/void.config.ts",
         // commit-hook and release script specs, run through `node --test`
         "scripts/*.spec.ts",
-        "release/*.spec.ts",
+        "scripts/release/*.spec.ts",
         // agent verification scripts, run ad hoc through ego-browser
         ".claude/skills/**/*.mjs",
         // repo scripts, including the manifest policy check
         "scripts/*.ts",
         // release entrypoints, invoked by .github/workflows/release.yml
-        "release/*.ts",
+        "scripts/release/*.ts",
         // user manual site, driven by root docs: scripts
         "docs/.vitepress/config.mts",
       ],

@@ -23,7 +23,7 @@ pkg
 
 # Electron build artifacts
 **/release/
-!/release/
+!/scripts/release/
 agent-deploy
 deploy-temp
 packages/agent-deploy
