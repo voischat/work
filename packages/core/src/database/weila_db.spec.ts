@@ -23,6 +23,27 @@ const CAPTURED_IMAGE_SERVICE_DATA = JSON.stringify({
   content: { url: CAPTURED_IMAGE_URL },
 })
 
+const VIDEO_SERVICE_DATA = JSON.stringify({
+  service_type: 'video',
+  content: {
+    url: 'https://cdn.example.com/clip.mp4',
+    thumb: 'https://cdn.example.com/clip.jpg',
+    name: 'clip.mp4',
+    size: 2048,
+  },
+})
+
+const QRCODE_SERVICE_DATA = JSON.stringify({
+  service_type: 'qrcode',
+  content: {
+    url: 'https://cdn.example.com/qr.png',
+    name: 'My Card',
+    desc: 'Scan me',
+    session_id: '80001922',
+    session_type: 1,
+  },
+})
+
 const TABLE_NAMES = [
   'sessions',
   'session_setting',
@@ -97,6 +118,25 @@ function makeServiceRaw(
   }
 }
 
+function makeLegacyServiceMessage(
+  sessionId: string,
+  msgId: number,
+  serviceData: string,
+): WL_IDbMsgData {
+  return {
+    combo_id: `${sessionId}_${WL.Common.SessionType.SESSION_TYPE_SINGLE}_${msgId}`,
+    senderId: 7,
+    sessionId,
+    sessionType: WL.Common.SessionType.SESSION_TYPE_SINGLE,
+    msgId,
+    msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE,
+    created: 2000 + msgId,
+    autoReply: 0,
+    status: WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_READ,
+    serviceData,
+  }
+}
+
 afterEach(() => {
   WeilaDB.close()
 })
@@ -154,6 +194,22 @@ describe('WeilaDB service messages', () => {
     expect(messages[0].serviceData).toBeUndefined()
   })
 
+  it('converts a video service message into a video message', async () => {
+    const db = await openDb(nextUserId(), CURRENT_DB_VERSION)
+
+    const messages = db.convertFromMsgDataRaws([makeServiceRaw('4750', 25, VIDEO_SERVICE_DATA)], 7)
+
+    expect(messages).toHaveLength(1)
+    expect(messages[0].msgType).toBe(WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE)
+    expect(messages[0].fileInfo).toEqual({
+      fileUrl: 'https://cdn.example.com/clip.mp4',
+      fileThumbnail: 'https://cdn.example.com/clip.jpg',
+      fileName: 'clip.mp4',
+      fileSize: 2048,
+    })
+    expect(messages[0].serviceData).toBeUndefined()
+  })
+
   it('repairs service messages already stored as legacy rows', async () => {
     const db = await openDb(nextUserId(), CURRENT_DB_VERSION)
 
@@ -188,6 +244,41 @@ describe('WeilaDB service messages', () => {
     expect(repairedSession?.lastMsgData?.msgType).toBe(WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE)
     expect(repairedSession?.lastMsgData?.fileInfo?.fileUrl).toBe(CAPTURED_IMAGE_URL)
     expect(repairedSession?.lastMsgData?.serviceData).toBeUndefined()
+
+    await expect(db.repairLegacyServiceMsgDatas()).resolves.toBe(0)
+  })
+
+  it('repairs legacy video and qrcode rows in one pass', async () => {
+    const db = await openDb(nextUserId(), CURRENT_DB_VERSION)
+
+    const legacyVideo = makeLegacyServiceMessage('4810', 31, VIDEO_SERVICE_DATA)
+    const legacyQrcode = makeLegacyServiceMessage('4810', 32, QRCODE_SERVICE_DATA)
+
+    await db.msgDatas.bulkPut([legacyVideo, legacyQrcode])
+
+    await expect(db.repairLegacyServiceMsgDatas()).resolves.toBe(2)
+
+    const repairedVideo = await db.getMsgData(legacyVideo.combo_id)
+    expect(repairedVideo?.msgType).toBe(WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE)
+    expect(repairedVideo?.fileInfo).toEqual({
+      fileUrl: 'https://cdn.example.com/clip.mp4',
+      fileThumbnail: 'https://cdn.example.com/clip.jpg',
+      fileName: 'clip.mp4',
+      fileSize: 2048,
+    })
+    expect(repairedVideo?.serviceData).toBeUndefined()
+
+    const repairedQrcode = await db.getMsgData(legacyQrcode.combo_id)
+    expect(repairedQrcode?.msgType).toBe(WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE)
+    expect(repairedQrcode?.servicePayload).toEqual({
+      type: 'qrcode',
+      url: 'https://cdn.example.com/qr.png',
+      name: 'My Card',
+      desc: 'Scan me',
+      sessionId: '80001922',
+      sessionType: 1,
+    })
+    expect(repairedQrcode?.serviceData).toBeUndefined()
 
     await expect(db.repairLegacyServiceMsgDatas()).resolves.toBe(0)
   })
