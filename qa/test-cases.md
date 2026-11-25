@@ -231,22 +231,26 @@
 
 ## 10. 版本权益门控（TC-VIP）
 
-门控数据源为 `corp/org/get-my-vip` 的 `vip_supports` 数组（2026-11-19 与后端对齐确认的词表：`member`/`dept`/`group`/`device`/`track`/`location`/`api`/`message`）。两条生效机制：① 任何 `support:false` 的 `name` 与路由路径做子串匹配，命中即 sidebar 变灰（hover「当前版本不支持该功能」）+ 路由守卫弹回主页并提示；② `track.support`/`track.quick_support`/`location.support` 被弹窗显式读取。**缺失 flag 一律放行**（后端少发 = 前端解锁）。`api` 无前端消费（服务端开放 API 权益）；`device_limit` 已从 sidebar 悬浮卡片移除（2026-11-19 产品决定）；`member_batch_create` 待批量创建 UI 落地时接入。工作台消息页路径为 `/workbench/message`（原 `chat` 已改名，使 `message` flag 可命中）。自动化复验：`.claude/skills/verify-vip-edition-flags/verify-edition.sh <standard|professional|flagship>`。
+门控数据源为 `corp/org/get-vip-membership` 返回的 `data.membership.supports` 映射（2026-11-25 按 Apipost 契约切换；键：`member`/`dept`/`group`/`device`/`track`/`track_quick`/`location`/`api`/`message`/`member_batch_create`/`simcard`）。两条生效机制：① 任何值为 `false` 的键与路由路径做子串匹配，命中即 sidebar 变灰（hover「当前版本不支持该功能」）+ 路由守卫弹回主页并提示；② `supports.track`/`supports.track_quick`/`supports.location` 被弹窗显式读取。**缺失 flag 一律放行**（后端少发 = 前端解锁）。`api` 由 `/workbench/application` 经路由 `meta.vip` 显式消费（服务端开放 API 权益，路径不含 `api`）；`device_limit` 已从 sidebar 悬浮卡片移除（2026-11-19 产品决定）；`member_batch_create` 现为独立开关，待批量创建 UI 落地时接入；`simcard`、`track_quick` 无路由命中。工作台消息页路径为 `/workbench/message`（原 `chat` 已改名，使 `message` flag 可命中）。自动化复验：`.claude/skills/verify-vip-edition-flags/verify-edition.sh <standard|professional|flagship>`。
 
-| 用例编号  | 优先级 | 类型 | 功能点                           | 前置条件               | 操作步骤                                                          | 预期结果                                                              |
-| --------- | ------ | ---- | -------------------------------- | ---------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------- |
-| TC-VIP-01 | P0     | 功能 | 词表与缺失放行【实测】           | 专业版账号             | 1. 抓包 `get-my-vip`<br>2. 对照词表                               | 8 项 vip_supports 齐全；任何缺失项对应功能在前端保持可用              |
-| TC-VIP-02 | P0     | 功能 | 专业版全开【实测】               | 专业版真实账号         | 1. 查看 sidebar<br>2. 直连三个工作台 URL                          | 消息/实时位置/轨迹菜单全部可用，直连不被拦截                          |
-| TC-VIP-03 | P0     | 功能 | 专业版轨迹1分钟锁【实测】        | 专业版真实账号         | 1. 编辑成员<br>2. 悬停 1 分钟档                                   | 1 分钟档禁用，hover 显示「旗舰版功能」；其余档可用                    |
-| TC-VIP-04 | P0     | 功能 | 专业版位置共享可用【实测】       | 专业版真实账号         | 1. 编辑成员                                                       | 位置共享开关可用，无锁定提示                                          |
-| TC-VIP-05 | P0     | 功能 | 标准版 sidebar 灰化【实测·mock】 | mock get-my-vip 标准版 | 1. 查看 sidebar<br>2. 悬停灰化项                                  | 实时位置/轨迹灰化+hover「当前版本不支持该功能」；消息可用             |
-| TC-VIP-06 | P0     | 功能 | 标准版直连拦截【实测·mock】      | 同上                   | 1. 直连 `#/workbench/realtime-location`、`#/workbench/user-track` | 弹回 `#/contact/org` 并提示「当前版本不支持该功能」                   |
-| TC-VIP-07 | P0     | 功能 | 标准版弹窗轨迹隐藏【实测·mock】  | 同上                   | 1. 编辑/创建成员、新增设备弹窗                                    | 三个弹窗均无轨迹表单组                                                |
-| TC-VIP-08 | P0     | 功能 | 标准版位置共享锁【实测·mock】    | 同上                   | 1. 三个弹窗悬停位置共享                                           | 开关禁用，hover 显示「专业版功能」                                    |
-| TC-VIP-09 | P0     | 功能 | 标准版消息可用【实测·mock】      | 同上                   | 1. sidebar 与直连 `#/workbench/message`                           | 消息菜单可用，直连停留在消息页                                        |
-| TC-VIP-10 | P0     | 功能 | 旗舰版全量开放【实测·mock】      | mock 旗舰版            | 1. 全量巡检                                                       | 全部可用；1 分钟档可用且 hover 为耗电警告「该频率设备耗电大，请慎重」 |
-| TC-VIP-11 | P1     | 异常 | 守卫失败放行【推断】             | 模拟 vip 接口超时/异常 | 1. 直连工作台 URL                                                 | 8s 内数据未到即放行导航，不阻塞（缺失即放行的推广）                   |
-| TC-VIP-12 | P2     | 功能 | 惰性词表项【实测·代码走查】      | —                      | 1. 全量路由对照 `api`<br>2. 检查悬浮卡片                          | 无路由含 `api`；卡片无设备上限行；`member_batch_create` 无 UI 消费    |
+切换当日（2026-11-25）的复验范围：mock 用例 TC-VIP-05～10 三个版本全部通过，断言与切换前逐行一致。同日生产后端 `api.voischat.cn` 上线新路由后，用真实账号抓到 `get-vip-membership` 的 200 响应，11 个 `supports` 键齐全，形状与 Apipost 一致（TC-VIP-01）。随后在生产后端上完成一次无 mock 的控制台加载，主页显示「旗舰版 (8/28/2026)」，四个工作台菜单可用，成员页加载 121 ms，创建成员弹窗门控正确。联调后端 `192.168.1.29` 可经 `WEILA_V2_PROXY` 做同样的测试。TC-VIP-02～04 的【实测】记录来自切换前的旧契约，建议在对应版本账号上重测。
+
+同一企业在两个接口上的限额不一致。2026-11-25 在 `api.voischat.cn` 实测，旧接口 `member_limit` 为 400、`device_limit` 为 100000，新接口分别为 200 和 10000，其余限额一致。浮层展示以新接口为准，差异待后端确认。
+
+| 用例编号  | 优先级 | 类型 | 功能点                           | 前置条件                       | 操作步骤                                                          | 预期结果                                                                                        |
+| --------- | ------ | ---- | -------------------------------- | ------------------------------ | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| TC-VIP-01 | P0     | 功能 | 词表与缺失放行【实测】           | 生产后端 api.voischat.cn       | 1. 抓包 `get-vip-membership`<br>2. 对照词表                       | 11 个 supports 键齐全；任何缺失项对应功能在前端保持可用                                         |
+| TC-VIP-02 | P0     | 功能 | 专业版全开【实测】               | 专业版真实账号                 | 1. 查看 sidebar<br>2. 直连三个工作台 URL                          | 消息/实时位置/轨迹菜单全部可用，直连不被拦截                                                    |
+| TC-VIP-03 | P0     | 功能 | 专业版轨迹1分钟锁【实测】        | 专业版真实账号                 | 1. 编辑成员<br>2. 悬停 1 分钟档                                   | 1 分钟档禁用，hover 显示「旗舰版功能」；其余档可用                                              |
+| TC-VIP-04 | P0     | 功能 | 专业版位置共享可用【实测】       | 专业版真实账号                 | 1. 编辑成员                                                       | 位置共享开关可用，无锁定提示                                                                    |
+| TC-VIP-05 | P0     | 功能 | 标准版 sidebar 灰化【实测·mock】 | mock get-vip-membership 标准版 | 1. 查看 sidebar<br>2. 悬停灰化项                                  | 实时位置/轨迹灰化+hover「当前版本不支持该功能」；消息可用                                       |
+| TC-VIP-06 | P0     | 功能 | 标准版直连拦截【实测·mock】      | 同上                           | 1. 直连 `#/workbench/realtime-location`、`#/workbench/user-track` | 弹回 `#/contact/org` 并提示「当前版本不支持该功能」                                             |
+| TC-VIP-07 | P0     | 功能 | 标准版弹窗轨迹隐藏【实测·mock】  | 同上                           | 1. 编辑/创建成员、新增设备弹窗                                    | 三个弹窗均无轨迹表单组                                                                          |
+| TC-VIP-08 | P0     | 功能 | 标准版位置共享锁【实测·mock】    | 同上                           | 1. 三个弹窗悬停位置共享                                           | 开关禁用，hover 显示「专业版功能」                                                              |
+| TC-VIP-09 | P0     | 功能 | 标准版消息可用【实测·mock】      | 同上                           | 1. sidebar 与直连 `#/workbench/message`                           | 消息菜单可用，直连停留在消息页                                                                  |
+| TC-VIP-10 | P0     | 功能 | 旗舰版全量开放【实测·mock】      | mock 旗舰版                    | 1. 全量巡检                                                       | 全部可用；1 分钟档可用且 hover 为耗电警告「该频率设备耗电大，请慎重」                           |
+| TC-VIP-11 | P1     | 异常 | 守卫失败放行【实测·404】         | 门控接口返回 404               | 1. 直连工作台 URL<br>2. 站内切换菜单                              | 约 8s（守卫超时）后放行导航，不拦截（缺失即放行的推广）；等待期间直连为白屏，站内切换停留在原页 |
+| TC-VIP-12 | P2     | 功能 | 惰性词表项【实测·代码走查】      | —                              | 1. 全量路由对照 `api`<br>2. 检查悬浮卡片                          | 无路由含 `api`；卡片无设备上限行；`member_batch_create` 无 UI 消费                              |
 
 ---
 
