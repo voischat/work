@@ -32,7 +32,7 @@ function isUploadFailed() {
 
 <template>
   <div
-    class="max-w-[70%] rounded-xl overflow-hidden"
+    class="rounded-xl overflow-hidden"
     :class="isSelf ? 'bg-blue-500' : 'bg-white'"
     @click="msg.fileInfo?.fileUrl && emit('click', msg.fileInfo.fileUrl)"
   >

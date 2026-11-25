@@ -22,7 +22,7 @@ const parsedText = computed(() => parseTextWithEmoji(props.msg.textData || ''))
 
 <template>
   <div
-    class="max-w-[70%] rounded-xl px-3 py-2 text-sm break-all whitespace-pre-wrap overflow-hidden"
+    class="rounded-xl px-3 py-2 text-sm break-all whitespace-pre-wrap overflow-hidden"
     :class="isSelf ? 'bg-blue-500 text-white' : 'bg-white text-neutral-900'"
   >
     <span v-for="(token, index) in parsedText" :key="index">

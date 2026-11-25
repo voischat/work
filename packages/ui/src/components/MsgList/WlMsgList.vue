@@ -279,7 +279,7 @@ watch(
       <WlAvatar v-if="!isSelf(msg)" :src="getSenderAvatar(msg)" :name="getSenderName(msg)" />
 
       <div
-        class="flex items-start gap-1 min-w-0"
+        class="flex items-start gap-1 min-w-0 max-w-[70%]"
         :class="isSelf(msg) ? 'flex-row-reverse' : 'flex-row'"
       >
         <!-- bubble column + actions -->
@@ -311,7 +311,7 @@ watch(
           <!-- Withdrawn Message -->
           <div
             v-if="isWithdrawMsg(msg)"
-            class="max-w-[70%] rounded-xl px-3 py-2 text-sm overflow-hidden break-all italic"
+            class="rounded-xl px-3 py-2 text-sm overflow-hidden break-all italic"
             :class="isSelf(msg) ? 'bg-blue-500 text-blue-100' : 'bg-white text-neutral-400'"
           >
             <div>
