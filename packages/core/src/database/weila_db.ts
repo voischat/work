@@ -46,6 +46,7 @@ import { getLogger } from 'log/weila_log'
 import TinyPinyin from 'tiny-pinyin'
 import { default_group_logo } from 'main/weila_internal_data'
 import { TextMsgDataParser } from 'proto/weilapb_textmsg_parser'
+import { parseSessionServiceMsg } from 'proto/weilapb_service_msg_parser'
 import { AsyncTime, calculateOpusDataFrame, getMsgDataIdByCombo, SyncTime } from 'main/weila_utils'
 
 const wllog = getLogger('DB:core:info')
@@ -115,6 +116,27 @@ function readInstalledSchemaVersion(dbName: string): Promise<number> {
   })
 }
 
+function normalizeServiceMsgData(
+  target: Pick<WL_IDbMsgData, 'msgType' | 'serviceData' | 'fileInfo' | 'location'>,
+): boolean {
+  if (target.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE || !target.serviceData) {
+    return false
+  }
+
+  const parsed = parseSessionServiceMsg(target.serviceData)
+
+  if (parsed === undefined) {
+    return false
+  }
+
+  target.msgType = parsed.msgType
+  target.fileInfo = parsed.fileInfo
+  target.location = parsed.location
+  delete target.serviceData
+
+  return true
+}
+
 class WeilaDB extends Dexie {
   sessions: Dexie.Table<WL_IDbSession, string>
   session_setting: Dexie.Table<WL_IDbSessionSetting, string>
@@ -166,6 +188,12 @@ class WeilaDB extends Dexie {
 
     this.initError = null
     this.instance = new WeilaDB(userId, version)
+
+    try {
+      await this.instance.repairLegacyServiceMsgDatas()
+    } catch (error) {
+      wlerr('修复遗留服务消息失败:', dbName, error)
+    }
   }
 
   public static setAppAuthInfo(appId: string, appKey: string) {
@@ -1087,6 +1115,7 @@ class WeilaDB extends Dexie {
           {
             msgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE
             msgData.serviceData = raw.serviceData ?? undefined
+            normalizeServiceMsgData(msgData)
           }
 
           break
@@ -1138,6 +1167,33 @@ class WeilaDB extends Dexie {
   @AsyncTime()
   public async putMsgData(msgData: WL_IDbMsgData): Promise<string> {
     return this.msgDatas.put(msgData)
+  }
+
+  @AsyncTime()
+  public async repairLegacyServiceMsgDatas(): Promise<number> {
+    const msgRows = await this.msgDatas
+      .where('msgType')
+      .equals(WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE)
+      .toArray()
+    const repairedMsgDatas = msgRows.filter((row) => normalizeServiceMsgData(row))
+
+    if (repairedMsgDatas.length > 0) {
+      await this.msgDatas.bulkPut(repairedMsgDatas)
+    }
+
+    const sessions = await this.sessions.toArray()
+    const repairedSessions = sessions.filter(
+      (session) =>
+        session.lastMsgData !== undefined && normalizeServiceMsgData(session.lastMsgData),
+    )
+
+    if (repairedSessions.length > 0) {
+      await this.sessions.bulkPut(repairedSessions)
+    }
+
+    wllog('修复遗留服务消息%d条', repairedMsgDatas.length)
+
+    return repairedMsgDatas.length
   }
 
   @AsyncTime()
