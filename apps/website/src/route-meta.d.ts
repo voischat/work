@@ -1,3 +1,4 @@
+import type { VipFlag } from '~/stores/auth'
 import 'vue-router'
 
 declare module 'vue-router' {
@@ -6,6 +7,6 @@ declare module 'vue-router' {
     roles?: number[]
     name?: string
     requiresAuth?: boolean
-    vip?: string
+    vip?: VipFlag
   }
 }

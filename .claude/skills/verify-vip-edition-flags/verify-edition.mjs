@@ -1,9 +1,9 @@
 // verify-edition.mjs — prove VIP edition gating in weila-work-web under a
-// mocked corp/org/get-my-vip payload, driving the real UI like a user through
+// mocked corp/org/get-vip-membership payload, driving the real UI like a user through
 // ego-browser. Piped to `ego-browser nodejs` behind a CFG prelude by
 // verify-edition.sh; see that wrapper for usage and evidence locations.
 //
-// The mock intercepts ONLY get-my-vip; everything else (login, member list,
+// The mock intercepts ONLY get-vip-membership; everything else (login, member list,
 // self-info) hits the real backend, so the gated UI consumes a real login
 // token and real surrounding data.
 
@@ -75,14 +75,14 @@ const fixtureB64 = readFileSync(CFG.fixturePath).toString('base64')
 const task = await taskSpace(`weila-vip-${CFG.edition}-${Math.floor(Date.now() / 1000)}`)
 const page = task.page('p1')
 const { pump, requests } = driver.makePump(page, (url) =>
-  url.includes('corp/org/get-my-vip') ? { bodyB64: fixtureB64 } : null,
+  url.includes('corp/org/get-vip-membership') ? { bodyB64: fixtureB64 } : null,
 )
 
 await page.cdp('Network.enable')
 // Arm the mock before login so the post-login vip fetch is served from the
-// fixture (the app queries get-my-vip once the token lands).
+// fixture (the app queries get-vip-membership once the token lands).
 await page.cdp('Fetch.enable', {
-  patterns: [{ urlPattern: '*corp/org/get-my-vip*', requestStage: 'Request' }],
+  patterns: [{ urlPattern: '*corp/org/get-vip-membership*', requestStage: 'Request' }],
 })
 
 let fatal = null
@@ -100,9 +100,9 @@ try {
   }
 
   const served = await driver.settlePump(page, pump)
-  if (served >= 1) note(`PASS mocked get-my-vip served (${served}x)`)
-  else note('FAIL get-my-vip never reached the mock — assertions below are meaningless')
-  await page.waitForTimeout(3000) // disabledList starts empty; let the mocked vip settle
+  if (served >= 1) note(`PASS mocked get-vip-membership served (${served}x)`)
+  else note('FAIL get-vip-membership never reached the mock — assertions below are meaningless')
+  await page.waitForTimeout(3000)
   await page.screenshot({ path: join(CFG.outDir, 'sidebar.png') })
 
   const sidebarState = (item) =>
@@ -243,7 +243,7 @@ try {
 } finally {
   await page.cdp('Fetch.disable').catch(() => {})
   const vipLines = [...requests.values()]
-    .filter((r) => r.url.includes('get-my-vip'))
+    .filter((r) => r.url.includes('get-vip-membership'))
     .map(
       (r) =>
         `[${new Date(r.ts).toISOString()}] ${r.method} ${driver.scrubUrl(r.url)} ${r.status ?? '…'}`,

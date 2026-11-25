@@ -11,25 +11,35 @@ export interface AuthModel {
 }
 
 export interface VipInfo {
-  vip: number
-  vip_name: string
-  vip_expired: number
-  vip_created: number
-  vip_supports: VipSupport[]
-}
-
-interface VipSupport {
-  member_limit?: number
+  level: number
   name: string
-  support: boolean
+  expired: number
+  created: number
+  member_limit?: number
   dept_limit?: number
   dept_member_limit?: number
   group_limit?: number
   group_member_limit?: number
   device_limit?: number
-  type?: number
-  quick_support?: boolean
+  device_group_limit?: number
+  supports: VipSupports
 }
+
+export interface VipSupports {
+  api: boolean
+  dept: boolean
+  device: boolean
+  group: boolean
+  location: boolean
+  member: boolean
+  member_batch_create: boolean
+  message: boolean
+  simcard: boolean
+  track: boolean
+  track_quick: boolean
+}
+
+export type VipFlag = keyof VipSupports
 
 export const useAuthStore = defineStore('auth', () => {
   const refreshToken = useLocalStorage('refresh_token', '')
@@ -37,7 +47,7 @@ export const useAuthStore = defineStore('auth', () => {
   const expiresIn = useLocalStorage('expires_in', 7200)
   const loginTime = useLocalStorage('login_time', 0, {})
 
-  const { data: vip } = useWeilaFetch<VipInfo>('corp/org/get-my-vip', {}, {
+  const { data: vip } = useWeilaFetch<VipInfo>('corp/org/get-vip-membership', {}, {
     enabled: computed(() => Boolean(token.value)),
   })
 

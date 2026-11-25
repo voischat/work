@@ -13,12 +13,11 @@ import { isPathVipGated } from '~/utils/vipGate'
 
 const router = useRouter()
 
-const { data: vip } = useWeilaFetch<VipInfo>('corp/org/get-my-vip')
+const { data: vip } = useWeilaFetch<VipInfo>('corp/org/get-vip-membership')
 
 const { t } = useI18n()
 
-const infoMap = {
-  num: 'corp-number',
+const limitLabels = {
   member_limit: 'corp.member-limit',
   dept_limit: 'corp.dept-limit',
   dept_member_limit: 'corp.dept-member-limit',
@@ -128,32 +127,23 @@ function goTo(path: string) {
             />
 
             <a-descriptions
-              v-if="vip?.vip"
+              v-if="vip?.level"
               :column="1"
               :data="[
-                { label: t('vip.level'), value: vip?.vip_name },
-                { label: t('vip.enable.time'), value: new Date(vip?.vip_created * 1000).toLocaleDateString() },
-                { label: t('vip.expired.time'), value: new Date(vip?.vip_expired * 1000).toLocaleDateString() },
+                { label: t('vip.level'), value: vip?.name },
+                { label: t('vip.enable.time'), value: new Date(vip?.created * 1000).toLocaleDateString() },
+                { label: t('vip.expired.time'), value: new Date(vip?.expired * 1000).toLocaleDateString() },
               ].filter(i => i && i.value)"
               bordered
             />
             <a-descriptions
               :column="1"
-              :data="vip?.vip_supports?.flatMap((i) => {
-                const limits = objectKeys(i).filter(i => i.includes('limit'))
-
-                return limits.map(limit => {
-                  // @ts-expect-error type error
-                  if (!infoMap?.[limit])
-                    return false
-
-                  return {
-                    // @ts-expect-error type error
-                    label: t(infoMap?.[limit]),
-                    value: i[limit],
-                  }
-                }).filter(Boolean)
-              })" bordered
+              :data="objectKeys(limitLabels).map((limit) => {
+                return {
+                  label: t(limitLabels[limit]),
+                  value: vip?.[limit],
+                }
+              }).filter(i => i.value)" bordered
             />
           </div>
         </template>

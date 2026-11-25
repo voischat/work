@@ -15,7 +15,7 @@ const router = useRouter()
 
 const { data: corp, isSuccess } = useWeilaFetch<Corp>('corp/org/get-my-org')
 
-const { data: vip } = useWeilaFetch<VipInfo>('corp/org/get-my-vip')
+const { data: vip } = useWeilaFetch<VipInfo>('corp/org/get-vip-membership')
 
 watchEffect(() => {
   if (isSuccess.value && !corp.value)
@@ -50,7 +50,7 @@ const selfInfoStore = useSelfInfoStore()
               <div space-x-2>
                 <CertificationTag v-if="selfInfoStore.isOwner" show-full-status />
                 <a-tag>
-                  {{ vip?.vip_name }} <span v-if="vip?.vip">({{ new Date(corp.vip_expired * 1000).toLocaleDateString() }})</span>
+                  {{ vip?.name }} <span v-if="vip?.level">({{ new Date(corp.vip_expired * 1000).toLocaleDateString() }})</span>
                 </a-tag>
               </div>
             </div>

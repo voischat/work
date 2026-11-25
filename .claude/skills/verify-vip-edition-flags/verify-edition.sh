@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # verify-edition.sh — prove VIP edition gating in weila-work-web under a mocked
-# corp/org/get-my-vip payload, driving the real UI like a user via ego-browser.
+# corp/org/get-vip-membership payload, driving the real UI like a user via ego-browser.
 #
 # Usage: verify-edition.sh <standard|professional|flagship> [base_url]
 #   base_url defaults to https://localhost:5174 (pnpm dev:prod from weila-work root).
@@ -10,7 +10,7 @@
 # screenshots + assertions.log + requests.txt + run.log. Exit 0 only when every
 # assertion passes.
 #
-# The mock intercepts ONLY get-my-vip; everything else (login, member list,
+# The mock intercepts ONLY get-vip-membership; everything else (login, member list,
 # self-info) hits the real backend, so the gated UI consumes a real login token
 # and real surrounding data.
 
