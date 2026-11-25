@@ -1,7 +1,5 @@
 /* oxlint-disable import/default -- the worklet loader inlines these bundles and supplies the default export */
-// @ts-ignore
 import PlayerWorklet from './weila_player.worklet.js'
-// @ts-ignore
 import RecorderWorklet from './weila_recorder.worklet.js'
 /* oxlint-enable import/default */
 
