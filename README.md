@@ -33,7 +33,7 @@ pnpm typecheck        # SDK 与企业管理台类型检查
 pnpm lint             # 两条 lint 线：apps/website 用 ESLint，其余用 Oxlint
 ```
 
-完整命令与工具链说明见 [AGENTS.md](./AGENTS.md)。企业管理台详见 `apps/website/AGENTS.md`，SDK 内部结构见 `packages/core/AGENTS.md`。
+完整命令与工具链说明见 [AGENTS.md](./AGENTS.md)；新机器搭建、1Password 环境变量渲染见[本地开发环境](./docs/development.md)。企业管理台详见 `apps/website/AGENTS.md`，SDK 内部结构见 `packages/core/AGENTS.md`。
 
 ## License
 
