@@ -46,7 +46,6 @@
         // icon sets resolved to CSS by UnoCSS/Iconify at build time
         "@iconify-json/carbon",
         "@iconify-json/ph",
-        "@iconify-json/svg-spinners",
       ],
     },
     "packages/core": {
