@@ -3,6 +3,12 @@ import type { RouteRecordNormalized } from 'vue-router'
 import type { VipInfo } from '~/stores/auth'
 import type { Corp } from '~/types'
 import { objectEntries, objectKeys } from '@antfu/utils'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
+import { useSelfInfoStore } from '~/stores/selfInfo'
+import { $inspect } from '~/utils/inspect'
 import { isPathVipGated } from '~/utils/vipGate'
 
 const router = useRouter()

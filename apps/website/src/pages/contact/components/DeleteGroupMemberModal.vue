@@ -3,6 +3,8 @@ import type { Member } from '~/types/api'
 import Message from '@arco-design/web-vue/es/message'
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed, useSlots } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useWeilaMutation } from '~/composables/useWeilaMutation'
 
 defineProps<{
   groupId?: number

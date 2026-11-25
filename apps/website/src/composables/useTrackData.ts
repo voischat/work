@@ -1,5 +1,7 @@
+import type { Ref } from 'vue'
 import type { UserTrackModel } from '~/api/track'
 import { computed } from 'vue'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
 
 export function useUserTrack(selectedUserKeys: Ref<string>, selectedDate: Ref<string>) {
   const enabled = computed(() => Boolean(selectedUserKeys.value && selectedDate.value))

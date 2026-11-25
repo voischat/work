@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import type { CorpLegal, Legal, UserLegal } from '~/types/api'
 import { Message } from '@arco-design/web-vue'
+import { storeToRefs } from 'pinia'
 import * as v from 'valibot'
-import { shallowRef } from 'vue'
+import { computed, shallowRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useForm } from 'zod-arco-rules/valibot'
+import { useWeilaApi } from '~/composables/useWeilaApi'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
+import { useSelfInfoStore } from '~/stores/selfInfo'
 
 const weilaApi = useWeilaApi()
 

@@ -1,4 +1,7 @@
+import type { MaybeRefOrGetter } from 'vue'
 import { isFunction } from '@antfu/utils'
+import { watchImmediate } from '@vueuse/core'
+import { unref } from 'vue'
 
 export function $inspect(...args: MaybeRefOrGetter[]) {
   let logFn = console.log

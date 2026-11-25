@@ -34,15 +34,10 @@
       "entry": ["routes/*.ts", "void.config.ts"],
     },
     "apps/website": {
-      // knip cannot load vite.config.ts here: unplugin-auto-import resolves
-      // its presets at config-load time and rejects @vueuse/core in knip's
-      // environment (documented knip known issue). The override disables only
-      // the loading; knip still analyzes the file statically. The single ~
-      // alias matches tsconfig paths, so resolution is unaffected.
-      "vite": { "config": [] },
       "entry": [
         // auto-read by unplugin-vue-macros during the vite build
         "vue-macros.config.ts",
+        "scripts/migrate-explicit-imports.mjs",
       ],
       "ignoreDependencies": [
         // icon sets resolved to CSS by UnoCSS/Iconify at build time

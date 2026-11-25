@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import type { VipInfo } from '~/stores/auth'
 import type { Corp } from '~/types'
+import { watchEffect } from 'vue'
+import { useRouter } from 'vue-router'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
+import { useSelfInfoStore } from '~/stores/selfInfo'
 import EditCorpModal from './components/EditCorpModal.vue'
 
 definePage({

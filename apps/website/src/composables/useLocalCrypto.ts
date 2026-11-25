@@ -1,3 +1,4 @@
+import { useLocalStorage } from '@vueuse/core'
 import CryptoJS from 'crypto-js'
 
 export function useLocalCrypto(name: string, ENCRYPTION_KEY: string = 'weila-frontend-key') {

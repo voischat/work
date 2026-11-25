@@ -1,5 +1,6 @@
 import type { UserModule } from '~/types'
 import { Message } from '@arco-design/web-vue'
+import { until } from '@vueuse/core'
 import { i18n } from '~/modules/i18n'
 import { useAuthStore } from '~/stores/auth'
 import { isPathVipGated } from '~/utils/vipGate'

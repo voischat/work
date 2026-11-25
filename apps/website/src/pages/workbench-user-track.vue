@@ -6,10 +6,12 @@ import { ElAmapLoca, ElAmapLocaLine } from '@vuemap/vue-amap-loca'
 import { useRouteQuery } from '@vueuse/router'
 import dayjs from 'dayjs'
 
-import { computed, shallowRef, watch } from 'vue'
+import { computed, shallowRef, triggerRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import MapStatusCapsule from '~/components/MapStatusCapsule.vue'
 import { useMapInteraction } from '~/composables/useMapInteraction'
 import { useUserTrack } from '~/composables/useTrackData'
+import { $inspect } from '~/utils/inspect'
 
 definePage({
   path: '/workbench/user-track',

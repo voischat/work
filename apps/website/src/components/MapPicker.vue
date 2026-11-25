@@ -3,8 +3,11 @@ import type { UnwrapRef } from 'vue'
 import { Message } from '@arco-design/web-vue'
 import { useQuery } from '@tanstack/vue-query'
 import { ElAmap } from '@vuemap/vue-amap'
+import { useGeolocation } from '@vueuse/core'
 import { toBlob } from 'html-to-image'
-import { shallowRef } from 'vue'
+import { computed, nextTick, shallowRef, watch, watchEffect } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useWeilaApi } from '~/composables/useWeilaApi'
 
 interface RegeoV2 {
   province: string

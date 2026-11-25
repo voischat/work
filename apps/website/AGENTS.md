@@ -33,7 +33,7 @@ Vue 3 + TS 企业管理台（`apps/website`）。企业通讯：通讯录、消�
 
 - ESLint: `@antfu/eslint-config` with Vue i18n plugin + TanStack Query rules。本目录由 ESLint 与 `eslint --fix` 管理，SDK 侧由 Oxlint/Oxfmt 管理。
 - **No `ref()`**，使用 `shallowRef()` 或 `deepRef()`。
-- Auto-imports: Vue 3 APIs, VueUse, Pinia stores, Vue Router, `src/composables/`
+- Explicit imports only: Vue/VueUse/Pinia/Router APIs and project composables/stores/utils are imported where used
 - Components auto-imported from `src/components/`, Arco/Radix/AMap resolved automatically
 - Naming: components PascalCase, composables `use*` camelCase, utils camelCase
 

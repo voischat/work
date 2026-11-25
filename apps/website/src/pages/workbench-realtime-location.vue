@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { shallowRef, watch } from 'vue'
+import { computed, shallowRef, watch } from 'vue'
 
+import { useI18n } from 'vue-i18n'
 import RealtimeLocationPanel from '~/components/RealtimeLocationPanel.vue'
 import { useDeptList } from '~/composables/useDeptList'
 import { useGroupList } from '~/composables/useGroupList'

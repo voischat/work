@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { shallowRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import CreateGroupForm from './CreateGroupForm.vue'
 
 const props = defineProps<{

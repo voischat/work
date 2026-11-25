@@ -3,6 +3,7 @@ import { Message } from '@arco-design/web-vue'
 import { ElAmap, ElAmapLayerSatellite } from '@vuemap/vue-amap'
 import { computed, onMounted, shallowRef, toRef, watch } from 'vue'
 
+import { useI18n } from 'vue-i18n'
 import MapStatusCapsule from '~/components/MapStatusCapsule.vue'
 import { useRealtimeLocation } from '~/composables/useRealtimeLocation'
 import { useRealtimeMapInteraction } from '~/composables/useRealtimeMapInteraction'

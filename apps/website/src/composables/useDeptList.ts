@@ -1,4 +1,6 @@
 import type { DeptModel } from '~/api/contact'
+import { computed } from 'vue'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
 
 export function useDeptList() {
   const { data: depts } = useWeilaFetch<{

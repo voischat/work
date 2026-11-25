@@ -84,7 +84,6 @@
     "typescript": "catalog:",
     "unocss": "catalog:",
     "unocss-preset-extra": "catalog:",
-    "unplugin-auto-import": "catalog:",
     "unplugin-unused": "catalog:",
     "unplugin-vue-components": "catalog:",
     "unplugin-vue-macros": "catalog:",

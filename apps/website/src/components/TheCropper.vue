@@ -5,7 +5,9 @@ import imageCompression from 'browser-image-compression'
 import Cropper from 'cropperjs'
 import { ToolbarButton, ToolbarLink, ToolbarRoot, ToolbarSeparator } from 'radix-vue'
 import { defineEmits } from 'unplugin-vue-macros/macros'
-import { shallowRef } from 'vue'
+import { computed, nextTick, shallowRef, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { readImageFile } from '~/utils/file'
 
 const props = defineProps<{
   file: Blob | File

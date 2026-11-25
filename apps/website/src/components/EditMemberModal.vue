@@ -4,10 +4,17 @@ import type { Member } from '~/types/api'
 import Message from '@arco-design/web-vue/es/message'
 import { useQueryClient } from '@tanstack/vue-query'
 import * as v from 'valibot'
-import { computed } from 'vue'
+import { computed, useTemplateRef, watchEffect } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useForm } from 'zod-arco-rules/valibot'
 import { TrackType } from '~/api/contact'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
+import { useWeilaMutation } from '~/composables/useWeilaMutation'
+import { useAppStore } from '~/stores/app'
+import { useAuthStore } from '~/stores/auth'
+import { useSelfInfoStore } from '~/stores/selfInfo'
 import { useWeilaStore } from '~/stores/weila'
+import { isRemoteImage } from '~/utils/is'
 
 interface Props {
   member?: Member

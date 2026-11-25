@@ -2,7 +2,14 @@
 import type { Member } from '~/types/api'
 import Message from '@arco-design/web-vue/es/message'
 import { WL_IDbSessionType } from '@vois/weila-sdk-core'
-import { shallowRef } from 'vue'
+import { useDebounce } from '@vueuse/core'
+import { storeToRefs } from 'pinia'
+import { computed, shallowRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
+import { useSelfInfoStore } from '~/stores/selfInfo'
+import { useWeilaStore } from '~/stores/weila'
 
 definePage({
   alias: 'member',

@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import Message from '@arco-design/web-vue/es/message'
 import * as v from 'valibot'
-import { shallowRef } from 'vue'
+import { shallowRef, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useForm } from 'zod-arco-rules/valibot'
+import { useWeilaMutation } from '~/composables/useWeilaMutation'
 import { useWeilaStore } from '~/stores/weila'
+import { isRemoteImage } from '~/utils/is'
 
 const props = defineProps<{
   group?: any

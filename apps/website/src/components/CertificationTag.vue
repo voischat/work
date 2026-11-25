@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import type { Legal } from '~/types/api'
+import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
+import { useSelfInfoStore } from '~/stores/selfInfo'
 
 const { t } = useI18n()
 

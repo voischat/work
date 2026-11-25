@@ -3,7 +3,10 @@ import type { Member } from '~/types/api'
 import Message from '@arco-design/web-vue/es/message'
 import md5 from 'md5'
 import * as v from 'valibot'
+import { watchEffect } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useForm } from 'zod-arco-rules/valibot'
+import { useWeilaMutation } from '~/composables/useWeilaMutation'
 
 const props = defineProps<{
   member?: Member

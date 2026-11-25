@@ -1,3 +1,5 @@
+import { useIntervalFn, useToggle } from '@vueuse/core'
+
 export function useSpeakerIcon() {
   const [icon, switchSpeakerIcon] = useToggle('i-ph-speaker-low-duotone', {
     truthyValue: 'i-ph-speaker-high-duotone',

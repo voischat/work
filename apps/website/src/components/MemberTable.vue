@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import type { Member } from '~/types/api'
+import { useI18n } from 'vue-i18n'
 import { TrackType } from '~/api/contact'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
+import { useWeilaMutation } from '~/composables/useWeilaMutation'
+import { useAppStore } from '~/stores/app'
 
 withDefaults(defineProps<{
   members: Member[]

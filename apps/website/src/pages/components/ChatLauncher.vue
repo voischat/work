@@ -3,7 +3,10 @@ import type { WeilaCore } from '@vois/weila-sdk-core'
 import IconMessage from '@arco-design/web-vue/es/icon/icon-message'
 import Message from '@arco-design/web-vue/es/message'
 import { WL_IDbSessionType } from '@vois/weila-sdk-core'
+import { storeToRefs } from 'pinia'
 import { computed, shallowRef } from 'vue'
+import { useRouter } from 'vue-router'
+import { useWeilaStore } from '~/stores/weila'
 import ChatSessionPickerModal from './ChatSessionPickerModal.vue'
 
 interface Props {

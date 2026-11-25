@@ -1,4 +1,4 @@
-import { shallowRef } from 'vue'
+import { computed, reactive, shallowRef } from 'vue'
 
 export const defaultArcoSettings = reactive({
   menu: true,

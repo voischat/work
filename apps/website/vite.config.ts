@@ -7,12 +7,10 @@ import Vue from '@vitejs/plugin-vue'
 import { VueAmapResolver } from '@vuemap/unplugin-resolver'
 import RadixVueResolver from 'radix-vue/resolver'
 import UnoCSS from 'unocss/vite'
-import AutoImport from 'unplugin-auto-import/vite'
 import Unused from 'unplugin-unused/vite'
 import { ArcoResolver } from 'unplugin-vue-components/resolvers'
 import Components from 'unplugin-vue-components/vite'
 import VueMacros from 'unplugin-vue-macros/vite'
-import { VueRouterAutoImports } from 'unplugin-vue-router'
 import VueRouter from 'unplugin-vue-router/vite'
 import { defineConfig } from 'vite'
 import mkcert from 'vite-plugin-mkcert'
@@ -114,32 +112,6 @@ export default defineConfig(() => {
       Layouts({
         layoutsDirs: 'src/layout',
         defaultLayout: 'default',
-      }),
-
-      // https://github.com/antfu/unplugin-auto-import
-      AutoImport({
-        imports: [
-          'vue',
-          'vue-i18n',
-          '@vueuse/core',
-          'pinia',
-          VueRouterAutoImports,
-          {
-            from: '@vueuse/components',
-            imports: ['UseImage'],
-          },
-        ],
-        dts: 'src/auto-imports.d.ts',
-        dirs: [
-          'src/composables',
-          'src/stores',
-          'src/layout',
-          'src/utils',
-        ],
-        vueTemplate: true,
-        resolvers: [
-          VueAmapResolver(),
-        ],
       }),
 
       // https://github.com/antfu/unplugin-vue-components

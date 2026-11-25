@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Member } from '~/types/api'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
   member: Member
