@@ -5,7 +5,8 @@
   // The CI workflow installs the browser through the Playwright CLI, which knip
   // cannot resolve from a package import.
   // The parity gate resolves these through require.resolve from packages/core.
-  "ignoreBinaries": [],
+  // `op` comes from the 1Password CLI install, not from node_modules.
+  "ignoreBinaries": ["op"],
   "workspaces": {
     ".": {
       // tsdown and vue-tsc are resolved by packages/core/scripts/typecheck-parity.mjs.

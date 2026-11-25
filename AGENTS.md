@@ -34,6 +34,14 @@ Repository-specific rules:
   - The pre-commit hook (`nano-staged`) routes staged files to the matching track.
 - Turborepo drives every workspace task. The `:sdk` aliases filter to `./packages/*`, `build:web` filters to the website, and the unfiltered commands cover all four projects, so a website build pulls its SDK dependencies first through `dependsOn: ["^build"]`.
 
+## Local environment
+
+- Ignored env files: `apps/website/.env` (`VITE_WEB_SOCK`), `apps/playground-vue3/.env` (`VITE_WEILA_WSS`, `VITE_WEILA_APP_ID`, `VITE_WEILA_APP_KEY`), `packages/core/tests/integration/.env.integration` (`WEILA_TEST_*`), and `~/.voischat/env.sh` (`WEILA_QA_ACCOUNT`, `WEILA_QA_PASSWORD`, sourced from `~/.zshrc`; add `CLOUDFLARE_API_TOKEN` there if you mint one for local deploys).
+- `pnpm env:setup` renders all four from 1Password (Personal vault, item `Weila Work env`): templates live in `env/*.env.template`, hold only `op://` secret references, and are safe to commit; outputs are written with mode 0600. Requires an unlocked 1Password desktop app, or `eval $(op signin)`.
+- `packages/core/.env` deliberately does not exist. The SDK bundle must not embed app credentials; consumers pass `appId`/`appKey` to `weila_init`.
+- Claude Code worktrees copy the three repo-level files through `.worktreeinclude`. Other worktree tools do not, so run `pnpm env:setup` inside a fresh worktree.
+- The verification skills read `WEILA_QA_ACCOUNT` / `WEILA_QA_PASSWORD` from the environment; keep real values out of git.
+
 ## Commands
 
 Run from the repo root.
@@ -53,6 +61,7 @@ Run from the repo root.
 | `pnpm test:run`                | turbo test:run for `packages/*`                                 |
 | `pnpm knip`                    | unused files, exports, dependencies (must report zero findings) |
 | `pnpm fmt` / `pnpm fmt:check`  | Oxfmt over everything except `apps/website`                     |
+| `pnpm env:setup`               | render the ignored env files from 1Password                     |
 | `pnpm docs:dev` / `docs:build` | VitePress user manual                                           |
 
 ## Gates

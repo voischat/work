@@ -32,6 +32,7 @@
     "lint:budget": "node packages/core/scripts/lint-budget.mjs --write",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
+    "env:setup": "node scripts/env-setup.mjs",
     "knip": "knip",
     "up": "pnpm dlx taze -Ir major",
     "docs:dev": "vitepress dev docs",
