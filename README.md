@@ -14,8 +14,8 @@
 
 每次 push 到 `main`，`.github/workflows/deploy.yml` 会构建并部署全部四个站点到 Cloudflare Workers：
 
-| 站点                            | 地址                                                      |
-| ------------------------------- | --------------------------------------------------------- |
+| 站点                            | 地址                                         |
+| ------------------------------- | -------------------------------------------- |
 | 企业管理台（`apps/website`）    | https://work-web.voischat.workers.dev        |
 | SDK Playground                  | https://work-playground.voischat.workers.dev |
 | 组件 Storybook（`packages/ui`） | https://work-ui.voischat.workers.dev         |
