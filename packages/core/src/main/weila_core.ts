@@ -1,5 +1,4 @@
-/* oxlint-disable import/default -- worker-rspack-loader supplies this module's default export */
-// @ts-ignore
+/* oxlint-disable import/default -- worker-rspack-loader emits this module as a Worker factory with a default export */
 import Network from 'main/weila_network.worker'
 /* oxlint-enable import/default */
 import WeilaPbDispatcher from 'main/weila_pb_dispatcher'
@@ -82,8 +81,8 @@ import WLBusinessModule from 'main/weila_business_module'
 const wllog = getLogger('CORE:info')
 const wlerr = getLogger('CORE:err')
 
-function isCoreMethodName<T extends object>(name: string, target: T): name is keyof T & string {
-  return name in target
+function isCallable(value: unknown): value is (...args: any[]) => any {
+  return typeof value === 'function'
 }
 
 interface WL_SubscribeRequest {
@@ -128,7 +127,7 @@ class WeilaCore implements WL_CoreInterface {
   readonly maxRetryLoginTimes = 2
   mainFsm?: typeof mainFsm
   mainFsmService!: MainActor
-  network?: Network
+  network?: Worker
   pbDispatcher: WeilaPbDispatcher
   networkGateway: WeilaNetworkGateway
   pbMsgHandlerList: Map<number, WL_PbMsgHandler>
@@ -230,8 +229,14 @@ class WeilaCore implements WL_CoreInterface {
   }
 
   async executeCoreFunc(funcName: string, ...argvs: any[]): Promise<any> {
-    if (isCoreMethodName<WeilaCore>(funcName, this)) {
-      return this[funcName](...argvs)
+    // SAFETY: executeCoreFunc is the SDK's external dispatch surface: the SDK
+    // host passes the method name it wants invoked on the core object, so the
+    // key addresses one of this class's own methods or undefined.
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion, anti-slop/no-unsafe-dictionary-type -- dispatch by name over the class's own shape
+    const method: unknown = (this as Record<string, unknown>)[funcName]
+
+    if (isCallable(method)) {
+      return method.call(this, ...argvs)
     }
 
     return Promise.reject(new Error('Not Support Function:' + funcName))
@@ -243,7 +248,7 @@ class WeilaCore implements WL_CoreInterface {
 
   private sendNetworkEvent(eventId: WL_NetworkEventID, eventData: any) {
     const netEvent: WL_NetworkEvent = { eventId, eventData }
-    this.network.postMessage(netEvent, [])
+    this.network?.postMessage(netEvent, [])
   }
 
   private onNetworkMessage(event: MessageEvent<WL_NetworkEvent>) {
