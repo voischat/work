@@ -40,7 +40,7 @@ function formatFileSize(bytes?: number): string {
 <template>
   <div
     v-if="msg.fileInfo?.fileName"
-    class="max-w-[70%] rounded-xl overflow-hidden"
+    class="rounded-xl overflow-hidden"
     :class="[
       isSelf ? 'bg-blue-500' : 'bg-white',
       msg.fileInfo?.fileUrl ? 'cursor-pointer' : 'opacity-60',

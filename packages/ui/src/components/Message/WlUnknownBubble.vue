@@ -20,7 +20,7 @@ const { t } = useWeilaUiI18n()
 
 <template>
   <div
-    class="max-w-[70%] rounded-xl px-3 py-2 text-sm overflow-hidden break-all"
+    class="rounded-xl px-3 py-2 text-sm overflow-hidden break-all"
     :class="isSelf ? 'bg-blue-500 text-blue-100' : 'bg-white text-neutral-400'"
   >
     <div v-if="msg.status === 5 || msg.msgType === 10" class="italic">

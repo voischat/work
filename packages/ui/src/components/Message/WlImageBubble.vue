@@ -31,11 +31,14 @@ function isUploadFailed() {
 </script>
 
 <template>
-  <div class="max-w-[70%] rounded-xl overflow-hidden" :class="isSelf ? 'bg-blue-500' : 'bg-white'">
+  <div
+    class="max-w-[200px] rounded-xl overflow-hidden"
+    :class="isSelf ? 'bg-blue-500' : 'bg-white'"
+  >
     <img
       v-if="msg.fileInfo?.fileUrl"
       :src="msg.fileInfo.fileUrl"
-      class="max-w-[200px] max-h-[200px] rounded-xl object-cover cursor-pointer"
+      class="max-w-full max-h-[200px] rounded-xl object-cover cursor-pointer"
       alt="image"
       @click="emit('click', msg.fileInfo!.fileUrl)"
     />
