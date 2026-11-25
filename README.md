@@ -16,10 +16,10 @@
 
 | 站点                            | 地址                                                      |
 | ------------------------------- | --------------------------------------------------------- |
-| 企业管理台（`apps/website`）    | https://work-web.vois-app-webview-next.workers.dev        |
-| SDK Playground                  | https://work-playground.vois-app-webview-next.workers.dev |
-| 组件 Storybook（`packages/ui`） | https://work-ui.vois-app-webview-next.workers.dev         |
-| 用户手册（`docs`，VitePress）   | https://work-docs.vois-app-webview-next.workers.dev       |
+| 企业管理台（`apps/website`）    | https://work-web.voischat.workers.dev        |
+| SDK Playground                  | https://work-playground.voischat.workers.dev |
+| 组件 Storybook（`packages/ui`） | https://work-ui.voischat.workers.dev         |
+| 用户手册（`docs`，VitePress）   | https://work-docs.voischat.workers.dev       |
 
 企业管理台通过同源代理访问后端：`/v1/*` 与 `/v2/*` 由 Worker 转发到 `https://api.voischat.cn`。
 
