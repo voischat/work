@@ -5,7 +5,7 @@ const props = defineProps<{
   content: {
     image: string
     file_url: string
-    file_size: number // kb
+    file_size: number
     file_name: string
   }
 }>()

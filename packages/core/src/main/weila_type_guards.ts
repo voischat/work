@@ -1,4 +1,3 @@
-/** A JSON-shaped value, used where session extras and resolver payloads cross module boundaries. */
 export type JsonValue =
   | JsonValue[]
   | boolean

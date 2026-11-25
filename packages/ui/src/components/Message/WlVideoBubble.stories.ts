@@ -89,7 +89,6 @@ export const WithoutFileName: Story = {
   },
 }
 
-/** 聊天上下文效果 */
 export const InChatContext: Story = {
   render: () => ({
     components: { WlVideoBubble, WlTextBubble },

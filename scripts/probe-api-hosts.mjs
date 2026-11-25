@@ -1,8 +1,3 @@
-#!/usr/bin/env node
-// Classify where a signed v2 route is served: unreachable, route absent, or live (errcode).
-// Usage: node scripts/probe-api-hosts.mjs <har-file> [--path <relative-path>] [--hosts <origin,origin>]
-// Reads a signed query (appid/et/sign/uuid/token) from a captured HAR and reuses it per host.
-
 import { Buffer } from 'node:buffer'
 import { readFileSync } from 'node:fs'
 import { request as httpRequest } from 'node:http'

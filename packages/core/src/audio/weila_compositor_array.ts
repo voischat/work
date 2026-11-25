@@ -1,4 +1,3 @@
-// 把array数组组合成一个大的arraybuffer，然后可以变回array数组
 class CompoUint8Array {
   private lengthList: number[]
 

@@ -10,7 +10,6 @@ export function useRealtimeMapInteraction(
   const { t } = useI18n()
   const userInfoStore = useUserInfoStore()
 
-  // 地图相关状态
   const zoom = shallowRef(12)
   const center = shallowRef([121.59996, 31.197646])
   const map = shallowRef<AMap.Map | null>(null)
@@ -19,7 +18,6 @@ export function useRealtimeMapInteraction(
   const selectedMarker = shallowRef<AMap.Marker | null>(null)
   const boundsFitted = shallowRef(false)
 
-  // 逆地理编码相关
   const weilaApi = useWeilaApi()
   const regeoInfo = shallowRef<RegeoModel | undefined>(undefined)
 
@@ -61,12 +59,10 @@ export function useRealtimeMapInteraction(
     }
 
     try {
-      // 生成标记点
       return val.map(({ lng, lat, uid, ts, spd, dir }) => {
         const userInfo = userInfoStore.getUserInfo(uid)
         const avatarUrl = userInfo?.avatar?.replace(/^https?:/, '') || ''
 
-        // 创建自定义内容
         const content = avatarUrl
           ? `<div style="
             width: 50px;
@@ -100,7 +96,7 @@ export function useRealtimeMapInteraction(
         const marker = new AMap.Marker({
           position: [lng, lat],
           content,
-          offset: new AMap.Pixel(-16, -16), // 居中偏移
+          offset: new AMap.Pixel(-16, -16),
           extData: {
             id: nanoid(),
             uid,
@@ -125,7 +121,6 @@ export function useRealtimeMapInteraction(
     }
   }
 
-  // 渲染标记点到地图
   function renderMarkers(val: AMap.Marker[], oldVal: AMap.Marker[]) {
     if (oldVal.length) {
       oldVal?.forEach((marker) => {
@@ -137,7 +132,6 @@ export function useRealtimeMapInteraction(
     const renderMarker = async (map: AMap.Map) => {
       val.forEach(i => map.add(i))
 
-      // 第一次有标记点时自动调整视图
       if (val.length && !boundsFitted.value) {
         try {
           map.setFitView(val)
@@ -175,7 +169,7 @@ export function useRealtimeMapInteraction(
       return
 
     map.value?.setCenter([lng, lat])
-    map.value?.setZoom(16) // 放大到更近的级别
+    map.value?.setZoom(16)
   }
 
   function renderInfoWindow(info?: RegeoModel) {

@@ -74,7 +74,6 @@ const menu = computed<Menu>(() => {
 const curPath = computed(() => patchPatch(router.currentRoute.value.path))
 
 function patchPatch(path: string) {
-  // fix path: /contact/dept-25-测试部门2 --> /contact/dept
   for (const [_, { submenu }] of objectEntries(menu.value)) {
     const matched = submenu.find(i => path.includes(i.path))
     if (matched)

@@ -1,6 +1,3 @@
-// The session module's constructor builds the real PTT FSM, whose module
-// graph evaluates the audio worklets against globals jsdom lacks; the
-// shared vitest setup shims them so the genuine graph can load.
 import { describe, expect, it, vi } from 'vitest'
 import { WL } from 'proto/weilapb'
 import { WL_CoreInterface, WL_PbMsgHandler } from 'main/weila_internal_data'
@@ -53,7 +50,6 @@ describe('WLSessionModule response routing', () => {
   it('routes MSGDATA responses so every send path can resolve', () => {
     const { rspPbMsg, handler } = makeSessionModule()
 
-    // Text, audio, PTT, and withdraw sends all await the same rspMsg.
     const rspMsg = new WL.Session.RspMsg({ msgId: 16191652001 })
 
     const message = buildResponse(
@@ -86,16 +82,11 @@ describe('WLSessionModule response routing', () => {
   it('leaves unrouted commands silent instead of acking with a wrong payload', () => {
     const { rspPbMsg, handler } = makeSessionModule()
 
-    // No case routes SESSION_COMMAND_GET_UNREAD_MSG today. A missing case
-    // must stay silent (the caller times out) rather than resolve with a
-    // wrong payload. This is exactly the failure mode that hid the broken
-    // token refresh.
     handler(buildResponse(WL.Session.SessionCommandId.SESSION_COMMAND_GET_UNREAD_MSG))
 
     expect(rspPbMsg).not.toHaveBeenCalled()
   })
 
-  /** Every session builder and the command it emits, so the routing guard below covers them all. */
   const SESSION_BUILDER_COMMANDS = {
     buildGetSessionReq: WL.Session.SessionCommandId.SESSION_COMMAND_GET_SESSION,
     buildRemoveSessionReq: WL.Session.SessionCommandId.SESSION_COMMAND_REMOVE_SESSION,
@@ -116,7 +107,6 @@ describe('WLSessionModule response routing', () => {
     buildWithDrawMsgReq: WL.Session.SessionCommandId.SESSION_COMMAND_MSGDATA,
   } satisfies Record<string, WL.Session.SessionCommandId>
 
-  /** Built but nothing awaits their response yet; wiring one up is a conscious act. */
   const NOT_AWAITED = new Set<number>([
     WL.Session.SessionCommandId.SESSION_COMMAND_GET_UNREAD_MSG,
     WL.Session.SessionCommandId.SESSION_COMMAND_BURST_CONTROL,

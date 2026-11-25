@@ -38,7 +38,6 @@ export function useWeilaFetch<T>(
     ...tanstackOptions,
   })
 
-  // Spread of the query object would subscribe callers to every field it holds.
   return {
     data: computed(() => pickFromResponse(res.data.value, pick)),
     error: res.error,

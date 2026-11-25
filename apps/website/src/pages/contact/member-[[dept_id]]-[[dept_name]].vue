@@ -7,7 +7,7 @@ import { shallowRef } from 'vue'
 definePage({
   alias: 'member',
   meta: {
-    name: 'submenu.member-manage', // temporary disable
+    name: 'submenu.member-manage',
     roles: [255, 1],
   },
 })

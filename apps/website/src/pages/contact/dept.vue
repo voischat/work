@@ -85,7 +85,6 @@ function onSelect(dept: DeptModel, e: PointerEvent) {
                 <EditDeptModal :dept="record" />
                 <DeleteDeptModal :dept="record" />
               </div>
-              <!-- fix: height issue -->
               <div v-else op0 h9 />
             </template>
           </a-table-column>

@@ -396,7 +396,6 @@ export class CoreSession {
     return this.page.evaluate(() => window.weilaCore.weila_audioInit())
   }
 
-  /** Whether this machine can start a microphone at all (may hang under TCC). */
   async canCaptureAudio(): Promise<boolean> {
     return this.page.evaluate(async () => {
       try {
@@ -438,9 +437,6 @@ export class CoreSession {
   }
 
   async close(): Promise<void> {
-    // End the server session cleanly: the logout handshake closes the DB only
-    // after the server confirmed, so waiting for that frees the account for
-    // the next spec file's login instead of racing a kick notification.
     if (this.loginSummary) {
       await this.page.evaluate(() => window.weilaCore?.weila_logout()).catch(() => {})
       await this.page

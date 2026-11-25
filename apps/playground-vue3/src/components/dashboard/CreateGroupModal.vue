@@ -61,7 +61,6 @@ defineExpose({
       @click.self="handleClose"
     >
       <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 overflow-hidden">
-        <!-- Header -->
         <div class="px-6 py-4 border-b border-neutral-200 flex items-center justify-between">
           <h2 class="text-lg font-semibold text-neutral-900">创建群组</h2>
           <button @click="handleClose" class="p-1 rounded hover:bg-neutral-100 text-neutral-500">
@@ -69,9 +68,7 @@ defineExpose({
           </button>
         </div>
 
-        <!-- Content -->
         <div class="p-6 space-y-4">
-          <!-- Group Name -->
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-1.5">群组名称</label>
             <input
@@ -83,7 +80,6 @@ defineExpose({
             />
           </div>
 
-          <!-- Public Type -->
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-1.5">群组类型</label>
             <div class="flex gap-3">
@@ -115,13 +111,11 @@ defineExpose({
             </p>
           </div>
 
-          <!-- Error Message -->
           <div v-if="error" class="text-sm text-red-600">
             {{ error }}
           </div>
         </div>
 
-        <!-- Actions -->
         <div class="px-6 py-4 border-t border-neutral-200 flex gap-3">
           <button
             @click="handleClose"

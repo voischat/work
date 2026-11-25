@@ -22,12 +22,10 @@ async function logoutAndHide(hide: () => void) {
 
 <template>
   <div class="flex flex-col h-screen">
-    <!-- Header Bar -->
     <div
       class="h-14 border-b border-neutral-200 flex items-center justify-between px-4 bg-white shrink-0"
     >
       <div class="flex items-center gap-3">
-        <!-- User Avatar Dropdown -->
         <Dropdown class="user-menu-dropdown" :distance="8" placement="bottom-start">
           <button class="focus:outline-none">
             <img v-if="userInfo?.avatar" :src="userInfo.avatar" class="w-8 h-8 rounded-full" />
@@ -75,12 +73,9 @@ async function logoutAndHide(hide: () => void) {
       </div>
     </div>
 
-    <!-- Main Content -->
     <div class="flex flex-1 overflow-hidden">
-      <!-- Left Sidebar: Tab Navigation -->
       <TabNav />
 
-      <!-- Content Area: RouterView -->
       <div class="flex-1 overflow-hidden">
         <RouterView />
       </div>
@@ -89,7 +84,6 @@ async function logoutAndHide(hide: () => void) {
 </template>
 
 <style>
-/* Hide arrows for dropdowns */
 .user-menu-dropdown .v-popper__arrow-inner,
 .user-menu-dropdown .v-popper__arrow-outer {
   display: none;

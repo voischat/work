@@ -13,8 +13,6 @@ export const AMapKeys = {
   regeo: '',
 }
 
-// Baidu speech-to-text (app: weila-work-web-audio-to-text).
-// NOTE: these are client credentials — they are compiled into the web bundle.
 export const appid = computed(() => {
   const demo = '102036'
   const normal = '102065'

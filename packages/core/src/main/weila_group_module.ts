@@ -35,19 +35,12 @@ import { WLGroupAttributeInfo } from 'proto/weilapb_wrapper_data'
 const wllog = getLogger('MOD:group:info')
 const wlerr = getLogger('MOD:group:err')
 
-/** Routes one group response to the waiting sendPbMsg caller. */
 type GroupResponseRoute = (
   serviceHead: WL.Service.ServiceHead.$Properties,
   groupMessage: WL.Group.IGroupMessage | null | undefined,
 ) => void
 
 export default class WLGroupModule {
-  /**
-   * Response routing per group command. Every command the module awaits via
-   * sendPbMsg must have a route here; a missing route leaves the caller to
-   * die on the watchdog timeout. `weila_group_module.spec.ts` guards the
-   * wrapper's builders against this table.
-   */
   private readonly responseRoutes = new Map<number, GroupResponseRoute>([
     [
       WL.Group.GroupCommandId.GROUP_COMMAND_GET_GROUPVERSION,
@@ -183,8 +176,6 @@ export default class WLGroupModule {
         )
       },
     ],
-    // joinGroup() has awaited this response since the module was written, but
-    // the old switch had no case for it, so every join died on the watchdog.
     [
       WL.Group.GroupCommandId.GROUP_COMMAND_GROUP_JOIN,
       (serviceHead, groupMessage) => {
@@ -405,7 +396,6 @@ export default class WLGroupModule {
 
                 await WeilaDB.getInstance().putGroup(groupInfo)
                 wllog('群属性变更了:', groupId)
-                // 通知群变更，UI 监听到后会重新拉取 session 列表，resolver 会覆盖名称/头像
                 this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_GROUP_MODIFIED_IND, groupInfo)
               })
               .catch((reason) => {
@@ -496,7 +486,6 @@ export default class WLGroupModule {
 
             wllog('群被删除的通知，群ID:', groupId)
 
-            //删除群并且通知
             WeilaDB.getInstance()
               .delGroups([groupId])
               .then(() => {
@@ -522,7 +511,6 @@ export default class WLGroupModule {
               .then((_value) => {
                 wllog('删除了群成员成功')
 
-                // 通知外部
                 const info: WL_GroupMemberDeleteInfo = {
                   groupId,
                   initiatorId: ntfDeleteMember.initiatorId ?? 0,
@@ -666,7 +654,6 @@ export default class WLGroupModule {
 
         case WL.Group.GroupCommandId.GROUP_COMMAND_BROADCAST:
           {
-            //TODO: 群通知
           }
 
           break
@@ -718,7 +705,6 @@ export default class WLGroupModule {
         30000,
       )
 
-      // 删除无效的群  START
       const versionInfoList = groupVerMsgData.versionInfoList ?? []
 
       const groupIds = versionInfoList.map((value) => {
@@ -741,7 +727,6 @@ export default class WLGroupModule {
       if (invalidGroups.length) {
         await WeilaDB.getInstance().delGroups(invalidGroups)
       }
-      // END
 
       for (let i = 0; i < versionInfoList.length; i++) {
         const ver = versionInfoList[i]

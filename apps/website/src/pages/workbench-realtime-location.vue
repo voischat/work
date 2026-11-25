@@ -27,7 +27,6 @@ const currentOptions = computed(() => {
     : groupOptions.value
 })
 
-// 切换类型时清空已选的部门/群组
 watch(selectedType, () => {
   selectedId.value = undefined
 })
@@ -36,7 +35,6 @@ watch(selectedType, () => {
 <template>
   <div h-full min-h-0 flex flex-col>
     <div flex shrink-0 gap2 p4 bg-base>
-      <!-- 类型选择 -->
       <a-radio-group v-model="selectedType" type="button">
         <a-radio value="group">
           {{ t('group.name') }}
@@ -46,7 +44,6 @@ watch(selectedType, () => {
         </a-radio>
       </a-radio-group>
 
-      <!-- 部门/群组选择 -->
       <a-select
         v-model="selectedId"
         :options="currentOptions"

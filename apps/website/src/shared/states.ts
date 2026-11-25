@@ -2,17 +2,9 @@ import { useLocalCrypto } from '~/composables/useLocalCrypto'
 
 export const timestamp = useTimestamp({ offset: 0 })
 
-/**
- * Theme
- */
-
-// export const isDark = useDark()
 // https://arco.design/vue/docs/dark
 watchEffect(() => {
   document.body.removeAttribute('arco-theme')
-  // isDark.value
-  //   ? document.body.setAttribute('arco-theme', 'dark')
-  //   : document.body.removeAttribute('arco-theme')
 })
 
 const emojiIdMap = Object.fromEntries(

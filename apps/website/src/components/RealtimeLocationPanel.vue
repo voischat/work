@@ -123,14 +123,12 @@ function handleFocus() {
   map.value?.setFitView(markers.value)
 }
 
-// 组件挂载时立即获取位置（确保 v-if 切换后能立刻加载）
 onMounted(() => {
   if (selectedId.value !== undefined) {
     refetch()
   }
 })
 
-// 监听选择变化，预加载成员信息
 watch([selectedType, selectedId], async ([type, id]) => {
   if (id !== undefined) {
     await preloadMembers(type, id)
@@ -163,8 +161,6 @@ watch(map, (m) => {
 
     <ElAmap :center="center" :zoom="zoom" relative h-full w-full @init="(m) => map = m">
       <ElAmapLayerSatellite :visible="satelliteVisible" />
-
-      <!-- 标记点会自动通过 composable 渲染 -->
 
       <MapTypeSwitcher v-model="satelliteVisible" />
     </ElAmap>

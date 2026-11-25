@@ -50,7 +50,6 @@ async function handleGroupCreated(groupName: string, isPublic: boolean) {
   if (!weilaCore.value) return
   createModalRef.value?.setCreating(true)
   try {
-    // Get current user ID to include as first member
     const currentUserId = userInfo.value?.userId
     const group = await weilaCore.value.weila_createGroup(
       groupName,
@@ -60,7 +59,6 @@ async function handleGroupCreated(groupName: string, isPublic: boolean) {
       currentUserId ? [currentUserId] : [],
     )
     createModalRef.value?.handleCreated()
-    // Select the newly created group directly - avoid redundant loadMembers call
     selectedGroup.value = {
       groupId: group.groupId,
       name: group.name,
@@ -69,7 +67,6 @@ async function handleGroupCreated(groupName: string, isPublic: boolean) {
       isPublic: group.publicType === WL_IDbGroupPublicType.GROUP_PUBLIC_OPEN,
     }
     groupDetail.value = group
-    // Load members for the new group
     loadMembers(group.groupId)
   } catch (err) {
     console.error('[GroupsPanel] Failed to create group:', err)
@@ -132,14 +129,11 @@ function getMemberDisplayName(member: WL_IDbGroupMember): string {
 
 <template>
   <div class="h-full flex">
-    <!-- Group List (left sidebar) -->
     <div class="w-80 border-r border-neutral-200 bg-white overflow-hidden flex flex-col">
       <GroupList @select="handleSelectGroup" @create="handleCreateGroup" />
     </div>
 
-    <!-- Right Content Area -->
     <div class="flex-1 flex flex-col overflow-hidden">
-      <!-- Empty State -->
       <div v-if="!selectedGroup" class="flex-1 flex items-center justify-center text-neutral-400">
         <div class="text-center">
           <span class="icon-[carbon--group] text-5xl mb-3 block"></span>
@@ -147,9 +141,7 @@ function getMemberDisplayName(member: WL_IDbGroupMember): string {
         </div>
       </div>
 
-      <!-- Group Detail -->
       <div v-else class="flex-1 flex flex-col overflow-hidden">
-        <!-- Header -->
         <div
           class="px-6 py-4 border-b border-neutral-200 flex items-center justify-between bg-white shrink-0"
         >
@@ -190,7 +182,6 @@ function getMemberDisplayName(member: WL_IDbGroupMember): string {
           </button>
         </div>
 
-        <!-- Members List -->
         <div class="flex-1 overflow-y-auto p-6">
           <h3 class="text-sm font-medium text-neutral-700 mb-3">成员列表</h3>
           <div v-if="loadingMembers" class="text-center py-8 text-neutral-500">加载中...</div>
@@ -234,7 +225,6 @@ function getMemberDisplayName(member: WL_IDbGroupMember): string {
           </div>
         </div>
 
-        <!-- Bottom Actions -->
         <div class="px-6 py-4 border-t border-neutral-200 bg-white shrink-0 flex gap-3">
           <button
             @click="handleEnterChat"
@@ -260,7 +250,6 @@ function getMemberDisplayName(member: WL_IDbGroupMember): string {
       </div>
     </div>
 
-    <!-- Create Group Modal -->
     <CreateGroupModal
       ref="createModalRef"
       :visible="showCreateModal"

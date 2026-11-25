@@ -8,6 +8,6 @@ export const install: UserModule = () => {
     key: AMapKeys.js,
     Loca: {
       version: '2.0.0',
-    }, // 如果需要使用loca组件库，需要加载Loca
+    },
   })
 }

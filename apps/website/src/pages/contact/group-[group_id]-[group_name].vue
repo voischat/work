@@ -16,14 +16,12 @@ const router = useRouter()
 const curPage = shallowRef(0)
 const pageSize = shallowRef(10)
 
-// 获取部门列表
 const { data: depts } = useWeilaFetch<{
   id: number
   name: string
   user_count: number
 }[]>('corp/address/get-my-manage-all-dept')
 
-// 权限判断
 const selfInfoStore = useSelfInfoStore()
 const isDeptAdmin = computed(() => selfInfoStore.isDeptAdmin)
 const weilaApi = useWeilaApi()
@@ -179,16 +177,6 @@ function onSelect(member: Member, e: PointerEvent) {
         @page-change="(page) => curPage = page - 1" @row-click="(...args) => onSelect(...args)"
       >
         <template #columns>
-          <!-- <a-table-column :title="t('type')">
-            <template #cell="{ record: { type } }">
-              <a-tag v-if="type === 255" color="orange">
-                {{ t('member-type.host') }}
-              </a-tag>
-              <a-tag v-else>
-                {{ t('member-type.member') }}
-              </a-tag>
-            </template>
-          </a-table-column> -->
           <a-table-column :title="t('avatar')">
             <template #cell="{ record: { avatar } }">
               <a-avatar :image-url="avatar?.replace(/^https?:/, '')">
@@ -244,16 +232,6 @@ function onSelect(member: Member, e: PointerEvent) {
               </a-tag>
             </template>
           </a-table-column>
-          <!-- <a-table-column title="TTS">
-            <template #cell="{ record: { tts } }">
-              <a-tag v-if="tts" color="green">
-                {{ t('open') }}
-              </a-tag>
-              <a-tag v-else color="gray">
-                {{ t('close') }}
-              </a-tag>
-            </template>
-          </a-table-column> -->
           <a-table-column :title="t('track')">
             <template #cell="{ record: { track } }">
               <a-tag>

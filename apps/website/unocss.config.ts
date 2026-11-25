@@ -11,7 +11,6 @@ import {
 import { presetExtra } from 'unocss-preset-extra'
 
 export default defineConfig({
-  // ...
   theme: {
     colors: {
       primary: {
@@ -37,7 +36,7 @@ export default defineConfig({
   ],
   presets: [
     presetWind3(),
-    presetAttributify({ /* preset options */ }),
+    presetAttributify({ }),
     presetIcons({
       scale: 1.2,
     }),

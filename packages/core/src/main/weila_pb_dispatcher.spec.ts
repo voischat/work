@@ -18,7 +18,6 @@ function buildMsg(seq: number): WLBuildMsgRet {
   }
 }
 
-/** Captures a pending promise's outcome with the handler attached up front. */
 function outcome(promise: Promise<any>): Promise<string> {
   return promise.then(
     (value) => `resolved:${JSON.stringify(value)}`,

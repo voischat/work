@@ -20,7 +20,6 @@ export interface WL_AudioInitController {
 
 const DEFAULT_GESTURE_EVENTS: Array<keyof WindowEventMap> = ['pointerdown', 'keydown', 'touchstart']
 
-/** Normalises a catch binding into the Error the callbacks receive. */
 function toError(cause: unknown): Error {
   return cause instanceof Error ? cause : new Error(String(cause))
 }

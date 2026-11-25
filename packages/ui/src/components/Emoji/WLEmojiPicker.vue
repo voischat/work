@@ -160,7 +160,6 @@ function handleSelect(emoji: string) {
 </style>
 
 <style>
-/* Hide arrow for emoji picker dropdown */
 .emoji-picker-dropdown .v-popper__arrow-inner,
 .emoji-picker-dropdown .v-popper__arrow-outer {
   display: none;

@@ -21,22 +21,12 @@ interface WL_SendingPbMsgInfo {
   timeout?: number
 }
 
-/**
- * PB 消息调度层：把请求按队列发往网络，按 seq 匹配应答，并负责超时与
- * 断连时的清理。只依赖注入的发送函数，不持有 worker 或业务模块。
- */
 export default class WeilaPbDispatcher {
   private readonly waitingRspMap = new Map<number, WL_WaitingRspPbMsgInfo>()
   private readonly sendingPbMsgList: WL_SendingPbMsgInfo[] = []
 
   constructor(private readonly sendNetworkData: (reqData: WLBuildMsgRet['reqData']) => void) {}
 
-  /**
-   * 发送一条 PB 请求，应答到达（或超时/断连）时兑现
-   * @param buildPbMsg 构建好的请求
-   * @param timeout 超时毫秒数，缺省 6000
-   * @returns 应答数据
-   */
   sendPbMsg(buildPbMsg: WLBuildMsgRet, timeout?: number): Promise<any> {
     return new Promise<any>((resolve, reject) => {
       const sendingItem: WL_SendingPbMsgInfo = {
@@ -51,7 +41,6 @@ export default class WeilaPbDispatcher {
     })
   }
 
-  /** 按序号匹配并兑现一条等待中的请求；未知序号忽略。 */
   rspPbMsg(seq: number, resultCode: number, data: any): void {
     if (this.waitingRspMap.has(seq)) {
       const sendingItem = this.waitingRspMap.get(seq)
@@ -71,7 +60,6 @@ export default class WeilaPbDispatcher {
     }
   }
 
-  /** 网络断开时拒绝所有等待中的请求。 */
   rejectAll(reason: string): void {
     for (const key of this.waitingRspMap.keys()) {
       const waitingRsp = this.waitingRspMap.get(key)
@@ -83,7 +71,6 @@ export default class WeilaPbDispatcher {
     }
   }
 
-  /** 扫描超时截止时间，拒绝已过期的等待。 */
   checkTimeouts(): void {
     if (this.waitingRspMap.size === 0) return
 

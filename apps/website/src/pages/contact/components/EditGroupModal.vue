@@ -34,7 +34,6 @@ const { mutateAsync: change, isPending } = useWeilaMutation('corp/group/change-g
     Message.success(t('message.success'))
     emits('success')
     reset()
-    // web 修改群资料后服务端不会推送 SDK 事件，手动触发 session 列表刷新
     weilaStore.core?.weila_refreshSessionList()
   },
 })
@@ -71,21 +70,8 @@ const submit = handleSubmit(async (values) => {
           <a-radio :value="1">
             {{ t('burst-mode-1') }}
           </a-radio>
-          <!-- <a-radio :value="2">
-            {{ t('burst-mode-2') }}
-          </a-radio> -->
         </a-radio-group>
       </a-form-item>
-      <!-- <a-form-item field="shutup" :label="t('shutup')" >
-            <a-radio-group v-model="form.shutup" direction="vertical">
-              <a-radio :value="0">
-                {{ t('shutup-disable') }}
-              </a-radio>
-              <a-radio :value="1">
-                {{ t('shutup-enable') }}
-              </a-radio>
-            </a-radio-group>
-          </a-form-item> -->
       <a-form-item>
         <a-button mla type="primary" :loading="isPending" html-type="submit">
           {{ t('button.submit') }}

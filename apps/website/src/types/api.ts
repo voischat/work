@@ -62,7 +62,6 @@ export interface Member {
   online?: 0 | 1
   online_status?: 0 | 1
 
-  // device only
   product: string
   imei: string
 }

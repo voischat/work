@@ -24,23 +24,18 @@ const router = useRouter()
 const curPage = shallowRef(0)
 const pageSize = shallowRef(10)
 
-// 获取部门列表
 const { data: depts } = useWeilaFetch<{
   id: number
   name: string
   user_count: number
 }[]>('corp/address/get-my-manage-all-dept')
 
-// 权限判断
 const selfInfoStore = useSelfInfoStore()
 const isDeptAdmin = computed(() => selfInfoStore.isDeptAdmin)
 
 const { data, refetch } = useWeilaFetch<GroupListResponse>(() => `corp/group/get-my-manage-group-list?page=${curPage.value}&size=${pageSize.value}`)
 const weilaApi = useWeilaApi()
 const selfUserId = computed(() => Number(selfInfoStore.selfInfo?.user_id))
-// Membership is only read when a row menu opens, and each group is asked once.
-// Querying every listed group up front made one request per group and re-ran
-// that whole set whenever the list changed or the window regained focus.
 const groupMembership = shallowRef<Record<number, boolean>>({})
 const membershipPending = new Set<number>()
 
@@ -188,18 +183,6 @@ function openGroupChat(group: GroupModel) {
               {{ depts?.find(d => d.id === dept_id)?.name || '' }}
             </template>
           </a-table-column>
-          <!-- <a-table-column :title="t('shutup')">
-            <template #cell="{ record: { shutup } }">
-              <a-tag :color="shutup === 0 ? 'orange' : 'green'">
-                {{
-                  {
-                    0: t('shutup-disable'),
-                    1: t('shutup-enable'),
-                  }[shutup as number]
-                }}
-              </a-tag>
-            </template>
-          </a-table-column> -->
           <a-table-column :title="t('created')">
             <template #cell="{ record: { created } }">
               {{ new Date(created * 1000).toLocaleDateString() }}

@@ -1,4 +1,3 @@
-// window.__sdk and window.__ready are the built bundle's public surface.
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import vm from 'node:vm'
@@ -22,8 +21,6 @@ let browser: Browser
 let page: Page
 const consoleErrors: string[] = []
 
-// The worklet bundle subclasses AudioWorkletProcessor; a plain constructor is
-// all the sandbox needs.
 function AudioWorkletProcessor() {}
 
 test.beforeAll(async () => {

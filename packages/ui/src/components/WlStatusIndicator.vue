@@ -3,9 +3,7 @@ import { computed } from 'vue'
 import { useWeilaUiI18n } from '../i18n'
 
 export interface WlStatusIndicatorProps {
-  /** 当前状态 */
   status: 'idle' | 'connecting' | 'connected' | 'error'
-  /** 显示的标签文本 */
   label?: string
 }
 

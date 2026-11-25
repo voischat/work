@@ -5,11 +5,6 @@ test.skip(
   'Set WEILA_TEST_ACCOUNT, WEILA_TEST_PASSWORD, WEILA_TEST_APP_ID, and WEILA_TEST_APP_KEY in tests/integration/.env.integration.',
 )
 
-/**
- * A voice message whose audio file is gone from the server (April cleanup,
- * 404 today) must not leave the caller's playing state hanging: playSingle
- * returns false and emits the single-family PLAYING_END indication.
- */
 test('a 404 audio message fails loudly instead of silently', async ({ core }) => {
   const result = await core.page.evaluate(async () => {
     const coreObj = window.weilaCore

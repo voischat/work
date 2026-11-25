@@ -56,9 +56,6 @@ function dedupeMessages(nextMessages: WL_IDbMsgData[]): WL_IDbMsgData[] {
   return [...byId.values()]
 }
 
-/**
- * Message history composable for the active session.
- */
 export function useMessageHistory(
   getCore: () => WeilaCore | null,
   getSession: () => WL_IDbSession | undefined,
@@ -169,7 +166,6 @@ export function useMessageHistory(
         PAGE_SIZE,
       )
 
-      // 防御性处理：如果底层返回了撤回控制消息，应用状态并过滤掉，不加入列表。
       const visibleResult: WL_IDbMsgData[] = []
       for (const msg of result) {
         if (msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE) {

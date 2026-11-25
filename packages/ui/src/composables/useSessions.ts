@@ -10,8 +10,6 @@ import {
 } from '@vois/weila-sdk-core'
 
 const BACKGROUND_REFRESH_DEBOUNCE_MS = 200
-// Message events update the session list constantly, but the profile batch
-// only needs to run when the session set changes or the cached names go stale.
 const PROFILE_REFRESH_INTERVAL_MS = 60_000
 
 interface BatchSessionProfileResult {
@@ -39,10 +37,6 @@ function isRealtimePttData(data: RealtimePttEventData | undefined) {
   )
 }
 
-/**
- * Session List Composable
- * Provides reactive session list from WeilaCore
- */
 export function useSessions(
   getCore: () => WeilaCore | null,
   batchResolveProfiles?: BatchSessionProfileResolver,
@@ -52,7 +46,7 @@ export function useSessions(
   const error = ref<Error | null>(null)
   const invalidSessionKeys = reactive(new Set<string>())
   let backgroundRefreshTimer: ReturnType<typeof setTimeout> | null = null
-  let fetchPromise: Promise<void> | null = null // ponytail: serialize fetches to avoid stale invalidSessionKeys
+  let fetchPromise: Promise<void> | null = null
   let lastProfileSyncAt = 0
   let lastProfileKeys = ''
 
@@ -83,8 +77,6 @@ export function useSessions(
     if (keys === lastProfileKeys && Date.now() - lastProfileSyncAt < PROFILE_REFRESH_INTERVAL_MS)
       return
 
-    // Mark the sync before the request so a failing endpoint does not retry on
-    // every incoming message.
     lastProfileKeys = keys
     lastProfileSyncAt = Date.now()
 
@@ -115,7 +107,7 @@ export function useSessions(
   }
 
   async function fetchSessions(showLoading = sessions.value.length === 0) {
-    if (fetchPromise) return fetchPromise // ponytail: serialise overlapping calls
+    if (fetchPromise) return fetchPromise
 
     const core = getCore()
     if (!core) {
@@ -152,13 +144,10 @@ export function useSessions(
   }
 
   const handleEvent: WL_ExtEventCallback = (eventId, eventData) => {
-    // WL_EXT_DATA_PREPARE_IND: initial data loaded - 登录后数据同步完成
     if (eventId === WL_ExtEventID.WL_EXT_DATA_PREPARE_IND) {
       if (eventData?.state !== WL_DataPrepareState.PREPARE_SUCC_END) return
       void fetchSessions(sessions.value.length === 0)
-    }
-    // WL_EXT_NEW_SESSION_OPEN_IND: new session created
-    else if (eventId === WL_ExtEventID.WL_EXT_NEW_SESSION_OPEN_IND) {
+    } else if (eventId === WL_ExtEventID.WL_EXT_NEW_SESSION_OPEN_IND) {
       scheduleBackgroundRefresh()
     } else if (
       eventId === WL_ExtEventID.WL_EXT_NEW_MSG_RECV_IND ||
@@ -169,12 +158,10 @@ export function useSessions(
     } else if (eventId === WL_ExtEventID.WL_EXT_MSG_SEND_IND) {
       scheduleBackgroundRefresh()
     } else if (eventId === WL_ExtEventID.WL_EXT_GROUP_MODIFIED_IND) {
-      // 群资料变更后清空了 session 缓存，需要重新拉取让 resolver 刷新
       scheduleBackgroundRefresh()
     }
   }
 
-  // Watch for weilaCore changes
   watch(
     getCore,
     (newCore, _oldCore, onCleanup) => {

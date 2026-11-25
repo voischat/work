@@ -8,12 +8,10 @@ const router = useRouter()
 const weila = useWeilaStore()
 const { core, userInfo } = storeToRefs(weila)
 
-// General settings toggles
 const doNotDisturb = ref(false)
 const ttsEnabled = ref(false)
 const locationSharing = ref(false)
 
-// Device list
 interface Device {
   id: string
   name: string
@@ -23,16 +21,13 @@ interface Device {
 
 const devices = ref<Device[]>([])
 
-// Helper to get device name
 function getDeviceName(ext: { info: { productName: string } }): string {
   return ext.info?.productName || 'Unknown Device'
 }
 
-// Load general settings
 async function loadGeneralSettings() {
   if (!core.value) return
   try {
-    // Default to false, actual implementation would call weila_getGeneralSetting
     doNotDisturb.value = false
     ttsEnabled.value = false
     locationSharing.value = false
@@ -41,7 +36,6 @@ async function loadGeneralSettings() {
   }
 }
 
-// Update general setting
 function toggleDnd() {
   doNotDisturb.value = !doNotDisturb.value
   updateGeneralSetting('dnd', doNotDisturb.value)
@@ -66,7 +60,6 @@ async function updateGeneralSetting(key: string, value: boolean) {
   }
 }
 
-// Load device list
 async function loadDevices() {
   if (!core.value) return
   try {
@@ -81,7 +74,6 @@ async function loadDevices() {
   }
 }
 
-// Handle logout
 async function handleLogout() {
   await weila.logout()
   router.push('/')
@@ -98,14 +90,12 @@ onMounted(() => {
     <div class="max-w-2xl mx-auto p-6">
       <h1 class="text-2xl font-semibold text-neutral-800 mb-6">Settings</h1>
 
-      <!-- General Settings -->
       <section class="mb-8">
         <h2 class="text-lg font-medium text-neutral-700 mb-4 flex items-center gap-2">
           <span class="icon-[carbon--settings]"></span>
           General Settings
         </h2>
         <div class="bg-white rounded-xl border border-neutral-200 divide-y divide-neutral-100">
-          <!-- Do Not Disturb -->
           <div class="flex items-center justify-between px-4 py-3">
             <div class="flex items-center gap-3">
               <span class="icon-[carbon--notification-off] text-neutral-500"></span>
@@ -130,7 +120,6 @@ onMounted(() => {
             </button>
           </div>
 
-          <!-- TTS -->
           <div class="flex items-center justify-between px-4 py-3">
             <div class="flex items-center gap-3">
               <span class="icon-[carbon--microphone] text-neutral-500"></span>
@@ -155,7 +144,6 @@ onMounted(() => {
             </button>
           </div>
 
-          <!-- Location Sharing -->
           <div class="flex items-center justify-between px-4 py-3">
             <div class="flex items-center gap-3">
               <span class="icon-[carbon--location] text-neutral-500"></span>
@@ -182,7 +170,6 @@ onMounted(() => {
         </div>
       </section>
 
-      <!-- Session Settings -->
       <section class="mb-8">
         <h2 class="text-lg font-medium text-neutral-700 mb-4 flex items-center gap-2">
           <span class="icon-[carbon--chat]"></span>
@@ -192,11 +179,9 @@ onMounted(() => {
           <p class="text-neutral-500 text-sm">
             Session-specific settings will appear here when you select a conversation.
           </p>
-          <!-- Future: Session selector and per-session settings -->
         </div>
       </section>
 
-      <!-- Account Info -->
       <section class="mb-8">
         <h2 class="text-lg font-medium text-neutral-700 mb-4 flex items-center gap-2">
           <span class="icon-[carbon--user]"></span>
@@ -226,7 +211,6 @@ onMounted(() => {
         </div>
       </section>
 
-      <!-- Device Management -->
       <section class="mb-8">
         <h2 class="text-lg font-medium text-neutral-700 mb-4 flex items-center gap-2">
           <span class="icon-[carbon--collaborate]"></span>
@@ -252,7 +236,6 @@ onMounted(() => {
         </div>
       </section>
 
-      <!-- Logout -->
       <section>
         <button
           @click="handleLogout"

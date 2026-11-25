@@ -24,12 +24,10 @@ const now = Date.now()
 export default defineConfig(() => {
   const isDev = process.env.NODE_ENV !== 'production'
   const proxyTargetV1 = isDev
-    // ? 'http://localhost:8088'
     ? 'http://demo.weila.hk'
     : 'https://api.voischat.cn'
 
   const proxyTargetV2 = isDev
-    // ? 'http://demo.weila.hk'
     ? 'http://localhost:8090'
     : 'https://api.voischat.cn'
 
@@ -130,10 +128,6 @@ export default defineConfig(() => {
             from: '@vueuse/components',
             imports: ['UseImage'],
           },
-        // {
-        //   from: '@tanstack/vue-form',
-        //   imports: ['useForm'],
-        // },
         ],
         dts: 'src/auto-imports.d.ts',
         dirs: [
@@ -150,9 +144,7 @@ export default defineConfig(() => {
 
       // https://github.com/antfu/unplugin-vue-components
       Components({
-      // allow auto load markdown components under `./src/components/`
         extensions: ['vue', 'md'],
-        // allow auto import and register components used in markdown
         include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
         dts: 'src/components.d.ts',
         resolvers: [
@@ -177,7 +169,6 @@ export default defineConfig(() => {
 
       mkcert(),
 
-      // axios and ofetch are peerDependencies of @wl/network, never imported directly.
       Unused({
         ignore: ['axios', 'ofetch'],
       }),

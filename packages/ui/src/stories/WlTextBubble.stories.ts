@@ -35,7 +35,6 @@ const msg = (textData: string, created = Math.floor(Date.now() / 1000)): WL_IDbM
   textData,
 })
 
-/** 普通文本消息 */
 export const PlainText: Story = {
   args: {
     msg: msg('Hello, World!'),
@@ -43,7 +42,6 @@ export const PlainText: Story = {
   },
 }
 
-/** 发送方普通文本 */
 export const PlainTextSelf: Story = {
   args: {
     msg: msg('这是一条我发送的消息'),
@@ -51,7 +49,6 @@ export const PlainTextSelf: Story = {
   },
 }
 
-/** 带单个 emoji 的消息 */
 export const SingleEmoji: Story = {
   args: {
     msg: msg('Hello [微笑] World'),
@@ -59,7 +56,6 @@ export const SingleEmoji: Story = {
   },
 }
 
-/** 多个 emoji 混排 */
 export const MultipleEmoji: Story = {
   args: {
     msg: msg('[微笑][呲牙][酷]'),
@@ -67,7 +63,6 @@ export const MultipleEmoji: Story = {
   },
 }
 
-/** 发送方带 emoji */
 export const SelfWithEmoji: Story = {
   args: {
     msg: msg('收到！[微笑][赞]'),
@@ -75,7 +70,6 @@ export const SelfWithEmoji: Story = {
   },
 }
 
-/** emoji 在开头 */
 export const EmojiAtStart: Story = {
   args: {
     msg: msg('[微笑] 早上好！'),
@@ -83,7 +77,6 @@ export const EmojiAtStart: Story = {
   },
 }
 
-/** emoji 在末尾 */
 export const EmojiAtEnd: Story = {
   args: {
     msg: msg('明天见[再见]'),
@@ -91,7 +84,6 @@ export const EmojiAtEnd: Story = {
   },
 }
 
-/** 多行文本带 emoji */
 export const MultiLineWithEmoji: Story = {
   args: {
     msg: msg('第一行\n第二行 [微笑]\n第三行'),
@@ -99,7 +91,6 @@ export const MultiLineWithEmoji: Story = {
   },
 }
 
-/** 聊天上下文效果 */
 export const InChatContext: Story = {
   render: () => ({
     components: { WlTextBubble },

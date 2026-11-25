@@ -3,7 +3,6 @@ import { CoreSession, CoreSessionOptions, readIntegrationEnv } from './harness'
 
 export const integrationEnv = readIntegrationEnv()
 
-/** Chromium flags that let the built SDK open a real recorder pipeline in headless tests: a synthetic microphone, auto-granted media permissions, and audio playback without a user gesture. */
 const AUDIO_LAUNCH_ARGS = [
   '--use-fake-device-for-media-stream',
   '--use-fake-ui-for-media-stream',
@@ -27,7 +26,6 @@ async function openCoreSession(options: CoreSessionOptions = {}) {
   }
 }
 
-/** Playwright test with a logged-in `core` session and an audio-enabled `coreAudio` variant. */
 export const test = base.extend<{ core: CoreSession; coreAudio: CoreSession }>({
   core: [
     async (_fixtures, use) => {

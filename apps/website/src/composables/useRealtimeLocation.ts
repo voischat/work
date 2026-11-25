@@ -1,7 +1,6 @@
 import type { RealtimeLocationModel } from '~/api/realtime-location'
 import { shallowRef } from 'vue'
 
-// Mock用户数据
 const mockUsers = [
   {
     user_id: 1253951,
@@ -97,31 +96,27 @@ const mockUsers = [
   },
 ]
 
-// 生成mock位置数据（基于初始位置，每次调用都会偏移）
 let callCount = 0
 function generateMockLocations(): RealtimeLocationModel[] {
   const baseTime = Date.now()
   const locations: RealtimeLocationModel[] = []
 
-  // 起始位置（中国东部）
-  const baseLat = 31.2304 // 上海纬度
-  const baseLng = 121.4737 // 上海经度
+  const baseLat = 31.2304
+  const baseLng = 121.4737
 
   mockUsers.forEach((user, index) => {
-    // 每个用户的位置从中国东部逐步向西北移动
-    // 每次调用都会增加偏移量，模拟移动
-    const latOffset = (index * 0.5) + (callCount * 0.01) // 向北偏移，每次调用增加
-    const lngOffset = -(index * 0.8) - (callCount * 0.015) // 向西偏移，每次调用增加
+    const latOffset = (index * 0.5) + (callCount * 0.01)
+    const lngOffset = -(index * 0.8) - (callCount * 0.015)
 
     locations.push({
       uid: user.user_id,
       type: user.type,
       lat: baseLat + latOffset,
       lng: baseLng + lngOffset,
-      spd: Math.random() * 80 + 20, // 速度 20-100 km/h
-      rad: Math.random() * 360, // 随机方向
-      dir: Math.floor(Math.random() * 360), // 随机角度
-      ts: baseTime - (index * 60000), // 时间戳递减
+      spd: Math.random() * 80 + 20,
+      rad: Math.random() * 360,
+      dir: Math.floor(Math.random() * 360),
+      ts: baseTime - (index * 60000),
     })
   })
 
@@ -162,7 +157,6 @@ export function useRealtimeLocation(
     immediate: false,
   })
 
-  // 当API返回空数据时使用mock数据
   const useMockData = computed(() => {
     return !apiLocations.value?.length && import.meta.env.DEV
   })
@@ -176,21 +170,18 @@ export function useRealtimeLocation(
     }
   }
 
-  // 合并数据：优先使用API数据，如果为空则使用mock数据
   const locations = computed(() =>
     useMockData.value
       ? mockLocations.value
       : apiLocations.value,
   )
 
-  // 定时刷新位置数据
   const { pause, resume } = useIntervalFn(() => {
     if (enabled.value) {
       refetch()
     }
   }, 5000)
 
-  // 初始化时获取数据
   watch([enabled, selectedId], () => {
     if (enabled.value) {
       refetch()

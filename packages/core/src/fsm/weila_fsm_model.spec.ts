@@ -2,29 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { createActor, fromCallback, fromPromise } from 'xstate'
 import { fsmEvents, mainFsm, pttFsm } from './weila_fsmScript'
 
-/**
- * Formal model checks over both FSM definitions.
- *
- * The explorer drives real (stubbed) actors from every reachable state with
- * every declared event, in two variants (all actors resolve / all actors
- * reject), building the complete untimed state space. On top of that graph
- * it verifies structural safety properties:
- *
- * 1. Well-formedness - replaying any event from any reachable state never
- *    throws, which proves every transition targets an existing state.
- * 2. No dead states - every state declared in the config is reachable from
- *    the initial state.
- * 3. No traps - from every reachable state the machine can return to its
- *    home state (`inited` for main, `idle` for PTT), except states that are
- *    final by design (`exception`, and `uninit` before init).
- * 4. Event handling - every event constant the owners send fires an action
- *    somewhere in the space, so no typo'd or orphaned constant exists.
- *
- * Timed transitions (`after` delays) are outside this explorer; those paths
- * are exercised by the behavioral specs (`weila_fsm.spec.ts`) and the
- * integration suite.
- */
-
 interface ModelSnapshot {
   value: unknown
   status: string
@@ -48,7 +25,6 @@ interface Exploration {
   handledEvents: Set<string>
 }
 
-/** Every named actor source both machines reference. */
 const ACTOR_NAMES = [
   'loadResource',
   'prepareData',
@@ -63,14 +39,8 @@ const ACTOR_NAMES = [
   'checkHistoryList',
 ]
 
-/**
- * The watchdog ticks on a real interval, which would inject unsolicited
- * events mid-exploration; the stub stays silent, so the explorer's own event
- * sends remain the only driver.
- */
 const SILENT_ACTORS = { systemWatchdog: fromCallback(() => {}) }
 
-/** Every named action/guard both machines reference. */
 const HANDLER_NAMES = [
   'onResourceLoadFail',
   'onLoadingResource',
@@ -114,7 +84,6 @@ const HANDLER_NAMES = [
   'onReleaseTalk',
 ]
 
-/** Events the core sends to the main machine. */
 const MAIN_EVENT_NAMES = [
   fsmEvents.FSM_LOAD_RESOURCE_EVT,
   fsmEvents.FSM_LOGIN_SERVER_EVT,
@@ -128,7 +97,6 @@ const MAIN_EVENT_NAMES = [
   fsmEvents.FSM_LOGIN_PROCEDURE_SUCC_EVT,
 ]
 
-/** Events WLPttFsm and the session module send to the ptt machine. */
 const PTT_EVENT_NAMES = [
   fsmEvents.FSM_PLAY_REALTIME_EVT,
   fsmEvents.FSM_PLAY_HISTORY_EVT,
@@ -161,10 +129,8 @@ async function settle(): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 0))
 }
 
-/** Builds the actor for a replay; `fired` is shared across the exploration. */
 type MakeActor = (fired: string[]) => ModelActor
 
-/** A fresh main-machine actor whose named handlers record into `fired`. */
 function stubbedMainActor(rejectActors: boolean, fired: string[]): ModelActor {
   return createActor(
     mainFsm.provide({
@@ -199,7 +165,6 @@ function stubbedMainActor(rejectActors: boolean, fired: string[]): ModelActor {
   )
 }
 
-/** A fresh ptt-machine actor whose named handlers record into `fired`. */
 function stubbedPttActor(rejectActors: boolean, fired: string[]): ModelActor {
   return createActor(
     pttFsm.provide({
@@ -227,16 +192,6 @@ function stubbedPttActor(rejectActors: boolean, fired: string[]): ModelActor {
   )
 }
 
-/**
- * Replay-based BFS over the machine's state space.
- *
- * xstate v5 executes actions (assign/raise) through an actor scope, so pure
- * `machine.transition` cannot drive the graph (5.33 throws on the first
- * action). Every node therefore replays its event sequence into a fresh
- * stubbed actor. Snapshots are recorded both immediately after each send
- * (invoke-pending states) and after settling (post-actor states), so
- * transition-through states are not lost.
- */
 async function explore(makeActor: MakeActor, catalog: string[]): Promise<Exploration> {
   const fired: string[] = []
   const visited = new Set<string>()
@@ -333,7 +288,6 @@ function mergeExplorations(list: Exploration[]): Exploration {
   return { states: [...states], steps, handledEvents }
 }
 
-/** Backward reachability: which states can reach `targetKey`? */
 function canReach(exploration: Exploration, targetKey: string): Set<string> {
   const successors = new Map<string, string[]>()
 
@@ -364,7 +318,6 @@ function canReach(exploration: Exploration, targetKey: string): Set<string> {
   return winners
 }
 
-/** Whether any explored snapshot key contains the given state node name. */
 function visitsState(exploration: Exploration, name: string): boolean {
   return exploration.states.some((key) => key.includes(`"${name}"`))
 }
@@ -461,10 +414,6 @@ describe('ptt machine formal model', () => {
   })
 
   it('handles every event constant the ptt fsm sends', () => {
-    // END_BACK_TO_IDLE is now raised inside the machine when a stop finishes
-    // (pendingStopEvent), so no caller sends it any more and the sent-event
-    // credit never sees it. Its routing is checked by the settle assertions
-    // below: every STOP/PLAY_END path settles back to idle.
     const machineRaised = new Set<string>([fsmEvents.FSM_END_BACK_TO_IDLE_EVT])
 
     const dead = PTT_EVENT_NAMES.filter(

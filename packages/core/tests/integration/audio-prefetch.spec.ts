@@ -6,12 +6,6 @@ test.skip(
   'Set WEILA_TEST_ACCOUNT, WEILA_TEST_PASSWORD, WEILA_TEST_APP_ID, and WEILA_TEST_APP_KEY in tests/integration/.env.integration.',
 )
 
-/**
- * History audio messages arrive as URL-only (the proto carries no duration),
- * so the SDK prefetches their blobs in the background after storing them:
- * the AUDIO_READY indication fires and the stored message gains frameCount
- * and data, giving the UI a duration and the next play an instant start.
- */
 test('history audio messages get prefetched with duration', async ({ core }) => {
   const session = pickSession(await core.sessions(), integrationEnv!)
 
@@ -55,14 +49,7 @@ test('history audio messages get prefetched with duration', async ({ core }) => 
   expect(withDuration.length).toBeGreaterThan(0)
 })
 
-/**
- * Rows that were stored before the prefetch existed (or whose fetch once
- * failed) carry only a URL. Reading history must heal them too: the prefetch
- * hangs off the read result, not off the server-storage path.
- */
 test('an already-stored message without data is healed on read', async () => {
-  // Own session: the first test of this file already prefetched the shared
-  // fixture's page, so a donor URL-only snapshot needs a fresh profile.
   const session = await CoreSession.open(integrationEnv!)
 
   try {
@@ -87,7 +74,6 @@ test('an already-stored message without data is healed on read', async () => {
 
         coreObj.weila_onEvent(listener)
 
-        // First read returns the URL-only snapshot and starts the prefetch.
         const first = await coreObj.weila_getMsgDatas(args.sessionId, args.sessionType, 0, 20)
 
         const donor = first.find(
@@ -96,8 +82,6 @@ test('an already-stored message without data is healed on read', async () => {
 
         if (!donor) return { error: 'no url-audio snapshot row' }
 
-        // Plant a preexisting-style row straight into the SDK's store: URL
-        // only, no data, newest by created.
         const candidates = (await indexedDB.databases()).filter((info) => info.name)
 
         const dbs = await Promise.all(
@@ -141,8 +125,6 @@ test('an already-stored message without data is healed on read', async () => {
 
         opened.close()
 
-        // One more read like a re-render: its result now contains the
-        // planted row, and the prefetch hanging off the read must heal it.
         await coreObj.weila_getMsgDatas(args.sessionId, args.sessionType, 0, 20)
 
         return {}

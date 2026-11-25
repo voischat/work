@@ -1,18 +1,9 @@
-/**
- * Format message timestamp for display in message list
- *
- * Rules:
- * - Same day: "HH:mm"
- * - Yesterday: translated "Yesterday HH:mm"
- * - Within this year: "MM-DD HH:mm"
- * - Older: "YYYY-MM-DD HH:mm"
- */
 import type { WeilaUiTranslate } from '../i18n'
 import { translateWeilaUi } from '../i18n'
 
 export function formatMsgTime(timestamp: number, translate?: WeilaUiTranslate): string {
   const t = translate ?? translateWeilaUi
-  const date = new Date(timestamp * 1000) // Unix timestamp to Date
+  const date = new Date(timestamp * 1000)
   const now = new Date()
 
   const year = date.getFullYear()
@@ -27,12 +18,10 @@ export function formatMsgTime(timestamp: number, translate?: WeilaUiTranslate): 
   const minutes = date.getMinutes().toString().padStart(2, '0')
   const timeStr = `${hours}:${minutes}`
 
-  // Same day
   if (year === nowYear && month === nowMonth && day === nowDay) {
     return timeStr
   }
 
-  // Yesterday
   const yesterday = new Date(now)
   yesterday.setDate(yesterday.getDate() - 1)
   if (
@@ -43,22 +32,17 @@ export function formatMsgTime(timestamp: number, translate?: WeilaUiTranslate): 
     return t('time.yesterday', { time: timeStr })
   }
 
-  // Same year
   if (year === nowYear) {
     return `${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')} ${timeStr}`
   }
 
-  // Older
   return `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')} ${timeStr}`
 }
 
-/**
- * Format relative time like "刚刚", "5分钟前", "1小时前"
- */
 export function formatTimeAgo(timestamp: number, translate?: WeilaUiTranslate): string {
   const t = translate ?? translateWeilaUi
   const now = Date.now()
-  const diff = Math.floor((now - timestamp * 1000) / 1000) // seconds
+  const diff = Math.floor((now - timestamp * 1000) / 1000)
 
   if (diff < 60) {
     return t('time.justNow')
@@ -79,6 +63,5 @@ export function formatTimeAgo(timestamp: number, translate?: WeilaUiTranslate): 
     return t('time.daysAgo', { days })
   }
 
-  // Fall back to absolute time
   return formatMsgTime(timestamp, t)
 }

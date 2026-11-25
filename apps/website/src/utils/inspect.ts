@@ -1,14 +1,7 @@
 import { isFunction } from '@antfu/utils'
 
-/**
- * @param args - any vue reactive various
- * @description - debug reactive various
- * @see https://svelte.dev/docs/svelte/$inspect
- * @author kvoon
- */
 export function $inspect(...args: MaybeRefOrGetter[]) {
   let logFn = console.log
-  // TODO: change type
   const type: 'init' | 'update' = 'update'
 
   if (import.meta.env.DEV) {
