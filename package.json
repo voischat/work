@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "pnpm -C apps/website run dev",
     "dev:prod": "pnpm -C apps/website run dev:prod",
+    "dev:simcard-mock": "pnpm -C apps/simcard-mock run dev",
     "dev:sdk": "turbo run dev --filter=@vois/weila-sdk-core --filter=@vois/weila-sdk-ui --filter=@weilasdk/playground-vue3",
     "build": "turbo run build",
     "build:web": "turbo run build --filter=weila-work-web",

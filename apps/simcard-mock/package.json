@@ -1,0 +1,16 @@
+{
+  "name": "@weila/simcard-mock",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 8790 --strictPort",
+    "build": "vite build",
+    "deploy": "void deploy --platform cloudflare",
+    "typecheck": "void prepare && tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "void": "catalog:"
+  }
+}

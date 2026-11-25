@@ -33,6 +33,16 @@ export default defineConfig(() => {
     ? 'http://localhost:8090'
     : 'https://api.voischat.cn'
 
+  // corp/simcard/* is not deployed yet; apps/simcard-mock serves it through
+  // Void server functions. Run `pnpm dev:simcard-mock` alongside this server.
+  const simcardMockTarget = process.env.SIMCARD_MOCK_URL ?? 'http://localhost:8790'
+  const simcardMockProxy = {
+    target: simcardMockTarget,
+    timeout: 20 * 1000,
+    changeOrigin: true,
+    secure: false,
+  }
+
   return {
     base: './',
 
@@ -92,6 +102,7 @@ export default defineConfig(() => {
     server: {
       cors: true,
       proxy: {
+        '/v2/corp/simcard': simcardMockProxy,
         '/v1': {
           target: proxyTargetV1,
           timeout: 20 * 1000,

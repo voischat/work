@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "source": {
+    "name": "work-simcard-mock",
+    "account_id": "f1aeb479314b25d24bd6626e9e5bbfe9"
+  },
+  "resolved": {
+    "name": "work-simcard-mock",
+    "account_id": "f1aeb479314b25d24bd6626e9e5bbfe9",
+    "compatibility_date": "2026-02-24"
+  },
+  "text": "{\n  \"name\": \"work-simcard-mock\",\n  \"account_id\": \"f1aeb479314b25d24bd6626e9e5bbfe9\",\n  \"compatibility_date\": \"2026-02-24\"\n}\n"
+}

@@ -53,6 +53,10 @@
         "@vuemap/vue-amap-loca",
       ],
     },
+    "apps/simcard-mock": {
+      // Void resolves routes/ and void.config.ts by convention, not imports.
+      "entry": ["routes/**/*.ts", "void.config.ts"],
+    },
     "packages/core": {
       // Manual script: copies dist/assets into the consuming app's public/
       // (documented in packages/core/AGENTS.md, used by UniApp integrations)
