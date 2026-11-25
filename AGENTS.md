@@ -62,6 +62,9 @@ Run from the repo root.
 | `pnpm knip`                    | unused files, exports, dependencies (must report zero findings) |
 | `pnpm fmt` / `pnpm fmt:check`  | Oxfmt over everything except `apps/website`                     |
 | `pnpm env:setup`               | render the ignored env files from 1Password                     |
+| `pnpm release`                 | bump `apps/website`, commit and tag `vX.Y.Z`                    |
+| `pnpm release:core`            | bump core, commit and tag `@vois/weila-sdk-core@X.Y.Z`          |
+| `pnpm release:ui`              | bump UI, commit and tag `@vois/weila-sdk-ui@X.Y.Z`              |
 | `pnpm docs:dev` / `docs:build` | VitePress user manual                                           |
 
 ## Gates
@@ -69,6 +72,10 @@ Run from the repo root.
 `.github/workflows/gates.yml` runs, for the SDK track: `fmt:check`, `manifests`, `build:sdk`, `api:snapshot`, `typecheck:sdk`, `typecheck:tsc:sdk`, `typecheck:parity`, `typecheck:strict-budget`, `knip`, `lint:sdk`, `lint:comments`, `test:scripts`, `test:sdk`, the Playwright dist smoke test, and `build:story`. The `web` job runs `lint:web` and then the website's turbo `typecheck`, `test` and `build`, which pull the SDK builds through the task graph.
 
 `scripts/commit-hooks.spec.mjs` asserts the hook wiring, so changing `nano-staged` globs or the hook runner means updating that spec.
+
+## Releases
+
+Tags drive `.github/workflows/release.yml`. `vX.Y.Z` releases the console, `@vois/weila-sdk-core@X.Y.Z` and `@vois/weila-sdk-ui@X.Y.Z` publish those packages. The workflow checks the tag against the package version, builds, publishes with provenance using the `NPM_TOKEN` secret, and creates a GitHub Release with changelogithub. Local `pnpm release`, `pnpm release:core` and `pnpm release:ui` run bumpp to bump, commit, tag and push. The UI package must not be released before the core version it depends on exists on npm, and `scripts/release-publish.mjs` enforces that.
 
 ## Deployments
 

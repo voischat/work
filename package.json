@@ -48,7 +48,10 @@
     "build:sdk": "turbo run build --filter='./packages/*'",
     "typecheck:tsc:sdk": "turbo run typecheck:tsc --filter='./packages/*'",
     "test:sdk": "turbo run test:run --filter='./packages/*'",
-    "lint:comments": "node scripts/no-comments.mjs"
+    "lint:comments": "node scripts/no-comments.mjs",
+    "release": "bumpp apps/website/package.json --tag 'v{version}' --commit 'chore: release v{version}'",
+    "release:core": "bumpp packages/core/package.json --tag '@vois/weila-sdk-core@{version}' --commit 'chore(release): @vois/weila-sdk-core@{version}'",
+    "release:ui": "bumpp packages/ui/package.json --tag '@vois/weila-sdk-ui@{version}' --commit 'chore(release): @vois/weila-sdk-ui@{version}'"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:",
@@ -56,6 +59,8 @@
     "@oxlint/plugins": "catalog:",
     "@tanstack/eslint-plugin-query": "catalog:",
     "@unocss/eslint-plugin": "catalog:",
+    "bumpp": "catalog:",
+    "changelogithub": "catalog:",
     "eslint": "catalog:",
     "eslint-factory": "catalog:",
     "eslint-plugin-format": "catalog:",
