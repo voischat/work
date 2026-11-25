@@ -107,6 +107,21 @@ const messagePreview = computed(() => {
       return t('session.preview.location')
     case WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE:
       return t('session.preview.ptt')
+    case WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE:
+      switch (msg.servicePayload?.type) {
+        case 'qrcode':
+          return t('session.preview.qrcode')
+        case 'session-member-change':
+          return t('session.preview.memberChange')
+        case 'group-destroy':
+          return t('message.groupDestroyed')
+        case 'alarm-power':
+        case 'alarm-geofence':
+        case 'alarm-sos':
+          return t('session.preview.alarm')
+        default:
+          return t('session.preview.service')
+      }
     default:
       return sessionTypeLabel.value
   }

@@ -8,6 +8,7 @@ import WlImageBubble from '../Message/WlImageBubble.vue'
 import WlVideoBubble from '../Message/WlVideoBubble.vue'
 import WlLocationBubble from '../Message/WlLocationBubble.vue'
 import WlFileBubble from '../Message/WlFileBubble.vue'
+import WlServiceBubble from '../Message/WlServiceBubble.vue'
 import WlUnknownBubble from '../Message/WlUnknownBubble.vue'
 import WlAvatar from '../Avatar/WlAvatar.vue'
 import { useWeilaUiI18n } from '../../i18n'
@@ -115,6 +116,8 @@ const isLocation = (msg: WL_IDbMsgData) =>
   msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_LOCATION_TYPE
 const isFile = (msg: WL_IDbMsgData) => msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE
 const isVideo = (msg: WL_IDbMsgData) => msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE
+const isServicePayload = (msg: WL_IDbMsgData) =>
+  msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE && Boolean(msg.servicePayload)
 
 const isSupportedForwardType = (msg: WL_IDbMsgData) =>
   isText(msg) || isAudio(msg) || isImage(msg) || isVideo(msg) || isLocation(msg) || isFile(msg)
@@ -343,6 +346,15 @@ watch(
             :is-self="isSelf(msg)"
             :sender="getSender(msg)"
             @click="handleVideoClick"
+          />
+
+          <WlServiceBubble
+            v-else-if="isServicePayload(msg)"
+            :msg="msg"
+            :is-self="isSelf(msg)"
+            :sender="getSender(msg)"
+            @image-click="handleImageClick"
+            @location-click="handleLocationClick"
           />
 
           <WlUnknownBubble v-else :msg="msg" :is-self="isSelf(msg)" :sender="getSender(msg)" />
