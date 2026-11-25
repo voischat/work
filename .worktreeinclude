@@ -1,0 +1,7 @@
+# Gitignored files that new Claude Code worktrees should receive.
+# They are copied from the main checkout, so a worktree can run the app and the
+# verification skills without a separate setup step. `pnpm env:setup` restores
+# the same files from 1Password on a fresh machine or for other worktree tools.
+apps/website/.env
+apps/playground-vue3/.env
+packages/core/tests/integration/.env.integration
