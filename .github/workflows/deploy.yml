@@ -25,6 +25,11 @@ jobs:
       - run: pnpm exec turbo run build --filter=@weilasdk/playground-vue3
       - run: pnpm run build:story
       - run: pnpm run docs:build
+      - name: Deploy simcard mock
+        working-directory: apps/simcard-mock
+        run: pnpm exec void deploy --platform cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       - name: Deploy website
         working-directory: apps/website
         run: pnpm exec wrangler deploy
