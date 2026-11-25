@@ -1,6 +1,8 @@
 import { execFileSync } from 'node:child_process'
+import { existsSync } from 'node:fs'
 import process from 'node:process'
-import { generate, sendRelease } from 'changelogithub'
+import { generate, sendRelease, uploadAssets } from 'changelogithub'
+import { rewriteAuthors } from './release-authors.mjs'
 import { resolveTarget } from './release-targets.mjs'
 
 const tag = process.env.GITHUB_REF_NAME ?? ''
@@ -25,4 +27,12 @@ if (target) {
 }
 
 const { config, output } = await generate(options)
-await sendRelease(config, output)
+const release = await sendRelease(config, rewriteAuthors(output))
+
+if (!target && tag.startsWith('v')) {
+  const archive = `pkg/weila-work-web_${version}.tar.gz`
+
+  if (!existsSync(archive)) throw new Error(`Missing ${archive}; build the website archive first.`)
+
+  await uploadAssets(config, [archive], release)
+}
