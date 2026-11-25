@@ -8,7 +8,7 @@ import {
   WL_ConfigID,
 } from '@vois/weila-sdk-core'
 import { defineStore } from 'pinia'
-import { shallowRef } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { useWeilaApi } from '~/composables/useWeilaApi'
 import { appid, appkey } from '~/shared/const'
 import { tempAccount } from '~/shared/states'
@@ -17,6 +17,12 @@ import { toChatSafeUploadUrl } from '~/utils/uploadUrl'
 export const useWeilaStore = defineStore('weila', () => {
   const core = shallowRef<WeilaCore | null>(null)
   const userInfo = shallowRef<WL_IDbUserInfo | null>(null)
+  const autoLoginError = shallowRef('')
+  const hasSavedCredentials = computed(() => {
+    const account = tempAccount.value.get('account')
+    const password = tempAccount.value.get('password')
+    return Boolean(account && password)
+  })
   const audioInitController = createWeilaAudioInitController({
     getCore: () => core.value,
     onDeferredInitError: error => console.warn('[Weila] Deferred audio init failed:', error),
@@ -89,6 +95,7 @@ export const useWeilaStore = defineStore('weila', () => {
   }
 
   async function autoLogin(): Promise<boolean> {
+    autoLoginError.value = ''
     const account = tempAccount.value.get('account')
     const password = tempAccount.value.get('password')
     const countryCode = tempAccount.value.get('country_code') ?? '0'
@@ -99,8 +106,10 @@ export const useWeilaStore = defineStore('weila', () => {
       await login(account, password, countryCode)
       return true
     }
-    catch {
-      tempAccount.value.clear()
+    catch (error) {
+      autoLoginError.value = error instanceof Error
+        ? error.message
+        : String(error)
       return false
     }
   }
@@ -108,6 +117,8 @@ export const useWeilaStore = defineStore('weila', () => {
   return {
     core,
     userInfo,
+    autoLoginError,
+    hasSavedCredentials,
     init,
     login,
     logout,

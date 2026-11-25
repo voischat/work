@@ -107,6 +107,10 @@ chat:
   session-unavailable: 会话不可用
   start-conversation: 发起对话
   sdk-loading: SDK 初始化中...
+  sdk-missing-credentials: 未找到 SDK 登录凭证，请重新登录
+  sdk-login-failed: SDK 登录失败，请重试或重新登录
+  sdk-retry: 重试
+  sdk-relogin: 重新登录
   select-session: 请选择一个频道
   location:
     open-in-amap: 在高德地图中打开
