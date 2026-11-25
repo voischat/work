@@ -28,6 +28,7 @@ export function parseTextWithEmoji(text: string): TextEmojiToken[] {
   return tokens
 }
 
+export * from './thumbnail'
 export * from './time'
 
 export function isValidLocation(location: { latitude: number; longitude: number }): boolean {
