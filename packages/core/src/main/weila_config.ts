@@ -1,13 +1,8 @@
 import { Dexie } from 'dexie'
-//@ts-ignore
 import start_play_wav from '../assets/start_player.wav'
-//@ts-ignore
 import stop_play_wav from '../assets/stop_player.wav'
-//@ts-ignore
 import start_record_wav from '../assets/start_record.wav'
-//@ts-ignore
 import stop_record_wav from '../assets/stop_record.wav'
-//@ts-ignore
 import opus_lib_wasm from '../assets/opuslibs.wasm'
 
 import { getLogger } from 'log/weila_log'
