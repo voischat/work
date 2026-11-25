@@ -8,7 +8,6 @@ export default defineConfig({
   ignorePaths: ['**/node_modules/**', '**/test/**', 'packages/core'],
   ignoreOtherWorkspaces: true,
   packageMode: {
-    typescript: 'major',
     '/vue/': 'latest',
   },
   depFields: {
