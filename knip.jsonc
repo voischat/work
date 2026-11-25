@@ -18,11 +18,14 @@
         // read by `void deploy` for the docs site
         "docs/void.config.ts",
         // commit-hook and release script specs, run through `node --test`
-        "scripts/*.spec.mjs",
+        "scripts/*.spec.ts",
+        "release/*.spec.ts",
         // agent verification scripts, run ad hoc through ego-browser
         ".claude/skills/**/*.mjs",
         // repo scripts, including the manifest policy check
-        "scripts/*.mjs",
+        "scripts/*.ts",
+        // release entrypoints, invoked by .github/workflows/release.yml
+        "release/*.ts",
         // user manual site, driven by root docs: scripts
         "docs/.vitepress/config.mts",
       ],
@@ -37,7 +40,6 @@
       "entry": [
         // auto-read by unplugin-vue-macros during the vite build
         "vue-macros.config.ts",
-        // manual release helpers (the only consumers of root zx)
       ],
       "ignoreDependencies": [
         // icon sets resolved to CSS by UnoCSS/Iconify at build time

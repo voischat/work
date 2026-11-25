@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import test from 'node:test'
 import { fileURLToPath } from 'node:url'
-import { catalogNames, checkManifest, duplicateScriptNames } from './manifest-checks.mjs'
+import { catalogNames, checkManifest, duplicateScriptNames } from './manifest-checks.ts'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const catalogs = catalogNames(readFileSync(join(ROOT, 'pnpm-workspace.yaml'), 'utf8'))

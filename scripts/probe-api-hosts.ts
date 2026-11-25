@@ -16,10 +16,20 @@ const DEFAULT_HOSTS = [
 
 const CONTROL_PATH = 'corp/user/get-selfinfo'
 
-function parseArgs(argv) {
+interface ProbeOptions {
+  har: string
+  path: string
+  hosts: string[]
+}
+
+function parseArgs(argv: string[]): ProbeOptions {
   const [har, ...rest] = argv
-  if (!har) throw new Error('usage: probe-api-hosts.mjs <har-file> [--path <p>] [--hosts <a,b>]')
-  const opts = { har, path: 'corp/api/manage/get-app-list?page=0&size=20', hosts: DEFAULT_HOSTS }
+  if (!har) throw new Error('usage: probe-api-hosts.ts <har-file> [--path <p>] [--hosts <a,b>]')
+  const opts: ProbeOptions = {
+    har,
+    path: 'corp/api/manage/get-app-list?page=0&size=20',
+    hosts: DEFAULT_HOSTS,
+  }
   for (let i = 0; i < rest.length; i += 2) {
     const key = rest[i]
     const value = rest[i + 1]
@@ -34,7 +44,7 @@ function parseArgs(argv) {
   return opts
 }
 
-function signedQueryFromHar(harPath) {
+function signedQueryFromHar(harPath: string): string {
   const data = JSON.parse(readFileSync(harPath, 'utf8'))
   const entry = (data.log?.entries || []).find((e) => /\/v2\/.+token=/.test(e.request?.url || ''))
   if (!entry) throw new Error('no signed v2 request with token found in HAR')
@@ -46,7 +56,11 @@ function signedQueryFromHar(harPath) {
     .join('&')
 }
 
-function call(origin, path, query) {
+function call(
+  origin: string,
+  path: string,
+  query: string,
+): Promise<{ status: number; text: string }> {
   const url = new URL(`${origin}/v2/${path.split('?')[0]}`)
   for (const [k, v] of new URLSearchParams(query)) url.searchParams.set(k, v)
   for (const [k, v] of new URLSearchParams(path.split('?')[1] || '')) url.searchParams.set(k, v)
@@ -77,7 +91,7 @@ function call(origin, path, query) {
   })
 }
 
-function classify({ status, text }) {
+function classify({ status, text }: { status: number; text: string }): string {
   if (status === 0) return `unreachable (${text})`
   if (status === 404) return 'route absent (404)'
   if (status === 200) {

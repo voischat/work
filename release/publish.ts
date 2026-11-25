@@ -1,7 +1,16 @@
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import process from 'node:process'
-import { resolveTarget } from './release-targets.mjs'
+import { resolveTarget } from './targets.ts'
+
+interface PackageManifest {
+  name: string
+  version: string
+}
+
+function readManifest(path: string): PackageManifest {
+  return JSON.parse(readFileSync(path, 'utf8'))
+}
 
 const tag = process.env.GITHUB_REF_NAME ?? ''
 const target = resolveTarget(tag)
@@ -12,9 +21,9 @@ if (!target) {
 }
 
 const version = target.version
-const manifest = JSON.parse(readFileSync(`${target.dir}/package.json`, 'utf8'))
+const manifest = readManifest(`${target.dir}/package.json`)
 
-function isPublished(name, range) {
+function isPublished(name: string, range: string): boolean {
   try {
     execFileSync('npm', ['view', `${name}@${range}`, 'version'], { stdio: 'ignore' })
     return true
@@ -29,7 +38,7 @@ if (isPublished(manifest.name, version)) {
 }
 
 if (target.dir === 'packages/ui') {
-  const coreVersion = JSON.parse(readFileSync('packages/core/package.json', 'utf8')).version
+  const coreVersion = readManifest('packages/core/package.json').version
 
   if (!isPublished('@vois/weila-sdk-core', coreVersion)) {
     throw new Error(`@vois/weila-sdk-core@${coreVersion} must be published before the UI package`)

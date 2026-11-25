@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { resolveTarget } from './release-targets.mjs'
+import { resolveTarget } from './targets.ts'
 
 void test('resolveTarget maps SDK tags to packages', () => {
   assert.deepEqual(resolveTarget('@vois/weila-sdk-core@1.2.3'), {

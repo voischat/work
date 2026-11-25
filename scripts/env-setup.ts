@@ -17,12 +17,12 @@ const TARGETS = [
   { template: 'env/shell.env.template', target: join(HOME, '.voischat/env.sh') },
 ]
 
-function fail(message) {
+function fail(message: string): never {
   console.error(message)
   process.exit(1)
 }
 
-function ensureSignedIn() {
+function ensureSignedIn(): void {
   try {
     execFileSync('op', ['whoami'], { stdio: 'ignore' })
   } catch {
@@ -35,7 +35,7 @@ Then retry: pnpm env:setup`)
   }
 }
 
-function render({ template, target }) {
+function render({ template, target }: { template: string; target: string }): void {
   const templatePath = join(ROOT, template)
 
   if (!existsSync(templatePath)) fail(`Missing template: ${template}`)

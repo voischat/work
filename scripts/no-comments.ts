@@ -17,7 +17,7 @@ const HTML_COMMENT = /<!--[\s\S]*?-->/g
 const CSS_COMMENT = /\/\*[\s\S]*?\*\//g
 const LESS_COMMENT = /\/\/[^\n]*/g
 
-function* walk(dir) {
+function* walk(dir: string): Generator<string> {
   for (const name of readdirSync(dir)) {
     if (SKIP_DIRS.has(name)) continue
     const path = join(dir, name)
@@ -27,15 +27,15 @@ function* walk(dir) {
   }
 }
 
-function commentRanges(text, regex, offset = 0) {
-  const ranges = []
+function commentRanges(text: string, regex: RegExp, offset = 0): [number, number, string][] {
+  const ranges: [number, number, string][] = []
   for (const match of text.matchAll(regex))
     ranges.push([offset + match.index, offset + match.index + match[0].length, match[0]])
   return ranges
 }
 
-function templateRanges(text) {
-  const ranges = []
+function templateRanges(text: string): [number, number][] {
+  const ranges: [number, number][] = []
   let index = 0
   while ((index = text.indexOf('<template', index)) !== -1) {
     const next = text[index + 9]
@@ -65,8 +65,8 @@ function templateRanges(text) {
   return ranges
 }
 
-function styleRanges(text) {
-  const ranges = []
+function styleRanges(text: string): [number, number, boolean][] {
+  const ranges: [number, number, boolean][] = []
   for (const match of text.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/g)) {
     const start = match.index + match[0].indexOf('>') + 1
     ranges.push([start, start + match[1].length, /lang\s*=\s*["']?less/.test(match[0])])
@@ -74,8 +74,8 @@ function styleRanges(text) {
   return ranges
 }
 
-function scan(text, ext) {
-  const ranges = []
+function scan(text: string, ext: string): [number, number, string][] {
+  const ranges: [number, number, string][] = []
   if (ext === '.vue') {
     for (const [start, end] of templateRanges(text))
       ranges.push(...commentRanges(text.slice(start, end), HTML_COMMENT, start))
@@ -91,7 +91,7 @@ function scan(text, ext) {
   return commentRanges(text, CSS_COMMENT)
 }
 
-function removalRange(text, start, end) {
+function removalRange(text: string, start: number, end: number): [number, number] {
   const lineStart = text.lastIndexOf('\n', start - 1) + 1
   const lineEnd = text.indexOf('\n', end)
   const before = text.slice(lineStart, start)
@@ -101,14 +101,14 @@ function removalRange(text, start, end) {
 }
 
 const fix = process.argv.includes('--fix')
-const problems = []
+const problems: string[] = []
 
 for (const root of ROOTS) {
   for (const path of walk(root)) {
     const ext = path.slice(path.lastIndexOf('.'))
     const text = readFileSync(path, 'utf8')
     const ranges = scan(text, ext)
-    const kept = []
+    const kept: [number, number][] = []
     ranges.forEach(([start, end, raw], index) => {
       const value = raw.replace(/^<!--|-->$/g, '').replace(/^\/\*|\*\/$/g, '')
       if (isAllowedComment({ value }, index)) return

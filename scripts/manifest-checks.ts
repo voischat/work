@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const FIELDS = ['dependencies', 'devDependencies', 'optionalDependencies']
 
-export function workspaceManifests(root = ROOT) {
+export function workspaceManifests(root = ROOT): string[] {
   const paths = [join(root, 'package.json')]
 
   for (const group of ['packages', 'apps']) {
@@ -25,7 +25,7 @@ export function workspaceManifests(root = ROOT) {
   return paths.filter((path) => existsSync(path))
 }
 
-export function catalogNames(workspaceYaml) {
+export function catalogNames(workspaceYaml: string): Set<string> {
   const names = new Set([''])
   let inCatalogs = false
 
@@ -46,7 +46,7 @@ export function catalogNames(workspaceYaml) {
   return names
 }
 
-export function duplicateScriptNames(source) {
+export function duplicateScriptNames(source: string): string[] {
   const start = source.search(/"scripts"\s*:/)
 
   if (start === -1) return []
@@ -65,8 +65,8 @@ export function duplicateScriptNames(source) {
     }
   }
 
-  const seen = new Map()
-  const duplicates = []
+  const seen = new Map<string, number>()
+  const duplicates: string[] = []
 
   for (const match of source.slice(open, end).matchAll(/"([^"]+)"\s*:/g)) {
     const count = (seen.get(match[1]) ?? 0) + 1
@@ -79,9 +79,21 @@ export function duplicateScriptNames(source) {
   return duplicates
 }
 
-export function checkManifest({ path, manifest, source = '', catalogs = new Set(['']) }) {
-  const problems = []
-  const counts = new Map()
+interface CheckManifestOptions {
+  path: string
+  manifest: Record<string, any>
+  source?: string
+  catalogs?: Set<string>
+}
+
+export function checkManifest({
+  path,
+  manifest,
+  source = '',
+  catalogs = new Set(['']),
+}: CheckManifestOptions): string[] {
+  const problems: string[] = []
+  const counts = new Map<string, number>()
 
   for (const field of FIELDS) {
     for (const [name, spec] of Object.entries(manifest[field] ?? {})) {

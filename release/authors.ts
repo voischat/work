@@ -1,9 +1,9 @@
-const AUTHOR_ALIASES = {
+const AUTHOR_ALIASES: Record<string, string> = {
   kvoon3: 'kvoon9',
   'Kevin Kwong': 'kvoon9',
 }
 
-function rewriteAuthors(markdown) {
+function rewriteAuthors(markdown: string): string {
   let result = markdown
 
   for (const [from, to] of Object.entries(AUTHOR_ALIASES)) {

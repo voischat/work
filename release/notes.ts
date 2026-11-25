@@ -2,13 +2,14 @@ import { execFileSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import process from 'node:process'
 import { generate, sendRelease, uploadAssets } from 'changelogithub'
-import { rewriteAuthors } from './release-authors.mjs'
-import { resolveTarget } from './release-targets.mjs'
+import type { ChangelogOptions } from 'changelogithub'
+import { rewriteAuthors } from './authors.ts'
+import { resolveTarget } from './targets.ts'
 
 const tag = process.env.GITHUB_REF_NAME ?? ''
 const target = resolveTarget(tag)
 const version = target ? target.version : tag.replace(/^v/, '')
-const options = {
+const options: ChangelogOptions = {
   repo: process.env.GITHUB_REPOSITORY ?? 'voischat/work',
   token: process.env.GITHUB_TOKEN,
   to: tag,

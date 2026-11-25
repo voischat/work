@@ -22,8 +22,8 @@ pkg
 .claude/worktrees/
 
 # Electron build artifacts
-release
-**/release
+**/release/
+!/release/
 agent-deploy
 deploy-temp
 packages/agent-deploy
