@@ -566,4 +566,4 @@ tooltips:
   track:
     power-warning: This frequency consumes high device power, please use with caution
     flagship-feature: Flagship feature
-  vip-unsupported: Vip edition does not include this feature
+  vip-unsupported: Requires a higher VIP level

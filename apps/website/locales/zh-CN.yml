@@ -563,4 +563,4 @@ tooltips:
   track:
     power-warning: 该频率设备耗电大，请慎重
     flagship-feature: 旗舰版功能
-  vip-unsupported: 当前版本不支持该功能
+  vip-unsupported: 需提升 VIP 等级
