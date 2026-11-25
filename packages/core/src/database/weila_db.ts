@@ -117,7 +117,10 @@ function readInstalledSchemaVersion(dbName: string): Promise<number> {
 }
 
 function normalizeServiceMsgData(
-  target: Pick<WL_IDbMsgData, 'msgType' | 'serviceData' | 'fileInfo'>,
+  target: Pick<
+    WL_IDbMsgData,
+    'msgType' | 'serviceData' | 'fileInfo' | 'location' | 'servicePayload'
+  >,
 ): boolean {
   if (target.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE || !target.serviceData) {
     return false
@@ -130,7 +133,14 @@ function normalizeServiceMsgData(
   }
 
   target.msgType = parsed.msgType
-  target.fileInfo = parsed.fileInfo
+
+  if (parsed.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE) {
+    target.servicePayload = parsed.servicePayload
+  } else {
+    target.fileInfo = parsed.fileInfo
+    target.location = parsed.location
+  }
+
   delete target.serviceData
 
   return true
