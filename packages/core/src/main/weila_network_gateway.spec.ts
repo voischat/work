@@ -19,7 +19,6 @@ function stateEvent(netState: WL_NetworkState) {
   return { data: { eventId: WL_NetworkEventID.NET_STATE_IND_EVT, eventData: netState } }
 }
 
-/** Encodes a real ServiceMessage so the gateway decodes it back. */
 function recvEvent(serviceId: number) {
   const serverMessage = WL.Service.ServiceMessage.create({
     serviceHead: WL.Service.ServiceHead.create({

@@ -3,11 +3,8 @@ import type { WL_IDbMsgData, WL_IDbUserInfo } from '@vois/weila-sdk-core'
 import { isValidLocation } from '../../utils'
 
 export interface WlLocationBubbleProps {
-  /** 消息数据 */
   msg: WL_IDbMsgData
-  /** 是否为自己发送的消息 */
   isSelf?: boolean
-  /** 发送者信息 */
   sender?: WL_IDbUserInfo
 }
 

@@ -76,16 +76,13 @@ const submit = handleSubmit(async (values: any) => {
   })
 })
 
-// Computed property for fast radio disabled state
 const isFastTrackDisabled = computed(() =>
   !authStore.vip?.vip_supports.find(i => i.name === 'track')?.quick_support,
 )
 
-// Computed functions for tooltips
 const getPowerWarningTooltip = () => t('tooltips.track.power-warning')
 const getFlagshipFeatureTooltip = () => t('tooltips.track.flagship-feature')
 
-// Conditional tooltip for fast radio
 const getFastTrackTooltip = computed(() => () =>
   isFastTrackDisabled.value
     ? getFlagshipFeatureTooltip()
@@ -156,12 +153,6 @@ const getLocShareTooltip = computed(() => () =>
         <a-form-item field="avatar" :label="t('member.form.avatar.label')">
           <AvatarUploader ref="avatarUploaderRef" v-model:src="form.avatar" />
         </a-form-item>
-        <!-- <a-form-item field="tts" label="TTS">
-              <a-switch
-                v-model="form.tts" :checked-value="1" :unchecked-value="0" :checked-color="themeColor"
-                unchecked-color="#ddd"
-              />
-            </a-form-item> -->
         <a-form-item
           field="loc_share" :label="t('member.form.loc_share.label')"
         >
@@ -217,7 +208,6 @@ const getLocShareTooltip = computed(() => () =>
 </template>
 
 <style scoped>
-/* Prevent radio button text from wrapping */
 .a-radio-group[type="button"] .a-radio-button,
 .a-radio-group[type="button"] .a-radio-button .a-radio-button-label {
   white-space: nowrap;

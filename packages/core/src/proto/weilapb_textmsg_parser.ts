@@ -82,8 +82,8 @@ const TextMsgDataParser = {
   QR_CODE_DESC_KEY: 'qrDesc',
   QR_CODE_SESSION_TYPE_KEY: 'qrSessionType',
   QR_CODE_PEER_ID_KEY: 'qrPeerId',
-  NORMAL_BUSINESS_SERVICE_TYPE: 'business', //通用订单类型
-  DEFAULT_BUSINESS_SERVICE_TYPE: 'order', //默认订单类型 打车
+  NORMAL_BUSINESS_SERVICE_TYPE: 'business',
+  DEFAULT_BUSINESS_SERVICE_TYPE: 'order',
 
   getCK(): lib.WordArray {
     const k = []
@@ -245,7 +245,6 @@ const TextMsgDataParser = {
     let extendText: string | undefined = undefined
 
     switch (payload.dataType) {
-      // 纯文字
       case WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE:
         {
           extendText = payload.data
@@ -253,7 +252,6 @@ const TextMsgDataParser = {
 
         break
 
-      // 图片信息,先上传,成功后再上传
       case WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE:
         {
           extendText = this.EXTEND_START_FLAG + payload.data + this.EXTEND_END_FLAG
@@ -314,7 +312,6 @@ const TextMsgDataParser = {
 
       case WL_IDbMsgDataType.WL_DB_MSG_DATA_COMMAND_TYPE:
         {
-          // TODO: 暂时未实现
         }
 
         break
@@ -355,7 +352,6 @@ const TextMsgDataParser = {
 
     let extendText = ''
 
-    // 1. 解密 AES.decrypt(encrypted(string类型), key(WordArray类型), cfg({mode: , pad:, });
     let decryptedHexText
 
     try {
@@ -370,7 +366,6 @@ const TextMsgDataParser = {
     const textUnit8Data = hexStr2Uint8Array(enc.Hex.stringify(decryptedHexText))
 
     if (textUnit8Data && textUnit8Data.length > 0) {
-      // 获取实际的扩展字串的长度
       const textDataLen = new DataView(textUnit8Data.buffer).getInt32(textUnit8Data.length - 4)
       extendText = uint8Array2Utf8Str(textUnit8Data.subarray(0, textDataLen))
     } else {
@@ -381,10 +376,9 @@ const TextMsgDataParser = {
       return undefined
     }
 
-    // 2. 判断是否是原始的文字
     if (this.EXTEND_MSG_PATTERN.test(extendText)) {
       const result = this.EXTEND_MSG_PATTERN.exec(extendText)
-      this.EXTEND_MSG_PATTERN.exec('') // 还原正则模板
+      this.EXTEND_MSG_PATTERN.exec('')
 
       if (result && result[1]) {
         if (/\?/.test(result[1])) {
@@ -501,14 +495,13 @@ const TextMsgDataParser = {
             }
           }
         } else {
-          // 普通图片的内容
           dbMsgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE
           dbMsgData.fileInfo = { fileSize: 0, fileUrl: result[1], fileName: '' }
         }
       }
     } else if (this.CMD_MSG_PATTERN.test(extendText)) {
       const result = this.CMD_MSG_PATTERN.exec(extendText)
-      this.CMD_MSG_PATTERN.exec('') // 还原模板
+      this.CMD_MSG_PATTERN.exec('')
 
       if (result && result[1]) {
         dbMsgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_COMMAND_TYPE

@@ -33,13 +33,9 @@ export interface WlChatPanelProps {
   messageListHeight?: string
   batchResolveSessionProfiles?: BatchSessionProfileResolver
   beforeSend?: (session: WL_IDbSession) => boolean | Promise<boolean>
-  /** 是否显示消息转发按钮 */
   showForward?: boolean
-  /** 自定义是否允许转发的判断 */
   canForward?: (msg: WL_IDbMsgData) => boolean
-  /** 是否显示消息撤回按钮（仅自己发送的消息） */
   showWithdraw?: boolean
-  /** 自定义是否允许撤回的判断 */
   canWithdraw?: (msg: WL_IDbMsgData) => boolean
 }
 
@@ -67,9 +63,7 @@ const emit = defineEmits<{
   'ptt-error': [payload: { session: WL_IDbSession; error?: unknown }]
   'send-blocked': []
   'invalid-sessions-change': [keys: Set<string>]
-  /** 转发消息 */
   forward: [msg: WL_IDbMsgData]
-  /** 撤回消息 */
   withdraw: [msg: WL_IDbMsgData]
 }>()
 
@@ -131,7 +125,7 @@ watchEffect(
   () => {
     emit('invalid-sessions-change', new Set(invalidSessionKeys))
   },
-  { flush: 'post' }, // ponytail: skip emit before mount
+  { flush: 'post' },
 )
 
 const realtimePttTitle = computed(() => {
@@ -281,7 +275,6 @@ onBeforeUnmount(() => {
 
 async function handleAudioPlay(msg: WL_IDbMsgData) {
   try {
-    // A paused message resumes from where it stopped instead of restarting.
     if (pausedAudioId.value === msg.combo_id) {
       pausedAudioId.value = null
       props.core?.weila_resumeSingle()
@@ -296,9 +289,6 @@ async function handleAudioPlay(msg: WL_IDbMsgData) {
       msg.audioData = { ...audioMsg.audioData }
     }
 
-    // A refused play (e.g. the audio file is gone from the server) already
-    // emitted its PLAYING_END; flipping the bubble to playing here would
-    // override that clear and leave it stuck.
     if (played === false) return
 
     playingAudioId.value = msg.combo_id
@@ -314,7 +304,6 @@ function handleAudioPause(msg: WL_IDbMsgData) {
   props.core?.weila_pauseSingle()
 }
 
-/** Polls the single player's position while a message is active. */
 function stopProgressPolling() {
   if (progressTimer !== null) {
     clearInterval(progressTimer)
@@ -338,9 +327,7 @@ watch(playingAudioId, (id, _old, onCleanup) => {
       .then((ms) => {
         playProgressMs.value = ms
       })
-      .catch(() => {
-        // A player that cannot answer (closed mid-poll) keeps the last value.
-      })
+      .catch(() => {})
   }, 250)
   onCleanup(stopProgressPolling)
 })

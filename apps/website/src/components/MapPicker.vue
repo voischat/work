@@ -83,7 +83,6 @@ const center = defineModel<[number, number]>('center', {
   default: null,
 })
 
-// defineModel can not reference a variant as default value
 if (!center.value)
   center.value = defaultCenter
 
@@ -150,7 +149,6 @@ watchEffect(() => {
     addr.value = `${regeo.value.Address}`
 })
 
-// to self location
 const { stop } = watch(coords, () => {
   if (props.options.center) {
     return
@@ -198,8 +196,6 @@ async function captureImage(): Promise<File> {
 
   await nextTick()
 
-  // Capture only the map layer and marker overlay. The parent keeps a canvas fallback
-  // because third-party map tiles can fail when html-to-image inlines image assets.
   const blob = await toBlob(mapCaptureRef.value, {
     canvasWidth: 400,
     canvasHeight: 200,

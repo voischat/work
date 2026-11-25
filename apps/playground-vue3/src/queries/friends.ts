@@ -28,7 +28,6 @@ export const useFriends = defineQuery(() => {
     }
   }
 
-  // Refetch friends when friend data changes
   watch(
     core,
     (coreInstance) => {

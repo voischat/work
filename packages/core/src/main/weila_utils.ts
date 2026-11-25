@@ -293,7 +293,6 @@ function getPbResultCodeMassage(resultCode: WL.Service.ResultCode): string {
 
       break
 
-    //Login Error
     case WL.Service.ResultCode.RESULT_LOGIN_FORBID_IP:
       {
         msg = '用户IP被封 从forbidDuration获取剩余时长(设备不再自动登录)'
@@ -393,7 +392,6 @@ function getPbResultCodeMassage(resultCode: WL.Service.ResultCode): string {
 
       break
 
-    //User Error
     case WL.Service.ResultCode.RESULT_USER_NOT_EXIST:
       {
         msg = '用户不存在'
@@ -429,7 +427,6 @@ function getPbResultCodeMassage(resultCode: WL.Service.ResultCode): string {
 
       break
 
-    //Friend Error
     case WL.Service.ResultCode.RESULT_FRIEND_NOT_FRIEND:
       {
         msg = '不是好友'
@@ -458,7 +455,6 @@ function getPbResultCodeMassage(resultCode: WL.Service.ResultCode): string {
 
       break
 
-    //Group Error
     case WL.Service.ResultCode.RESULT_GROUP_NOT_EXIST:
       {
         msg = '群组不存在'
@@ -627,7 +623,6 @@ function getPbResultCodeMassage(resultCode: WL.Service.ResultCode): string {
 
       break
 
-    //Session Error
     case WL.Service.ResultCode.RESULT_SESSION_BURST_MONITOR:
       {
         msg = '设备正在被其他人监听,请稍后再试'
@@ -635,7 +630,6 @@ function getPbResultCodeMassage(resultCode: WL.Service.ResultCode): string {
 
       break
 
-    //Room Error
     case WL.Service.ResultCode.RESULT_ROOM_HAS_EXIST:
       {
         msg = '房间已存在'
@@ -699,7 +693,6 @@ function getPbResultCodeMassage(resultCode: WL.Service.ResultCode): string {
 
       break
 
-    //Business Error
     case WL.Service.ResultCode.RESULT_BUSINESS_SERVICE_CLOSED:
       {
         msg = '服务已关闭'
@@ -749,10 +742,6 @@ function getResultCodeFromError(errorMsg: string): number {
   return -1
 }
 
-/**
- * 可以获取执行pb消息后错误返回的信息解析
- * @param errorMsg
- */
 function getErrorMsg(errorMsg: string): string {
   const retCode = getResultCodeFromError(errorMsg)
 
@@ -810,27 +799,17 @@ function getAppKeyAndId(): any {
   }
 }
 
-/** 一次录音打包的分段状态。 */
 interface WL_PttPackState {
   curMarker: WL_PttPackType
   seqOfPackage: number
   seq: number
 }
 
-/** 一次录音打包的产物与推进后的状态。 */
 interface WL_PttPackResult {
   packet: WL_PttPacket
   nextState: WL_PttPackState
 }
 
-/**
- * 把一批录音帧组装成一个 PTT 包：每帧前加标志与变长长度，末包改写
- * 分段标志（单包升级为整包），并推进下一包的分段与序号状态。
- * @param frames 待打包的帧，不修改输入
- * @param state 当前的分段与序号状态
- * @param lastPacket 是否为本次录音的最后一包
- * @returns 组装好的包与推进后的状态
- */
 function packPttPacket(
   frames: Uint8Array[],
   state: WL_PttPackState,
@@ -900,12 +879,6 @@ function getWebsocketAddr(): string {
   return process.env.WSS ?? ''
 }
 
-/**
- * 取回一个音频消息 URL 指向的音频数据：去掉文件头 10 字节后按帧解析出帧数。
- * 取回失败或响应非 2xx 时记日志并返回 undefined。
- * @param url 音频文件地址
- * @returns 解析出的音频数据，含 data 与 frameCount
- */
 async function fetchAudioDataFromUrl(url: string): Promise<WL_IDbAudioData | undefined> {
   const audioData: WL_IDbAudioData = { frameCount: 0 }
 
@@ -943,9 +916,6 @@ function decompositionAudioData(pttData: Uint8Array): WL_PttPayload[] {
     offset += 1
 
     if (flag & 0x80) {
-      // The 2-byte length sits right after the flag at the CURRENT frame's
-      // offset; reading absolute bytes 1-2 misparses every long frame that
-      // is not the first one.
       const dataView = new DataView(pttData.buffer, pttData.byteOffset)
       sizeOfOpusData = dataView.getUint16(offset, false) + 1
       offset += 2
@@ -991,9 +961,6 @@ function getOpusDataFrameCount(pttData: Uint8Array): number {
     offset += 1
 
     if (flag & 0x80) {
-      // The 2-byte length sits right after the flag at the CURRENT frame's
-      // offset; reading absolute bytes 1-2 misparses every long frame that
-      // is not the first one.
       const dataView = new DataView(pttData.buffer, pttData.byteOffset)
       sizeOfOpusData = dataView.getUint16(offset, false) + 1
       offset += 2
@@ -1019,9 +986,6 @@ function getOpusDataListFromPttData(pttData: Uint8Array): Uint8Array[] {
     offset += 1
 
     if (flag & 0x80) {
-      // The 2-byte length sits right after the flag at the CURRENT frame's
-      // offset; reading absolute bytes 1-2 misparses every long frame that
-      // is not the first one.
       const dataView = new DataView(pttData.buffer, pttData.byteOffset)
       sizeOfOpusData = dataView.getUint16(offset, false) + 1
       offset += 2
@@ -1050,9 +1014,6 @@ function calculateOpusDataFrame(opusData: Uint8Array): number {
     offset += 1
 
     if (flag & 0x80) {
-      // The 2-byte length sits right after the flag at the CURRENT frame's
-      // offset; reading absolute bytes 1-2 misparses every long frame that
-      // is not the first one.
       const dataView = new DataView(opusData.buffer, opusData.byteOffset)
       sizeOfOpusData = dataView.getUint16(offset, false) + 1
       offset += 2

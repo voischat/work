@@ -80,10 +80,8 @@ const pttData: WL_IDbPttData = {
   data: new Uint8Array(160),
 }
 
-/** The raw service id the 16-byte frame header always carries. */
 const WL_HEADER_SERVICE_ID = 15
 
-/** Any domain's command id enum, as used in the per-builder expectations. */
 type WLCommandId =
   | WL.Friend.FriendCommandId
   | WL.Business.BusinessCommandId
@@ -93,7 +91,6 @@ type WLCommandId =
   | WL.Session.SessionCommandId
   | WL.User.UserCommandId
 
-/** Whether the service's oneof container is set on the decoded message. */
 function hasContainer(serviceId: WL.Service.ServiceID, msg: WL.Service.IServiceMessage): boolean {
   switch (serviceId) {
     case WL.Service.ServiceID.SERVICE_USER:
@@ -115,18 +112,12 @@ function hasContainer(serviceId: WL.Service.ServiceID, msg: WL.Service.IServiceM
   }
 }
 
-/** The spec case id for a builder method name, e.g. buildGetConfigReq -> getConfig. */
 function caseNameOf(method: string): string {
   const stripped = method.replace(/^build/, '').replace(/Req$/, '')
 
   return stripped.charAt(0).toLowerCase() + stripped.slice(1)
 }
 
-/**
- * Asserts a builder produced a complete, routable frame: the 16-byte header
- * carries the right service/command and length, and the protobuf payload
- * decodes back with a matching serviceHead and the service's container set.
- */
 function expectValidFrame(
   ret: WLBuildMsgRet,
   serviceId: WL.Service.ServiceID,
@@ -165,7 +156,6 @@ const U = WL.User.UserCommandId
 const SID = WL.Service.ServiceID
 
 const CASES: Array<[string, () => WLBuildMsgRet, WL.Service.ServiceID, WLCommandId]> = [
-  // friend
   [
     'friend.getFriendInfo',
     () => WeilaPbFriendWrapper.buildGetFriendInfoReq(L(1)),
@@ -233,7 +223,6 @@ const CASES: Array<[string, () => WLBuildMsgRet, WL.Service.ServiceID, WLCommand
     F.FRIEND_COMMAND_GET_FRIENDINFO,
   ],
 
-  // business / customer service
   [
     'business.commonGetSessions',
     () => WeilaPbBusinessWrapper.buildCommonGetSessionsReq([SESSION_ID]),
@@ -319,7 +308,6 @@ const CASES: Array<[string, () => WLBuildMsgRet, WL.Service.ServiceID, WLCommand
     B.BUSINESS_COMMAND_STAFF_RESET_SESSION,
   ],
 
-  // group
   [
     'group.getGroupVersion',
     () => WeilaPBGroupWrapper.buildGetGroupVersionReq(),
@@ -483,7 +471,6 @@ const CASES: Array<[string, () => WLBuildMsgRet, WL.Service.ServiceID, WLCommand
     G.GROUP_COMMAND_ADD_SUB_MEMBER,
   ],
 
-  // location
   [
     'location.reportLocation',
     () => WeilaPbLocationWrapper.buildReportLocationReq(locationInfo, [sessionInfo], '102065', 1),
@@ -503,7 +490,6 @@ const CASES: Array<[string, () => WLBuildMsgRet, WL.Service.ServiceID, WLCommand
     LC.LOCATION_COMMAND_LOCATION_CONTROL,
   ],
 
-  // login
   [
     'login.loginApp',
     () => WeilaPBLoginWrapper.buildLoginAppReq('70009790', 'pw', '0', '102065', 'key', false),
@@ -583,7 +569,6 @@ const CASES: Array<[string, () => WLBuildMsgRet, WL.Service.ServiceID, WLCommand
     LG.LOGIN_COMMAND_REFRESH_ACCESS_TOKEN,
   ],
 
-  // session
   [
     'session.getSession',
     () => WeilaPBSessionWrapper.buildGetSessionReq(L(0)),
@@ -725,7 +710,6 @@ const CASES: Array<[string, () => WLBuildMsgRet, WL.Service.ServiceID, WLCommand
     S.SESSION_COMMAND_MSGDATA,
   ],
 
-  // user
   [
     'user.getUserInfo',
     () => WeilaPbUserWrapper.buildGetUserInfoReq('42'),

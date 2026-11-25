@@ -28,19 +28,12 @@ import {
 
 const wllog = getLogger('MOD:business:info')
 
-/** Routes one business response to the waiting sendPbMsg caller. */
 type BusinessResponseRoute = (
   serviceHead: WL.Service.ServiceHead.$Properties,
   businessMessage: WL.Business.IBusinessMessage | null | undefined,
 ) => void
 
 export default class WLBusinessModule {
-  /**
-   * Response routing per business command. Every command the module awaits
-   * via sendPbMsg must have a route here; a missing route leaves the caller
-   * to die on the watchdog timeout. `weila_business_module.spec.ts` guards
-   * the wrapper's builders against this table.
-   */
   private readonly responseRoutes = new Map<number, BusinessResponseRoute>([
     [
       WL.Business.BusinessCommandId.BUSINESS_COMMAND_COMMON_GET_SESSION,
@@ -78,7 +71,6 @@ export default class WLBusinessModule {
         )
       },
     ],
-    // The ten pure-ack commands below only ever forwarded true.
     [
       WL.Business.BusinessCommandId.BUSINESS_COMMAND_STAFF_RESET_SESSION,
       (serviceHead) => {

@@ -88,16 +88,11 @@ describe('WLBusinessModule response routing', () => {
   it('leaves unrouted commands silent instead of acking with a wrong payload', () => {
     const { rspPbMsg, handler } = makeBusinessModule()
 
-    // No case routes BUSINESS_COMMAND_COMMON_STAFF_EXIT today. A missing
-    // case must stay silent (the caller times out) rather than resolve with
-    // a wrong payload. This is exactly the failure mode that hid the broken
-    // token refresh.
     handler(buildResponse(WL.Business.BusinessCommandId.BUSINESS_COMMAND_COMMON_STAFF_EXIT))
 
     expect(rspPbMsg).not.toHaveBeenCalled()
   })
 
-  /** Every business builder and the command it emits, so the routing guard below covers them all. */
   const BUSINESS_BUILDER_COMMANDS = {
     buildCommonGetSessionsReq: WL.Business.BusinessCommandId.BUSINESS_COMMAND_COMMON_GET_SESSION,
     buildCommonStaffInviteReq: WL.Business.BusinessCommandId.BUSINESS_COMMAND_COMMON_STAFF_INVITE,
@@ -119,7 +114,6 @@ describe('WLBusinessModule response routing', () => {
     buildStaffResetSessionReq: WL.Business.BusinessCommandId.BUSINESS_COMMAND_STAFF_RESET_SESSION,
   } satisfies Record<string, WL.Business.BusinessCommandId>
 
-  /** Built but nothing awaits their response yet; wiring one up is a conscious act. */
   const NOT_AWAITED = new Set<number>([
     WL.Business.BusinessCommandId.BUSINESS_COMMAND_COMMON_STAFF_EXIT,
   ])

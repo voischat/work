@@ -86,7 +86,6 @@ const WeilaPbBusinessWrapper = {
     )
   },
 
-  // 客服接口
   buildStaffAcceptSessionReq(sessionId: Long): WLBuildMsgRet {
     const businessMessage = WL.Business.BusinessMessage.create({
       reqStaffAcceptSession: { sessionId },

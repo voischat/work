@@ -6,7 +6,6 @@ import { ref as deepRef, nextTick, shallowRef, watch } from 'vue'
 export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
   const { t } = useI18n()
 
-  // 地图相关状态
   const trackVisible = shallowRef(true)
   const zoom = shallowRef(12)
   const center = shallowRef([121.59996, 31.197646])
@@ -15,11 +14,9 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
   const infoWindow = shallowRef<AMap.InfoWindow | undefined>(undefined)
   const selectedMarker = shallowRef<AMap.Marker | null>(null)
 
-  // 逆地理编码相关
   const weilaApi = useWeilaApi()
   const regeoInfo = shallowRef<RegeoModel | undefined>(undefined)
 
-  // 图层样式
   const layerStyle = deepRef({
     color: '#41ab5d',
     lineWidth: 2,
@@ -64,7 +61,6 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
     }
 
     try {
-      // 生成标记点
       return val.map(({ lng, lat, created }) => {
         const marker = new AMap.Marker({
           position: [lng, lat],
@@ -89,8 +85,6 @@ export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
       return []
     }
   }
-
-  // 渲染标记点到地图
 
   function renderMarkers(val: AMap.Marker[], oldVal: AMap.Marker[]) {
     if (oldVal.length) {

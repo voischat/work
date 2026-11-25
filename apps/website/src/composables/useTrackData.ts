@@ -22,7 +22,6 @@ export function useUserTrack(selectedUserKeys: Ref<string>, selectedDate: Ref<st
     enabled,
   })
 
-  // 生成GeoJSON格式的轨迹数据
   const trackFeatureCollection = computed<GeoJSON.FeatureCollection<GeoJSON.LineString>>(() => ({
     type: 'FeatureCollection',
     features: [

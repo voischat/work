@@ -74,7 +74,6 @@ function handleSendSmsCode() {
   }, {
     onSuccess: () => {
       Message.success(t('message.success'))
-      // 更新发送时间，启动倒计时
       updateSendTime()
     },
   })

@@ -19,8 +19,6 @@ const arcoLang = computed(() => ({
 
 const { update } = useBundleInfo()
 
-// watchEffect(() => outdated.value && window.location.reload())
-
 onBeforeRouteUpdate(() => {
   update()
 })
@@ -54,7 +52,6 @@ weilaApi.value.hook('request:prepare', async (ctx) => {
     refreshToken.value = ''
     expiresIn.value = -1
     loginTime.value = -1
-    // 清除自动登录相关缓存，防止无限重试
     autoLogin.value = false
   }
 

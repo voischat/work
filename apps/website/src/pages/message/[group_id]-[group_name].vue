@@ -17,7 +17,7 @@ enum MessageType {
   Video,
   Voice,
   File,
-  _, // placeholder
+  _,
   Location,
   Revoke,
   Unsupported = 255,

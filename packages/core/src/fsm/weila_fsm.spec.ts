@@ -87,7 +87,6 @@ function stubServices(
       async ({ input }: { input: { context: any; event: AnyEventObject } }) => {
         recording.invoked.push(name)
 
-        // The stopTalk actor's input is the burst snapshot, which can be null.
         return impl(input?.context, input?.event)
       },
     )
@@ -171,7 +170,6 @@ async function settle() {
   await vi.advanceTimersByTimeAsync(0)
 }
 
-/** Actions are stubbed in these tests; payloads only need to satisfy the event types. */
 function promiseCallback(): WL_PromiseCallback {
   return { resolve: vi.fn(), reject: vi.fn() }
 }

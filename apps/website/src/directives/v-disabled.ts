@@ -5,7 +5,6 @@ import { useDisableEl } from './disableEl'
 
 interface VDisabledOptions {
   value: boolean
-  // title parameter removed - use v-tips directive for tooltips
 }
 
 export const vDisabled: Directive = {
@@ -22,7 +21,7 @@ export const vDisabled: Directive = {
     } = options
 
     if (isDisabled) {
-      disable() // No title parameter
+      disable()
     }
     else {
       enable()

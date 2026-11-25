@@ -50,8 +50,6 @@ describe('WLGroupModule response routing', () => {
   it('routes GROUP_JOIN responses so joinGroup() can resolve', () => {
     const { rspPbMsg, handler } = makeGroupModule()
 
-    // joinGroup() has always awaited this response; the old switch had no
-    // case for it, so every join died on the watchdog timeout instead.
     const rspGroupJoin = new WL.Group.RspGroupJoin()
 
     const message = buildResponse(
@@ -84,15 +82,11 @@ describe('WLGroupModule response routing', () => {
   it('leaves unrouted commands silent instead of acking with a wrong payload', () => {
     const { rspPbMsg, handler } = makeGroupModule()
 
-    // No case routes GROUP_COMMAND_GET_BLACKLIST today. A missing case must
-    // stay silent (the caller times out) rather than resolve with a wrong
-    // payload. This is exactly the failure mode that hid the broken join.
     handler(buildResponse(WL.Group.GroupCommandId.GROUP_COMMAND_GET_BLACKLIST))
 
     expect(rspPbMsg).not.toHaveBeenCalled()
   })
 
-  /** Every group builder and the command it emits, so the routing guard below covers them all. */
   const GROUP_BUILDER_COMMANDS = {
     buildGetGroupVersionReq: WL.Group.GroupCommandId.GROUP_COMMAND_GET_GROUPVERSION,
     buildGetGroupAttributeReq: WL.Group.GroupCommandId.GROUP_COMMAND_GET_GROUPATTRIBUTE,
@@ -123,7 +117,6 @@ describe('WLGroupModule response routing', () => {
     buildAddSubMemberReq: WL.Group.GroupCommandId.GROUP_COMMAND_ADD_SUB_MEMBER,
   } satisfies Record<string, WL.Group.GroupCommandId>
 
-  /** Built but nothing awaits their response yet; wiring one up is a conscious act. */
   const NOT_AWAITED = new Set<number>([
     WL.Group.GroupCommandId.GROUP_COMMAND_CHANGE_MEMBERINFO,
     WL.Group.GroupCommandId.GROUP_COMMAND_GET_GROUP_INVITEINFO,

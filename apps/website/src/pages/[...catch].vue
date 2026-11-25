@@ -10,7 +10,6 @@ definePage({
 
 const router = useRouter()
 function back() {
-  // warning： Go to the node that has the permission
   router.back()
 }
 </script>
@@ -28,7 +27,6 @@ function back() {
 
 <style scoped lang="less">
   .content {
-  // padding-top: 100px;
   position: absolute;
   top: 50%;
   left: 50%;

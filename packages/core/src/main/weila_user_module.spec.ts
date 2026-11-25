@@ -74,16 +74,11 @@ describe('WLUserModule response routing', () => {
   it('leaves unrouted commands silent instead of acking with a wrong payload', () => {
     const { rspPbMsg, handler } = makeUserModule()
 
-    // No case routes USER_COMMAND_GET_CONFIG today. A missing case must
-    // stay silent (the caller times out) rather than resolve with a wrong
-    // payload. This is exactly the failure mode that hid the broken token
-    // refresh.
     handler(buildResponse(WL.User.UserCommandId.USER_COMMAND_GET_CONFIG))
 
     expect(rspPbMsg).not.toHaveBeenCalled()
   })
 
-  /** Every user builder and the command it emits, so the routing guard below covers them all. */
   const USER_BUILDER_COMMANDS = {
     buildGetUserInfoReq: WL.User.UserCommandId.USER_COMMAND_GET_USERINFO,
     buildChangeUserInfoReq: WL.User.UserCommandId.USER_COMMAND_CHANGE_USERINFO,
@@ -91,7 +86,6 @@ describe('WLUserModule response routing', () => {
     buildSetConfigReq: WL.User.UserCommandId.USER_COMMAND_SET_CONFIG,
   } satisfies Record<string, WL.User.UserCommandId>
 
-  /** Built but nothing awaits their response yet; wiring one up is a conscious act. */
   const NOT_AWAITED = new Set<number>([
     WL.User.UserCommandId.USER_COMMAND_CHANGE_USERINFO,
     WL.User.UserCommandId.USER_COMMAND_GET_CONFIG,

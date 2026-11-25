@@ -8,19 +8,12 @@ import Long from 'long'
 
 const wllog = getLogger('MOD:location:info')
 
-/** Routes one location response to the waiting sendPbMsg caller. */
 type LocationResponseRoute = (
   serviceHead: WL.Service.ServiceHead.$Properties,
   locationMessage: WL.Location.ILocationMessage | null | undefined,
 ) => void
 
 export default class WLLocationModule {
-  /**
-   * Response routing per location command. Every command the module awaits
-   * via sendPbMsg must have a route here; a missing route leaves the caller
-   * to die on the watchdog timeout. `weila_location_module.spec.ts` guards
-   * the wrapper's builders against this table.
-   */
   private readonly responseRoutes = new Map<number, LocationResponseRoute>([
     [
       WL.Location.LocationCommandId.LOCATION_COMMAND_GET_LOCATION,

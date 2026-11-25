@@ -36,8 +36,6 @@ export default defineConfig({
   preview: {
     port: 4173,
     host: true,
-    // Local HTTPS only when the developer generated certificates; the keys are
-    // never committed.
     https: existsSync(path.resolve(__dirname, 'localhost.pem'))
       ? {
           cert: path.resolve(__dirname, 'localhost.pem'),

@@ -26,19 +26,12 @@ import {
 const wllog = getLogger('MOD:friend:info')
 const wlerr = getLogger('MOD:friend:err')
 
-/** Routes one friend response to the waiting sendPbMsg caller. */
 type FriendResponseRoute = (
   serviceHead: WL.Service.ServiceHead.$Properties,
   friendMessage: WL.Friend.IFriendMessage | null | undefined,
 ) => void
 
 export default class WLFriendModule {
-  /**
-   * Response routing per friend command. Every command the module awaits
-   * via sendPbMsg must have a route here; a missing route leaves the caller
-   * to die on the watchdog timeout. `weila_friend_module.spec.ts` guards
-   * the wrapper's builders against this table.
-   */
   private readonly responseRoutes = new Map<number, FriendResponseRoute>([
     [
       WL.Friend.FriendCommandId.FRIEND_COMMAND_GET_FRIENDINFO,
@@ -123,7 +116,6 @@ export default class WLFriendModule {
         if (!ntfDeleteFriend) return
 
         const userId = ntfDeleteFriend.userId ?? 0
-        // 数据库删除好友后，发送通知告知客户端
         WeilaDB.getInstance()
           .delFriendInfos([userId])
           .then(() => {
@@ -184,7 +176,6 @@ export default class WLFriendModule {
             await WeilaDB.getInstance().putFriendInfo(friendInfo)
             wllog('变更好友成功')
 
-            // 通知客户端更新了好友信息
             this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_FRIEND_MODIFIED_IND, friendInfo)
           })
           .catch((reason) => {
@@ -339,11 +330,9 @@ export default class WLFriendModule {
 
       wllog('获取的好友用户id', friendUserIdList)
 
-      // 删除无效的好友 START
       if (deleteFriendIdList.length) {
         await WeilaDB.getInstance().delFriendInfos(deleteFriendIdList)
       }
-      // END
 
       if (normalFriendList.length) {
         const friendInfos: WL_IDbFriendInfo[] = dbInstance.convertFromFriendRaw(normalFriendList)

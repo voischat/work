@@ -58,7 +58,6 @@ function handleRefresh() {
 
 <template>
   <div class="session-list flex flex-col h-full">
-    <!-- Header -->
     <div class="header flex items-center justify-between px-4 py-3 border-b border-neutral-100">
       <h3 class="font-semibold text-neutral-900">{{ t('session.title') }}</h3>
       <div class="flex items-center gap-1">
@@ -86,12 +85,10 @@ function handleRefresh() {
       </div>
     </div>
 
-    <!-- Loading State -->
     <div v-if="loading" class="flex-1 flex items-center justify-center py-8">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
     </div>
 
-    <!-- Error State -->
     <div v-else-if="error" class="flex-1 flex flex-col items-center justify-center py-8 px-4">
       <p class="text-red-500 mb-2">{{ t('session.failedToLoad') }}</p>
       <p class="text-sm text-neutral-500">{{ error.message }}</p>
@@ -103,7 +100,6 @@ function handleRefresh() {
       </button>
     </div>
 
-    <!-- Empty State -->
     <div
       v-else-if="filteredSessions.length === 0"
       class="flex-1 flex items-center justify-center py-8"
@@ -111,7 +107,6 @@ function handleRefresh() {
       <p class="text-neutral-500">{{ t('session.empty') }}</p>
     </div>
 
-    <!-- Session List -->
     <div v-else class="flex-1 overflow-y-auto">
       <SessionListItem
         v-for="session in filteredSessions"

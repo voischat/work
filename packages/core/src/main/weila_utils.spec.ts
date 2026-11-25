@@ -10,12 +10,6 @@ import {
 } from './weila_utils'
 import { WL_PttPackType } from 'main/weila_internal_data'
 
-/**
- * The wire format per frame is a flag byte, a length field (two bytes for
- * flag & 0x80, one otherwise), then the payload. A long frame that is not
- * the first frame must have its length read at the frame's own offset; the
- * parsers once read absolute bytes 1-2 and misparsed every such frame.
- */
 function buildFrames(): Uint8Array {
   const shortFrame = [0x00, 0x03, 0x11, 0x12, 0x13]
   const longFrame = [0x80, 0x00, 0x05, 0x21, 0x22, 0x23, 0x24, 0x25]
@@ -24,9 +18,7 @@ function buildFrames(): Uint8Array {
 }
 
 describe('packPttPacket', () => {
-  /** One short opus frame: flag byte 0x20, three payload bytes. */
   const shortFrame = new Uint8Array([0x20, 0x11, 0x22, 0x33])
-  /** One long opus frame: flag 0x80, two-byte big-endian length, five payload bytes. */
   const longFrame = new Uint8Array([0x80, 0x21, 0x22, 0x23, 0x24, 0x25])
 
   it('packs a short frame with a one-byte length and advances to inter-pack', () => {

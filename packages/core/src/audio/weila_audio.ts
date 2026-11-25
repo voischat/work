@@ -54,11 +54,6 @@ enum WLRecorderState {
 
 const wl_playerName = ['stream ptt', 'history ptt', 'single ptt']
 
-/**
- * State restored when a player request times out. Without it the player is
- * wedged in its transient "ing" state forever and every later call rejects
- * with a state check, so one timeout kills audio until a page reload.
- */
 const playRequestTimeoutState: Partial<Record<WLAudioPlayerEvent, WLPlayerState>> = {
   [WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_REQ]: WLPlayerState.WL_PLAYER_CLOSED,
   [WLAudioPlayerEvent.WL_WORKLET_NODE_START_REQ]: WLPlayerState.WL_PLAYER_STOPPED,
@@ -68,7 +63,6 @@ const playRequestTimeoutState: Partial<Record<WLAudioPlayerEvent, WLPlayerState>
   [WLAudioPlayerEvent.WL_WORKLET_NODE_CLOSE_REQ]: WLPlayerState.WL_PLAYER_CLOSED,
 }
 
-/** Rejects with `message` if `promise` has not settled after `ms` milliseconds. */
 function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined
 
@@ -145,8 +139,6 @@ class WLAudio {
         await audioContext.audioWorklet.addModule(PlayerWorklet)
         await audioContext.audioWorklet.addModule(RecorderWorklet)
       } catch (error) {
-        // A partially loaded worklet scope cannot be reused, so discard it and
-        // leave isInited false to let the next attempt start clean.
         await audioContext.close().catch(() => {})
         throw error
       }
@@ -162,12 +154,10 @@ class WLAudio {
     this.emitter.on('event', callback)
   }
 
-  /** Subscribes an audio event listener that can be removed again. */
   public addAudioEventListener(callback: WLEventCallback): void {
     this.emitter.on('event', callback)
   }
 
-  /** Removes a listener previously added with addAudioEventListener. */
   public removeAudioEventListener(callback: WLEventCallback): void {
     this.emitter.off('event', callback)
   }
@@ -405,9 +395,6 @@ class WLAudio {
   public pausePlay(playerType: WLPlayerType): Promise<boolean> {
     wllog('播放器:%d 暂停播放', playerType)
 
-    // Only a settled player pauses: a pause landing during STARTING would
-    // replace the worklet's starting state and swallow the START_RSP,
-    // leaving the playback-start chain waiting forever.
     if (this.playState[playerType] !== WLPlayerState.WL_PLAYER_STARTED) {
       return Promise.reject(new Error('播放器状态不正确:' + this.playState[playerType]))
     }
@@ -510,12 +497,6 @@ class WLAudio {
     }
   }
 
-  /**
-   * 查询一个播放器已播放的毫秒数（按已消费的 PCM 帧数换算）。暂停期间
-   * 数值冻结，重新开始播放后从零计。
-   * @param playerType 播放器类型
-   * @returns 已播放毫秒数
-   */
   public async getPlayerPlayedMs(playerType: WLPlayerType): Promise<number> {
     return new Promise<number>((resolve, reject) => {
       this.sendPlayerEvent(playerType, WLAudioPlayerEvent.WL_WORKLET_NODE_POS_REQ, null)
@@ -649,7 +630,6 @@ class WLAudio {
           throw new Error('获取 opus wasm 配置失败')
         }
 
-        // 初始化录音器线程
         const node = new AudioWorkletNode(this.requireAudioContext(), 'weila_recorder_processor', {
           processorOptions: { wasmData: configData.resource_data },
         })
@@ -666,10 +646,6 @@ class WLAudio {
       return Promise.reject(e)
     }
 
-    // The legacy callback-based navigator.getUserMedia is removed in current
-    // browsers and never calls back in some embedded or automated contexts,
-    // which used to leave requestTalk pending forever. Use the promise API and
-    // cap the wait so the caller always gets an answer.
     let mediaStream: MediaStream
 
     try {

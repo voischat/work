@@ -74,15 +74,11 @@ describe('WLLoginModule response routing', () => {
   it('leaves unrouted commands silent instead of acking with a wrong payload', () => {
     const { rspPbMsg, handler } = makeLoginModule()
 
-    // No case routes LOGIN_COMMAND_TOKEN today. A missing case must stay
-    // silent (the caller times out) rather than resolve with a wrong payload.
-    // This is exactly the failure mode that hid the broken token refresh.
     handler(buildResponse(WL.Login.LoginCommandId.LOGIN_COMMAND_TOKEN))
 
     expect(rspPbMsg).not.toHaveBeenCalled()
   })
 
-  /** Every login builder and the command it emits, so the routing guard below covers them all. */
   const LOGIN_BUILDER_COMMANDS = {
     buildLoginAppReq: WL.Login.LoginCommandId.LOGIN_COMMAND_LOGIN_APP,
     buildLogoutReq: WL.Login.LoginCommandId.LOGIN_COMMAND_LOGOUT,
@@ -99,7 +95,6 @@ describe('WLLoginModule response routing', () => {
     buildRefreshTokenReq: WL.Login.LoginCommandId.LOGIN_COMMAND_REFRESH_ACCESS_TOKEN,
   } satisfies Record<string, WL.Login.LoginCommandId>
 
-  /** Built but nothing awaits their response yet; wiring one up is a conscious act. */
   const NOT_AWAITED = new Set<number>([
     WL.Login.LoginCommandId.LOGIN_COMMAND_GET_EXTENSIONINFO,
     WL.Login.LoginCommandId.LOGIN_COMMAND_SHUTDOWN_EXTENSION,
@@ -118,7 +113,6 @@ describe('WLLoginModule response routing', () => {
     const { rspPbMsg, handler } = makeLoginModule()
 
     for (const commandId of Object.values(LOGIN_BUILDER_COMMANDS)) {
-      // resultCode 1 keeps the LOGIN_APP route off the database init path.
       handler(buildResponse(commandId, undefined, 1))
 
       if (NOT_AWAITED.has(commandId)) {

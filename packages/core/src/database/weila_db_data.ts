@@ -2,15 +2,14 @@ import { WL } from 'proto/weilapb'
 import { isRecord, isString, type JsonValue } from 'main/weila_type_guards'
 import { dbEnum } from './db_enum'
 
-// 存入数据库的设置项
 enum WL_IDbSettingID {
-  SETTING_LOGIN_TOKEN, // token 一些上传需要用到的token数据
-  SETTING_SESSION_LATEST_UPDATE, // 会话信息最后一次更新的时间
-  SETTING_FRIEND_LATEST_UPDATE, // 好友最后一次更新时间
-  SETTING_GROUP_LATEST_UPDATE, // 群组最后一次更新时间
+  SETTING_LOGIN_TOKEN,
+  SETTING_SESSION_LATEST_UPDATE,
+  SETTING_FRIEND_LATEST_UPDATE,
+  SETTING_GROUP_LATEST_UPDATE,
   SETTING_SUB_USERINFO_VER_UPDATE,
-  SETTING_MSG_SENDING_SEQ, // 发送消息的序号，不断地累加
-  SETTING_CORP_SESSION_LATEST_UPDATE, // 企业会话信息最后一次更新的时间
+  SETTING_MSG_SENDING_SEQ,
+  SETTING_CORP_SESSION_LATEST_UPDATE,
 }
 
 interface WL_IDbSetting {
@@ -18,7 +17,6 @@ interface WL_IDbSetting {
   data: any
 }
 
-// 会话相关，后续所有的好友，群都需要创建一个deactivate的会话。
 enum WL_IDbSessionStatus {
   SESSION_ACTIVATE,
   SESSION_DEACTIVATE,
@@ -26,25 +24,18 @@ enum WL_IDbSessionStatus {
 }
 
 const WL_IDbSessionType = {
-  // 个人会话
   SESSION_INDIVIDUAL_TYPE: WL.Common.SessionType.SESSION_TYPE_SINGLE,
 
-  // 群会话
   SESSION_GROUP_TYPE: WL.Common.SessionType.SESSION_TYPE_GROUP,
 
-  // 聊天室 / Room
   SESSION_ROOM_TYPE: WL.Common.SessionType.SESSION_TYPE_ROOM,
 
-  // 服务号
   SESSION_SERVICE_TYPE: WL.Common.SessionType.SESSION_TYPE_SERVICE,
 
-  // 企业个人会话
   SESSION_CORP_INDIVIDUAL_TYPE: WL.Common.SessionType.SESSION_TYPE_CORP_SINGLE,
 
-  // 企业群会话
   SESSION_CORP_GROUP_TYPE: WL.Common.SessionType.SESSION_TYPE_CORP_GROUP,
 
-  // 企业临时群
   SESSION_CORP_GROUP_TMP_TYPE: WL.Common.SessionType.SESSION_TYPE_CORP_GROUP_TMP,
 } as const
 
@@ -180,7 +171,6 @@ interface WL_IDbSessionSetting {
   loactionShared: boolean
 }
 
-// 用户信息
 interface WL_IDbUserInfo {
   userId: number
   weilaNum: string
@@ -197,7 +187,6 @@ interface WL_IDbUserInfo {
   created: number
 }
 
-// 群信息
 enum WL_IDbGroupType {
   GROUP_NORMAL = 0x1,
   GROUP_TEMP = 0x2,
@@ -211,10 +200,10 @@ enum WL_IDbGroupPublicType {
 }
 
 enum WL_IDbGroupAuthType {
-  GROUP_AUTH_NONE = 1, //不鉴权
-  GROUP_AUTH_CONFIRM = 2, //管理员确认
-  GROUP_AUTH_CONFIRM_OR_PASSWORD = 3, //管理员确认或密码认证
-  GROUP_AUTH_CONFIRM_AND_PASSWORD = 4, //管理员确认与密码认证
+  GROUP_AUTH_NONE = 1,
+  GROUP_AUTH_CONFIRM = 2,
+  GROUP_AUTH_CONFIRM_OR_PASSWORD = 3,
+  GROUP_AUTH_CONFIRM_AND_PASSWORD = 4,
 }
 
 enum WL_IDbMemberType {
@@ -273,7 +262,6 @@ interface WL_IDbGroupMember {
   userInfo?: WL_IDbUserInfo
 }
 
-// 好友信息
 enum WL_IDbFriendStatus {
   FRIEND_NORMAL_STATUS,
   FRIEND_DELETED_STATUS,
@@ -296,7 +284,6 @@ interface WL_IDbFriend {
   userInfo: WL_IDbUserInfo | null
 }
 
-// 会话消息
 enum WL_IDbMsgDataType {
   WL_DB_MSG_DATA_TEXT_TYPE,
   WL_DB_MSG_DATA_AUDIO_TYPE,
@@ -376,7 +363,6 @@ interface WL_IDbMsgData {
   pttData?: WL_IDbPttData
 }
 
-// 位置相关
 interface WL_IDbLocationInfo {
   userId: number
   clientType: number
@@ -390,7 +376,6 @@ interface WL_IDbLocationInfo {
   direction: number
 }
 
-// 通知相关的信息
 enum WL_IDbNotificationType {
   FRIEND_INVITE_NOTIFICATION,
   FRIEND_ANSWER_NOTIFICATION,
@@ -442,7 +427,6 @@ interface WL_IDbExtensionInfo {
   createdTime: number
 }
 
-// business
 interface WL_IDbService {
   serviceId: number
   serviceNum: string

@@ -3,6 +3,7 @@ import vueI18n from '@intlify/eslint-plugin-vue-i18n'
 import pluginQuery from '@tanstack/eslint-plugin-query'
 import { createSimplePlugin } from 'eslint-factory'
 import { createAutoInsert } from 'eslint-plugin-unimport'
+import noComments from './tools/lint/no-comments.mjs'
 
 const ignores = [
   '**/pages-deprecated/**',
@@ -77,6 +78,12 @@ export default antfu(
     ],
     ignores: ['**/webview/**'],
   }),
+  {
+    files: ['apps/website/**/*.{js,ts,vue}'],
+    ignores: ['**/*.md', '**/*.md/**'],
+    plugins: { 'no-comments': noComments },
+    rules: { 'no-comments/no-comments': 'error' },
+  },
   createSimplePlugin({
     name: 'no-ref',
     exclude: ['**/*.md', '**/*.md/**'],

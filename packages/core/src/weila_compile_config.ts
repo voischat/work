@@ -1,7 +1,6 @@
 function getDevelopeProxy(): any {
   return {
     '/v1': {
-      // 8080是测试服, 没有8080是正式服
       target:
         process.env.NODE_ENV === 'production'
           ? 'http://webapi.weila.hk/'
@@ -12,15 +11,6 @@ function getDevelopeProxy(): any {
         '^/v1': '/v1',
       },
     },
-
-    // '/audio': {
-    // 	target: 'https://weilaaudio.oss-cn-shenzhen.aliyuncs.com',
-    // 	secure: false,
-    // 	changeOrigin: true,
-    // 	pathRewrite: {
-    // 		'^/audio': '',
-    // 	},
-    // },
 
     'https://weilacache.oss-cn-shenzhen.aliyuncs.com': {
       target: 'https://weilacache.oss-cn-shenzhen.aliyuncs.com',

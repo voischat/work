@@ -8,19 +8,12 @@ import { WL_IDbUserInfo } from 'db/weila_db_data'
 
 const wllog = getLogger('MOD:user:info')
 
-/** Routes one user response to the waiting sendPbMsg caller. */
 type UserResponseRoute = (
   serviceHead: WL.Service.ServiceHead.$Properties,
   userMessage: WL.User.IUserMessage | null | undefined,
 ) => void
 
 export default class WLUserModule {
-  /**
-   * Response routing per user command. Every command the module awaits
-   * via sendPbMsg must have a route here; a missing route leaves the caller
-   * to die on the watchdog timeout. `weila_user_module.spec.ts` guards
-   * the wrapper's builders against this table.
-   */
   private readonly responseRoutes = new Map<number, UserResponseRoute>([
     [
       WL.User.UserCommandId.USER_COMMAND_GET_USERINFO,
