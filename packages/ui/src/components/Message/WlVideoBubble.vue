@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { WL_IDbMsgData, WL_IDbUserInfo } from '@vois/weila-sdk-core'
 import { WL_IDbMsgDataStatus } from '@vois/weila-sdk-core'
+import { computed, shallowRef, watch } from 'vue'
 import { useWeilaUiI18n } from '../../i18n'
+import { getMessageThumbnailUrl } from '../../utils'
 
 export interface WlVideoBubbleProps {
   msg: WL_IDbMsgData
@@ -18,6 +20,13 @@ const { t } = useWeilaUiI18n()
 const emit = defineEmits<{
   (e: 'click', url: string): void
 }>()
+
+const thumbnailUrl = computed(() => getMessageThumbnailUrl(props.msg.fileInfo?.fileUrl, 'video'))
+const loadFailed = shallowRef(false)
+
+watch(thumbnailUrl, () => {
+  loadFailed.value = false
+})
 
 function isUploadFailed() {
   return (
@@ -38,10 +47,11 @@ function isUploadFailed() {
       :class="msg.fileInfo?.fileUrl ? 'cursor-pointer' : 'opacity-60'"
     >
       <img
-        v-if="msg.fileInfo?.fileThumbnail"
-        :src="msg.fileInfo.fileThumbnail"
+        v-if="thumbnailUrl && !loadFailed"
+        :src="thumbnailUrl"
         class="w-full h-full object-cover"
         alt="video thumbnail"
+        @error="loadFailed = true"
       />
       <div v-else class="w-[200px] h-[150px] bg-neutral-300 flex items-center justify-center">
         <span class="icon-[carbon--video] size-12 text-neutral-500" />
