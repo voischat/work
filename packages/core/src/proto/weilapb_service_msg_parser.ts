@@ -1,16 +1,22 @@
 import { WL_IDbMsgDataType } from 'db/weila_db_data'
-import type { WL_IDbFileData, WL_IDbLocationShared } from 'db/weila_db_data'
+import type { WL_IDbFileData } from 'db/weila_db_data'
 
 interface ParsedServiceMsgData {
-  msgType: WL_IDbMsgDataType
-  fileInfo?: WL_IDbFileData
-  location?: WL_IDbLocationShared
+  msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE
+  fileInfo: WL_IDbFileData
 }
 
-type ParsedServiceContent = Pick<ParsedServiceMsgData, 'msgType' | 'fileInfo' | 'location'>
+interface ServiceMsgContent {
+  url?: string
+}
 
-function parseHttpUrl(value: unknown): string | undefined {
-  if (typeof value !== 'string') {
+interface ServiceMsgPayload {
+  service_type?: string
+  content?: ServiceMsgContent
+}
+
+function parseHttpUrl(value: string | undefined): string | undefined {
+  if (!value) {
     return undefined
   }
 
@@ -23,12 +29,10 @@ function parseHttpUrl(value: unknown): string | undefined {
   }
 }
 
-function parseImageContent(content: unknown): ParsedServiceContent | undefined {
-  if (typeof content !== 'object' || content === null) {
-    return undefined
-  }
-
-  const url = parseHttpUrl((content as { url?: unknown }).url)
+function parseImageContent(
+  content: ServiceMsgContent | undefined,
+): ParsedServiceMsgData | undefined {
+  const url = parseHttpUrl(content?.url)
 
   if (url === undefined) {
     return undefined
@@ -42,27 +46,25 @@ function parseImageContent(content: unknown): ParsedServiceContent | undefined {
 
 const SERVICE_CONTENT_PARSERS = new Map<
   string,
-  (content: unknown) => ParsedServiceContent | undefined
+  (content: ServiceMsgContent | undefined) => ParsedServiceMsgData | undefined
 >([['image', parseImageContent]])
 
+function isServiceMsgPayload(value: unknown): value is ServiceMsgPayload {
+  return typeof value === 'object' && value !== null
+}
+
 export function parseSessionServiceMsg(serviceData: string): ParsedServiceMsgData | undefined {
-  let raw: unknown
+  let payload: unknown
 
   try {
-    raw = JSON.parse(serviceData)
+    payload = JSON.parse(serviceData)
   } catch {
     return undefined
   }
 
-  if (typeof raw !== 'object' || raw === null) {
+  if (!isServiceMsgPayload(payload)) {
     return undefined
   }
 
-  const record = raw as { service_type?: unknown; content?: unknown }
-
-  if (typeof record.service_type !== 'string') {
-    return undefined
-  }
-
-  return SERVICE_CONTENT_PARSERS.get(record.service_type)?.(record.content)
+  return SERVICE_CONTENT_PARSERS.get(payload.service_type ?? '')?.(payload.content)
 }
