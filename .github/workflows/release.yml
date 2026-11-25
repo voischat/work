@@ -7,6 +7,9 @@ on:
       - '@vois/weila-sdk-core@*'
       - '@vois/weila-sdk-ui@*'
 
+env:
+  TURBO_TELEMETRY_DISABLED: '1'
+
 permissions:
   contents: write
   id-token: write
