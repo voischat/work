@@ -22,7 +22,6 @@ function handleCreate() {
 
 <template>
   <div class="flex flex-col h-full">
-    <!-- Header -->
     <div
       class="px-4 py-3 border-b border-neutral-200 flex items-center justify-between bg-white shrink-0"
     >
@@ -45,14 +44,11 @@ function handleCreate() {
       </div>
     </div>
 
-    <!-- Content -->
     <div class="flex-1 overflow-y-auto">
-      <!-- Loading State -->
       <div v-if="isLoading" class="flex items-center justify-center h-full">
         <div class="text-neutral-500">加载中...</div>
       </div>
 
-      <!-- Error State -->
       <div v-else-if="error" class="flex items-center justify-center h-full">
         <div class="text-red-500 text-center px-4">
           <p class="mb-2">加载失败</p>
@@ -60,7 +56,6 @@ function handleCreate() {
         </div>
       </div>
 
-      <!-- Empty State -->
       <div
         v-else-if="!groups || groups.length === 0"
         class="flex flex-col items-center justify-center h-full text-neutral-400"
@@ -72,7 +67,6 @@ function handleCreate() {
         </button>
       </div>
 
-      <!-- Group List -->
       <div v-else class="p-2 space-y-1">
         <button
           v-for="group in groups"
@@ -80,7 +74,6 @@ function handleCreate() {
           @click="handleSelect(group)"
           class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-50 transition-colors text-left"
         >
-          <!-- Avatar -->
           <div
             class="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center overflow-hidden shrink-0"
           >
@@ -92,7 +85,6 @@ function handleCreate() {
             />
             <span v-else class="icon-[carbon--group] text-xl text-neutral-400"></span>
           </div>
-          <!-- Info -->
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">
               <span class="text-sm font-medium text-neutral-900 truncate">{{ group.name }}</span>
@@ -104,7 +96,6 @@ function handleCreate() {
             </div>
             <p class="text-xs text-neutral-500 mt-0.5">{{ group.memberCount }} 位成员</p>
           </div>
-          <!-- Arrow -->
           <span class="icon-[carbon--chevron-right] text-neutral-400 shrink-0"></span>
         </button>
       </div>

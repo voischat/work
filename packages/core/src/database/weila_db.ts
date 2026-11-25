@@ -51,9 +51,6 @@ import { AsyncTime, calculateOpusDataFrame, getMsgDataIdByCombo, SyncTime } from
 const wllog = getLogger('DB:core:info')
 const wlerr = getLogger('DB:core:err')
 
-// Opening without a version never upgrades. `$meta` holds the logical version after Dexie
-// patches a same-version schema, and the floored native version is the fallback for Dexie 3
-// databases and for a patch that bumped the native version without writing `$meta`.
 function readInstalledSchemaVersion(dbName: string): Promise<number> {
   return new Promise((resolve, reject) => {
     let creating = false
@@ -197,7 +194,6 @@ class WeilaDB extends Dexie {
     }
 
     // SAFETY: init() assigns the instance before callers reach here; a null return is the existing
-    // pre-init contract that this public signature already advertises.
     return this.instance!
   }
 
@@ -254,7 +250,6 @@ class WeilaDB extends Dexie {
       })
   }
 
-  /** 设置相关操作 */
   public async putSettingItem(item: WL_IDbSetting): Promise<number> {
     return this.settings.put(item)
   }
@@ -263,7 +258,6 @@ class WeilaDB extends Dexie {
     return this.settings.get(id)
   }
 
-  /** 会话相关操作 */
   @AsyncTime()
   public async fillSessionInfo(session: WL_IDbSession): Promise<WL_IDbSession> {
     session.sessionName = ''
@@ -457,8 +451,6 @@ class WeilaDB extends Dexie {
       } else if (isIndividualSessionType(sessionType)) {
         void this.friends.where('userId').equals(parseInt(sessionId)).modify(setting)
       } else if (isServiceSessionType(sessionType)) {
-        //TODO: 服务类的会话暂时不支持设置到其他属性去
-
         setting.tts = true
         setting.mute = false
         setting.loactionShared = true
@@ -699,7 +691,6 @@ class WeilaDB extends Dexie {
     })
 
     for (let i = 0; i < count; i++) {
-      // 这种速度比findIndex快很多
       const index = allIds.indexOf(memberInfos[i].userId)
 
       if (index !== -1) {
@@ -1171,10 +1162,6 @@ class WeilaDB extends Dexie {
     })
   }
 
-  /**
-   * 处理并清理本地数据库中遗留的撤回控制消息。
-   * 将控制消息指向的原消息标记为已撤回，并删除控制消息本身。
-   */
   @AsyncTime()
   private async applyWithdrawControlMessages(
     sessionId: string,

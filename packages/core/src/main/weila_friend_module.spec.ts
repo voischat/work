@@ -82,16 +82,11 @@ describe('WLFriendModule response routing', () => {
   it('leaves unrouted commands silent instead of acking with a wrong payload', () => {
     const { rspPbMsg, handler } = makeFriendModule()
 
-    // No case routes FRIEND_COMMAND_GET_BLACKLIST today. A missing case must
-    // stay silent (the caller times out) rather than resolve with a wrong
-    // payload. This is exactly the failure mode that hid the broken token
-    // refresh.
     handler(buildResponse(WL.Friend.FriendCommandId.FRIEND_COMMAND_GET_BLACKLIST))
 
     expect(rspPbMsg).not.toHaveBeenCalled()
   })
 
-  /** Every friend builder and the command it emits, so the routing guard below covers them all. */
   const FRIEND_BUILDER_COMMANDS = {
     buildGetFriendInfoReq: WL.Friend.FriendCommandId.FRIEND_COMMAND_GET_FRIENDINFO,
     buildGetFriendUserInfoReq: WL.Friend.FriendCommandId.FRIEND_COMMAND_GET_FRIEND_USERINFO,
@@ -106,7 +101,6 @@ describe('WLFriendModule response routing', () => {
     buildGetSubFriendInfoReq: WL.Friend.FriendCommandId.FRIEND_COMMAND_GET_FRIENDINFO,
   } satisfies Record<string, WL.Friend.FriendCommandId>
 
-  /** Built but nothing awaits their response yet; wiring one up is a conscious act. */
   const NOT_AWAITED = new Set<number>([
     WL.Friend.FriendCommandId.FRIEND_COMMAND_GET_FRIEND_INVITEINFO,
     WL.Friend.FriendCommandId.FRIEND_COMMAND_CHANGE_FRIENDINFO,

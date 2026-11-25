@@ -33,6 +33,7 @@ jobs:
       - run: pnpm run typecheck:strict-budget
       - run: pnpm knip
       - run: pnpm run lint:sdk
+      - run: pnpm run lint:comments
       - run: pnpm run test:scripts
       - run: pnpm run test:sdk
       # Browsers change only when the Playwright version changes; keep them across runs.

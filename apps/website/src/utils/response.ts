@@ -1,7 +1,3 @@
-/**
- * The network layer unwraps a `data` object that has exactly one key, while
- * multi-key payloads stay wrapped. `pick` must accept both shapes.
- */
 export function pickFromResponse<T>(value: T | undefined, pick?: string[]): T | undefined {
   if (!value || !pick || pick.length === 0 || typeof value !== 'object')
     return value

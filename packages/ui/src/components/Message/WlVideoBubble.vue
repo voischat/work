@@ -4,11 +4,8 @@ import { WL_IDbMsgDataStatus } from '@vois/weila-sdk-core'
 import { useWeilaUiI18n } from '../../i18n'
 
 export interface WlVideoBubbleProps {
-  /** 消息数据 */
   msg: WL_IDbMsgData
-  /** 是否为自己发送的消息 */
   isSelf?: boolean
-  /** 发送者信息 */
   sender?: WL_IDbUserInfo
 }
 
@@ -36,7 +33,6 @@ function isUploadFailed() {
     :class="isSelf ? 'bg-blue-500' : 'bg-white'"
     @click="msg.fileInfo?.fileUrl && emit('click', msg.fileInfo.fileUrl)"
   >
-    <!-- Video Thumbnail -->
     <div
       class="relative max-w-[200px]"
       :class="msg.fileInfo?.fileUrl ? 'cursor-pointer' : 'opacity-60'"
@@ -51,7 +47,6 @@ function isUploadFailed() {
         <span class="icon-[carbon--video] size-12 text-neutral-500" />
       </div>
 
-      <!-- Play Button Overlay -->
       <div
         v-if="msg.fileInfo?.fileUrl"
         class="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors"
@@ -73,7 +68,6 @@ function isUploadFailed() {
         </div>
       </div>
 
-      <!-- Video Name (if exists) -->
       <div
         v-if="msg.fileInfo?.fileName"
         class="absolute bottom-0 left-0 right-0 px-2 py-1 bg-gradient-to-t from-black/60 to-transparent"

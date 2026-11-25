@@ -1,6 +1,5 @@
 import { WLConfig, WL_ConfigID } from 'main/weila_config'
 
-/** One ring element for the whole page: a new ring replaces the last one. */
 let ringAudio: HTMLAudioElement | null = null
 
 const WeilaRingPlayer = {

@@ -154,7 +154,6 @@ function isWithdrawRequest(request: MsgSendRequest): request is MsgSendRequest &
   return request.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE
 }
 
-/** Routes one session response to the waiting sendPbMsg caller. */
 type SessionResponseRoute = (
   serviceHead: WL.Service.ServiceHead.$Properties,
   sessionMessage: WL.Session.ISessionMessage | null | undefined,
@@ -166,13 +165,6 @@ export default class WLSessionModule {
   private curBurstInfo: WL_BurstInfo | null
   private activeSession: WL_ActiveSessionInfo | null
 
-  /**
-   * Response routing per session command. Every command the module awaits
-   * via sendPbMsg must have a route here; a missing route leaves the caller
-   * to die on the watchdog timeout. `weila_session_module.spec.ts` guards
-   * the wrapper's builders against this table. Notifications stay in the
-   * switch below: only COMMAND_RESPONSE traffic is routed through the table.
-   */
   private readonly responseRoutes = new Map<number, SessionResponseRoute>([
     [
       WL.Session.SessionCommandId.SESSION_COMMAND_MSGDATA,
@@ -426,7 +418,6 @@ export default class WLSessionModule {
       }
 
       if (isServiceSessionType(msgData.sessionType)) {
-        // 如果是之前没有这个session，说明此服务也不再DB中，所以需要从服务器获取服务的信息
         const serviceSession: WL_IDbServiceSessionInfo | undefined =
           await this.coreInterface.executeCoreFunc('weila_getServiceSession', msgData.sessionId)
 
@@ -463,7 +454,6 @@ export default class WLSessionModule {
       session.combo_id_type = session.sessionId + '_' + session.sessionType
       await WeilaDB.getInstance().putSession(session)
       this.sessionList.push(session)
-      //发送有新的会话通知
       this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_NEW_SESSION_OPEN_IND, session)
     } else {
       this.applySessionMsgData(this.sessionList[index], msgData, shouldMarkRead, countUnread)
@@ -544,7 +534,6 @@ export default class WLSessionModule {
           let matchResult = speechRsp.data.url.match(/(http|https):\/\/([^/]+)\/(.+)/i)
 
           if (matchResult && matchResult.length >= 4) {
-            //const pttUrl = "/" + matchResult[3];
             const pttUrl = speechRsp.data.url
 
             const audioData = await fetchWithTimeout(pttUrl)
@@ -648,8 +637,6 @@ export default class WLSessionModule {
                 await this.pttFsm.putPttMsgData(msgData)
 
               await this.updateSessionByNewMsgData(audioMsgData, isNewAudioItem)
-              // PTT 分片用于实时播放和本地聚合，服务端随后会下发同一 msgId 的 AUDIO 消息。
-              // 避免把同一条语音按“实时分片”和“最终音频”各通知一次。
             } else if (msgData.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE) {
               msgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_READ
               this.isTTSPermit(msgData)
@@ -674,7 +661,6 @@ export default class WLSessionModule {
             if (!isPttMsg) {
               if (msgData.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE) {
                 await this.updateSessionByNewMsgData(msgData)
-                //发送通知消息出去
                 this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_NEW_MSG_RECV_IND, msgData)
                 await WeilaDB.getInstance().putMsgData(msgData)
               } else {
@@ -691,7 +677,6 @@ export default class WLSessionModule {
 
                   if (withdrawMsgData) {
                     withdrawMsgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_WITHDRAW
-                    //发送通知消息出去
                     this.coreInterface.sendExtEvent(
                       WL_ExtEventID.WL_EXT_NEW_MSG_RECV_IND,
                       withdrawMsgData,
@@ -764,7 +749,6 @@ export default class WLSessionModule {
         msgData.combo_id = getMsgDataIdByCombo(msgData, 0)
       }
 
-      // 先处理服务器历史中的撤回控制消息：把原消息标记为已撤回，控制消息本身不保留。
       const nonWithdrawMsgDatas: WL_IDbMsgData[] = []
 
       for (const msgData of msgDatas) {
@@ -827,17 +811,8 @@ export default class WLSessionModule {
     return Promise.reject('创建读取消息异常:' + buildResult.resultCode)
   }
 
-  /** Combo ids with an audio prefetch in flight, so repeated history pulls do not refetch. */
   private readonly audioPrefetchInFlight = new Set<string>()
 
-  /**
-   * 后台补齐读取结果里缺数据的音频消息：逐条取回、写库，并广播
-   * WL_EXT_MSG_AUDIO_READY_IND，让界面能显示时长、点击即播。挂在
-   * getMsgDatas 的读取结果上，因此新拉取的行和库内已有的旧行都会被
-   * 补齐。取回失败（如服务器已删除该文件）只记日志，点击播放时由
-   * playSingle 的失败通知兜底。串行取回，避免一次翻页并发打出几十个请求。
-   * @param msgDatas 读取到的消息列表
-   */
   private prefetchAudioData(msgDatas: WL_IDbMsgData[]): Promise<void> {
     return msgDatas.reduce(
       (chain, msgData) => chain.then(() => this.prefetchAudioMsgData(msgData)),
@@ -845,10 +820,6 @@ export default class WLSessionModule {
     )
   }
 
-  /**
-   * 取回单条音频消息的数据；不是音频、已有数据或正在取的消息直接跳过。
-   * @param msgData 待补齐的消息
-   */
   private async prefetchAudioMsgData(msgData: WL_IDbMsgData): Promise<void> {
     const audioUrl = msgData.audioData?.audioUrl
 
@@ -909,8 +880,6 @@ export default class WLSessionModule {
       ? await WeilaDB.getInstance().getMsgDatasWithRange(sessionId, sessionType, startMsgId, count)
       : await WeilaDB.getInstance().getLastMsgDatas(sessionId, sessionType, count)
 
-    // 挂在读取结果上而不是入库路径上：库内早于预取功能存在的行、以及
-    // 任何缺数据的音频行，都会在每次读取时被补齐。
     void this.prefetchAudioData(result)
 
     return result
@@ -1191,7 +1160,6 @@ export default class WLSessionModule {
         const rspMsg: WL.Session.IRspMsg = await this.coreInterface.sendPbMsg(buildResult)
         await WeilaDB.getInstance().delMsgDataByComboId(dbMsgData.combo_id)
 
-        // 撤回消息发送成功，立即将原消息标记为已撤回
         if (isWithdrawRequest(request)) {
           const withdrawMsgId = request.data
 
@@ -1228,12 +1196,8 @@ export default class WLSessionModule {
 
         return Promise.reject(e)
       } finally {
-        // 撤回消息本身只是协议控制消息，不需要作为会话消息展示，
-        // 原消息已在前面的逻辑中标记为已撤回并通知 UI。
         if (msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE) {
-          // 不管消息发送成功与否，都存入数据库，并对外发布此消息。
           await WeilaDB.getInstance().putMsgData(dbMsgData)
-          // 通知消息发送
           this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_MSG_SEND_IND, dbMsgData)
         }
       }
@@ -1336,12 +1300,6 @@ export default class WLSessionModule {
     return this.pttFsm.playSingle(msgData)
   }
 
-  /**
-   * 单条语音播放前的准备：URL 音频按需取回并落库，PTT 消息转换为
-   * 音频数据。消息对象就地补全。
-   * @param audioMsgData 待播放消息
-   * @returns 可以进入播放时为 true，无法播放时为 false
-   */
   public async prepareSinglePlayback(audioMsgData: WL_IDbMsgData): Promise<boolean> {
     if (
       audioMsgData.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE &&
@@ -1415,20 +1373,14 @@ export default class WLSessionModule {
     return this.pttFsm.waitForIdle(5000)
   }
 
-  /** Pauses the current single playback in place. */
   public pausePlayAudio(): void {
     this.pttFsm.pausePlayAudio()
   }
 
-  /** Resumes the paused single playback from where it stopped. */
   public resumePlayAudio(): void {
     this.pttFsm.resumePlayAudio()
   }
 
-  /**
-   * 已播放的毫秒数，按单发播放器消费的 PCM 帧换算；暂停期间冻结。
-   * @returns 已播放毫秒数，播放器未启动时为 0
-   */
   public getSinglePlayProgressMs(): Promise<number> {
     return this.pttFsm.getPlayProgressMs()
   }

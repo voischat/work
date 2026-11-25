@@ -3,18 +3,9 @@ import 'vue-router'
 declare module 'vue-router' {
   interface RouteMeta {
     layout?: string
-    roles?: number[] // Controls roles that have access to the page
+    roles?: number[]
     name?: string
-    requiresAuth?: boolean // Whether login is required to access the current page (every route must declare)
-    vip?: string // vip_supports flag name that gates this route (e.g. 'api'); preferred over path-substring matching
-    // icon?: string // The icon show in the side menu
-    // locale?: string // The locale name show in side menu and breadcrumb
-    // hideInMenu?: boolean // If true, it is not displayed in the side menu
-    // hideChildrenInMenu?: boolean // if set true, the children are not displayed in the side menu
-    // activeMenu?: string // if set name, the menu will be highlighted according to the name you set
-    // noAffix?: boolean // if set true, the tag will not affix in the tab-bar
-    // ignoreCache?: boolean // if set true, the page will not be cached
-    // isRootLevel?: boolean // if set true, the menu will be displayed at the root level
-    // firstChildPath?: string
+    requiresAuth?: boolean
+    vip?: string
   }
 }

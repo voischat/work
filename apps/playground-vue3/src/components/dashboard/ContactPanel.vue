@@ -54,14 +54,11 @@ function getInitials(name: string): string {
 
 <template>
   <div class="h-full flex">
-    <!-- Contact List (left sidebar) -->
     <div class="w-80 border-r border-neutral-200 bg-white overflow-hidden flex flex-col">
       <ContactList @select-chat="handleSelectContact" />
     </div>
 
-    <!-- Right Content Area -->
     <div class="flex-1 flex flex-col overflow-hidden">
-      <!-- Empty State -->
       <div v-if="!selectedContact" class="flex-1 flex items-center justify-center text-neutral-400">
         <div class="text-center">
           <span class="icon-[carbon--user] text-5xl mb-3 block"></span>
@@ -69,9 +66,7 @@ function getInitials(name: string): string {
         </div>
       </div>
 
-      <!-- Contact Detail -->
       <div v-else class="flex-1 flex flex-col overflow-hidden">
-        <!-- Header -->
         <div
           class="px-6 py-4 border-b border-neutral-200 flex items-center justify-between bg-white shrink-0"
         >
@@ -116,7 +111,6 @@ function getInitials(name: string): string {
           </button>
         </div>
 
-        <!-- Info Section -->
         <div class="flex-1 overflow-y-auto p-6">
           <h3 class="text-sm font-medium text-neutral-700 mb-3">联系人信息</h3>
           <div class="space-y-3">
@@ -134,7 +128,6 @@ function getInitials(name: string): string {
           </div>
         </div>
 
-        <!-- Bottom Actions -->
         <div class="px-6 py-4 border-t border-neutral-200 bg-white shrink-0">
           <button
             @click="handleSendMessage"

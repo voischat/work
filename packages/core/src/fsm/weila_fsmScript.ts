@@ -14,7 +14,6 @@ interface MainFsmContext {
   core: WeilaCore | null
 }
 
-/** Explicitly sent or machine-raised events, with their exact payloads. */
 export type MainFsmUserEvent =
   | { type: 'FSM_LOAD_RESOURCE_EVT'; data: WL_PromiseCallback }
   | { type: 'FSM_LOGIN_SERVER_EVT'; data: WL_LoginParam }
@@ -27,20 +26,14 @@ export type MainFsmUserEvent =
   | { type: 'FSM_LOGIN_PROCEDURE_FAIL_EVT'; data?: unknown }
   | { type: 'FSM_LOGIN_PROCEDURE_SUCC_EVT'; data?: unknown }
 
-/** XState's own done/error events delivered to onDone/onError actions. */
 type MainFsmActorEvent =
   | { type: `xstate.done.actor.${string}`; output?: unknown }
   | { type: `xstate.error.actor.${string}`; error?: unknown }
 
 type MainFsmEvent = MainFsmUserEvent | MainFsmActorEvent
 
-/** Deadline-check cadence for the message watchdog, in milliseconds. */
 const WATCHDOG_TICK_MS = 2000
 
-/**
- * Ticks the message watchdog while a state holds it. Leaving the state clears
- * the interval, so no core-side timer chain or schedule flag exists.
- */
 const systemWatchdogActor = fromCallback<MainFsmUserEvent>(({ sendBack }) => {
   const timer = setInterval(() => {
     sendBack({ type: 'FSM_SYSTEM_WATCH_TIMEOUT_EVT' })
@@ -53,7 +46,6 @@ interface MainFsmSnapshot {
   value: unknown
 }
 
-// xstate v5 的 Actor 泛型对具体机型实例化过深（TS2589），在使用边界收窄为结构化接口
 type MainActor = {
   getSnapshot(): MainFsmSnapshot
   subscribe(observer: (state: MainFsmSnapshot) => void): void
@@ -158,7 +150,6 @@ interface MainFsmTypes {
   events: MainFsmEvent
 }
 
-// XState 5 reads `types` only for inference; the value itself is never observed at runtime.
 const mainFsmTypes: MainFsmTypes = Object.create(null)
 
 const mainFsm = createMachine({
@@ -331,16 +322,13 @@ export type PttFsmUserEvent =
   | { type: 'FSM_PLAY_END_EVT'; data?: unknown }
   | { type: 'FSM_END_BACK_TO_IDLE_EVT' }
 
-/** XState's own done/error events delivered to onDone/onError actions. */
 type PttFsmActorEvent = MainFsmActorEvent
 
 export type PttFsmEvent = PttFsmUserEvent | PttFsmActorEvent
 
-/** Live recording burst, owned by machine context from request until stop. */
 export interface PttTalkBurst {
   callback: WL_PromiseCallback
   stopByErr: boolean
-  /** Set once the talk is granted; frames arriving before the grant are dropped. */
   curMarker: WL_PttPackType | null
   seqOfPackage: number
   frameBuffer: Uint8Array[] | null
@@ -348,11 +336,8 @@ export interface PttTalkBurst {
 
 export interface PttFsmContext {
   pttCore: unknown
-  /** Player of the currently active play family; assigned on playing-state entry. */
   activePlayerType: WLPlayerType | null
-  /** Event replayed once a stop completes: the play that interrupted, or back-to-idle. */
   pendingStopEvent: PttFsmUserEvent | null
-  /** Recording burst state seeded by requestTalk and released with the talk. */
   talk: PttTalkBurst | null
 }
 
@@ -360,10 +345,8 @@ export interface PttFsmInput {
   pttCore: unknown
 }
 
-/** Which play family a startPlayback invocation belongs to. */
 export type StartPlaybackFamily = 'realtime' | 'single' | 'history'
 
-/** Input for the shared startPlayback actor that begins one playback. */
 export interface StartPlaybackInput {
   family: StartPlaybackFamily
   playerType: WLPlayerType
@@ -375,17 +358,14 @@ interface PttFsmTypes {
   events: PttFsmEvent
 }
 
-// XState 5 reads `types` only for inference; the value itself is never observed at runtime.
 const pttFsmTypes: PttFsmTypes = Object.create(null)
 
-/** Triggers whose original event is replayed once the stop completes. */
 const STOP_REPLAY_EVENTS = new Set<string>([
   'FSM_PLAY_SINGLE_EVT',
   'FSM_PLAY_HISTORY_EVT',
   'FSM_REQ_TALK_EVT',
 ])
 
-/** Shared stopping-state shape: announce the end, stop and close, then route. */
 const stoppingState: StateNodeConfig<
   PttFsmContext,
   PttFsmEvent,
@@ -513,7 +493,6 @@ const pttFsm = createMachine({
               description: '没有数据了，此时可以结束播音',
             },
             onDone: {
-              // v4 的 onDone 伪事件带 data；v5 是 output
               actions: raise(({ event }: { event: { type: string; output?: any } }) => ({
                 type: 'FSM_PLAY_NEXT_PTT_ITEM_EVT',
                 data: event.output,
@@ -601,7 +580,6 @@ const pttFsm = createMachine({
               description: '没有数据了，此时可以结束播音',
             },
             onDone: {
-              // v4 的 onDone 伪事件带 data；v5 是 output
               actions: raise(({ event }: { event: { type: string; output?: any } }) => ({
                 type: 'FSM_PLAY_NEXT_PTT_ITEM_EVT',
                 data: event.output,

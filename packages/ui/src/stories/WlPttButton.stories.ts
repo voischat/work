@@ -27,7 +27,6 @@ const meta: Meta<typeof WlPttButton> = {
 export default meta
 type Story = StoryObj<typeof WlPttButton>
 
-/** 默认状态 - 空闲 */
 export const Idle: Story = {
   args: {
     status: 'idle',
@@ -36,7 +35,6 @@ export const Idle: Story = {
   },
 }
 
-/** 录音中 */
 export const Recording: Story = {
   args: {
     status: 'recording',
@@ -45,7 +43,6 @@ export const Recording: Story = {
   },
 }
 
-/** 处理中 */
 export const Processing: Story = {
   args: {
     status: 'processing',
@@ -54,7 +51,6 @@ export const Processing: Story = {
   },
 }
 
-/** 禁用状态 */
 export const Disabled: Story = {
   args: {
     status: 'idle',
@@ -63,7 +59,6 @@ export const Disabled: Story = {
   },
 }
 
-/** 小尺寸 */
 export const SmallSize: Story = {
   args: {
     status: 'idle',
@@ -72,7 +67,6 @@ export const SmallSize: Story = {
   },
 }
 
-/** 大尺寸 */
 export const LargeSize: Story = {
   args: {
     status: 'idle',
@@ -81,7 +75,6 @@ export const LargeSize: Story = {
   },
 }
 
-/** 不同状态对比 */
 export const AllStates: Story = {
   render: () => ({
     components: { WlPttButton },
@@ -108,7 +101,6 @@ export const AllStates: Story = {
   }),
 }
 
-/** 不同尺寸对比 */
 export const AllSizes: Story = {
   render: () => ({
     components: { WlPttButton },

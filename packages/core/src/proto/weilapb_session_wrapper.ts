@@ -136,7 +136,6 @@ const WeilaPBSessionWrapper = {
     }
 
     switch (msgType) {
-      // Text, image, video, file, and location all travel as encoded text.
       case WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE:
       case WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE:
       case WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE:
@@ -167,7 +166,6 @@ const WeilaPBSessionWrapper = {
           msgData.msgType = WL.Session.MessageType.MSG_TYPE_AUDIO
 
           if (data instanceof Uint8Array) {
-            // Copy the caller's buffer so the frame owns its bytes.
             msgData.audioData = { payload: data.slice() }
           } else {
             msgData.audioData = { url: data }

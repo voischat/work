@@ -24,7 +24,6 @@ const route = useRoute()
 const router = useRouter()
 const weilaApi = useWeilaApi()
 
-// ── SDK 初始化 ──
 const weilaStore = useWeilaStore()
 const { core: weilaCore, userInfo } = storeToRefs(weilaStore)
 
@@ -36,12 +35,10 @@ async function initSdk() {
   return loggedIn ? weilaCore.value : null
 }
 
-// 页面挂载时自动初始化 SDK
 onMounted(() => {
   void initSdk()
 })
 
-// ── 当前用户 ID ──
 const currentUserId = computed(() => userInfo.value?.userId ?? 0)
 const selfInfoStore = useSelfInfoStore()
 const selfUserId = computed(() => Number(selfInfoStore.selfInfo?.user_id) || currentUserId.value || 0)
@@ -141,14 +138,11 @@ const batchResolveSessionProfiles: BatchSessionProfileResolver = async (sessions
     return profileMap
 
   try {
-    // v2.fetch 的 pickWeilaData 在 data 只有一个字段时会返回该字段的值，
-    // 因此这里可能直接拿到 sessions 数组，也可能是 { sessions: [...] } 对象
     const res = await weilaApi.value.v2.fetch<CorpSessionItem[] | { sessions?: CorpSessionItem[] }>('corp/session/get-sessions', {
       body: { sessions: requestSessions },
       method: 'POST',
     })
 
-    // 如果返回的是空对象（没有 sessions 字段），说明接口未按预期返回数据，直接跳过
     if (!Array.isArray(res) && (!res || !('sessions' in res))) {
       console.warn('[workbench/message] get-sessions returned unexpected response:', res)
       return profileMap
@@ -193,7 +187,6 @@ function handleInvalidSessionsChange(keys: Set<string>) {
     invalidSessionKeys.add(key)
 }
 
-// 检查当前用户是否仍在选中的群组中
 const { data: isInSelectedGroup } = useQuery<boolean>({
   enabled: computed(() => Boolean(selfUserId.value && selectedGroupId.value && !isSelectedSessionUnavailable.value)),
   queryKey: [
@@ -269,7 +262,6 @@ async function ensureSelectedSession() {
   const sessionType = selectedSessionType.value
   if (!core || !sessionId || sessionType === undefined)
     return
-  // 登录完成后 SDK 才会初始化本地数据库，提前查询会在控制台抛出 getSession 空引用
   if (!userInfo.value)
     return
 
@@ -378,8 +370,6 @@ async function createFallbackLocationImageFile() {
   if (!ctx)
     throw new Error('当前浏览器不支持 Canvas')
 
-  // Keep this independent from map tile assets so location sending still works when
-  // DOM capture is blocked by cross-origin images or transient tile load failures.
   ctx.fillStyle = '#e8f1ef'
   ctx.fillRect(0, 0, width, height)
 
@@ -436,8 +426,6 @@ async function createLocationImageFile() {
     if (!mapPickerRef.value)
       throw new Error('Missing map picker ref')
 
-    // Prefer a real DOM capture of the visible map. If any map image asset cannot
-    // be inlined, fall back to the locally drawn placeholder image below.
     return await mapPickerRef.value.captureImage()
   }
   catch (err) {

@@ -18,31 +18,18 @@ const hasLoadedMessages = ref(false)
 const { t } = useWeilaUiI18n()
 
 export interface WlMsgListProps {
-  /** 消息列表 */
   messages: WL_IDbMsgData[]
-  /** 当前登录用户 ID，用于判断消息方向 */
   currentUserId: number
-  /** 发送者信息 Map，key 为 userId */
   senderInfos?: Map<number, WL_IDbUserInfo>
-  /** 是否有更多消息可加载 */
   hasMore?: boolean
-  /** 加载状态 */
   loading?: boolean
-  /** 当前正在播放的音频消息 combo_id */
   playingAudioId?: string | null
-  /** 播放已暂停的音频消息 combo_id */
   pausedAudioId?: string | null
-  /** 当前播放到的毫秒数 */
   playProgressMs?: number | null
-  /** 置顶警告文案 */
   warning?: string
-  /** 是否显示转发按钮 */
   showForward?: boolean
-  /** 自定义是否允许转发的判断 */
   canForward?: (msg: WL_IDbMsgData) => boolean
-  /** 是否显示撤回按钮（仅自己发送的消息） */
   showWithdraw?: boolean
-  /** 自定义是否允许撤回的判断 */
   canWithdraw?: (msg: WL_IDbMsgData) => boolean
 }
 
@@ -61,29 +48,19 @@ const props = withDefaults(defineProps<WlMsgListProps>(), {
 })
 
 const emit = defineEmits<{
-  /** 播放音频消息 */
   'audio-play': [msg: WL_IDbMsgData]
-  /** 暂停音频消息 */
   'audio-pause': [msg: WL_IDbMsgData]
-  /** 加载更多消息 */
   'load-more': []
-  /** 图片点击 */
   'image-click': [url: string]
-  /** 文件点击 */
   'file-click': [url: string]
-  /** 视频点击 */
   'video-click': [url: string]
-  /** 位置点击 */
   'location-click': [
     location: { latitude: number; longitude: number; name: string; address: string },
   ]
-  /** 转发消息 */
   forward: [msg: WL_IDbMsgData]
-  /** 撤回消息 */
   withdraw: [msg: WL_IDbMsgData]
 }>()
 
-/** 列表容器 ref */
 const listRef = useTemplateRef<HTMLElement>('listRef')
 
 function getSender(msg: WL_IDbMsgData) {
@@ -225,11 +202,9 @@ function scrollToBottom(behavior: ScrollBehavior = 'smooth') {
 function onScroll() {
   if (!listRef.value) return
   const { scrollTop, scrollHeight, clientHeight } = listRef.value
-  // Show button when user has scrolled up (not at bottom)
   showScrollButton.value = scrollHeight - scrollTop - clientHeight > 100
 }
 
-// 首次加载完 messages 后滚动到底部
 watch(
   () => props.messages.length,
   (newLen, oldLen) => {
@@ -255,7 +230,6 @@ watch(
       <span class="text-sm">{{ warning }}</span>
     </div>
 
-    <!-- Load more banner -->
     <div
       v-if="hasMore || loading"
       class="flex justify-center py-2 cursor-pointer"
@@ -282,7 +256,6 @@ watch(
         class="flex items-start gap-1 min-w-0"
         :class="isSelf(msg) ? 'flex-row-reverse' : 'flex-row'"
       >
-        <!-- bubble column + actions -->
         <div class="min-w-0 flex flex-col gap-1" :class="isSelf(msg) ? 'items-end' : 'items-start'">
           <div
             class="max-w-full truncate text-xs text-neutral-500 px-1 flex items-center gap-2"
@@ -308,7 +281,6 @@ watch(
             />
           </div>
 
-          <!-- Withdrawn Message -->
           <div
             v-if="isWithdrawMsg(msg)"
             class="max-w-[70%] rounded-xl px-3 py-2 text-sm overflow-hidden break-all italic"
@@ -319,7 +291,6 @@ watch(
             </div>
           </div>
 
-          <!-- Text Message -->
           <WlTextBubble
             v-else-if="isText(msg)"
             :msg="msg"
@@ -327,7 +298,6 @@ watch(
             :sender="getSender(msg)"
           />
 
-          <!-- Audio Message -->
           <WlAudioBubble
             v-else-if="isAudio(msg)"
             :msg="msg"
@@ -343,7 +313,6 @@ watch(
             @pause="emit('audio-pause', msg)"
           />
 
-          <!-- Image Message -->
           <WlImageBubble
             v-else-if="isImage(msg)"
             :msg="msg"
@@ -352,7 +321,6 @@ watch(
             @click="handleImageClick"
           />
 
-          <!-- Location Message -->
           <WlLocationBubble
             v-else-if="isLocation(msg) && msg.location"
             :msg="msg"
@@ -361,7 +329,6 @@ watch(
             @click="handleLocationClick"
           />
 
-          <!-- File Message -->
           <WlFileBubble
             v-else-if="isFile(msg)"
             :msg="msg"
@@ -370,7 +337,6 @@ watch(
             @click="handleFileClick"
           />
 
-          <!-- Video Message -->
           <WlVideoBubble
             v-else-if="isVideo(msg)"
             :msg="msg"
@@ -379,7 +345,6 @@ watch(
             @click="handleVideoClick"
           />
 
-          <!-- Unsupported Message Type -->
           <WlUnknownBubble v-else :msg="msg" :is-self="isSelf(msg)" :sender="getSender(msg)" />
 
           <div

@@ -1,6 +1,3 @@
-// @vois/weila-sdk-ui - Weila SDK Vue 组件库
-
-// Components
 export { default as WlStatusIndicator } from './components/WlStatusIndicator.vue'
 export { default as SessionList } from './components/SessionList/SessionList.vue'
 export { default as SessionListItem } from './components/SessionList/SessionListItem.vue'
@@ -20,7 +17,6 @@ export { default as WlVideoBubble } from './components/Message/WlVideoBubble.vue
 export { default as WlChatPanel } from './components/ChatPanel/WlChatPanel.vue'
 export { default as WlChatComposer } from './components/ChatPanel/WlChatComposer.vue'
 
-// Composables
 export { useSessions } from './composables/useSessions'
 export type { BatchSessionProfileResolver } from './composables/useSessions'
 export { useMessageHistory } from './composables/useMessageHistory'
@@ -35,10 +31,8 @@ export {
   weilaUiMessages,
 } from './i18n'
 
-// Utils
 export { isValidLocation } from './utils'
 
-// Re-export component prop types
 export type { WlStatusIndicatorProps } from './components/WlStatusIndicator.vue'
 export type { WlMsgListProps } from './components/MsgList/WlMsgList.vue'
 export type { WlAudioBubbleProps } from './components/Message/WlAudioBubble.vue'

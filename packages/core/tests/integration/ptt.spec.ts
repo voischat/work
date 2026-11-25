@@ -31,8 +31,6 @@ test(
 
     const startedAt = Math.floor(Date.now() / 1000)
 
-    // Hold the floor for ~1.6s with the synthetic microphone: at 20ms opus
-    // frames that is at least one 25-frame packet plus the release remainder.
     await expect(coreAudio.talk(1600, session.sessionId, session.sessionType)).resolves.toEqual({
       granted: true,
       released: true,

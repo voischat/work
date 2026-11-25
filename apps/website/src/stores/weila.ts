@@ -34,7 +34,6 @@ export const useWeilaStore = defineStore('weila', () => {
     initLogger('MOD:*, CORE:*, AUDIO:*, DB:, NET:*')
     setLoggerEnabled(false)
 
-    // 配置 WASM 资源路径（Vite 开发模式需要）
     setConfigData([
       {
         id: WL_ConfigID.WL_RES_DATA_OPUS_WASM_ID,
@@ -73,7 +72,6 @@ export const useWeilaStore = defineStore('weila', () => {
   async function login(account: string, password: string, countryCode: string = '0') {
     const instance = core.value || (await init())
     userInfo.value = await instance.weila_login(account, password, countryCode, { md5: false })
-    // Save credentials for auto-login after refresh
     tempAccount.value.set('account', account)
     tempAccount.value.set('password', password)
     tempAccount.value.set('country_code', countryCode)
@@ -90,7 +88,6 @@ export const useWeilaStore = defineStore('weila', () => {
     tempAccount.value.clear()
   }
 
-  // Auto-login with stored credentials
   async function autoLogin(): Promise<boolean> {
     const account = tempAccount.value.get('account')
     const password = tempAccount.value.get('password')
@@ -118,8 +115,3 @@ export const useWeilaStore = defineStore('weila', () => {
     tempAccount,
   }
 })
-
-// Pinia HMR -- 替代手动 import.meta.hot.dispose/data 模式
-// if (import.meta.hot) {
-//   import.meta.hot.accept(acceptHMRUpdate(useWeilaStore, import.meta.hot))
-// }

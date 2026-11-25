@@ -10,21 +10,6 @@ const carouselItem = computed(() => [
     subSlogan: t('login.banner.subSlogan1'),
     image: bannerIntro,
   },
-  // {
-  //   slogan: t('login.banner.slogan1'),
-  //   subSlogan: t('login.banner.subSlogan1'),
-  //   image: bannerImage,
-  // },
-  // {
-  //   slogan: t('login.banner.slogan2'),
-  //   subSlogan: t('login.banner.subSlogan2'),
-  //   image: bannerImage,
-  // },
-  // {
-  //   slogan: t('login.banner.slogan3'),
-  //   subSlogan: t('login.banner.subSlogan3'),
-  //   image: bannerImage,
-  // },
 ])
 </script>
 
@@ -33,8 +18,6 @@ const carouselItem = computed(() => [
     <div class="banner-inner">
       <a-carousel class="carousel" animation-name="fade">
         <a-carousel-item v-for="item in carouselItem" :key="item.slogan" flex items-center bg="#f7f7f7">
-          <!-- <div class="h-full w-full bg-white bg-cover bg-center bg-no-repeat"
-            :style="{ backgroundImage: `url(${item.image})` }" /> -->
           <img :src="item.image">
         </a-carousel-item>
       </a-carousel>

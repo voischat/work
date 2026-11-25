@@ -6,7 +6,6 @@ import { createApp } from 'vue'
 import { createRouter } from 'vue-router'
 import { handleHotUpdate } from 'vue-router/auto-routes'
 
-// NOTE: imitate from [vite-ssg](https://github.com/antfu-collective/vite-ssg)
 export function setup(
   App: Component,
   routerOptions: RouterOptions,
@@ -25,7 +24,6 @@ export function setup(
   fn({
     app,
     router,
-    // TODO: fix type error
     // @ts-expect-error type error
     route: (routerOptions.routes || []),
     isClient,

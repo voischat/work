@@ -52,7 +52,6 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
     user_id: targetId,
     state: newState,
   })
-    // NOTE: arco switch need a boolean return
     .then(({ state }) => state === newState)
     .catch(() => false)
 }
@@ -202,16 +201,6 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
             {{ phone }}
           </template>
         </a-table-column>
-        <!-- <a-table-column :title="t('TTS')" :width="60">
-            <template #cell="{ record: { tts } }">
-              <a-tag v-if="tts" color="green">
-                {{ t('open') }}
-              </a-tag>
-              <a-tag v-else color="gray">
-                {{ t('close') }}
-              </a-tag>
-            </template>
-          </a-table-column> -->
         <a-table-column :title="t('track')">
           <template #cell="{ record: { track } }">
             <a-tag>

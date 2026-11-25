@@ -25,7 +25,7 @@
     "test": "turbo run test",
     "test:run": "turbo run test:run",
     "test:scripts": "node --test packages/core/scripts/*.spec.mjs scripts/*.spec.mjs",
-    "lint": "pnpm run lint:web && pnpm run lint:sdk",
+    "lint": "pnpm run lint:web && pnpm run lint:sdk && pnpm run lint:comments",
     "lint:web": "eslint apps/website --max-warnings 0",
     "lint:sdk": "node packages/core/scripts/lint-budget.mjs",
     "lint:fix": "eslint --fix apps/website",
@@ -46,7 +46,8 @@
     "manifests": "node scripts/manifest-checks.mjs",
     "build:sdk": "turbo run build --filter='./packages/*'",
     "typecheck:tsc:sdk": "turbo run typecheck:tsc --filter='./packages/*'",
-    "test:sdk": "turbo run test:run --filter='./packages/*'"
+    "test:sdk": "turbo run test:run --filter='./packages/*'",
+    "lint:comments": "node scripts/no-comments.mjs"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:",

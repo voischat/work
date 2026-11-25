@@ -88,7 +88,6 @@ describe('network worker send queue', () => {
     postToWorker({ eventId: WL_NetworkEventID.NET_SEND_DATA_EVT, eventData: frame })
     await settle()
 
-    // Still connecting: nothing sent yet, and the frame must not be dropped.
     expect(socket.readyState).toBe(FakeWebSocket.CONNECTING)
     expect(socket.sent).toEqual([])
 

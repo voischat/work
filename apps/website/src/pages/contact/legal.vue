@@ -11,8 +11,6 @@ const { data, isFetched, refetch } = useWeilaFetch<Legal>('corp/legal/get-legal'
   enabled: computed(() => storeToRefs(useSelfInfoStore()).isOwner.value),
 })
 
-// const isVerified = computed(() => data.value?.state === 8)
-
 const { t } = useI18n()
 
 const category = shallowRef(data.value?.category || 0)
@@ -180,9 +178,6 @@ async function uploadFile(option: any) {
           <a-radio :value="0">
             {{ $t('legal.enterprise') }}
           </a-radio>
-          <!-- <a-radio :value="1">
-            {{ $t('legal.type.personal') }}
-          </a-radio> -->
         </a-radio-group>
       </div>
       <div>
@@ -241,7 +236,6 @@ async function uploadFile(option: any) {
             />
           </a-form-item>
 
-          <!-- 提交按钮 -->
           <a-form-item>
             <a-button type="primary" size="large" html-type="submit">
               {{ $t('legal.update-info') }}
@@ -291,7 +285,6 @@ async function uploadFile(option: any) {
             />
           </a-form-item>
 
-          <!-- 提交按钮 -->
           <a-form-item>
             <a-button type="primary" size="large" html-type="submit">
               {{ $t('legal.update-info') }}

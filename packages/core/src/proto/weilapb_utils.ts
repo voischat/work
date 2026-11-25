@@ -27,16 +27,6 @@ export function getStringFromBase64(base64Str: string): string {
   return decodeURIComponent(escape(asciiStr))
 }
 
-// http://www.onicos.com/staff/iz/amuse/javascript/expert/utf.txt
-
-/* utf.js - UTF-8 <=> UTF-16 convertion
- *
- * Copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp>
- * Version: 1.0
- * LastModified: Dec 25 1999
- * This library is free.  You can redistribute it and/or modify it.
- */
-
 export function uint8Array2Utf8Str(arrayBuffer: Uint8Array): string {
   let out, i, len, c
   let char2, char3
@@ -57,17 +47,14 @@ export function uint8Array2Utf8Str(arrayBuffer: Uint8Array): string {
       case 5:
       case 6:
       case 7:
-        // 0xxxxxxx
         out += String.fromCharCode(c)
         break
       case 12:
       case 13:
-        // 110x xxxx   10xx xxxx
         char2 = arrayBuffer[i++]
         out += String.fromCharCode(((c & 0x1f) << 6) | (char2 & 0x3f))
         break
       case 14:
-        // 1110 xxxx  10xx xxxx  10xx xxxx
         char2 = arrayBuffer[i++]
         char3 = arrayBuffer[i++]
         out += String.fromCharCode(

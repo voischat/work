@@ -12,8 +12,6 @@ import { vTips } from './directives/v-tips'
 
 import { setup } from './setup'
 import '@valibot/i18n/zh-CN'
-// Styles are imported via the Arco plugin.
-// 样式通过 Arco 插件导入。
 // https://arco.design/docs/designlab/use-theme-package
 import '~/assets/style/global.less'
 import 'cropperjs/dist/cropper.min.css'
@@ -28,9 +26,7 @@ import '@vois/weila-sdk-ui/index.css'
 installWeilaAudioRuntimePatch()
 
 setup(
-  // the root component
   App,
-  // vue-router options
   {
     history: createWebHashHistory(),
     routes: setupLayouts(routes),
@@ -38,16 +34,13 @@ setup(
       return { top: 0 }
     },
   },
-  // function to have custom setups
   (ctx) => {
     const { app } = ctx
     createWeilaUi({ locale: 'zh-CN' }).install(app as any)
 
-    // install all modules under `modules/`
     Object.values(import.meta.glob<{ install: UserModule }>('./modules/*.ts', { eager: true }))
       .forEach(i => i.install?.(ctx))
 
-    // See: https://arco.design/vue/component/notification#API
     Notification._context = app._context
 
     app.config.errorHandler = (error: any, instance, info) => {

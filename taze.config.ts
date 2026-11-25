@@ -1,30 +1,16 @@
 import { defineConfig } from 'taze'
 
 export default defineConfig({
-  // ignore packages from bumping
   exclude: ['cropperjs'],
-  // fetch latest package info from registry without cache
   force: true,
-  // write to package.json
   write: true,
-  // run `npm install` or `yarn install` right after bumping
   install: true,
-  // ignore paths for looking for package.json in monorepo
-  ignorePaths: [
-    '**/node_modules/**',
-    '**/test/**',
-    // Core is pinned to the TypeScript 7 preview line (tsrs); taze would break it.
-    'packages/core',
-  ],
-  // ignore package.json that in other workspaces (with their own .git,pnpm-workspace.yaml,etc.)
+  ignorePaths: ['**/node_modules/**', '**/test/**', 'packages/core'],
   ignoreOtherWorkspaces: true,
-  // override with different bumping mode for each package
   packageMode: {
     typescript: 'major',
-    // regex starts and ends with '/'
     '/vue/': 'latest',
   },
-  // disable checking for "overrides" package.json field
   depFields: {
     overrides: false,
   },

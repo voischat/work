@@ -8,17 +8,7 @@ import type { WL_PttAudioItem, WL_PttFsmListener, WL_PttPayload } from 'main/wei
 import { WL_PttAudioPlayState } from 'main/weila_external_data'
 import { fsmEvents } from 'fsm/weila_fsmScript'
 
-/**
- * Characterization pin for the three playback-start chains (realtime,
- * single, history). Each chain runs the same five-step orchestration: open
- * the player, play the start ring, start the player, emit PLAYING_START,
- * then feed the first payload after PLAY_DELAY. These specs observe the
- * orchestration through injected fakes so the upcoming consolidation onto
- * one startPlayback actor has a behavioral contract to hold.
- */
-
 function makeOpusPayload(): WL_PttPayload {
-  // One opus frame: flag 0x00, length 3, three payload bytes.
   return { frameCount: 1, data: new Uint8Array([0x00, 0x03, 0x11, 0x22, 0x33]) }
 }
 
@@ -100,7 +90,6 @@ function makePttFsm() {
   return { audio, ringPlayer, onPlayInd, onRecordPttPacketInd, fsm, visited }
 }
 
-/** PLAY_DELAY plus slack, with the intermediate microtasks flushed. */
 async function advancePastPlayDelay(): Promise<void> {
   await vi.advanceTimersByTimeAsync(250)
 }
@@ -146,10 +135,8 @@ describe('WLPttFsm playback-start chains', () => {
     expect(audio.putPlayerOpusData.mock.calls[0][0]).toBe(WLPlayerType.WL_PTT_STREAM_PLAYER)
     expect(audio.putPlayerOpusData.mock.calls[0][1]).toHaveLength(1)
 
-    // A single-frame item exhausts its payload, so realtime waits for more.
     expect(fsm.pttFsmService.getSnapshot().matches('realtimePlaying.waitPayload')).toBe(true)
 
-    // Realtime playback marks the message read.
     expect(item.msgData.status).toBe(WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_READ)
   })
 
@@ -166,9 +153,6 @@ describe('WLPttFsm playback-start chains', () => {
     expect(audio.startPlay).not.toHaveBeenCalled()
     expect(visited.some((entry) => entry.includes('realtimeStop'))).toBe(true)
 
-    // The stop completes: the stream player is stopped and closed, and the
-    // machine returns to idle. Before the fix this entry action crashed on a
-    // stale latestState and killed the actor.
     expect(audio.stopPlay).toHaveBeenCalledWith(WLPlayerType.WL_PTT_STREAM_PLAYER)
     expect(audio.closePlayer).toHaveBeenCalledWith(WLPlayerType.WL_PTT_STREAM_PLAYER)
     expect(fsm.pttFsmService.getSnapshot().matches('idle')).toBe(true)
@@ -187,7 +171,6 @@ describe('WLPttFsm playback-start chains', () => {
     expect(audio.putPlayerOpusData).toHaveBeenCalledTimes(1)
     expect(playIndStates(onPlayInd)[0]).toBe(WL_PttAudioPlayState.PTT_AUDIO_PLAYING_START)
 
-    // singlePlaying has no out-of-payload transition; the machine holds.
     expect(fsm.pttFsmService.getSnapshot().matches('singlePlaying')).toBe(true)
     expect(fsm.singlePttPlayItem).toBe(item)
   })
@@ -226,7 +209,6 @@ describe('WLPttFsm playback-start chains', () => {
     expect(playIndStates(onPlayInd)[0]).toBe(WL_PttAudioPlayState.PTT_AUDIO_PLAYING_START)
     expect(onPlayInd.mock.calls[0][0]).toBe(item)
 
-    // historyPlaying also has no out-of-payload transition; the machine holds.
     expect(fsm.pttFsmService.getSnapshot().matches('historyPlaying')).toBe(true)
   })
 
@@ -272,14 +254,12 @@ describe('WLPttFsm playback-start chains', () => {
     audio.pausePlay.mockClear()
     audio.resumePlay.mockClear()
 
-    // Pause stays inside singlePlaying; only the player is paused.
     fsm.pttFsmService.send({ type: fsmEvents.FSM_PAUSE_PLAY_EVT })
 
     expect(audio.pausePlay).toHaveBeenCalledWith(WLPlayerType.WL_PTT_SINGLE_PLAYER)
     expect(audio.resumePlay).not.toHaveBeenCalled()
     expect(fsm.pttFsmService.getSnapshot().matches('singlePlaying')).toBe(true)
 
-    // Resume continues in the same state through the single player.
     fsm.pttFsmService.send({ type: fsmEvents.FSM_RESUME_PLAY_EVT })
 
     expect(audio.resumePlay).toHaveBeenCalledWith(WLPlayerType.WL_PTT_SINGLE_PLAYER)
@@ -329,8 +309,6 @@ describe('WLPttFsm playback-start chains', () => {
     fsm.pttFsmService.send({ type: fsmEvents.FSM_PLAY_SINGLE_EVT, data: item })
     await advancePastPlayDelay()
 
-    // Attach the handler before the timer fires, or the rejection escapes
-    // as unhandled before the assertion can observe it.
     const outcome = fsm.waitForIdle(50).then(
       () => 'resolved',
       (error: Error) => error.message,
@@ -396,7 +374,6 @@ describe('WLPttFsm recording burst', () => {
     void result.fsm.releaseTalk()
     await vi.advanceTimersByTimeAsync(300)
 
-    // One full packet at 25, then the 5-frame tail marked as the last packet.
     expect(result.onRecordPttPacketInd).toHaveBeenCalledTimes(2)
 
     const tail = result.onRecordPttPacketInd.mock.calls[1][0]

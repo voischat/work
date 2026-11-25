@@ -14,8 +14,6 @@ export function toChatSafeUploadUrl(raw: unknown, baseUrl: string): string {
     throw new Error('上传接口返回了不支持的地址')
   }
 
-  // The chat text protocol embeds the URL verbatim and cannot carry a query
-  // string, so drop it. The upload CDN serves the same file over https.
   url.protocol = 'https:'
   url.hash = ''
   url.search = ''

@@ -25,20 +25,12 @@ import {
 const wllog = getLogger('MOD:login:info')
 const wlerr = getLogger('MOD:login:err')
 
-/** Routes one login response to the waiting sendPbMsg caller. */
 type LoginResponseRoute = (
   serviceHead: WL.Service.ServiceHead.$Properties,
   loginMessage: WL.Login.ILoginMessage | null | undefined,
 ) => void
 
 export default class WLLoginModule {
-  /**
-   * Response routing per login command. Every command the module awaits via
-   * sendPbMsg must have a route here; a missing route leaves the caller to
-   * die on the watchdog timeout exactly like the token refresh once did.
-   * `weila_login_module.spec.ts` guards the wrapper's builders against this
-   * table.
-   */
   private readonly responseRoutes = new Map<number, LoginResponseRoute>([
     [
       WL.Login.LoginCommandId.LOGIN_COMMAND_LOGIN_APP,
@@ -207,7 +199,6 @@ export default class WLLoginModule {
             }
 
             this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_KICKOUT_IND, kickoutInfo)
-            // 踢出后主动登出，停止 SDK 工作
             void this.coreInterface.executeCoreFunc('weila_logout')
           }
 

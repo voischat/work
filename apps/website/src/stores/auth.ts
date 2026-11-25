@@ -14,7 +14,6 @@ export interface VipInfo {
   vip_supports: VipSupport[]
 }
 
-// split code
 interface VipSupport {
   member_limit?: number
   name: string
@@ -42,7 +41,7 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('token')
     autoLogin.value = false
 
-    window.location.reload() // FIXME: query client clear 无效先这样处理
+    window.location.reload()
   }
 
   function needRefresh() {

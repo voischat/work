@@ -133,8 +133,6 @@ class AliOssHelper {
     sessionType: number,
     fileName: string,
   ): string {
-    // url format:  /YYYY-MM-DD/[user|group|company]_sessionId/senderId-HH-MM-SS-seq-uploadSeq-extraStr.ext
-    // get date str
     let curDate = new Date()
 
     let dateStr = '' + curDate.getFullYear()
@@ -142,12 +140,10 @@ class AliOssHelper {
       '-' + (curDate.getMonth() + 1 < 10 ? '0' + (curDate.getMonth() + 1) : curDate.getMonth() + 1)
     dateStr += '-' + (curDate.getDate() < 10 ? '0' + curDate.getDate() : curDate.getDate())
 
-    // get string str
     let timeStr = '' + (curDate.getHours() < 10 ? '0' + curDate.getHours() : curDate.getHours())
     timeStr += '-' + (curDate.getMinutes() < 10 ? '0' + curDate.getMinutes() : curDate.getMinutes())
     timeStr += '-' + (curDate.getSeconds() < 10 ? '0' + curDate.getSeconds() : curDate.getSeconds())
 
-    // get user session
     let userStr = 'unknown_'
 
     if (isIndividualSessionType(sessionType)) {
@@ -276,7 +272,6 @@ class AliOssHelper {
     height: number,
   ): Promise<WL_UploadResult> {
     return new Promise<WL_UploadResult>((resolve, reject) => {
-      // get date str
       let curDate = new Date()
 
       let dateStr = '' + curDate.getFullYear()
@@ -285,7 +280,6 @@ class AliOssHelper {
         (curDate.getMonth() + 1 < 10 ? '0' + (curDate.getMonth() + 1) : curDate.getMonth() + 1)
       dateStr += '-' + (curDate.getDate() < 10 ? '0' + curDate.getDate() : curDate.getDate())
 
-      // get string str
       let timeStr = '' + (curDate.getHours() < 10 ? '0' + curDate.getHours() : curDate.getHours())
       timeStr +=
         '-' + (curDate.getMinutes() < 10 ? '0' + curDate.getMinutes() : curDate.getMinutes())

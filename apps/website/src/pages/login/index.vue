@@ -60,7 +60,6 @@ const privacyAgreed = shallowRef(false)
 const { mutateAsync: passwordLogin, isPending: passwordPending } = useWeilaMutation('/corp/auth/login', {
   onSuccess,
   onError: () => {
-    // 帐号密码登录失败后，清除自动登录相关缓存，防止无限重试
     autoLogin.value = false
     tempAccount.value.clear()
   },
@@ -70,7 +69,6 @@ const { mutateAsync: smsLogin, isPending: smsPending } = useWeilaMutation('/corp
   onSuccess,
 })
 
-// 自动登录尝试标志，确保只尝试一次
 const autoLoginAttempted = shallowRef(false)
 
 if (autoLogin.value && tempAccount.value.size && !autoLoginAttempted.value) {
@@ -143,7 +141,6 @@ function handleSendSmsCode() {
   }, {
     onSuccess: () => {
       Message.success(t('message.success'))
-      // 更新发送时间，启动倒计时
       updateSendTime()
     },
   })
@@ -167,11 +164,6 @@ const loginBySms = handleSmsLogin((values: any) => {
   }
   smsLogin(values)
 })
-
-// onMounted(async () => {
-//   const form = document.querySelector('form')
-//   form?.setAttribute('autocomplete', 'on')
-// })
 </script>
 
 <template>
@@ -244,9 +236,6 @@ const loginBySms = handleSmsLogin((values: any) => {
             <a-input-group flex w-full>
               <a-select v-model="smsLoginForm.country_code" w-fit>
                 <a-option value="86" label="+86" />
-                <!-- <a-option value="852" label="+852" />
-                <a-option value="853" label="+853" />
-                <a-option value="886" label="+886" /> -->
               </a-select>
               <a-input
                 v-model="smsLoginForm.phone"

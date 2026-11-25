@@ -15,6 +15,5 @@ interface ImportMetaEnv {
 }
 
 interface EventTarget extends __EventTarget {
-  // for antd and tanstack/form
   value: any
 }

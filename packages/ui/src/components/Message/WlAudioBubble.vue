@@ -4,15 +4,10 @@ import type { WL_IDbMsgData } from '@vois/weila-sdk-core'
 import { calculateAudioDuration } from '@vois/weila-sdk-core'
 
 export interface WlAudioBubbleProps {
-  /** 消息数据 */
   msg: WL_IDbMsgData
-  /** 是否为自己发送的消息 */
   isSelf?: boolean
-  /** 是否正在播放 */
   playing?: boolean
-  /** 播放已暂停，位置保留 */
   paused?: boolean
-  /** 当前播放到的毫秒数，播放或暂停时显示为进度 */
   progressMs?: number | null
 }
 
@@ -31,8 +26,6 @@ const emit = defineEmits<{
 const duration = computed(() => calculateAudioDuration(props.msg.audioData?.frameCount ?? 0))
 
 const handleClick = () => {
-  // A paused bubble must ask for playback again, or it can never resume:
-  // clicking it while paused previously emitted another pause.
   if (props.playing && !props.paused) {
     emit('pause')
   } else {
@@ -51,10 +44,6 @@ function formatClock(ms: number): string {
   return `${minutes}:${String(seconds).padStart(2, '0')}`
 }
 
-/**
- * Elapsed time under a minute shows tenths, so a one-second voice message
- * visibly moves instead of sitting at 0:00 for its whole lifetime.
- */
 function formatElapsed(ms: number, totalMs: number): string {
   if (totalMs >= 60_000) return formatClock(ms)
 
@@ -64,7 +53,6 @@ function formatElapsed(ms: number, totalMs: number): string {
   return `${formatClock(totalSeconds * 1000)}.${tenths}`
 }
 
-/** Playing (or paused) shows a live position; idle keeps the plain duration. */
 const timeLabel = computed(() => {
   if (props.playing || props.paused) {
     if (props.progressMs === null || !hasDuration.value) return ''
@@ -77,37 +65,24 @@ const timeLabel = computed(() => {
   return hasDuration.value ? formattedDuration.value : ''
 })
 
-/** The wave animates only while actually playing, not while paused. */
 const animating = computed(() => props.playing && !props.paused)
-
-// const bubbleStyle = computed(() => {
-//   const clampedDuration = Math.min(Math.max(duration.value, 1), 60);
-//   const percentage = (clampedDuration / 60) * 100;
-//   return {
-//     width: `clamp(6rem, ${percentage}%, 16rem)`,
-//   };
-// });
 </script>
 
 <template>
-  <!-- Outer wrapper handles bubble shape and click -->
   <div
     class="rounded-xl overflow-hidden cursor-pointer"
     :class="isSelf ? 'bg-blue-500' : 'bg-white'"
     @click="handleClick"
   >
-    <!-- Main audio row: icon + wave + duration -->
     <div
       class="flex items-center gap-2 px-3 py-2 text-sm select-none transition-colors group w-fit"
       :class="isSelf ? 'text-white flex-row-reverse' : 'text-neutral-900 flex-row'"
     >
-      <!-- Play/Pause Icon -->
       <div class="shrink-0 flex items-center justify-center">
         <span v-if="animating" class="icon-[carbon--pause-filled] size-5"></span>
         <span v-else class="icon-[carbon--play-filled] size-5"></span>
       </div>
 
-      <!-- Wave Animation -->
       <div
         class="flex items-center gap-0.75 grow h-4"
         :class="isSelf ? 'justify-end' : 'justify-start'"
@@ -150,7 +125,6 @@ const animating = computed(() => props.playing && !props.paused)
         ></div>
       </div>
 
-      <!-- Duration / progress -->
       <div v-if="timeLabel" class="shrink-0 font-medium pl-1">
         {{ timeLabel }}
       </div>

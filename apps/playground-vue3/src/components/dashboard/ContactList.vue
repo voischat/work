@@ -24,10 +24,8 @@ const { core: weilaCore } = storeToRefs(weila)
 const { data: friends, refetch: refetchFriends } = useFriends()
 const { searching, search, clearSearch } = useFriendSearch(weilaCore)
 
-// Online friends state
 const onlineFriendIds = ref<Set<number>>(new Set())
 
-// Fetch online friends periodically or on refresh
 async function refreshOnlineFriends() {
   if (!weilaCore.value) return
   try {
@@ -40,14 +38,11 @@ async function refreshOnlineFriends() {
   }
 }
 
-// Refresh online friends when friends change or on mount
 watch(friends, () => refreshOnlineFriends(), { immediate: true })
 
-// Filter state: 'all' | 'online' | 'offline'
 const filterTab = ref<'all' | 'online' | 'offline'>('all')
 const searchQuery = ref('')
 
-// Transform friends to ContactItem
 const contactItems = computed(() => {
   return (friends.value ?? []).map((f) => {
     const userId = f.userInfo?.userId ?? f.friendInfo.userId
@@ -56,9 +51,7 @@ const contactItems = computed(() => {
     if (f.friendInfo.extension) {
       try {
         lastMsgTime = JSON.parse(f.friendInfo.extension).lastMsgTime
-      } catch {
-        // ignore invalid JSON
-      }
+      } catch {}
     }
     return {
       userId: String(userId),
@@ -71,11 +64,9 @@ const contactItems = computed(() => {
   })
 })
 
-// Filtered contacts based on search and tab
 const displayedContacts = computed(() => {
   let items = contactItems.value
 
-  // Apply search filter
   if (searchQuery.value.trim()) {
     const q = searchQuery.value.toLowerCase()
     items = items.filter(
@@ -86,7 +77,6 @@ const displayedContacts = computed(() => {
     )
   }
 
-  // Apply online/offline filter
   if (filterTab.value === 'online') {
     items = items.filter((c) => c.isOnline)
   } else if (filterTab.value === 'offline') {
@@ -96,7 +86,6 @@ const displayedContacts = computed(() => {
   return items
 })
 
-// Debounced search
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
 function handleSearchInput(val: string) {
   searchQuery.value = val
@@ -114,7 +103,6 @@ onBeforeUnmount(() => {
   if (searchTimeout) clearTimeout(searchTimeout)
 })
 
-// Add friend modal
 const showAddFriendModal = ref(false)
 const addFriendUserId = ref('')
 const addFriendRemark = ref('')
@@ -152,7 +140,6 @@ async function handleAddFriend() {
   }
 }
 
-// Delete friend
 async function handleDeleteFriend(userId: string) {
   if (!weilaCore.value) return
   try {
@@ -163,12 +150,10 @@ async function handleDeleteFriend(userId: string) {
   }
 }
 
-// Start private chat
 function handleContactClick(contact: ContactItem) {
   emit('selectChat', contact)
 }
 
-// Get avatar initials
 function getInitials(name: string): string {
   return name
     .split(' ')
@@ -181,7 +166,6 @@ function getInitials(name: string): string {
 
 <template>
   <div class="flex flex-col h-full">
-    <!-- Search Bar -->
     <div class="p-3 border-b border-neutral-200">
       <div class="relative">
         <span
@@ -201,7 +185,6 @@ function getInitials(name: string): string {
       </div>
     </div>
 
-    <!-- Filter Tabs -->
     <div class="flex items-center justify-between p-3 border-b border-neutral-100">
       <div class="flex gap-2">
         <button
@@ -227,7 +210,6 @@ function getInitials(name: string): string {
       </button>
     </div>
 
-    <!-- Contact List -->
     <div class="flex-1 overflow-y-auto">
       <div
         v-if="displayedContacts.length === 0"
@@ -244,7 +226,6 @@ function getInitials(name: string): string {
           class="flex items-center gap-3 p-3 hover:bg-neutral-50 cursor-pointer transition-colors"
           @click="handleContactClick(contact)"
         >
-          <!-- Avatar -->
           <div class="relative flex-shrink-0">
             <div
               v-if="contact.avatar"
@@ -258,7 +239,6 @@ function getInitials(name: string): string {
             >
               {{ getInitials(contact.name) }}
             </div>
-            <!-- Online indicator -->
             <span
               :class="[
                 'absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white',
@@ -267,7 +247,6 @@ function getInitials(name: string): string {
             ></span>
           </div>
 
-          <!-- Info -->
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between">
               <span class="font-medium text-neutral-900 text-sm truncate">
@@ -282,7 +261,6 @@ function getInitials(name: string): string {
             </div>
           </div>
 
-          <!-- Actions dropdown would go here -->
           <button
             class="p-1 text-neutral-400 hover:text-red-500 transition-colors"
             @click.stop="handleDeleteFriend(contact.userId)"
@@ -294,15 +272,11 @@ function getInitials(name: string): string {
       </div>
     </div>
 
-    <!-- Add Friend Modal -->
     <Teleport to="body">
       <div v-if="showAddFriendModal" class="fixed inset-0 z-50 flex items-center justify-center">
-        <!-- Backdrop -->
         <div class="absolute inset-0 bg-black/50" @click="closeAddFriendModal"></div>
 
-        <!-- Modal Content -->
         <div class="relative bg-white rounded-lg shadow-xl w-80 max-w-[90vw]">
-          <!-- Header -->
           <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
             <h3 class="text-lg font-semibold text-neutral-900">Add Friend</h3>
             <button
@@ -313,7 +287,6 @@ function getInitials(name: string): string {
             </button>
           </div>
 
-          <!-- Body -->
           <div class="p-4 space-y-4">
             <div>
               <label class="block text-sm font-medium text-neutral-700 mb-1">User ID</label>
@@ -340,7 +313,6 @@ function getInitials(name: string): string {
             <p v-if="addFriendError" class="text-sm text-red-500">{{ addFriendError }}</p>
           </div>
 
-          <!-- Footer -->
           <div
             class="flex justify-end gap-2 px-4 py-3 border-t border-neutral-200 bg-neutral-50 rounded-b-lg"
           >

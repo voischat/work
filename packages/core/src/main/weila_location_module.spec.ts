@@ -74,23 +74,17 @@ describe('WLLocationModule response routing', () => {
   it('leaves unrouted commands silent instead of acking with a wrong payload', () => {
     const { rspPbMsg, handler } = makeLocationModule()
 
-    // No case routes LOCATION_COMMAND_REPORT_LOCATION today. A missing case
-    // must stay silent (the caller times out) rather than resolve with a
-    // wrong payload. This is exactly the failure mode that hid the broken
-    // token refresh.
     handler(buildResponse(WL.Location.LocationCommandId.LOCATION_COMMAND_REPORT_LOCATION))
 
     expect(rspPbMsg).not.toHaveBeenCalled()
   })
 
-  /** Every location builder and the command it emits, so the routing guard below covers them all. */
   const LOCATION_BUILDER_COMMANDS = {
     buildReportLocationReq: WL.Location.LocationCommandId.LOCATION_COMMAND_REPORT_LOCATION,
     buildGetLocationReq: WL.Location.LocationCommandId.LOCATION_COMMAND_GET_LOCATION,
     buildLocationControlReq: WL.Location.LocationCommandId.LOCATION_COMMAND_LOCATION_CONTROL,
   } satisfies Record<string, WL.Location.LocationCommandId>
 
-  /** Built but nothing awaits their response yet; wiring one up is a conscious act. */
   const NOT_AWAITED = new Set<number>([
     WL.Location.LocationCommandId.LOCATION_COMMAND_REPORT_LOCATION,
     WL.Location.LocationCommandId.LOCATION_COMMAND_LOCATION_CONTROL,

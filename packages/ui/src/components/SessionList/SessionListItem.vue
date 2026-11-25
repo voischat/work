@@ -37,7 +37,6 @@ const lastMessageTime = computed(() => {
   const time = props.session.latestUpdate
   if (!time) return ''
 
-  // latestUpdate is stored as Unix timestamp in seconds, convert to milliseconds
   const date = new Date(time * 1000)
   const now = new Date()
   const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
@@ -138,7 +137,6 @@ function handleDelete() {
       fallback-class="text-lg font-medium text-neutral-400"
     />
 
-    <!-- Content -->
     <div class="flex-1 min-w-0">
       <div class="flex items-center justify-between">
         <span class="flex items-center gap-1 min-w-0">

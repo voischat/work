@@ -19,8 +19,6 @@ interface WL_WorkerScope {
   postMessage(message: WL_NetworkEvent, options?: StructuredSerializeOptions): void
 }
 
-// The worker bundle aliases this module to a module worker, so `self` is the
-// DedicatedWorkerGlobalScope at runtime; these two members are its full use here.
 function getWorkerScope(): WL_WorkerScope {
   return {
     addEventListener: (type, listener) => self.addEventListener(type, listener),
@@ -63,7 +61,6 @@ class Network {
         eventData = WL_NetworkState.NET_CONNECTED_STATE
         this.isConnected = true
 
-        // Flush frames that were queued while the socket was not open.
         setTimeout(this.processSending.bind(this), 0)
       }
 
@@ -125,8 +122,6 @@ class Network {
   private onSocketClose(event: CloseEvent): void {
     wllog('SOCKET关闭:', JSON.stringify(event))
 
-    // Unexpected close: keep queued frames so they flush after the FSM
-    // reconnects, as long as that happens inside the request timeout window.
     if (this.socket) {
       const closeEvent = event
       this.socket = undefined
@@ -157,8 +152,6 @@ class Network {
       this.socket = undefined
       this.isConnected = false
 
-      // An explicit disconnect starts a fresh session on the next connect;
-      // frames queued for the old session must not leak into it.
       this.sendingPbMsgList = []
     }
   }
@@ -205,8 +198,6 @@ class Network {
   private processSending(): void {
     const socket = this.socket
 
-    // Check the socket before dequeuing: shifting first would silently drop
-    // frames that arrive while the socket is connecting or reconnecting.
     if (!this.isConnected || !socket || socket.readyState !== WebSocket.OPEN) {
       return
     }

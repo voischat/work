@@ -24,7 +24,6 @@ interface GroupModel {
 }
 
 const route = useRoute('/message/[group_id]-[group_name]')
-// const router = useRouter()
 
 const { data: corp } = useWeilaFetch<Corp>('corp/org/get-my-org')
 
@@ -37,13 +36,6 @@ const { data: groups } = useQuery<GroupModel[]>({
     },
   }).then((i: any) => i.groups),
 })
-
-// const defaultSelectedKeys = ref<number[]>([groups.value?.[0].id || -1])
-// const selectedKeys = ref<number[]>(defaultSelectedKeys.value)
-
-// TODO: use radix vue's listbox
-// const fruits = ['Apple', 'Banana', 'Blueberry', 'Grapes', 'Pineapple']
-// const vegetables = ['Aubergine', 'Broccoli', 'Carrot', 'Courgette', 'Leek']
 </script>
 
 <template>

@@ -49,7 +49,6 @@ export const useGroups = defineQuery(() => {
     }
   }
 
-  // Refetch groups when group data changes
   watch(
     core,
     (coreInstance) => {

@@ -14,9 +14,7 @@ import { computed } from 'vue'
 
 const props = withDefaults(
   defineProps<{
-    /** Emoji 名称，如 '[微笑]' */
     name: string
-    /** 图片尺寸，默认 32 */
     size?: string | number
   }>(),
   {

@@ -14,7 +14,6 @@ const appStore = useAppStore()
 const { logout } = useAuthStore()
 const { isFullscreen, toggle: toggleFullScreen } = useFullscreen()
 const topMenu = computed(() => appStore.topMenu && appStore.menu)
-// const toggleTheme = useToggle(isDark)
 
 const toggleDrawerMenu = inject('toggleDrawerMenu') as () => void
 

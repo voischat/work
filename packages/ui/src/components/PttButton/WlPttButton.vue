@@ -2,11 +2,8 @@
 import { computed } from 'vue'
 
 export interface WlPttButtonProps {
-  /** 当前状态 */
   status?: 'idle' | 'recording' | 'processing'
-  /** 是否禁用 */
   disabled?: boolean
-  /** 按钮尺寸 */
   size?: 'sm' | 'md' | 'lg'
 }
 
@@ -56,16 +53,13 @@ const handleContextMenu = (e: Event) => {
     @click="handleClick"
     @contextmenu="handleContextMenu"
   >
-    <!-- Idle: Microphone Icon -->
     <span v-if="status === 'idle'" class="wl-ptt-button__icon icon-[carbon--microphone]"></span>
 
-    <!-- Recording: Record Icon with pulse -->
     <span
       v-else-if="status === 'recording'"
       class="wl-ptt-button__icon wl-ptt-button__icon--recording icon-[carbon--recording-filled]"
     ></span>
 
-    <!-- Processing: Loading indicator -->
     <span
       v-else-if="status === 'processing'"
       class="wl-ptt-button__icon wl-ptt-button__icon--processing icon-[carbon--renew]"
@@ -94,7 +88,6 @@ const handleContextMenu = (e: Event) => {
   transform: scale(0.95);
 }
 
-/* Sizes */
 .wl-ptt-button--sm {
   width: 32px;
   height: 32px;
@@ -122,13 +115,11 @@ const handleContextMenu = (e: Event) => {
   font-size: 28px;
 }
 
-/* Disabled state */
 .wl-ptt-button--disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Recording state */
 .wl-ptt-button--recording {
   background-color: #fef2f2;
   color: #ef4444;
@@ -139,7 +130,6 @@ const handleContextMenu = (e: Event) => {
   animation: wl-ptt-icon-pulse 1s ease-in-out infinite;
 }
 
-/* Processing state */
 .wl-ptt-button--processing {
   background-color: #fef3c7;
   color: #f59e0b;

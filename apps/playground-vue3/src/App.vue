@@ -37,7 +37,6 @@ async function handleKickoutReLogin() {
 }
 
 onMounted(async () => {
-  // Try auto-login with stored credentials
   const creds = weila.storedCredentials
   if (creds?.account && creds?.password) {
     try {
@@ -45,9 +44,7 @@ onMounted(async () => {
       if (route.path === '/') {
         router.push('/chat')
       }
-    } catch {
-      // Auto-login failed, stay on login page
-    }
+    } catch {}
   }
   initialized.value = true
 })

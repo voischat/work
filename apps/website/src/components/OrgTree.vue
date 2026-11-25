@@ -46,7 +46,6 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-// get-my-manage-dept-list omits the root dept (id 0), hiding members not in any dept
 const { data: deptData, isPending: isDeptPending } = useWeilaFetch<DeptModel[]>('corp/address/get-my-manage-all-dept')
 
 const weilaApi = useWeilaApi()

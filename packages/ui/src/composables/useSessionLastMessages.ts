@@ -1,10 +1,6 @@
 import { ref, watch, type Ref } from 'vue'
 import type { WeilaCore, WL_IDbSession, WL_IDbMsgData } from '@vois/weila-sdk-core'
 
-/**
- * Composable for fetching and caching last messages for sessions
- * Use this with useSessions to get message previews for each session
- */
 export function useSessionLastMessages(
   sessions: Ref<WL_IDbSession[]>,
   getWeilaCore: () => WeilaCore | undefined,
@@ -48,7 +44,6 @@ export function useSessionLastMessages(
     return lastMessages.value[key] || null
   }
 
-  // Watch for sessions changes and fetch last messages
   watch(
     sessions,
     async (newSessions) => {

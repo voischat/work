@@ -15,7 +15,6 @@ import type WLSessionModule from 'main/weila_session_module'
 const wllog = getLogger('CORE:info')
 const wlerr = getLogger('CORE:err')
 
-/** The core capabilities the FSM host drives; the orchestration layer seam. */
 export interface WeilaMainFsmHostDeps {
   sendNetworkEvent(event: WL_NetworkEventID, data: any): void
   sendExtEvent(event: WL_ExtEventID, data: any): void
@@ -32,17 +31,12 @@ export interface WeilaMainFsmHostDeps {
   readonly sessionModule: WLSessionModule
 }
 
-/**
- * 主状态机宿主：提供机器的全部动作、actor 与守卫实现。只通过
- * WeilaMainFsmHostDeps 驱动核心能力，不持有 worker、调度器或门面。
- */
 export default class WeilaMainFsmHost {
   private heartbeatTimerId: any = null
   private refreshTokenTimerId: any = null
 
   constructor(private readonly deps: WeilaMainFsmHostDeps) {}
 
-  /** 绑定好实现的主状态机。 */
   buildMachine(): typeof mainFsm {
     return mainFsm.provide({
       actors: {
@@ -178,7 +172,6 @@ export default class WeilaMainFsmHost {
   }
 
   private onDataInit(_context: any, _event: any) {
-    // 对外发出正在准备数据中.
     const ind: WL_DataPrepareInd = {
       state: WL_DataPrepareState.START_PREPARING,
       msg: 'Commons.startPrepare',
@@ -188,7 +181,6 @@ export default class WeilaMainFsmHost {
   }
 
   private onDataInited(_context: any, _event: any) {
-    // 对外通知数据已经准备好
     const ind: WL_DataPrepareInd = {
       state: WL_DataPrepareState.PREPARE_SUCC_END,
       msg: 'Commons.prepareFinishSucc',
@@ -198,10 +190,8 @@ export default class WeilaMainFsmHost {
   }
 
   private onDataPrepareFail(_context: any, _event: any) {
-    // 因为数据准备失败，登出系统
     void this.deps.requestLogout().then((_value) => {})
 
-    //通知外部，出现异常，并告知异常信息
     const ind: WL_DataPrepareInd = {
       state: WL_DataPrepareState.PREPARE_FAIL_END,
       msg: 'Commons.prepareFinishFail',
@@ -275,7 +265,6 @@ export default class WeilaMainFsmHost {
     this.refreshTokenTimerId = null
   }
 
-  /** 服务器明确拒绝（错误消息带 RET_CODE...MESSAGE...END 结构）的失败不再重试 */
   private isDefinitiveRejection(event: any): boolean {
     const message = `${event?.data?.error?.message ?? ''}`
 
@@ -297,9 +286,7 @@ export default class WeilaMainFsmHost {
     wllog('onConnecting:', context, event)
   }
 
-  private onDisconnectInReadyState(_context: any, _event: any) {
-    // const loginParam = _context.loginParam as WL_LoginParam
-  }
+  private onDisconnectInReadyState(_context: any, _event: any) {}
 
   private onLoginRetryFail({ context, event }: { context: any; event: any }) {
     wllog('onLoginRetryFail', event)

@@ -10,14 +10,11 @@ definePage({
 })
 const { t } = useI18n()
 
-// 获取当前网站根地址
 const baseUrl = typeof window !== 'undefined'
   ? window.location.origin
   : ''
-// 生成二维码
 const qrcode = useQRCode(baseUrl)
 
-// 下载链接
 const androidUrl = 'https://fir.xcxwo.com/tkdgb9yj'
 const iosUrl = 'https://apps.apple.com/cn/app/%E5%BE%AE%E5%96%87%E4%BC%81%E4%B8%9A%E7%89%88/id6751869184'
 
@@ -28,7 +25,6 @@ function goTo(url: string) {
 
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <!-- 导航栏 -->
     <nav class="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
       <div class="container mx-auto px-4 py-3 flex items-center justify-between">
         <div class="flex items-center space-x-3">
@@ -47,9 +43,7 @@ function goTo(url: string) {
       </div>
     </nav>
 
-    <!-- 主要内容 -->
     <main class="container mx-auto px-4 py-8">
-      <!-- 标题 -->
       <div class="text-center mb-10">
         <h1 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-3">
           {{ t('mobile.title') }}
@@ -60,7 +54,6 @@ function goTo(url: string) {
       </div>
 
       <div class="max-w-4xl mx-auto">
-        <!-- 二维码区域 -->
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 md:p-6 mb-6">
           <div class="flex flex-col md:flex-row items-center gap-4 md:gap-6">
             <div class="flex-shrink-0">
@@ -70,7 +63,6 @@ function goTo(url: string) {
                   alt="Website QR Code"
                   class="size-40"
                 >
-                <!-- Logo overlay in center of QR code -->
                 <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                   <div class="bg-white rounded-md p-0.5 shadow-sm">
                     <img
@@ -92,25 +84,11 @@ function goTo(url: string) {
                   <i i-ph-check-circle class="text-green-500 mt-0.5 mr-2 flex-shrink-0 text-sm" />
                   <span>{{ t('mobile.qr-code-benefit-1') }}</span>
                 </li>
-                <!-- <li class="flex items-start">
-                  <i i-ph-check-circle class="text-green-500 mt-0.5 mr-2 flex-shrink-0 text-sm" />
-                  <span>{{ t('mobile.qr-code-benefit-2') }}</span>
-                </li>
-                <li class="flex items-start">
-                  <i i-ph-check-circle class="text-green-500 mt-0.5 mr-2 flex-shrink-0 text-sm" />
-                  <span>{{ t('mobile.qr-code-benefit-3') }}</span>
-                </li>
-                <li class="flex items-start">
-                  <i i-ph-check-circle class="text-green-500 mt-0.5 mr-2 flex-shrink-0 text-sm" />
-                  <span>{{ t('mobile.qr-code-benefit-4') }}</span>
-                </li> -->
               </ul>
             </div>
           </div>
         </div>
 
-        <!-- 下载按钮区域 -->
-        <!-- Mobile: Simple buttons only -->
         <div class="md:hidden space-y-4 mb-6">
           <a
             :href="androidUrl"
@@ -133,9 +111,7 @@ function goTo(url: string) {
           </a>
         </div>
 
-        <!-- Desktop: Full card layout -->
         <div class="hidden md:grid grid-cols-2 gap-6">
-          <!-- Android 下载 -->
           <div class="bg-green-500 rounded-2xl shadow-xl overflow-hidden" hover:cursor-pointer @click="goTo(androidUrl)">
             <div class="p-6 md:p-8">
               <div class="flex items-center mb-4">
@@ -172,7 +148,6 @@ function goTo(url: string) {
             </div>
           </div>
 
-          <!-- iOS 下载 -->
           <div class="bg-orange-500 rounded-2xl shadow-xl overflow-hidden" hover:cursor-pointer @click="goTo(iosUrl)">
             <div class="p-6 md:p-8">
               <div class="flex items-center mb-4">
@@ -210,7 +185,6 @@ function goTo(url: string) {
           </div>
         </div>
 
-        <!-- 使用说明 -->
         <div class="mt-10 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8">
           <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">
             {{ t('mobile.instructions.title') }}
@@ -256,7 +230,6 @@ function goTo(url: string) {
       </div>
     </main>
 
-    <!-- 页脚 -->
     <footer class="mt-12 py-6 border-t border-gray-200 dark:border-gray-700">
       <div class="container mx-auto px-4 text-center">
         <p class="text-gray-500 dark:text-gray-400 text-sm">
@@ -275,7 +248,6 @@ function goTo(url: string) {
   max-width: 1200px;
 }
 
-/* 响应式调整 */
 @media (max-width: 768px) {
   .container {
     padding-left: 1rem;

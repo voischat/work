@@ -49,7 +49,6 @@ interface WL_PttMsgDataResult {
   isNewAudioItem: boolean
 }
 
-// 动作执行时的状态快照：v5 动作不再收到 actionMeta，改由订阅缓存最近一次快照。
 type PttState = {
   value: StateValue
   historyValue: unknown
@@ -63,7 +62,6 @@ interface PttActionArgs {
   event: PttFsmEvent
 }
 
-// xstate v5 的 Actor 泛型对具体机型实例化过深（TS2589），在使用边界收窄为结构化接口
 type PttActor = {
   getSnapshot(): PttState
   subscribe(observer: (state: PttState) => void): { unsubscribe(): void }
@@ -71,10 +69,8 @@ type PttActor = {
   start(): void
 }
 
-/** Ring-tone source, injectable so specs can observe playback orchestration. */
 type WLRingPlayer = { weila_playRing(id: WL_ConfigID): Promise<boolean> }
 
-/** Resolves after the given milliseconds. */
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, ms)
@@ -193,9 +189,6 @@ export default class WLPttFsm {
     }
   }
 
-  // actions
-
-  /** Handles entry into the idle state. */
   onIdle() {
     this.notifyPttDataReady().catch((_reason) => {})
   }
@@ -332,9 +325,6 @@ export default class WLPttFsm {
     this.feedAudioPayload(event.data, event.data.playerType)
   }
 
-  // services
-
-  /** Resolves the item the given family is currently playing, if any. */
   private playbackItem(family: StartPlaybackFamily): WL_PttAudioItem | null | undefined {
     if (family === 'realtime') {
       return this.streamPttPlayItem
@@ -347,12 +337,6 @@ export default class WLPttFsm {
     return this.historyPttPlayItems?.[this.historyPttPlayIndex]
   }
 
-  /**
-   * Shared playback start for all three families: open the player, play the
-   * start ring, start the player, announce PLAYING_START, then feed the first
-   * payload after PLAY_DELAY. A rejection reaches the machine's onError,
-   * which raises the family's failure event.
-   */
   private async runStartPlayback(input: StartPlaybackInput): Promise<void> {
     try {
       await this.audioManager.openPlayer(input.playerType, 16000)
@@ -360,9 +344,7 @@ export default class WLPttFsm {
       try {
         await this.ringPlayer.weila_playRing(WL_ConfigID.WL_RES_RING_START_PLAY_ID)
         wllog('播放铃声成功')
-      } catch {
-        // A failed start ring does not stop playback.
-      }
+      } catch {}
 
       if (input.family === 'history' && this.audioManager.isPlayerStarted(input.playerType)) {
         return
@@ -403,7 +385,6 @@ export default class WLPttFsm {
     }
   }
 
-  /** Opens the recorder and plays the start ring before talking. */
   async startTalking(): Promise<boolean> {
     await this.audioManager.openRecorder(16000, 20000)
 
@@ -502,7 +483,6 @@ export default class WLPttFsm {
     talk.callback.resolve(true)
   }
 
-  /** Appends one coded frame into the live burst; drops it outside a granted talk. */
   appendBurstFrame({ context, event }: PttActionArgs) {
     if (event.type !== 'FSM_PTT_CODED_DATA_EVT') return
 
@@ -520,7 +500,6 @@ export default class WLPttFsm {
     talk.frameBuffer.push(event.data)
   }
 
-  /** Packs one full burst packet and emits it upstream. */
   emitBurstPacket({ context }: PttActionArgs) {
     const talk = context.talk
 
@@ -532,7 +511,6 @@ export default class WLPttFsm {
     this.packTalkFrames(talk, frames, false)
   }
 
-  /** Records the release decision on the burst and closes it for new frames. */
   onReleaseTalk({ context, event }: PttActionArgs) {
     const talk = context.talk
 
@@ -545,12 +523,10 @@ export default class WLPttFsm {
     }
   }
 
-  /** Guard: the next frame completes a full packet. */
   burstPacketFull(context: PttFsmContext): boolean {
     return (context.talk?.frameBuffer?.length ?? 0) >= WLPttFsm.FRAME_COUNT - 1
   }
 
-  /** Emits every remaining burst frame: full packets first, then the tail as last. */
   private flushTalkBurst(talk: PttTalkBurst): void {
     const frames = talk.frameBuffer!
 
@@ -564,7 +540,6 @@ export default class WLPttFsm {
     this.packTalkFrames(talk, frames.length > 0 ? frames : [], true)
   }
 
-  /** 用打包纯函数组装一包并上报，同时推进分段与序号状态。 */
   private packTalkFrames(talk: PttTalkBurst, frames: Uint8Array[], lastPacket: boolean): void {
     const { packet, nextState } = packPttPacket(
       frames,
@@ -590,7 +565,6 @@ export default class WLPttFsm {
     this.streamPttPlayItem = null
   }
 
-  /** Pauses the single player in place; the machine stays in singlePlaying. */
   onPausePlay() {
     wllog('onPausePlay')
 
@@ -599,7 +573,6 @@ export default class WLPttFsm {
     })
   }
 
-  /** Resumes the single player from the paused position. */
   onResumePlay() {
     wllog('onResumePlay')
 
@@ -608,7 +581,6 @@ export default class WLPttFsm {
     })
   }
 
-  /** Announces the end of playback; the machine's finishStop actor stops and closes. */
   stopPlay({ context }: PttActionArgs) {
     const playType = context.activePlayerType!
     wllog('stopPlay playType:', playType)
@@ -616,7 +588,6 @@ export default class WLPttFsm {
     this.onPlayInd(null, playType, WL_PttAudioPlayState.PTT_AUDIO_PLAYING_END)
   }
 
-  /** Stops and closes the active player; failures are logged, the stop still completes. */
   async finishStopPlayback(input: { playerType: WLPlayerType | null }): Promise<void> {
     const playerType = input.playerType
 
@@ -704,7 +675,6 @@ export default class WLPttFsm {
   }
 
   getAudioMsgDataPriority(_msgData: WL_IDbMsgData): number {
-    //TODO: 后续会有依据的
     return 0
   }
 
@@ -725,7 +695,6 @@ export default class WLPttFsm {
     wllog('getNextPlayingItem', this.playingAudioList.length)
 
     if (this.playingAudioList.length) {
-      // 跳过不能播放的项，并把不能播且未收集完的项存入等待队列
       let result = false
 
       while (this.playingAudioList.length) {
@@ -830,8 +799,6 @@ export default class WLPttFsm {
           wlerr('播放异常:', reason)
         })
       } else if (msgAudioData.audioUrl && msgAudioData.audioUrl.length > 0) {
-        // let matchResult = msgData.audioData.audioUrl.match(/(http|https):\/\/([^\/]+)\/(.+)/i);
-        // const newUrl = '/audio/' + matchResult[3];
         const newUrl = msgAudioData.audioUrl
         fetchWithTimeout(newUrl, { method: 'GET', mode: 'cors' }, 5000)
           .then(async (result) => {
@@ -1034,7 +1001,6 @@ export default class WLPttFsm {
       return false
     }
 
-    // 确保音频系统已初始化（initAudio 内部有 isInited flag，重复调用无副作用）
     await this.initAudio()
 
     const audioData = msgData.audioData
@@ -1063,7 +1029,6 @@ export default class WLPttFsm {
       return false
     }
 
-    // 历史播放同样依赖浏览器音频上下文，先沿用统一初始化逻辑。
     await this.initAudio()
 
     const audioItems: WL_PttAudioItem[] = []
@@ -1095,7 +1060,6 @@ export default class WLPttFsm {
   }
 
   async requestTalk(): Promise<boolean> {
-    // 确保音频系统已初始化（initAudio 内部有 isInited flag，重复调用无副作用）
     await this.initAudio()
 
     return new Promise<boolean>((resolve, reject) => {
@@ -1122,11 +1086,6 @@ export default class WLPttFsm {
     this.pttFsmService.send({ type: fsmEvents.FSM_STOP_EVT })
   }
 
-  /**
-   * 等待机器回到空闲：事件驱动，替代对快照的定时轮询。
-   * @param timeoutMs 最长等待毫秒数
-   * @returns 回到空闲时兑现，超时拒绝
-   */
   public waitForIdle(timeoutMs = 5000): Promise<void> {
     if (this.pttFsmService.getSnapshot().matches('idle')) {
       return Promise.resolve()
@@ -1155,20 +1114,14 @@ export default class WLPttFsm {
     this.pttFsmService.send({ type: fsmEvents.FSM_STOP_AND_PLAY_NEXT_EVT })
   }
 
-  /** Pauses the current single playback in place. */
   public pausePlayAudio() {
     this.pttFsmService.send({ type: fsmEvents.FSM_PAUSE_PLAY_EVT })
   }
 
-  /** Resumes the paused single playback from where it stopped. */
   public resumePlayAudio() {
     this.pttFsmService.send({ type: fsmEvents.FSM_RESUME_PLAY_EVT })
   }
 
-  /**
-   * 已播放的毫秒数，按单发播放器消费的 PCM 帧换算；暂停期间冻结。
-   * @returns 已播放毫秒数，播放器未启动时为 0
-   */
   public async getPlayProgressMs(): Promise<number> {
     return this.audioManager.getPlayerPlayedMs(WLPlayerType.WL_PTT_SINGLE_PLAYER)
   }

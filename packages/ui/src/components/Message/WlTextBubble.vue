@@ -5,11 +5,8 @@ import WLEmoji from '@/components/Emoji/WLEmoji.vue'
 import { parseTextWithEmoji } from '@/utils'
 
 export interface WlTextBubbleProps {
-  /** 消息数据 */
   msg: WL_IDbMsgData
-  /** 是否为自己发送的消息 */
   isSelf?: boolean
-  /** 发送者信息 */
   sender?: WL_IDbUserInfo
 }
 

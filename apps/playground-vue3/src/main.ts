@@ -8,8 +8,6 @@ import App from './App.vue'
 import '@vois/weila-sdk-ui/index.css'
 import 'floating-vue/dist/style.css'
 
-// The worklet files under public/ are synced from the linked core build by
-// the predev script, so the runtime patch always loads the matching worklet.
 installWeilaAudioRuntimePatch()
 
 const app = createApp(App)

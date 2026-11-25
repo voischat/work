@@ -10,21 +10,15 @@ import {
   WL_PbMsgHandler,
 } from 'main/weila_internal_data'
 
-/** The orchestration seams one network event drives. */
 interface WeilaNetworkGatewayDeps {
   sendToFsm(event: MainFsmUserEvent): void
   dispatcher: WeilaPbDispatcher
   pbMsgHandlers: Map<number, WL_PbMsgHandler>
 }
 
-/**
- * 网络事件网关：把网络 worker 的事件分派到主状态机、PB 调度器或
- * 已注册的业务处理器。只依赖注入的三条缝隙，不持有 worker 或模块。
- */
 export default class WeilaNetworkGateway {
   constructor(private readonly deps: WeilaNetworkGatewayDeps) {}
 
-  /** 处理一条来自网络 worker 的事件。 */
   onNetworkMessage(event: { data: WL_NetworkEvent }): void {
     const netEvent = event.data
 

@@ -20,7 +20,6 @@ export function useSpeakerIcon() {
 
   function pause() {
     iconTimer.pause()
-    // @unocss-include
     icon.value = 'i-ph-pause'
   }
 

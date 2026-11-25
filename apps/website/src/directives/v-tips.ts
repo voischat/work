@@ -3,12 +3,11 @@ import { isFunction, isObject } from '@antfu/utils'
 
 interface VTipsOptions {
   text: string
-  placement?: 'top' | 'bottom' | 'left' | 'right' // For future extensibility
+  placement?: 'top' | 'bottom' | 'left' | 'right'
 }
 
 export const vTips: Directive = {
   mounted(el: HTMLElement, binding) {
-    // Store original title and set up hover listeners
     const originalTitle = el.title
     el.dataset.originalTitle = originalTitle
 
@@ -36,12 +35,10 @@ export const vTips: Directive = {
     el.addEventListener('mouseenter', showTooltip)
     el.addEventListener('mouseleave', hideTooltip)
 
-    // Store references for cleanup
     el.dataset.vTipsShowHandler = 'true'
   },
 
   updated(el: HTMLElement, binding) {
-    // Update tooltip text if currently hovered
     if (el.matches(':hover')) {
       const value = binding.value
       let tooltipText = ''
@@ -61,7 +58,6 @@ export const vTips: Directive = {
   },
 
   unmounted(el: HTMLElement) {
-    // Restore original title
     el.title = el.dataset.originalTitle || ''
   },
 }
