@@ -1,3 +1,4 @@
+import { createSharedComposable } from '@vueuse/core'
 import { shallowRef } from 'vue'
 
 export const useBundleInfo = createSharedComposable(() => {

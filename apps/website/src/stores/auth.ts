@@ -1,3 +1,7 @@
+import { useLocalStorage } from '@vueuse/core'
+import { defineStore } from 'pinia'
+import { computed } from 'vue'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
 import { autoLogin } from '~/shared/states'
 
 export interface AuthModel {

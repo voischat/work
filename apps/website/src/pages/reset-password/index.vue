@@ -4,7 +4,11 @@ import { Message } from '@arco-design/web-vue'
 import md5 from 'md5'
 import * as v from 'valibot'
 import { shallowRef } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { useForm } from 'zod-arco-rules/valibot'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
+import { useWeilaMutation } from '~/composables/useWeilaMutation'
 
 definePage({
   meta: {

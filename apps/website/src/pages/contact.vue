@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { objectKeys } from '@antfu/utils'
-import { ref as deepRef, reactive } from 'vue'
+import { ref as deepRef, reactive, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
 const router = useRouter()
 

@@ -1,8 +1,12 @@
+import type { Ref } from 'vue'
 import type { RealtimeLocationModel } from '~/api/realtime-location'
 import type { RegeoModel } from '~/api/track'
 import { isNumber } from '@antfu/utils'
 import { nanoid } from 'nanoid'
-import { nextTick, shallowRef, watch } from 'vue'
+import { nextTick, shallowRef, triggerRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useUserInfoStore } from '~/composables/useUserInfoStore'
+import { useWeilaApi } from '~/composables/useWeilaApi'
 
 export function useRealtimeMapInteraction(
   locations: Ref<RealtimeLocationModel[] | undefined>,

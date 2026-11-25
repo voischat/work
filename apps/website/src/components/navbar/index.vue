@@ -1,9 +1,13 @@
 <script lang="ts" setup>
 import { useFullscreen } from '@vueuse/core'
 import { computed, inject, shallowRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useToggleLocales } from '~/composables/useToggleLocales'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
 import { isDev } from '~/shared'
+import { useAppStore } from '~/stores/app'
 import { useAuthStore } from '~/stores/auth'
+import { useSelfInfoStore } from '~/stores/selfInfo'
 import { version } from '../../../package.json'
 import BindingPhone from '../BindingPhone.vue'
 import DeleteAccount from '../DeleteAccount.vue'

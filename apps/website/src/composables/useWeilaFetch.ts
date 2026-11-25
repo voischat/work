@@ -1,4 +1,5 @@
 import type { UseQueryOptions } from '@tanstack/vue-query'
+import type { MaybeRefOrGetter } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { computed, toValue } from 'vue'
 import { shouldRetryQuery } from '~/utils/queryRetry'

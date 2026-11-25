@@ -1,5 +1,8 @@
 import type { SelfInfo } from '~/types'
 import { defineStore } from 'pinia'
+import { computed } from 'vue'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
+import { useAuthStore } from '~/stores/auth'
 
 export const useSelfInfoStore = defineStore('selfInfo', () => {
   const authStore = useAuthStore()

@@ -2,6 +2,10 @@
 import type { DeptModel } from '~/api/contact'
 import { shallowRef } from 'vue'
 
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
+import { useSelfInfoStore } from '~/stores/selfInfo'
 import CreateDeptModal from './components/CreateDeptModal.vue'
 import DeleteDeptModal from './components/DeleteDeptModal.vue'
 import EditDeptModal from './components/EditDeptModal.vue'

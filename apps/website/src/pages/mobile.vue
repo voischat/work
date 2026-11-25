@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useQRCode } from '@vueuse/integrations/useQRCode'
+import { useI18n } from 'vue-i18n'
 import LogoURL from '~/assets/logo.png'
 
 definePage({

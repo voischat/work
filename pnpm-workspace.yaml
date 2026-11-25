@@ -164,7 +164,6 @@ catalog:
   ufo: ^1.6.4
   unocss: ^66.13.0
   unocss-preset-extra: ^1.0.0
-  unplugin-auto-import: ^21.1.0
   unplugin-unused: ^0.6.0
   unplugin-vue: ^7.1.1
   unplugin-vue-components: ^29.1.0

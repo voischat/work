@@ -3,7 +3,10 @@ import type { OrgTreeSelectedItem } from './orgTreeSelection'
 import type { DeptModel } from '~/api/contact'
 import type { Member } from '~/types/api'
 import Message from '@arco-design/web-vue/es/message'
-import { computed, nextTick, shallowRef } from 'vue'
+import { computed, nextTick, shallowRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useWeilaApi } from '~/composables/useWeilaApi'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
 import {
   addDeptToSelection,
   computeDeptCheckState,

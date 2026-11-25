@@ -2,7 +2,10 @@
 import type { Corp } from '~/types'
 import { useQuery } from '@tanstack/vue-query'
 import { UseImage } from '@vueuse/components'
-import { RouterLink } from 'vue-router'
+import { computed } from 'vue'
+import { RouterLink, useRoute } from 'vue-router'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
+import { weilaFetch } from '~/utils/api'
 
 definePage({
   meta: {

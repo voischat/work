@@ -3,7 +3,12 @@ import type { Corp } from '~/types'
 import Message from '@arco-design/web-vue/es/message'
 import { useQueryClient } from '@tanstack/vue-query'
 import * as v from 'valibot'
+import { computed, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useForm } from 'zod-arco-rules/valibot'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
+import { useWeilaMutation } from '~/composables/useWeilaMutation'
+import { isRemoteImage } from '~/utils/is'
 
 const { t } = useI18n()
 

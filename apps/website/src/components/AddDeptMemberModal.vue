@@ -3,7 +3,10 @@ import type { OrgTreeSelectedItem } from '~/components/orgTreeSelection'
 import type { Member } from '~/types/api'
 import Message from '@arco-design/web-vue/es/message'
 import { useQueryClient } from '@tanstack/vue-query'
-import { shallowRef } from 'vue'
+import { computed, shallowRef, watchEffect } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
+import { useWeilaMutation } from '~/composables/useWeilaMutation'
 
 const props = defineProps<{
   deptId: number

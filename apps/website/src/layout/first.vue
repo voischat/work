@@ -1,6 +1,8 @@
 <script lang="ts" setup>
+import { useI18n } from 'vue-i18n'
 import Footer from '~/components/footer/index.vue'
 import LoginBanner from '~/components/login-banner/index.vue'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
 
 const { t } = useI18n()
 

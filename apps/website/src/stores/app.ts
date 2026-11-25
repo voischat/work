@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { reactive } from 'vue'
 import { defaultArcoSettings } from '~/shared/const'
 
 export const useAppStore = defineStore('app', () => {

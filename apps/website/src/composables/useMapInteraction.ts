@@ -1,7 +1,10 @@
+import type { Ref } from 'vue'
 import type { RegeoModel, UserTrackModel } from '~/api/track'
 import { isNull, isNumber, isUndefined } from '@antfu/utils'
 import { nanoid } from 'nanoid'
-import { ref as deepRef, nextTick, shallowRef, watch } from 'vue'
+import { ref as deepRef, nextTick, shallowRef, triggerRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useWeilaApi } from '~/composables/useWeilaApi'
 
 export function useMapInteraction(tracks: Ref<UserTrackModel[] | undefined>) {
   const { t } = useI18n()

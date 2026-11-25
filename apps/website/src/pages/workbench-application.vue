@@ -2,7 +2,12 @@
 import type { AppItem, AppListResponse } from '~/api/application'
 import Message from '@arco-design/web-vue/es/message'
 
+import { useClipboard } from '@vueuse/core'
 import { ref as deepRef, shallowRef } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useWeilaFetch } from '~/composables/useWeilaFetch'
+import { useWeilaMutation } from '~/composables/useWeilaMutation'
+import { useSelfInfoStore } from '~/stores/selfInfo'
 import CreateApplicationModal from './components/CreateApplicationModal.vue'
 
 definePage({

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useInfiniteQuery } from '@tanstack/vue-query'
-import { computed, shallowRef } from 'vue'
+import { useScroll } from '@vueuse/core'
 
+import { computed, shallowRef, useTemplateRef, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import MessageFileContent from '~/components/MessageFileContent.vue'
 import MessageLocationContent from '~/components/MessageLocationContent.vue'
 import MessagePictureContent from '~/components/MessagePictureContent.vue'
@@ -10,6 +12,8 @@ import MessageTextContent from '~/components/MessageTextContent.vue'
 import MessageUnsupportedContent from '~/components/MessageUnsupportedContent.vue'
 import MessageVideoContent from '~/components/MessageVideoContent.vue'
 import MessageVoiceContent from '~/components/MessageVoiceContent.vue'
+import { weilaFetch } from '~/utils/api'
+import { $inspect } from '~/utils/inspect'
 
 enum MessageType {
   Text,

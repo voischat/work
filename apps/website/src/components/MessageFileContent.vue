@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { fileIconsMap } from '~/shared/states'
+import { openWindow } from '~/utils/index'
 
 const props = defineProps<{
   content: {

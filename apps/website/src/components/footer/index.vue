@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useI18n } from 'vue-i18n'
 import { useToggleLocales } from '~/composables/useToggleLocales'
 import { isDev } from '~/shared'
 

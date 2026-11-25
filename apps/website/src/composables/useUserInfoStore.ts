@@ -1,4 +1,6 @@
 import type { Member } from '~/types/api'
+import { useSessionStorage } from '@vueuse/core'
+import { useWeilaApi } from '~/composables/useWeilaApi'
 
 export function useUserInfoStore() {
   const membersMap = useSessionStorage<Map<number, Member>>('realtime-location-members', new Map())

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ElAmap } from '@vuemap/vue-amap'
-import { shallowRef } from 'vue'
+import { computed, shallowRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   content: any
