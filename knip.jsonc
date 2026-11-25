@@ -30,6 +30,9 @@
         "docs/.vitepress/config.mts",
       ],
     },
+    "apps/mock": {
+      "entry": ["routes/*.ts", "void.config.ts"],
+    },
     "apps/website": {
       // knip cannot load vite.config.ts here: unplugin-auto-import resolves
       // its presets at config-load time and rejects @vueuse/core in knip's

@@ -56,3 +56,6 @@ __pycache__/
 .void
 .void-wrangler.jsonc
 *.pem
+
+# Void generated types
+**/.void/

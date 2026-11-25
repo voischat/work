@@ -1,0 +1,17 @@
+{
+  "name": "weila-work-mock",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "test": "node --test *.spec.ts",
+    "typecheck": "void prepare && tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "void": "catalog:"
+  }
+}

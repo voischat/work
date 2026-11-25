@@ -11,7 +11,8 @@ This repository merged `weila-js-sdk` and `weila-work` into one pnpm workspace. 
 │   └── ui/              # @vois/weila-sdk-ui, Vue 3 components (tsdown)
 ├── apps/
 │   ├── website/         # Enterprise console, Vue 3 + Arco (was packages/web)
-│   └── playground-vue3/ # SDK playground, Vue 3 + Vite
+│   ├── playground-vue3/ # SDK playground, Vue 3 + Vite
+│   └── mock/            # Void app serving website API fixtures in development
 ├── docs/                # VitePress user manual (and the audio flow docs)
 ├── qa/                  # manual QA runs and test cases
 ├── scripts/             # repo scripts, including the commit-hook spec
@@ -51,6 +52,7 @@ Run from the repo root.
 | `pnpm dev`                     | website dev server                                              |
 | `pnpm dev:prod`                | website dev server, production profile                          |
 | `pnpm dev:sdk`                 | SDK packages and playground in dev/watch mode                   |
+| `pnpm mock`                    | Void mock server for website API fixtures                       |
 | `pnpm build`                   | turbo build for every workspace project                         |
 | `pnpm build:sdk`               | turbo build limited to `packages/*`                             |
 | `pnpm build:web`               | turbo build for the website and its workspace dependencies      |

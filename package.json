@@ -51,7 +51,8 @@
     "lint:comments": "node scripts/no-comments.ts",
     "release": "bumpp apps/website/package.json --tag 'v{version}' --commit 'chore: release v{version}'",
     "release:core": "bumpp packages/core/package.json --tag '@vois/weila-sdk-core@{version}' --commit 'chore(release): @vois/weila-sdk-core@{version}'",
-    "release:ui": "bumpp packages/ui/package.json --tag '@vois/weila-sdk-ui@{version}' --commit 'chore(release): @vois/weila-sdk-ui@{version}'"
+    "release:ui": "bumpp packages/ui/package.json --tag '@vois/weila-sdk-ui@{version}' --commit 'chore(release): @vois/weila-sdk-ui@{version}'",
+    "mock": "pnpm -C apps/mock run dev"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:",
