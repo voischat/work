@@ -1,6 +1,6 @@
 import { computed, reactive, ref, watch } from 'vue'
 import type { WeilaCore } from '@vois/weila-sdk-core'
-import type { WL_IDbMsgData, WL_IDbSession, WL_ExtEventCallback } from '@vois/weila-sdk-core'
+import type { WL_IDbSession, WL_ExtEventCallback } from '@vois/weila-sdk-core'
 import {
   WL_DataPrepareState,
   WL_ExtEventID,
@@ -23,17 +23,23 @@ export type BatchSessionProfileResolver = (
   sessions: WL_IDbSession[],
 ) => Promise<Map<string, BatchSessionProfileResult>>
 
-interface RealtimePttEventData {
-  lastMsgData?: WL_IDbMsgData
-  msgType?: WL_IDbMsgData['msgType']
-  pttData?: WL_IDbMsgData['pttData']
+function isEventRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
 }
 
-function isRealtimePttData(data: RealtimePttEventData | undefined) {
-  const msg = data?.lastMsgData ?? data
-  return Boolean(
-    msg?.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE ||
-    (msg?.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE && msg?.pttData),
+function isPrepareState(value: Record<string, unknown>, expected: WL_DataPrepareState): boolean {
+  return value.state === expected
+}
+
+function isRealtimePttData(data: unknown) {
+  if (!isEventRecord(data)) return false
+
+  const lastMsgData = data.lastMsgData
+  const msg = isEventRecord(lastMsgData) ? lastMsgData : data
+
+  return (
+    msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE ||
+    (msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE && Boolean(msg.pttData))
   )
 }
 
@@ -145,7 +151,11 @@ export function useSessions(
 
   const handleEvent: WL_ExtEventCallback = (eventId, eventData) => {
     if (eventId === WL_ExtEventID.WL_EXT_DATA_PREPARE_IND) {
-      if (eventData?.state !== WL_DataPrepareState.PREPARE_SUCC_END) return
+      if (
+        !isEventRecord(eventData) ||
+        !isPrepareState(eventData, WL_DataPrepareState.PREPARE_SUCC_END)
+      )
+        return
       void fetchSessions(sessions.value.length === 0)
     } else if (eventId === WL_ExtEventID.WL_EXT_NEW_SESSION_OPEN_IND) {
       scheduleBackgroundRefresh()

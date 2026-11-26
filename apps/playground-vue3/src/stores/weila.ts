@@ -31,6 +31,10 @@ const storedCredentials = useLocalStorage<{
   },
 })
 
+function isKickoutData(value: unknown): value is { reason: unknown; reasonText: string } {
+  return typeof value === 'object' && value !== null && 'reason' in value && 'reasonText' in value
+}
+
 export const useWeilaStore = defineStore('weila', () => {
   const core = shallowRef<WeilaCore | null>(null)
   const userInfo = shallowRef<WL_IDbUserInfo | null>(null)
@@ -51,7 +55,7 @@ export const useWeilaStore = defineStore('weila', () => {
   })
 
   const kickoutHandler: WL_ExtEventCallback = (eventId, eventData) => {
-    if (eventId === WL_ExtEventID.WL_EXT_KICKOUT_IND) {
+    if (eventId === WL_ExtEventID.WL_EXT_KICKOUT_IND && isKickoutData(eventData)) {
       kickoutReason.value = String(eventData.reason)
       kickoutReasonText.value = eventData.reasonText
     }

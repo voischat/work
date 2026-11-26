@@ -15,6 +15,17 @@ import {
 
 const PAGE_SIZE = 20
 
+function isMsgData(value: unknown): value is WL_IDbMsgData {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'sessionId' in value &&
+    'sessionType' in value &&
+    'msgId' in value &&
+    'msgType' in value
+  )
+}
+
 interface UseMessageHistoryOptions {
   shouldAppendMessage?: (message: WL_IDbMsgData) => boolean
 }
@@ -206,7 +217,9 @@ export function useMessageHistory(
       return
     }
 
-    const msg: WL_IDbMsgData = eventData
+    if (!isMsgData(eventData)) return
+
+    const msg = eventData
     if (options.shouldAppendMessage?.(msg) === false) return
 
     void appendRealtimeMessage(msg)
