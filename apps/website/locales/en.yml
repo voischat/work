@@ -6,6 +6,7 @@ add-member: Add member
 adt: '{0} Certification'
 adt-message: Certification Information
 application:
+  api-docs: API Manual
   app-id: App ID
   app-key: App Key
   create: Create Application
