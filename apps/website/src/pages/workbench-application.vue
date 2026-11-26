@@ -82,7 +82,7 @@ function confirmDelete() {
       <template #extra>
         <a-link
           v-if="selfInfoStore.isOwner"
-          href="https://www.voiswork.cn/common/corp-api/"
+          href="https://api.voischat.cn/common/work-exported-docs"
           target="_blank"
           rel="noopener noreferrer"
         >
