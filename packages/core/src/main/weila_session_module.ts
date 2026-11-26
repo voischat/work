@@ -318,6 +318,16 @@ export default class WLSessionModule {
       changed = true
     }
 
+    if (profile.memberCount !== undefined) {
+      const extra: Record<string, JsonValue> = isRecord(session.extra) ? { ...session.extra } : {}
+      extra.memberCount = profile.memberCount
+
+      if (!isDeepEqual(session.extra, extra)) {
+        session.extra = extra
+        changed = true
+      }
+    }
+
     if (!changed) {
       return session
     }
