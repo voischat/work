@@ -80,12 +80,8 @@ const sessionTypeLabel = computed(() => {
 const isIndividual = computed(() => isIndividualSessionType(props.session.sessionType))
 const isGroup = computed(() => isGroupSessionType(props.session.sessionType))
 const memberCount = computed(() => {
-  const extra = props.session.extra
-  if (extra && typeof extra === 'object' && 'memberCount' in extra) {
-    const count = Number(extra.memberCount)
-    return Number.isFinite(count) ? count : 0
-  }
-  return 0
+  const count = props.session.extra?.memberCount
+  return typeof count === 'number' && Number.isFinite(count) ? count : 0
 })
 
 const messagePreview = computed(() => {
