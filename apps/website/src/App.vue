@@ -85,6 +85,9 @@ weilaApi.value.hook('request:prepare', async (ctx) => {
     if (isPublic || !needRefresh())
       return
 
+    if (!refreshToken.value)
+      return
+
     if (refreshing) {
       await refreshing
       return
