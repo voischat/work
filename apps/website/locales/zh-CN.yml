@@ -6,6 +6,7 @@ add-member: 添加成员
 adt: '{0}认证'
 adt-message: 认证信息
 application:
+  api-docs: API 手册
   app-id: 应用 ID
   app-key: 应用密钥
   create: 创建应用

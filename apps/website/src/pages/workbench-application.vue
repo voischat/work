@@ -79,6 +79,16 @@ function confirmDelete() {
       <template #title>
         <CreateApplicationModal v-if="selfInfoStore.isOwner" @success="refetch" />
       </template>
+      <template #extra>
+        <a-link
+          v-if="selfInfoStore.isOwner"
+          href="https://www.voiswork.cn/common/corp-api/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {{ t('application.api-docs') }}
+        </a-link>
+      </template>
 
       <a-result
         v-if="!selfInfoStore.isOwner"
