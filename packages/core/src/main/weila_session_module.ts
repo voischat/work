@@ -109,50 +109,200 @@ type MsgPayload =
   | WL_IDbLocationShared
   | WL_IDbPttData
 
-interface MsgSendRequest {
-  msgType: WL_IDbMsgDataType
-  data: MsgPayload
+type MsgBuilder = (
+  sessionId: string,
+  sessionType: number,
+  dbMsgData: WL_IDbMsgData,
+  data: MsgPayload,
+) => WLBuildMsgRet
+
+function isStringPayload(data: MsgPayload): data is string {
+  return typeof data === 'string'
 }
 
-function isTextRequest(request: MsgSendRequest): request is MsgSendRequest & { data: string } {
-  return request.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE
-}
-
-function isMediaFileRequest(
-  request: MsgSendRequest,
-): request is MsgSendRequest & { data: WL_IDbFileData } {
+function isFilePayload(data: MsgPayload): data is WL_IDbFileData {
   return (
-    request.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE ||
-    request.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE
+    typeof data === 'object' &&
+    data !== null &&
+    'fileName' in data &&
+    'fileUrl' in data &&
+    'fileSize' in data
   )
 }
 
-function isImageRequest(
-  request: MsgSendRequest,
-): request is MsgSendRequest & { data: WL_IDbFileData } {
-  return request.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE
+function isLocationPayload(data: MsgPayload): data is WL_IDbLocationShared {
+  return typeof data === 'object' && data !== null && !('fileName' in data) && !('sender' in data)
 }
 
-function isLocationRequest(
-  request: MsgSendRequest,
-): request is MsgSendRequest & { data: WL_IDbLocationShared } {
-  return request.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_LOCATION_TYPE
+function isAudioPayload(data: MsgPayload): data is WL_IDbAudioData {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'frameCount' in data &&
+    ('audioUrl' in data || 'data' in data)
+  )
 }
 
-function isAudioRequest(
-  request: MsgSendRequest,
-): request is MsgSendRequest & { data: WL_IDbAudioData } {
-  return request.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE
+function isPttPayload(data: MsgPayload): data is WL_IDbPttData {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'seq' in data &&
+    'seqInPackage' in data &&
+    'mark' in data &&
+    'data' in data
+  )
 }
 
-function isPttRequest(
-  request: MsgSendRequest,
-): request is MsgSendRequest & { data: WL_IDbPttData } {
-  return request.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE
+function isNumberPayload(data: MsgPayload): data is number {
+  return typeof data === 'number'
 }
 
-function isWithdrawRequest(request: MsgSendRequest): request is MsgSendRequest & { data: number } {
-  return request.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE
+const MSG_BUILDERS: Partial<Record<WL_IDbMsgDataType, MsgBuilder>> = {
+  [WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE]: buildTextMsg,
+  [WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE]: buildFileOrVideoMsg,
+  [WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE]: buildFileOrVideoMsg,
+  [WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE]: buildImageMsg,
+  [WL_IDbMsgDataType.WL_DB_MSG_DATA_LOCATION_TYPE]: buildLocationMsg,
+  [WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE]: buildAudioMsg,
+  [WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE]: buildPttMsg,
+  [WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE]: buildWithdrawMsg,
+}
+
+function buildTextMsg(
+  sessionId: string,
+  sessionType: number,
+  dbMsgData: WL_IDbMsgData,
+  data: MsgPayload,
+): WLBuildMsgRet {
+  if (!isStringPayload(data)) return { resultCode: -1 }
+
+  dbMsgData.textData = data
+
+  return WeilaPBSessionWrapper.buildTextSessionMsgReq(
+    Long.fromValue(sessionId),
+    sessionType,
+    dbMsgData.senderId,
+    false,
+    data,
+  )
+}
+
+function buildFileOrVideoMsg(
+  sessionId: string,
+  sessionType: number,
+  dbMsgData: WL_IDbMsgData,
+  data: MsgPayload,
+): WLBuildMsgRet {
+  if (!isFilePayload(data)) return { resultCode: -1 }
+
+  dbMsgData.fileInfo = data
+
+  return WeilaPBSessionWrapper.buildMediaInfoSessionMsgReq(
+    Long.fromValue(sessionId),
+    sessionType,
+    dbMsgData.senderId,
+    false,
+    data,
+    dbMsgData.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE,
+  )
+}
+
+function buildImageMsg(
+  sessionId: string,
+  sessionType: number,
+  dbMsgData: WL_IDbMsgData,
+  data: MsgPayload,
+): WLBuildMsgRet {
+  if (!isFilePayload(data)) return { resultCode: -1 }
+
+  dbMsgData.fileInfo = data
+
+  return WeilaPBSessionWrapper.buildImageSessionMsgReq(
+    Long.fromValue(sessionId),
+    sessionType,
+    dbMsgData.senderId,
+    false,
+    data.fileUrl ?? '',
+  )
+}
+
+function buildLocationMsg(
+  sessionId: string,
+  sessionType: number,
+  dbMsgData: WL_IDbMsgData,
+  data: MsgPayload,
+): WLBuildMsgRet {
+  if (!isLocationPayload(data)) return { resultCode: -1 }
+
+  dbMsgData.location = data
+
+  return WeilaPBSessionWrapper.buildLocationInfoSessionMsgReq(
+    Long.fromValue(sessionId),
+    sessionType,
+    dbMsgData.senderId,
+    false,
+    data,
+  )
+}
+
+function buildAudioMsg(
+  sessionId: string,
+  sessionType: number,
+  dbMsgData: WL_IDbMsgData,
+  data: MsgPayload,
+): WLBuildMsgRet {
+  if (!isAudioPayload(data)) return { resultCode: -1 }
+
+  dbMsgData.audioData = data
+
+  const payload = data.data && data.data.length > 0 ? data.data : (data.audioUrl ?? '')
+
+  return WeilaPBSessionWrapper.buildAudioSessionMsgReq(
+    Long.fromValue(sessionId),
+    sessionType,
+    dbMsgData.senderId,
+    false,
+    payload,
+  )
+}
+
+function buildPttMsg(
+  sessionId: string,
+  sessionType: number,
+  dbMsgData: WL_IDbMsgData,
+  data: MsgPayload,
+): WLBuildMsgRet {
+  if (!isPttPayload(data)) return { resultCode: -1 }
+
+  dbMsgData.pttData = data
+
+  return WeilaPBSessionWrapper.buildPttSessionMsgReq(
+    Long.fromValue(sessionId),
+    sessionType,
+    dbMsgData.senderId,
+    false,
+    data,
+  )
+}
+
+function buildWithdrawMsg(
+  sessionId: string,
+  sessionType: number,
+  dbMsgData: WL_IDbMsgData,
+  data: MsgPayload,
+): WLBuildMsgRet {
+  if (!isNumberPayload(data)) return { resultCode: -1 }
+
+  dbMsgData.withdrawMsgId = data
+
+  return WeilaPBSessionWrapper.buildWithDrawMsgReq(
+    Long.fromValue(sessionId),
+    sessionType,
+    dbMsgData.senderId,
+    false,
+    data,
+  )
 }
 
 type SessionResponseRoute = (
@@ -1049,8 +1199,6 @@ export default class WLSessionModule {
     msgType: WL_IDbMsgDataType,
     msgData?: WL_IDbMsgData,
   ): Promise<boolean> {
-    let buildResult: WLBuildMsgRet | null = null
-
     const seqSetting = await WeilaDB.getInstance().getSettingItem(
       WL_IDbSettingID.SETTING_MSG_SENDING_SEQ,
     )
@@ -1064,7 +1212,6 @@ export default class WLSessionModule {
 
     const lastMsgData = await WeilaDB.getInstance().getLastMsgData(sessionId, sessionType)
 
-    const request: MsgSendRequest = { msgType, data }
     let dbMsgData: WL_IDbMsgData
 
     if (msgData) {
@@ -1089,88 +1236,21 @@ export default class WLSessionModule {
       }
     }
 
-    if (isTextRequest(request)) {
-      dbMsgData.textData = request.data
-      buildResult = WeilaPBSessionWrapper.buildTextSessionMsgReq(
-        Long.fromValue(sessionId),
-        sessionType,
-        this.coreInterface.getLoginUserInfo().userId,
-        false,
-        request.data,
-      )
-    } else if (isMediaFileRequest(request)) {
-      dbMsgData.fileInfo = request.data
-      buildResult = WeilaPBSessionWrapper.buildMediaInfoSessionMsgReq(
-        Long.fromValue(sessionId),
-        sessionType,
-        this.coreInterface.getLoginUserInfo().userId,
-        false,
-        request.data,
-        msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE,
-      )
-    } else if (isImageRequest(request)) {
-      dbMsgData.fileInfo = request.data
-      buildResult = WeilaPBSessionWrapper.buildImageSessionMsgReq(
-        Long.fromValue(sessionId),
-        sessionType,
-        this.coreInterface.getLoginUserInfo().userId,
-        false,
-        dbMsgData.fileInfo.fileUrl ?? '',
-      )
-    } else if (isLocationRequest(request)) {
-      dbMsgData.location = request.data
-      buildResult = WeilaPBSessionWrapper.buildLocationInfoSessionMsgReq(
-        Long.fromValue(sessionId),
-        sessionType,
-        this.coreInterface.getLoginUserInfo().userId,
-        false,
-        request.data,
-      )
-    } else if (isAudioRequest(request)) {
-      const audioData = request.data
-      dbMsgData.audioData = audioData
+    const builder = MSG_BUILDERS[msgType]
 
-      const payload =
-        audioData.data && audioData.data.length > 0 ? audioData.data : (audioData.audioUrl ?? '')
-
-      buildResult = WeilaPBSessionWrapper.buildAudioSessionMsgReq(
-        Long.fromValue(sessionId),
-        sessionType,
-        this.coreInterface.getLoginUserInfo().userId,
-        false,
-        payload,
-      )
-    } else if (isPttRequest(request)) {
-      dbMsgData.pttData = request.data
-      buildResult = WeilaPBSessionWrapper.buildPttSessionMsgReq(
-        Long.fromValue(sessionId),
-        sessionType,
-        this.coreInterface.getLoginUserInfo().userId,
-        false,
-        request.data,
-      )
-    } else if (isWithdrawRequest(request)) {
-      dbMsgData.withdrawMsgId = request.data
-      buildResult = WeilaPBSessionWrapper.buildWithDrawMsgReq(
-        Long.fromValue(sessionId),
-        sessionType,
-        this.coreInterface.getLoginUserInfo().userId,
-        false,
-        request.data,
-      )
-    }
-
-    if (!buildResult) {
+    if (!builder) {
       return Promise.reject('创建消息失败:不存在消息类型:' + msgType)
     }
+
+    const buildResult = builder(sessionId, sessionType, dbMsgData, data)
 
     if (buildResult.resultCode === 0) {
       try {
         const rspMsg: WL.Session.IRspMsg = await this.coreInterface.sendPbMsg(buildResult)
         await WeilaDB.getInstance().delMsgDataByComboId(dbMsgData.combo_id)
 
-        if (isWithdrawRequest(request)) {
-          const withdrawMsgId = request.data
+        if (msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE && isNumberPayload(data)) {
+          const withdrawMsgId = data
 
           const originalMsg = await WeilaDB.getInstance().getMsgDataByMsgId(
             sessionId,
