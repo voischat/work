@@ -5,8 +5,7 @@ import { WL_CoreInterface, WL_PbMsgHandler } from 'main/weila_internal_data'
 import WLSessionModule from 'main/weila_session_module'
 import { WeilaPBSessionWrapper } from 'proto/weilapb_session_wrapper'
 import { WeilaDB } from 'db/weila_db'
-import { WL_IDbSessionStatus } from 'db/weila_db_data'
-import type { JsonValue } from 'main/weila_type_guards'
+import { WL_IDbSessionStatus, type WL_IDbSessionExtra } from 'db/weila_db_data'
 
 function makeSessionModule() {
   const rspPbMsg = vi.fn()
@@ -50,7 +49,7 @@ function buildResponse(
   })
 }
 
-async function seedCorpGroupSession(extra?: JsonValue): Promise<void> {
+async function seedCorpGroupSession(extra?: WL_IDbSessionExtra): Promise<void> {
   await WeilaDB.getInstance().putSession({
     combo_id_type: '80001922_18',
     sessionId: '80001922',
@@ -193,5 +192,36 @@ describe('WLSessionModule.updateSessionProfile member count', () => {
     const session = await WeilaDB.getInstance().getSession('80001922', 18)
 
     expect(session?.extra).toEqual({ pinned: true, memberCount: 5 })
+  })
+
+  it('merges profile.extra into the stored extra instead of replacing it', async () => {
+    const { sessionModule } = makeSessionModule()
+    await seedCorpGroupSession({ pinned: true, memberCount: 3 })
+
+    await sessionModule.updateSessionProfile('80001922', 18, {
+      extra: { sessionAvatar: 'https://cdn.voiswork.cn/a.png' },
+    })
+
+    const session = await WeilaDB.getInstance().getSession('80001922', 18)
+
+    expect(session?.extra).toEqual({
+      pinned: true,
+      memberCount: 3,
+      sessionAvatar: 'https://cdn.voiswork.cn/a.png',
+    })
+  })
+
+  it('lets profile.extra override the stored memberCount', async () => {
+    const { sessionModule } = makeSessionModule()
+    await seedCorpGroupSession({ memberCount: 3 })
+
+    await sessionModule.updateSessionProfile('80001922', 18, {
+      memberCount: 5,
+      extra: { memberCount: 7 },
+    })
+
+    const session = await WeilaDB.getInstance().getSession('80001922', 18)
+
+    expect(session?.extra).toEqual({ memberCount: 7 })
   })
 })
