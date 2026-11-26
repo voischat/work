@@ -620,13 +620,9 @@ class WeilaCore implements WL_CoreInterface {
 
       let extra = session.extra
 
-      if (profile?.memberCount !== undefined || profile?.extra !== undefined) {
+      if (profile?.extra !== undefined) {
         const baseExtra = isRecord(session.extra) ? session.extra : {}
-        extra = { ...baseExtra }
-
-        if (profile?.memberCount !== undefined) extra.memberCount = profile.memberCount
-
-        if (profile?.extra !== undefined) Object.assign(extra, profile.extra)
+        extra = { ...baseExtra, ...profile.extra }
       }
 
       await this.weila_updateSessionProfile(session.sessionId, session.sessionType, {
