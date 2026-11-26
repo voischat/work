@@ -15,7 +15,7 @@ interface MainFsmContext {
 }
 
 export type MainFsmUserEvent =
-  | { type: 'FSM_LOAD_RESOURCE_EVT'; data: WL_PromiseCallback }
+  | { type: 'FSM_LOAD_RESOURCE_EVT'; data: WL_PromiseCallback<boolean> }
   | { type: 'FSM_LOGIN_SERVER_EVT'; data: WL_LoginParam }
   | { type: 'FSM_LOGOUT_EVT' }
   | { type: 'FSM_NET_CONNECTED_IND_EVT' }
@@ -308,7 +308,10 @@ export type PttFsmUserEvent =
   | { type: 'FSM_PLAY_HISTORY_EVT'; data: WL_PttAudioItem[] }
   | { type: 'FSM_PLAY_SINGLE_EVT'; data: WL_PttAudioItem }
   | { type: 'FSM_PLAY_NEXT_PTT_ITEM_EVT'; data?: WL_PttAudioItem }
-  | { type: 'FSM_REQ_TALK_EVT'; data: { callback: WL_PromiseCallback; stopByErr: boolean } }
+  | {
+      type: 'FSM_REQ_TALK_EVT'
+      data: { callback: WL_PromiseCallback<boolean>; stopByErr: boolean }
+    }
   | { type: 'FSM_REL_TALK_EVT'; data?: { stopByErr: boolean } }
   | { type: 'FSM_PTT_CODED_DATA_EVT'; data: Uint8Array }
   | { type: 'FSM_FEED_PTT_PAYLOAD_EVT'; data: WL_PttAudioItem }
@@ -327,7 +330,7 @@ type PttFsmActorEvent = MainFsmActorEvent
 export type PttFsmEvent = PttFsmUserEvent | PttFsmActorEvent
 
 export interface PttTalkBurst {
-  callback: WL_PromiseCallback
+  callback: WL_PromiseCallback<boolean>
   stopByErr: boolean
   curMarker: WL_PttPackType | null
   seqOfPackage: number

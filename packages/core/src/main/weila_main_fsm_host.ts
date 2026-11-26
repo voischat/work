@@ -2,46 +2,49 @@ import { fromPromise } from 'xstate'
 import type { AnyEventObject } from 'xstate'
 import { fsmEvents, mainFsm, systemWatchdogActor } from 'fsm/weila_fsmScript'
 import type { MainFsmContext, MainFsmUserEvent } from 'fsm/weila_fsmScript'
-import { WLConfig } from 'main/weila_config'
 import { getLogger } from 'log/weila_log'
 import { WL_LoginParam, WL_LoginResult, WL_NetworkEventID } from 'main/weila_internal_data'
+import type { WL_NetworkEventPayload } from 'main/weila_internal_data'
 import type { WL_PromiseCallback } from 'main/weila_internal_data'
 import { WL_DataPrepareInd, WL_DataPrepareState, WL_ExtEventID } from 'main/weila_external_data'
 import { isServiceSessionType } from 'db/weila_db_data'
+import { isString } from 'main/weila_type_guards'
 import type { WL_IDbSession, WL_IDbUserInfo } from 'db/weila_db_data'
 
 const wllog = getLogger('CORE:info')
 const wlerr = getLogger('CORE:err')
 
 export interface WeilaMainFsmLoginModule {
-  loginReq(
+  loginReq: (
     account: string,
     password: string,
     countryCode: string,
     md5: boolean,
-  ): Promise<WL_IDbUserInfo>
-  logoutReq(): Promise<boolean>
-  sendHeartbeat(): Promise<boolean>
-  refreshToken(): Promise<boolean>
-  initExtension(): Promise<boolean>
+  ) => Promise<WL_IDbUserInfo>
+  logoutReq: () => Promise<boolean>
+  sendHeartbeat: () => Promise<boolean>
+  refreshToken: () => Promise<boolean>
+  initExtension: () => Promise<boolean>
 }
 
 export interface WeilaMainFsmHostDeps {
-  sendNetworkEvent(event: WL_NetworkEventID, data: unknown): void
-  sendExtEvent(event: WL_ExtEventID, data: unknown): void
-  sendToFsm(event: MainFsmUserEvent): void
-  setLoginUserInfo(userInfo: WL_IDbUserInfo): void
-  setLoginReady(ready: boolean): void
-  requestLogout(): Promise<boolean>
-  checkWaitingTimeouts(): void
+  loadResource: () => Promise<boolean>
+  sendNetworkEvent: (event: WL_NetworkEventID, data: WL_NetworkEventPayload) => void
+  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- ext-event payloads vary per WL_ExtEventID and each listener parses its own
+  sendExtEvent: (event: WL_ExtEventID, data: unknown) => void
+  sendToFsm: (event: MainFsmUserEvent) => void
+  setLoginUserInfo: (userInfo: WL_IDbUserInfo) => void
+  setLoginReady: (ready: boolean) => void
+  requestLogout: () => Promise<boolean>
+  checkWaitingTimeouts: () => void
   readonly maxRetryLoginTimes: number
   readonly loginModule: WeilaMainFsmLoginModule
-  readonly friendModule: { initFriends(): Promise<boolean> }
-  readonly groupModule: { initGroups(): Promise<boolean> }
-  readonly businessModule: { initService(dbSessionList: WL_IDbSession[]): Promise<boolean> }
+  readonly friendModule: { initFriends: () => Promise<boolean> }
+  readonly groupModule: { initGroups: () => Promise<boolean> }
+  readonly businessModule: { initService: (dbSessionList: WL_IDbSession[]) => Promise<boolean> }
   readonly sessionModule: {
-    initSessions(): Promise<boolean>
-    getSessionList(): WL_IDbSession[]
+    initSessions: () => Promise<boolean>
+    getSessionList: () => WL_IDbSession[]
   }
 }
 
@@ -74,15 +77,16 @@ function isLoginResult(value: unknown): value is WL_LoginResult {
   )
 }
 
+// oxlint-disable-next-line anti-slop/no-unknown-parameters -- rejection reasons arrive unparsed from fetch/proto/network and are only logged
 function errorMessage(reason: unknown): string {
   if (reason instanceof Error) return reason.message
 
   if (isErrorLike(reason)) {
-    if (typeof reason.message === 'string') return reason.message
+    if (isString(reason.message)) return reason.message
 
     if (reason.error instanceof Error) return reason.error.message
 
-    if (isErrorLike(reason.error) && typeof reason.error.message === 'string') {
+    if (isErrorLike(reason.error) && isString(reason.error.message)) {
       return reason.error.message
     }
   }
@@ -120,7 +124,7 @@ export default class WeilaMainFsmHost {
         onDataInited: () => this.onDataInited(),
         onDataPrepareFail: () => this.onDataPrepareFail(),
         onLoginServerSucc: ({ event }) => {
-          if ('output' in event) this.onLoginSucc(event.output)
+          if ('output' in event && isLoginResult(event.output)) this.onLoginSucc(event.output)
         },
         onLoginServerFail: ({ event }) => {
           if ('error' in event) this.onLoginFail(event)
@@ -145,7 +149,7 @@ export default class WeilaMainFsmHost {
     const callback = event.data
 
     try {
-      await WLConfig.loadResource()
+      await this.deps.loadResource()
       callback.resolve(true)
       wllog('加载数据成功')
     } catch (e) {
@@ -277,11 +281,7 @@ export default class WeilaMainFsmHost {
     })
   }
 
-  private onLoginSucc(output: unknown) {
-    if (!isLoginResult(output)) return
-
-    const loginResult: WL_LoginResult = output
-
+  private onLoginSucc(loginResult: WL_LoginResult) {
     wllog('onLogin:', loginResult)
 
     if (loginResult.loginUserInfo) {
@@ -349,6 +349,7 @@ export default class WeilaMainFsmHost {
 
   private canRetry(context: MainFsmContext): boolean {
     const loginParam = context.loginParam
+
     if (!loginParam) return false
 
     wllog('canRetry', loginParam)

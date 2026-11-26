@@ -13,6 +13,7 @@ import {
   WL_CoreInterface,
   WL_LoginParam,
   WL_NetworkEvent,
+  WL_NetworkEventPayload,
   WL_NetworkEventID,
   WL_PbMsgHandler,
   WL_PromiseCallback,
@@ -52,10 +53,11 @@ import {
   isGroupSessionType,
   isIndividualSessionType,
 } from 'db/weila_db_data'
+import { WLConfig } from 'main/weila_config'
 import { dbEnum } from 'db/db_enum'
 import { getLogger } from 'log/weila_log'
 import { fetchAudioDataFromUrl, getMsgDataIdByCombo } from 'main/weila_utils'
-import { isCallable } from 'main/weila_type_guards'
+import { isCallable, isRecord } from 'main/weila_type_guards'
 import WLLoginModule from 'main/weila_login_module'
 import WLSessionModule from 'main/weila_session_module'
 import WLFriendModule from 'main/weila_friend_module'
@@ -165,6 +167,7 @@ class WeilaCore implements WL_CoreInterface {
     this.userModule = new WLUserModule(this)
 
     this.mainFsm = new WeilaMainFsmHost({
+      loadResource: () => WLConfig.loadResource(),
       sendNetworkEvent: (event, data) => this.sendNetworkEvent(event, data),
       sendExtEvent: (event, data) => this.sendExtEvent(event, data),
       sendToFsm: (event) => this.mainFsmService.send(event),
@@ -198,6 +201,7 @@ class WeilaCore implements WL_CoreInterface {
     this.mainFsmService.start()
   }
 
+  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- ext-event payloads vary per WL_ExtEventID and each listener parses its own
   sendExtEvent(event: WL_ExtEventID, data: unknown): void {
     this.emitter.emit('ext_event', event, data)
   }
@@ -214,14 +218,13 @@ class WeilaCore implements WL_CoreInterface {
     this.pbMsgHandlerList.set(serviceId, handler)
   }
 
+  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- the decoded response is typed by the module awaiting this seq
   rspPbMsg(seq: number, resultCode: number, data: unknown): void {
     this.pbDispatcher.rspPbMsg(seq, resultCode, data)
   }
 
   async executeCoreFunc<T = unknown>(funcName: string, ...argvs: unknown[]): Promise<T> {
-    // SAFETY: executeCoreFunc is the SDK's external dispatch surface: the SDK
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion, anti-slop/no-unsafe-dictionary-type -- dispatch by name over the class's own shape
-    const method: unknown = (this as Record<string, unknown>)[funcName]
+    const method = isRecord(this) ? this[funcName] : undefined
 
     if (isCallable(method)) {
       return method.call(this, ...argvs)
@@ -234,7 +237,7 @@ class WeilaCore implements WL_CoreInterface {
     return this.pbDispatcher.sendPbMsg<T>(buildPbMsg, timeout)
   }
 
-  private sendNetworkEvent(eventId: WL_NetworkEventID, eventData: unknown) {
+  private sendNetworkEvent(eventId: WL_NetworkEventID, eventData: WL_NetworkEventPayload) {
     const netEvent: WL_NetworkEvent = { eventId, eventData }
     this.network?.postMessage(netEvent, [])
   }
@@ -263,7 +266,7 @@ class WeilaCore implements WL_CoreInterface {
     }
 
     return new Promise<boolean>((resolve, reject) => {
-      const callback: WL_PromiseCallback = { resolve, reject }
+      const callback: WL_PromiseCallback<boolean> = { resolve, reject }
       this.mainFsmService.send({ type: fsmEvents.FSM_LOAD_RESOURCE_EVT, data: callback })
     })
   }
@@ -277,7 +280,18 @@ class WeilaCore implements WL_CoreInterface {
     return new Promise<WL_IDbUserInfo>((resolve, reject) => {
       const params: WL_LoginParam = {
         retryCount: 0,
-        callback: { resolve, reject },
+        callback: {
+          resolve: (value) => {
+            if (value === undefined) {
+              reject(new Error('登录响应缺少用户信息'))
+
+              return
+            }
+
+            resolve(value)
+          },
+          reject,
+        },
         account,
         password,
         countryCode,
