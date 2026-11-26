@@ -18,7 +18,8 @@ function isNumber(value: unknown): value is number {
   return typeof value === 'number'
 }
 
-function isCallable(value: unknown): value is (...args: any[]) => any {
+// oxlint-disable-next-line anti-slop/no-unknown-returns -- a callable probe cannot know the callee's return type; callers narrow what they invoke
+function isCallable(value: unknown): value is (...args: unknown[]) => unknown {
   return typeof value === 'function'
 }
 

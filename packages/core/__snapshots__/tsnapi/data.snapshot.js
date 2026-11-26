@@ -4,8 +4,12 @@
 // #region Variables
 export var applySessionExtraProfile
 export var inheritSessionProfile
+export var isAudioData
+export var isFileData
 export var isGroupSessionType
 export var isIndividualSessionType
+export var isLocationShared
+export var isPttData
 export var isServiceSessionType
 export var WL_AnswerStatus
 export var WL_DataPrepareState

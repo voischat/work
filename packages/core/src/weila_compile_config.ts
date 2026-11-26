@@ -1,5 +1,12 @@
-function getDevelopeProxy(): any {
-  return {
+interface DevProxyEntry {
+  target: string
+  secure: boolean
+  changeOrigin: boolean
+  pathRewrite: Record<string, string>
+}
+
+function getDevelopeProxy() {
+  const proxy = {
     '/v1': {
       target:
         process.env.NODE_ENV === 'production'
@@ -47,7 +54,9 @@ function getDevelopeProxy(): any {
         '^/ptt': '/ptt',
       },
     },
-  }
+  } satisfies Record<string, DevProxyEntry>
+
+  return proxy
 }
 
 module.exports = {

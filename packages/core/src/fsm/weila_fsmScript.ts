@@ -116,7 +116,7 @@ const loginProcedureFsm: Record<
           {
             src: 'loginServer',
             id: 'login_server',
-            input: ({ context, event }: { context: MainFsmContext; event: any }) => ({
+            input: ({ context, event }: { context: MainFsmContext; event: MainFsmEvent }) => ({
               context,
               event,
             }),
@@ -496,10 +496,12 @@ const pttFsm = createMachine({
               description: '没有数据了，此时可以结束播音',
             },
             onDone: {
-              actions: raise(({ event }: { event: { type: string; output?: any } }) => ({
-                type: 'FSM_PLAY_NEXT_PTT_ITEM_EVT',
-                data: event.output,
-              })),
+              actions: raise(
+                ({ event }: { event: { type: string; output?: WL_PttAudioItem } }) => ({
+                  type: 'FSM_PLAY_NEXT_PTT_ITEM_EVT',
+                  data: event.output,
+                }),
+              ),
               description: '还有数据，播放下一条',
             },
           },
@@ -583,10 +585,12 @@ const pttFsm = createMachine({
               description: '没有数据了，此时可以结束播音',
             },
             onDone: {
-              actions: raise(({ event }: { event: { type: string; output?: any } }) => ({
-                type: 'FSM_PLAY_NEXT_PTT_ITEM_EVT',
-                data: event.output,
-              })),
+              actions: raise(
+                ({ event }: { event: { type: string; output?: WL_PttAudioItem } }) => ({
+                  type: 'FSM_PLAY_NEXT_PTT_ITEM_EVT',
+                  data: event.output,
+                }),
+              ),
               description: '还有数据，播放下一条',
             },
           },

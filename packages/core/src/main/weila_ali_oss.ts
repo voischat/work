@@ -2,6 +2,7 @@ import { WeilaDB } from 'db/weila_db'
 import { fetchWithTimeout } from 'main/weila_utils'
 import OSS from 'ali-oss'
 import { getLogger } from 'log/weila_log'
+import { isNumber, isRecord, isString } from 'main/weila_type_guards'
 import {
   WL_IDbSettingID,
   isGroupSessionType,
@@ -11,6 +12,24 @@ import {
 
 const wllog = getLogger('ALI-OSS:info')
 const wlerr = getLogger('ALI-OSS:err')
+
+interface StsResponse {
+  errcode: number
+  data: {
+    Expiration: number | string
+    AccessKeyId: string
+    AccessKeySecret: string
+    SecurityToken: string
+  }
+}
+
+function isStsResponse(value: unknown): value is StsResponse {
+  if (!isRecord(value) || !isRecord(value.data)) return false
+
+  return (
+    isNumber(value.errcode) && (isNumber(value.data.Expiration) || isString(value.data.Expiration))
+  )
+}
 
 enum WL_UploadClientType {
   CACHE_BUCKET_TYPE,
@@ -22,8 +41,9 @@ interface WL_UploadParams {
   fileName?: string
   fileData: Blob
   resolve: (value: WL_UploadResult) => void
-  reject: (err: any) => void
-  checkPoint?: any
+  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- upload failures travel from fetch/OSS callbacks and are logged, not parsed
+  reject: (err: unknown) => void
+  checkPoint?: unknown
   clientType: WL_UploadClientType
 }
 
@@ -75,11 +95,15 @@ class AliOssHelper {
         method: 'GET',
       })
 
-      const keyData: any = await response.json()
+      const keyData: unknown = await response.json()
+
+      if (!isStsResponse(keyData)) {
+        return Promise.reject('获取OSS健值失败')
+      }
 
       if (keyData.errcode === 0) {
         wllog('关键数据:', keyData)
-        this.expireTimeout = keyData.data.Expiration
+        this.expireTimeout = Number(keyData.data.Expiration)
 
         return {
           accessKeyId: keyData.data.AccessKeyId,
@@ -181,7 +205,8 @@ class AliOssHelper {
     return url
   }
 
-  private rejectQueuedUploads(reason: any): void {
+  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- upload failures travel from fetch/OSS callbacks and are logged, not parsed
+  private rejectQueuedUploads(reason: unknown): void {
     this.isUploading = false
 
     for (const uploadParams of this.uploadingQueue.splice(0)) {

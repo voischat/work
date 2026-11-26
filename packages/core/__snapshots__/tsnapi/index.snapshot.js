@@ -9,9 +9,13 @@ export var getErrorMsg
 export var getLogger
 export var inheritSessionProfile
 export var initLogger
+export var isAudioData
+export var isFileData
 export var isGroupSessionType
 export var isIndividualSessionType
+export var isLocationShared
 export var isLoggerEnabled
+export var isPttData
 export var isServiceSessionType
 export var setConfigData
 export var setLoggerEnabled

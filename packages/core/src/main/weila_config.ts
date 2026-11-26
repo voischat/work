@@ -114,7 +114,7 @@ const WLConfig = {
       }
 
       let dbItem: IConfigItem | undefined
-      let responseData: any
+      let responseData: Blob | ArrayBuffer | string | null
 
       dbItem = await db.configTable.get(item.id)
 
@@ -130,6 +130,13 @@ const WLConfig = {
 
       if (item.dataType === 'data_url') {
         responseData = await this.fetchUrl(item.url, 'blob')
+
+        const resourceBlob = responseData
+
+        if (!(resourceBlob instanceof Blob)) {
+          throw new Error('获取资源配置失败:' + item.url)
+        }
+
         dbItem = await new Promise<IConfigItem>((resolve, reject) => {
           const reader = new FileReader()
           reader.onloadend = () => {
@@ -142,10 +149,14 @@ const WLConfig = {
           reader.addEventListener('error', () => {
             reject('reading blog error')
           })
-          reader.readAsDataURL(responseData)
+          reader.readAsDataURL(resourceBlob)
         })
       } else if (item.dataType === 'buffer') {
         responseData = await this.fetchUrl(item.url, 'arraybuffer')
+
+        if (!(responseData instanceof ArrayBuffer)) {
+          throw new Error('获取资源配置失败:' + item.url)
+        }
 
         if (item.id === WL_ConfigID.WL_RES_DATA_OPUS_WASM_ID)
           validateWasmData(responseData, item.url)
@@ -160,8 +171,11 @@ const WLConfig = {
     return true
   },
 
-  fetchUrl(url: string, dataType: XMLHttpRequestResponseType): Promise<any> {
-    return new Promise<any>((resolve, reject) => {
+  fetchUrl(
+    url: string,
+    dataType: XMLHttpRequestResponseType,
+  ): Promise<Blob | ArrayBuffer | string | null> {
+    return new Promise<Blob | ArrayBuffer | string | null>((resolve, reject) => {
       wllog('获取URL:' + url + ' 的数据')
       const xhr = new XMLHttpRequest()
       xhr.responseType = dataType

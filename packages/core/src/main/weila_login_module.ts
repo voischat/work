@@ -15,6 +15,7 @@ import { dbEnum } from 'db/db_enum'
 import Long from 'long'
 import { getLogger } from 'log/weila_log'
 import { getAppKeyAndId } from 'main/weila_utils'
+import { isNumber } from 'main/weila_type_guards'
 import {
   WL_AnswerStatus,
   WL_ExtEventID,
@@ -227,14 +228,14 @@ export default class WLLoginModule {
     md5: boolean = true,
   ): Promise<WL_IDbUserInfo> {
     wllog('登录请求:', account, countryCode, md5)
-    const appKeyAndId = WeilaDB.getAppAuthInfo() ? WeilaDB.getAppAuthInfo() : getAppKeyAndId()
+    const appKeyAndId = WeilaDB.getAppAuthInfo() ?? getAppKeyAndId()
 
     const wlBuildMsgRet = WeilaPBLoginWrapper.buildLoginAppReq(
       account,
       password,
       countryCode,
-      appKeyAndId.appId,
-      appKeyAndId.appKey,
+      appKeyAndId.appId ?? '',
+      appKeyAndId.appKey ?? '',
       md5,
     )
 
@@ -254,7 +255,7 @@ export default class WLLoginModule {
 
       const tokenInfo: WL_IDbSetting = {
         id: WL_IDbSettingID.SETTING_LOGIN_TOKEN,
-        data: loginAppRsp.token,
+        data: loginAppRsp.token ?? '',
       }
 
       await WeilaDB.getInstance().putSettingItem(tokenInfo)
@@ -299,7 +300,7 @@ export default class WLLoginModule {
 
       const tokenInfo: WL_IDbSetting = {
         id: WL_IDbSettingID.SETTING_LOGIN_TOKEN,
-        data: refreshRsp.accessToken,
+        data: refreshRsp.accessToken ?? '',
       }
 
       await WeilaDB.getInstance().putSettingItem(tokenInfo)
@@ -352,7 +353,7 @@ export default class WLLoginModule {
 
     let version: number = 0
 
-    if (subUserVerItem) {
+    if (subUserVerItem && isNumber(subUserVerItem.data)) {
       version = subUserVerItem.data
     }
 

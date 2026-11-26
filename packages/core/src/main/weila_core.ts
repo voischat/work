@@ -57,7 +57,7 @@ import { WLConfig } from 'main/weila_config'
 import { dbEnum } from 'db/db_enum'
 import { getLogger } from 'log/weila_log'
 import { fetchAudioDataFromUrl, getMsgDataIdByCombo } from 'main/weila_utils'
-import { isCallable, isRecord } from 'main/weila_type_guards'
+import { isCallable, isNumber, isRecord, isString } from 'main/weila_type_guards'
 import WLLoginModule from 'main/weila_login_module'
 import WLSessionModule from 'main/weila_session_module'
 import WLFriendModule from 'main/weila_friend_module'
@@ -68,6 +68,7 @@ import { WeilaDB } from 'db/weila_db'
 import { TinyEmitter } from 'tiny-emitter'
 import {
   WL_AnswerStatus,
+  WL_DataPrepareInd,
   WL_DataPrepareState,
   WL_ExtEventCallback,
   WL_ExtEventID,
@@ -103,6 +104,23 @@ function isMessagesRequest(request: WL_SubscribeRequest): request is WL_Subscrib
   options?: WL_SubscribeMap['messages']['options']
 } {
   return request.topic === 'messages'
+}
+
+function isDataPrepareInd(value: unknown): value is WL_DataPrepareInd {
+  if (!isRecord(value)) return false
+
+  return isNumber(value.state) && 'msg' in value
+}
+
+function isMsgData(value: unknown): value is WL_IDbMsgData {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'sessionId' in value &&
+    'sessionType' in value &&
+    'msgId' in value &&
+    'msgType' in value
+  )
 }
 
 export interface WL_InitOptions {
@@ -227,7 +245,9 @@ class WeilaCore implements WL_CoreInterface {
     const method = isRecord(this) ? this[funcName] : undefined
 
     if (isCallable(method)) {
-      return method.call(this, ...argvs)
+      // SAFETY: the caller names the function and every weila_* method keeps its promise contract for that name.
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- a dynamic dispatch cannot restate T
+      return method.call(this, ...argvs) as Promise<T>
     }
 
     return Promise.reject(new Error('Not Support Function:' + funcName))
@@ -939,10 +959,11 @@ class WeilaCore implements WL_CoreInterface {
       autoReply: 0,
     }
 
-    msgData.combo_id = getMsgDataIdByCombo(msgData, seqSetting?.data ?? 0)
+    const sendSeq = isNumber(seqSetting?.data) ? seqSetting.data : 0
+    msgData.combo_id = getMsgDataIdByCombo(msgData, sendSeq)
 
     if (seqSetting) {
-      seqSetting.data = (seqSetting.data ?? 0) + 1
+      seqSetting.data = sendSeq + 1
       await WeilaDB.getInstance().putSettingItem(seqSetting)
     }
 
@@ -1297,7 +1318,7 @@ class WeilaCore implements WL_CoreInterface {
       WL_IDbSettingID.SETTING_LOGIN_TOKEN,
     )
 
-    return tokenItem?.data ?? ''
+    return isString(tokenItem?.data) ? tokenItem.data : ''
   }
 
   public weila_offEvent(callback: WL_ExtEventCallback): void {
@@ -1315,10 +1336,14 @@ class WeilaCore implements WL_CoreInterface {
       const cb = request.callback
       const opts = request.options
 
-      const handler: WL_ExtEventCallback = (eventId: WL_ExtEventID, eventData: any) => {
+      const handler: WL_ExtEventCallback = (eventId, eventData) => {
+        const isPrepareDone =
+          eventId === WL_ExtEventID.WL_EXT_DATA_PREPARE_IND &&
+          isDataPrepareInd(eventData) &&
+          eventData.state === WL_DataPrepareState.PREPARE_SUCC_END
+
         if (
-          (eventId === WL_ExtEventID.WL_EXT_DATA_PREPARE_IND &&
-            eventData?.state === WL_DataPrepareState.PREPARE_SUCC_END) ||
+          isPrepareDone ||
           eventId === WL_ExtEventID.WL_EXT_NEW_SESSION_OPEN_IND ||
           eventId === WL_ExtEventID.WL_EXT_SESSION_UPDATED_IND
         ) {
@@ -1340,12 +1365,12 @@ class WeilaCore implements WL_CoreInterface {
       const cb = request.callback
       const filter = opts?.filter
 
-      const handler: WL_ExtEventCallback = (eventId: WL_ExtEventID, eventData: any) => {
+      const handler: WL_ExtEventCallback = (eventId, eventData) => {
         if (
           eventId === WL_ExtEventID.WL_EXT_NEW_MSG_RECV_IND ||
           eventId === WL_ExtEventID.WL_EXT_MSG_SEND_IND
         ) {
-          const msgData: WL_IDbMsgData = eventData
+          const msgData = isMsgData(eventData) ? eventData : undefined
 
           if (
             msgData &&

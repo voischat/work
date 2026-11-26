@@ -31,6 +31,7 @@ import {
 } from 'main/weila_external_data'
 import { AsyncTime } from 'main/weila_utils'
 import { WLGroupAttributeInfo } from 'proto/weilapb_wrapper_data'
+import type { WLBuildMsgRet } from 'proto/weilapb_wrapper_data'
 
 const wllog = getLogger('MOD:group:info')
 const wlerr = getLogger('MOD:group:err')
@@ -1088,7 +1089,7 @@ export default class WLGroupModule {
       return Promise.reject(new Error('Not Allow'))
     }
 
-    let buildMsgRet: any
+    let buildMsgRet: WLBuildMsgRet
 
     if (subUserId) {
       buildMsgRet = WeilaPBGroupWrapper.buildDelGroupMemebrReq(
