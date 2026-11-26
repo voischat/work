@@ -205,7 +205,7 @@ function audioItem(): WL_PttAudioItem {
     priority: 0,
     isCompleted: true,
     shouldSave: false,
-    recvWaitTimerId: undefined,
+    recvWaitTimerId: null,
   }
 }
 

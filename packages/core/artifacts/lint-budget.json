@@ -1,4 +1,8 @@
 {
   "errors": 0,
-  "files": {}
+  "files": {
+    "packages/core/src/main/weila_internal_data.ts": 6,
+    "packages/core/src/main/weila_pb_dispatcher.ts": 9,
+    "packages/core/src/main/weila_core.ts": 3
+  }
 }

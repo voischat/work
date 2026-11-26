@@ -8,15 +8,15 @@ import { WL_PbMsgData } from 'main/weila_internal_data'
 const wllog = getLogger('CORE:info')
 
 interface WL_WaitingRspPbMsgInfo {
-  resolve(value: any): any
-  reject(reason: any): any
+  resolve(value: unknown): unknown
+  reject(reason: unknown): unknown
   pbMsgData: WL_PbMsgData
   timeout: number
 }
 
 interface WL_SendingPbMsgInfo {
-  resolve(value: any): any
-  reject(reason: any): any
+  resolve(value: unknown): unknown
+  reject(reason: unknown): unknown
   buildPbMsg: WLBuildMsgRet
   timeout?: number
 }
@@ -27,8 +27,8 @@ export default class WeilaPbDispatcher {
 
   constructor(private readonly sendNetworkData: (reqData: WLBuildMsgRet['reqData']) => void) {}
 
-  sendPbMsg(buildPbMsg: WLBuildMsgRet, timeout?: number): Promise<any> {
-    return new Promise<any>((resolve, reject) => {
+  sendPbMsg<T = unknown>(buildPbMsg: WLBuildMsgRet, timeout?: number): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
       const sendingItem: WL_SendingPbMsgInfo = {
         resolve,
         reject,
@@ -41,7 +41,7 @@ export default class WeilaPbDispatcher {
     })
   }
 
-  rspPbMsg(seq: number, resultCode: number, data: any): void {
+  rspPbMsg(seq: number, resultCode: number, data: unknown): void {
     if (this.waitingRspMap.has(seq)) {
       const sendingItem = this.waitingRspMap.get(seq)
       this.waitingRspMap.delete(seq)
@@ -108,8 +108,8 @@ export default class WeilaPbDispatcher {
       if (!weilaMsgHeader) return
 
       const waitingItem: WL_WaitingRspPbMsgInfo = {
-        resolve: (value: any) => sendingItem.resolve(value),
-        reject: (reason: any) => sendingItem.reject(reason),
+        resolve: (value) => sendingItem.resolve(value),
+        reject: (reason) => sendingItem.reject(reason),
         pbMsgData: {
           header: weilaMsgHeader,
           pbMsgData: sendingItem.buildPbMsg.reqData,

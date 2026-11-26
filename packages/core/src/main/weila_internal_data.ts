@@ -1,11 +1,12 @@
 import { WLBuildMsgRet, WLMsgHeader } from 'proto/weilapb_wrapper_data'
 import { WL_IDbUserInfo, WL_IDbMsgData } from 'db/weila_db_data'
 import { WLPlayerType } from 'audio/weila_audio_data'
+import { WL } from 'proto/weilapb'
 import { WL_ExtEventID, WL_PttPlayIndData } from 'main/weila_external_data'
 
 interface WL_PromiseCallback {
-  resolve(data: any): any
-  reject(reason: any): any
+  resolve(data: unknown): unknown
+  reject(reason: unknown): unknown
 }
 
 const default_user_logo =
@@ -32,16 +33,16 @@ enum WL_NetworkEventID {
 
 interface WL_NetworkEvent {
   eventId: WL_NetworkEventID
-  eventData: any
+  eventData: unknown
 }
 
 interface WL_PbMsgData {
   header: WLMsgHeader
-  pbMsgData?: any
+  pbMsgData?: unknown
 }
 
 interface WL_PbMsgHandler {
-  (data: any): void
+  (data: WL.Service.IServiceMessage): void
 }
 
 interface WL_LoginParam {
@@ -56,15 +57,15 @@ interface WL_LoginParam {
 interface WL_LoginResult {
   callback: WL_PromiseCallback
   loginUserInfo?: WL_IDbUserInfo
-  error?: any
+  error?: unknown
 }
 
 interface WL_CoreInterface {
-  sendExtEvent(event: WL_ExtEventID, data: any): void
-  sendPbMsg(buildPbMsg: WLBuildMsgRet, timeout?: number): Promise<any>
-  rspPbMsg(seq: number, resultCode: number, data: any): void
+  sendExtEvent(event: WL_ExtEventID, data: unknown): void
+  sendPbMsg<T = unknown>(buildPbMsg: WLBuildMsgRet, timeout?: number): Promise<T>
+  rspPbMsg(seq: number, resultCode: number, data: unknown): void
   registerPbMsgHandler(serviceId: number, handler: WL_PbMsgHandler): void
-  executeCoreFunc(funcName: string, ...argvs: any[]): Promise<any>
+  executeCoreFunc<T = unknown>(funcName: string, ...argvs: unknown[]): Promise<T>
   getLoginUserInfo(): WL_IDbUserInfo
 }
 
@@ -79,7 +80,7 @@ interface WL_PttAudioItem {
   payloadList: WL_PttPayload[]
   priority: number
   isCompleted: boolean
-  recvWaitTimerId: any
+  recvWaitTimerId: ReturnType<typeof setTimeout> | null
   playIndex: number
   playerType: WLPlayerType
   shouldSave: boolean
