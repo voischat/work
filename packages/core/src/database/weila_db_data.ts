@@ -118,6 +118,13 @@ function inheritSessionProfile(session: WL_IDbSession, existingSession?: WL_IDbS
   }
 }
 
+type WL_IDbSessionExtra = {
+  sessionName?: string
+  sessionAvatar?: string
+  memberCount?: number
+  serviceSession?: WL_IDbServiceSession
+} & Record<string, JsonValue>
+
 interface WL_IDbSession {
   combo_id_type: string
   sessionId: string
@@ -129,7 +136,7 @@ interface WL_IDbSession {
   unreadCount?: number
   latestUpdate: number
   status: WL_IDbSessionStatus
-  extra?: any
+  extra?: WL_IDbSessionExtra
   lastMsgData?: WL_IDbMsgData
 }
 
@@ -143,7 +150,7 @@ interface WL_SessionProfileUpdate {
   sessionName?: string
   sessionAvatar?: string
   memberCount?: number
-  extra?: any
+  extra?: WL_IDbSessionExtra
 }
 
 interface WL_Profile {
@@ -151,7 +158,7 @@ interface WL_Profile {
   avatar?: string
   weilaNum?: string
   memberCount?: number
-  extra?: any
+  extra?: WL_IDbSessionExtra
 }
 
 type WL_ProfileResolver = (userId: number) => Promise<WL_Profile | null | undefined>
@@ -516,7 +523,7 @@ enum WL_ServiceStatus {
   SERVICE_STATUS_STAFF_MISSING,
 }
 
-interface WL_IDbServiceSession {
+type WL_IDbServiceSession = {
   serviceId: number
   customerId: number
   staffIds: number[]
@@ -537,6 +544,7 @@ export {
   WL_IDbSetting,
   WL_IDbSessionStatus,
   WL_IDbSession,
+  WL_IDbSessionExtra,
   WL_Profile,
   WL_ProfileResolver,
   WL_GroupProfileResolver,

@@ -10,6 +10,7 @@ import {
   WL_IDbService,
   WL_IDbServiceSessionInfo,
   WL_IDbSession,
+  WL_IDbSessionExtra,
   WL_IDbSessionStatus,
   WL_IDbSessionType,
   WL_SessionProfileUpdate,
@@ -313,16 +314,14 @@ export default class WLSessionModule {
       changed = true
     }
 
-    if (profile.extra !== undefined && !isDeepEqual(session.extra, profile.extra)) {
-      session.extra = profile.extra
-      changed = true
-    }
+    if (profile.extra !== undefined || profile.memberCount !== undefined) {
+      const extra: WL_IDbSessionExtra = isRecord(session.extra) ? { ...session.extra } : {}
 
-    if (profile.memberCount !== undefined) {
-      const extra: Record<string, JsonValue> = isRecord(session.extra) ? { ...session.extra } : {}
-      extra.memberCount = profile.memberCount
+      if (profile.memberCount !== undefined) extra.memberCount = profile.memberCount
 
-      if (!isDeepEqual(session.extra, extra)) {
+      Object.assign(extra, profile.extra)
+
+      if (!isDeepEqual(session.extra ?? null, extra)) {
         session.extra = extra
         changed = true
       }
@@ -436,7 +435,7 @@ export default class WLSessionModule {
           session.sessionType = dbEnum<WL_IDbSessionType>(msgData.sessionType)
           session.sessionName = serviceSession.service.name
           session.sessionAvatar = serviceSession.service.avatar
-          session.extra = serviceSession.serviceSession
+          session.extra = { ...session.extra, serviceSession: serviceSession.serviceSession }
         }
       } else {
         if (isGroupSessionType(msgData.sessionType)) {
@@ -1251,7 +1250,7 @@ export default class WLSessionModule {
   public async startSession(
     sessionId: string,
     sessionType: number,
-    extra?: any,
+    extra?: WL_IDbSessionExtra,
     lastMsgId?: number,
     lastMsgData?: WL_IDbMsgData,
   ): Promise<WL_IDbSession> {

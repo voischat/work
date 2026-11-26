@@ -35,10 +35,10 @@ import {
   WL_IDbMsgDataStatus,
   WL_IDbMsgDataType,
   WL_IDbNotification,
-  WL_IDbServiceSession,
   WL_IDbServiceSessionInfo,
   WL_IDbServiceStaffInfo,
   WL_IDbSession,
+  WL_IDbSessionExtra,
   WL_IDbSessionSetting,
   WL_IDbSessionSettingParams,
   WL_IDbSessionType,
@@ -55,7 +55,7 @@ import {
 import { dbEnum } from 'db/db_enum'
 import { getLogger } from 'log/weila_log'
 import { fetchAudioDataFromUrl, getMsgDataIdByCombo } from 'main/weila_utils'
-import { isCallable, isRecord } from 'main/weila_type_guards'
+import { isCallable } from 'main/weila_type_guards'
 import WLLoginModule from 'main/weila_login_module'
 import WLSessionModule from 'main/weila_session_module'
 import WLFriendModule from 'main/weila_friend_module'
@@ -618,17 +618,9 @@ class WeilaCore implements WL_CoreInterface {
 
       if (!sessionName) return
 
-      let extra = session.extra
-
-      if (profile?.extra !== undefined) {
-        const baseExtra = isRecord(session.extra) ? session.extra : {}
-        extra = { ...baseExtra, ...profile.extra }
-      }
-
       await this.weila_updateSessionProfile(session.sessionId, session.sessionType, {
         ...profile,
         sessionName,
-        extra,
       })
     } catch (err) {
       wlerr('补全会话资料失败:', err)
@@ -764,7 +756,7 @@ class WeilaCore implements WL_CoreInterface {
   public async weila_startNewSession(
     sessionId: string,
     sessionType: number,
-    extra?: any,
+    extra?: WL_IDbSessionExtra,
   ): Promise<WL_IDbSession> {
     return this.sessionModule.startSession(sessionId, sessionType, extra)
   }
@@ -1203,7 +1195,7 @@ class WeilaCore implements WL_CoreInterface {
       const service = await WeilaDB.getInstance().getService(serviceId)
 
       if (service) {
-        const serviceSession: WL_IDbServiceSession | undefined = session.extra
+        const serviceSession = session.extra?.serviceSession
 
         if (serviceSession) {
           return {

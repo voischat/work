@@ -41,6 +41,7 @@ import {
   isIndividualSessionType,
   isServiceSessionType,
 } from './weila_db_data'
+import { isNumber, isRecord } from 'main/weila_type_guards'
 import { dbEnum } from './db_enum'
 import { getLogger } from 'log/weila_log'
 import TinyPinyin from 'tiny-pinyin'
@@ -202,6 +203,12 @@ class WeilaDB extends Dexie {
       await this.instance.repairLegacyServiceMsgDatas()
     } catch (error) {
       wlerr('修复遗留服务消息失败:', dbName, error)
+    }
+
+    try {
+      await this.instance.migrateServiceSessionExtra()
+    } catch (error) {
+      wlerr('迁移客服会话 extra 失败:', dbName, error)
     }
   }
 
@@ -1205,6 +1212,69 @@ class WeilaDB extends Dexie {
     wllog('修复遗留服务消息%d条', repairedMsgDatas.length)
 
     return repairedMsgDatas.length
+  }
+
+  @AsyncTime()
+  public async migrateServiceSessionExtra(): Promise<number> {
+    const sessions = await this.sessions.toArray()
+
+    const migrated = sessions.filter((session) => {
+      if (!isServiceSessionType(session.sessionType) || !isRecord(session.extra)) {
+        return false
+      }
+
+      if (session.extra.serviceSession !== undefined) {
+        return false
+      }
+
+      const { serviceId, customerId, staffIds, serviceStatus, createdTime, updatedTime } =
+        session.extra
+
+      const isLegacyServiceSession =
+        isNumber(serviceId) &&
+        isNumber(customerId) &&
+        Array.isArray(staffIds) &&
+        staffIds.every(isNumber) &&
+        isNumber(serviceStatus) &&
+        isNumber(createdTime) &&
+        isNumber(updatedTime)
+
+      if (!isLegacyServiceSession) {
+        return false
+      }
+
+      const rest = { ...session.extra }
+      delete rest.serviceId
+      delete rest.customerId
+      delete rest.staffIds
+      delete rest.serviceStatus
+      delete rest.createdTime
+      delete rest.updatedTime
+
+      const extra = {
+        ...rest,
+        serviceSession: {
+          serviceId,
+          customerId,
+          staffIds,
+          serviceStatus,
+          createdTime,
+          updatedTime,
+        },
+      }
+
+      session.extra = extra
+
+      return true
+    })
+
+    if (migrated.length > 0) {
+      await this.sessions.bulkPut(migrated)
+    }
+
+    wllog('迁移客服会话 extra %d 条', migrated.length)
+
+    return migrated.length
   }
 
   @AsyncTime()

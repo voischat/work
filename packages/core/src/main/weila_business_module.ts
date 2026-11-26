@@ -493,10 +493,16 @@ export default class WLBusinessModule {
           dbSession.latestUpdate = serviceSessionInfo.serviceSession.updatedTime
           dbSession.sessionName = serviceSessionInfo.service.name
           dbSession.sessionAvatar = serviceSessionInfo.service.avatar
-          dbSession.extra = serviceSessionInfo.serviceSession
+          dbSession.extra = {
+            ...dbSession.extra,
+            serviceSession: serviceSessionInfo.serviceSession,
+          }
         } else {
           dbSession.status = WL_IDbSessionStatus.SESSION_INVALID
-          dbSession.extra.serviceStatus = WL_ServiceStatus.SERVICE_STATUS_FINISH
+          dbSession.extra = {
+            ...dbSession.extra,
+            serviceStatus: WL_ServiceStatus.SERVICE_STATUS_FINISH,
+          }
         }
       }
 

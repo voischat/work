@@ -14,8 +14,12 @@ function isString(value: unknown): value is string {
   return typeof value === 'string'
 }
 
+function isNumber(value: unknown): value is number {
+  return typeof value === 'number'
+}
+
 function isCallable(value: unknown): value is (...args: any[]) => any {
   return typeof value === 'function'
 }
 
-export { isCallable, isRecord, isString }
+export { isCallable, isNumber, isRecord, isString }
