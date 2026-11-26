@@ -48,7 +48,7 @@ Repository-specific rules:
   - **dev** (`pnpm dev`) is the LAN integration backend. The `/v1`, `/v2` and `/voischat` WebSocket proxies default to `https://192.168.0.106`, and the console talks to it with the demo app id. Log in with the tiered pool accounts (16675440001-4, password in `WEILA_POOL_PASSWORD`), or see `.claude/skills/verify-account-pool/SKILL.md`.
   - **stage** (`pnpm dev:prod`, same Vite HMR server, production profile) points every proxy at `https://api.voischat.cn` and logs in with the QA account (`WEILA_QA_ACCOUNT`).
   - **prod** is the deployed build and also talks to `https://api.voischat.cn`.
-  `WEILA_API_ORIGIN` (or the older `WEILA_V2_PROXY`) retargets all three proxies at another origin, for example `WEILA_API_ORIGIN=http://192.168.1.29 pnpm dev`.
+    `WEILA_API_ORIGIN` (or the older `WEILA_V2_PROXY`) retargets all three proxies at another origin, for example `WEILA_API_ORIGIN=http://192.168.1.29 pnpm dev`.
 
 ## Commands
 
