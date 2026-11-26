@@ -10,57 +10,7 @@
 const { readFileSync, writeFileSync, mkdirSync } = await import('node:fs')
 const { join } = await import('node:path')
 const driver = await import(CFG.libPath)
-
-const EDITIONS = {
-  standard: {
-    name: '标准版',
-    sidebarDisabled: ['实时位置', '轨迹', '应用管理'],
-    sidebarEnabled: ['消息'],
-    editTrack: 'absent',
-    fast: 'absent',
-    fastTitle: '',
-    locDisabled: true,
-    locTitle: '专业版功能',
-    routeGuards: [
-      ['#/workbench/realtime-location', 'blocked'],
-      ['#/workbench/user-track', 'blocked'],
-      ['#/workbench/message', 'allowed'],
-      ['#/workbench/application', 'blocked'],
-    ],
-  },
-  professional: {
-    name: '专业版',
-    sidebarDisabled: ['应用管理'],
-    sidebarEnabled: ['消息', '实时位置', '轨迹'],
-    editTrack: 'present',
-    fast: 'disabled',
-    fastTitle: '旗舰版功能',
-    locDisabled: false,
-    locTitle: '',
-    routeGuards: [
-      ['#/workbench/realtime-location', 'allowed'],
-      ['#/workbench/user-track', 'allowed'],
-      ['#/workbench/message', 'allowed'],
-      ['#/workbench/application', 'blocked'],
-    ],
-  },
-  flagship: {
-    name: '旗舰版',
-    sidebarDisabled: [],
-    sidebarEnabled: ['消息', '实时位置', '轨迹', '应用管理'],
-    editTrack: 'present',
-    fast: 'enabled',
-    fastTitle: '该频率设备耗电大，请慎重',
-    locDisabled: false,
-    locTitle: '',
-    routeGuards: [
-      ['#/workbench/realtime-location', 'allowed'],
-      ['#/workbench/user-track', 'allowed'],
-      ['#/workbench/message', 'allowed'],
-      ['#/workbench/application', 'allowed'],
-    ],
-  },
-}
+const { EDITIONS } = await import(CFG.editionsPath)
 
 const ed = EDITIONS[CFG.edition]
 mkdirSync(CFG.outDir, { recursive: true })
@@ -138,9 +88,24 @@ try {
     else note(`FAIL sidebar ${item} expected enabled, got '${st}'`)
   }
 
-  const badge = await page.evaluate(
-    () => (document.body.textContent.match(/(标准版|专业版|旗舰版)/) || ['none'])[0],
-  )
+  // Read the edition from the sidebar VIP card ("会员等级" row). A whole-body
+  // text scan is unreliable when the corp itself is named after an edition
+  // (the 106 pool orgs are named 微喇标准版/微喇旗舰版 ...). The sidebar uses
+  // UnoCSS attributify syntax, so the trigger carries no class to match.
+  const hoverCorp = await page.evaluate(() => {
+    const trigger = document.querySelector('.arco-menu [cursor-pointer]')
+    if (!trigger) return false
+    trigger.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }))
+    return true
+  })
+  if (hoverCorp) await page.waitForTimeout(500)
+  const badge = await page.evaluate(() => {
+    const popup = [...document.querySelectorAll('.arco-trigger-popup')]
+      .find(p => (p.textContent || '').includes('会员等级'))
+    if (!popup) return 'none'
+    const match = (popup.textContent || '').match(/会员等级(.+?)会员生效时间/)
+    return match ? match[1].trim() : 'none'
+  })
   if (badge === ed.name) note(`PASS home shows ${ed.name}`)
   else note(`FAIL home vip name '${badge}' != '${ed.name}'`)
 

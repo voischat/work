@@ -13,7 +13,7 @@ export function scrubUrl(url) {
 // ego's page.fill prepends a stale credential prefix (seen as "70012533" on
 // the login form), so set the value through the native setter and fire one
 // input event for Vue to pick it up.
-async function setInputValue(page, selector, value) {
+export async function setInputValue(page, selector, value) {
   await page.evaluate(
     ([sel, v]) => {
       const input = document.querySelector(sel)
@@ -25,35 +25,111 @@ async function setInputValue(page, selector, value) {
   )
 }
 
-// Fill and submit the login form on a page that already shows it. No
-// navigation before or after, so it also covers SPA re-login after expiry.
+// The login form carries a "remember password" checkbox before the consent
+// one, so read the consent input from its visible label instead of by tag.
+export async function consentChecked(page) {
+  return await page.evaluate(() => {
+    const labels = [...document.querySelectorAll('.arco-checkbox')]
+    const label = labels.find(
+      (l) => l.getClientRects().length > 0 && l.textContent.includes('我已阅读并同意'),
+    )
+    const input = label?.querySelector('input[type="checkbox"]')
+      ?? document.querySelector('input[type="checkbox"]')
+    return input?.checked ?? false
+  })
+}
+
+// The ego profile keeps localStorage across TaskSpaces, so the session on
+// screen belongs to whoever logged in last: a pool account, or a person at the
+// browser. The console rewrites `login_time` on every login and token refresh,
+// so a marker pairing a hash of the login account with that stamp proves a
+// kept session is the caller's account and that nobody logged in since.
+const MARKER_KEY = 'weila_verify_login'
+
+const readLoginTime = (page) => page.evaluate(() => localStorage.getItem('login_time'))
+
+async function sessionStamp(page, account, stamp) {
+  return await page.evaluate(
+    async ([key, account, stamp]) => {
+      if (!globalThis.crypto?.subtle)
+        return false
+      const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(account))
+      const hash = [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('')
+      const loginTime = localStorage.getItem('login_time')
+      if (stamp) {
+        localStorage.setItem(key, JSON.stringify({ hash, loginTime }))
+        return true
+      }
+      try {
+        const marker = JSON.parse(localStorage.getItem(key) || 'null')
+        return marker?.hash === hash && marker.loginTime === loginTime
+      } catch {
+        return false
+      }
+    },
+    [MARKER_KEY, account, stamp],
+  )
+}
+
+const isOwnSession = async (page, account) =>
+  Boolean(await sessionStamp(page, account, false).catch(() => false))
+
+async function stampLogin(page, account, previous) {
+  await page.waitForFunction(
+    (prev) => {
+      const time = Number(localStorage.getItem('login_time'))
+      return time > 0 && String(time) !== prev
+    },
+    previous,
+    { timeout: 10000 },
+  )
+  await sessionStamp(page, account, true)
+}
+
+// Empty the origin's storage on a page that shows the login route. The app
+// keeps its session in memory, so the caller reloads afterwards.
+export async function clearSession(page, base) {
+  await page.goto('about:blank')
+  await page.goto(`${base}/#/login`, { timeout: 30000 })
+  await page.evaluate(() => {
+    localStorage.clear()
+    sessionStorage.clear()
+  })
+}
+
+// Fill and submit the login form on a page that already shows it, then stamp
+// the session with the account. No navigation before or after, so it also
+// covers SPA re-login after expiry.
 export async function loginHere(page, account, password) {
   await setInputValue(page, 'input[placeholder="用户名/手机号"]', account)
   await setInputValue(page, 'input[placeholder="密码"]', password)
-  await page.click('text="我已阅读并同意"', { label: 'agree privacy terms' })
+  if (!(await consentChecked(page)))
+    await page.click('text="我已阅读并同意"', { label: 'agree privacy terms' })
+  const previous = await readLoginTime(page)
   await page.click('loc=role:button[name="登录"]', { label: 'submit login' })
   await page.waitForFunction(() => !location.hash.includes('#/login'), undefined, {
     timeout: 20000,
   })
+  await stampLogin(page, account, previous)
 }
 
-// One probe of the SPA state. The ego profile keeps localStorage, so a
-// still-valid session renders the console (sidebar) with no login form. The
-// home route is bare `#/`, and a stale modal can be open, so decide
-// by DOM, never by hash.
+// One probe of the SPA state. A still-valid session renders the console
+// (sidebar) with no login form. The home route is bare `#/`, and a stale modal
+// can be open, so decide by DOM, never by hash.
 const pageState = (page) =>
   page.evaluate(() => ({
     form: Boolean(document.querySelector('input[placeholder="用户名/手机号"]')),
     loggedIn: Boolean(document.querySelector('.arco-menu')),
   }))
 
-// Open BASE and end up logged in on a freshly booted app. If the kept profile
-// is already logged in, reload once so the app boots under any interception
-// the caller armed before calling this. A blank first render (cold
-// module-graph transform) gets one reload before failing.
+// Open BASE and end up logged in as `account` on a freshly booted app. A kept
+// session is reused only when its stamp proves it is that account, so the app
+// boots under any interception the caller armed; any other session is emptied
+// and replaced. A blank first render (cold module-graph transform) reloads
+// before failing.
 export async function ensureLogin(page, base, account, password, settleMs = 3000) {
   await page.goto(`${base}/`, { timeout: 30000 })
-  for (let attempt = 0; attempt < 2; attempt++) {
+  for (let step = 0; step < 4; step++) {
     const state = await pageState(page)
     if (state.form) {
       await loginHere(page, account, password)
@@ -64,9 +140,12 @@ export async function ensureLogin(page, base, account, password, settleMs = 3000
       return await page.url()
     }
     if (state.loggedIn) {
-      await page.reload({ timeout: 30000 }) // fresh boot under the caller's mock
-      await page.waitForTimeout(4000)
-      return await page.url()
+      if (await isOwnSession(page, account)) {
+        await page.reload({ timeout: 30000 }) // fresh boot under the caller's mock
+        await page.waitForTimeout(4000)
+        return await page.url()
+      }
+      await clearSession(page, base) // another account's session
     }
     await page.reload({ timeout: 30000 })
     await page.waitForTimeout(8000)

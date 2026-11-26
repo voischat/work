@@ -5,14 +5,14 @@
     "membership": {
       "level": 32,
       "name": "专业版",
-      "expired": 1787846400,
-      "created": 1787846400,
+      "expired": 1827212934,
+      "created": 1795676934,
       "member_limit": 100,
       "dept_limit": 30,
       "dept_member_limit": 100,
       "group_limit": 100,
       "group_member_limit": 500,
-      "device_limit": 100000,
+      "device_limit": 10000,
       "device_group_limit": 10,
       "supports": {
         "api": false,

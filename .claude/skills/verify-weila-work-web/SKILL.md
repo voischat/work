@@ -50,11 +50,11 @@ One retry is the allowance — the first cold transform of App.vue can stall the
 
 The blank-page trap also hits post-login navigation: after the 登录 click, wait for the URL to move off `#/login` and for the console sidebar (`.arco-menu`) to mount before driving further.
 
-The Ego profile keeps its localStorage, so a session from an earlier run can still be valid. If the snapshot shows the console sidebar instead of the login form, you are already logged in; do not clear site storage to force the form.
+The Ego profile keeps its localStorage across TaskSpaces, so the session on screen can come from an earlier run, from a [pool account](../verify-account-pool/SKILL.md), or from a person at the browser. If the snapshot shows the console sidebar instead of the login form, a session is already active; do not clear site storage to force the form. Check who is signed in before driving the form by hand: the corp name sits in the sidebar's `[cursor-pointer]` block.
 
 ## Drive
 
-Login, with the shared driver handling the cold-transform retry, the already-logged-in case, and the consent checkbox:
+Login, with the shared driver handling the cold-transform retry, the already-logged-in case, and the consent checkbox. The already-logged-in case is identity-checked: `ensureLogin` reuses a kept session only when a stamp it wrote at login still matches the account and the console's `login_time`, and empties and replaces any other session. A token refresh or any other login rewrites `login_time`, so such a session is replaced too.
 
 ```js
 const driver = await import('/abs/path/to/weila-work/.claude/skills/lib/ego-driver.mjs')
@@ -129,9 +129,13 @@ When an endpoint 404s, or you must find which host serves a documented route, pr
 - Keep a liveness control. Call `corp/user/get-selfinfo` with the same token on the same host. If it returns 200 and your target 404s, the route is missing on that host, not an auth or proxy problem.
 - Sweep candidates before asking. Try the known hosts and local ports, then report a per-host classification.
 
-Proxy targets live in `apps/website/vite.config.ts`, keyed on `NODE_ENV`. `pnpm dev:prod` (`NODE_ENV=production`) sends both `/v1` and `/v2` to `https://api.voischat.cn`; plain `pnpm dev` sends `/v1` to `http://demo.weila.hk` and `/v2` to `http://localhost:8090` (the local corp backend, usually not running). Read the file for current targets instead of trusting memory. The proxy is dev-only; packaged prod uses same-origin `/v2` or Electron `WEILA_API_BASE_URL`.
+Proxy targets live in `apps/website/vite.config.ts`, keyed on `NODE_ENV`. `pnpm dev:prod` (`NODE_ENV=production`) is stage and sends `/v1`, `/v2` and `/voischat` to `https://api.voischat.cn`; plain `pnpm dev` is dev and sends all three to the LAN backend `https://192.168.0.106`, which carries the tiered pool accounts. `WEILA_API_ORIGIN` (alias `WEILA_V2_PROXY`) retargets all three. Read the file for current targets instead of trusting memory. The proxy is dev-only; packaged prod uses same-origin `/v2` or Electron `WEILA_API_BASE_URL`.
 
 ## Accounts and environments
+
+- **stage** (`pnpm dev:prod`, `https://api.voischat.cn`) is where the QA account (`$WEILA_QA_ACCOUNT`) verifies features.
+- **dev** (`pnpm dev`, `https://192.168.0.106`) is where the four tiered pool accounts (`$WEILA_POOL_PASSWORD`, see [verify-account-pool](../verify-account-pool/SKILL.md)) verify edition gating.
+- **prod** is the deployed build on the same backend as stage.
 
 Mine the ego profile instead of asking the human for accounts and hosts:
 
