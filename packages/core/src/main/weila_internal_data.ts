@@ -4,9 +4,12 @@ import { WLPlayerType } from 'audio/weila_audio_data'
 import { WL } from 'proto/weilapb'
 import { WL_ExtEventID, WL_PttPlayIndData } from 'main/weila_external_data'
 
-interface WL_PromiseCallback {
-  resolve(data: unknown): unknown
-  reject(reason: unknown): unknown
+type WL_PromiseResult = boolean | number | WL_IDbUserInfo | undefined
+
+interface WL_PromiseCallback<T = WL_PromiseResult> {
+  resolve: (data: T) => void
+  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- rejection reasons travel unbranched from fetch/proto/network errors and are logged, not parsed
+  reject: (reason: unknown) => void
 }
 
 const default_user_logo =
@@ -31,6 +34,8 @@ enum WL_NetworkEventID {
   NET_MSG_RECV_IND_EVT,
 }
 
+type WL_NetworkEventPayload = string | number | Uint8Array | null | undefined
+
 interface WL_NetworkEvent {
   eventId: WL_NetworkEventID
   eventData: unknown
@@ -51,18 +56,20 @@ interface WL_LoginParam {
   password: string
   countryCode: string
   md5: boolean
-  callback: WL_PromiseCallback
+  callback: WL_PromiseCallback<WL_IDbUserInfo | undefined>
 }
 
 interface WL_LoginResult {
-  callback: WL_PromiseCallback
+  callback: WL_PromiseCallback<WL_IDbUserInfo | undefined>
   loginUserInfo?: WL_IDbUserInfo
   error?: unknown
 }
 
 interface WL_CoreInterface {
+  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- ext-event payloads vary per WL_ExtEventID and each listener parses its own
   sendExtEvent(event: WL_ExtEventID, data: unknown): void
   sendPbMsg<T = unknown>(buildPbMsg: WLBuildMsgRet, timeout?: number): Promise<T>
+  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- rspPbMsg hands the decoded proto response to the awaiting module, which owns its shape
   rspPbMsg(seq: number, resultCode: number, data: unknown): void
   registerPbMsgHandler(serviceId: number, handler: WL_PbMsgHandler): void
   executeCoreFunc<T = unknown>(funcName: string, ...argvs: unknown[]): Promise<T>
@@ -115,6 +122,7 @@ export {
   WL_CoreInterface,
   WL_NetworkEvent,
   WL_NetworkEventID,
+  WL_NetworkEventPayload,
   WL_NetworkState,
   WL_PbMsgData,
   WL_LoginParam,

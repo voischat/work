@@ -20,20 +20,11 @@ function testUserInfo(): WL_IDbUserInfo {
   }
 }
 
-vi.mock('main/weila_config', async (importOriginal) => {
-  const original = await importOriginal<typeof import('main/weila_config')>()
-  return {
-    ...original,
-    WLConfig: {
-      loadResource: vi.fn(async () => true),
-    },
-  }
-})
-
-const { default: WeilaMainFsmHost } = await import('main/weila_main_fsm_host')
+import WeilaMainFsmHost from 'main/weila_main_fsm_host'
 
 function makeDeps() {
   const deps = {
+    loadResource: vi.fn(async () => true),
     sendNetworkEvent: vi.fn(),
     sendExtEvent: vi.fn(),
     sendToFsm: vi.fn(),
@@ -129,6 +120,7 @@ describe('WeilaMainFsmHost', () => {
     const prepareInds = deps.sendExtEvent.mock.calls.filter(
       (call) => call[0] === WL_ExtEventID.WL_EXT_DATA_PREPARE_IND,
     )
+
     expect(prepareInds.length).toBeGreaterThanOrEqual(5)
 
     actor.stop()
