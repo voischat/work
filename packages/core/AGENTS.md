@@ -58,7 +58,6 @@ packages/core/
 │   ├── weilasdk_data.ts
 │   ├── weilasdk_log.ts
 │   └── weila_compile_config.ts
-├── public/             # Static assets copied post-install
 ├── dist/               # Build output (ESM bundles, assets, worklets)
 ├── test/               # Empty test directory
 ├── .env                # Environment variables

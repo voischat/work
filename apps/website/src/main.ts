@@ -1,6 +1,5 @@
 import type { UserModule } from './types'
 import { Notification } from '@arco-design/web-vue'
-import { installWeilaAudioRuntimePatch } from '@vois/weila-sdk-core'
 import { createWeilaUi } from '@vois/weila-sdk-ui'
 import * as v from 'valibot'
 import { setupLayouts } from 'virtual:generated-layouts'
@@ -21,8 +20,6 @@ import '@unocss/reset/tailwind.css'
 import 'virtual:uno.css'
 
 import '@vois/weila-sdk-ui/index.css'
-
-installWeilaAudioRuntimePatch()
 
 setup(
   App,

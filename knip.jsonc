@@ -76,9 +76,6 @@
     // Injected into the Arco theme through a less `hack` string in
     // vite.config.ts (line ~84); invisible to static import analysis
     "apps/website/src/assets/style/breakpoint.less",
-    // AudioWorklet bundles fetched at runtime by URL (same pattern as packages/core)
-    "apps/website/public/*.worklet.iife.js",
-    "apps/playground-vue3/public/**",
     // tsnapi commits public-API snapshots under __snapshots__/tsnapi/
     "**/__snapshots__/**",
     // Generated build output, gitignored but present on disk after builds

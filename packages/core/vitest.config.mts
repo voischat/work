@@ -19,8 +19,20 @@ const wasmAsAssetUrl = {
   },
 }
 
+const workletAsBlobUrl = {
+  name: 'worklet-as-blob-url',
+  enforce: 'pre' as const,
+  load(id: string) {
+    const file = id.split('?')[0]
+
+    return file.endsWith('.worklet.js')
+      ? `export default ${JSON.stringify(`blob:${path.basename(file)}`)}`
+      : undefined
+  },
+}
+
 export default defineConfig({
-  plugins: [wasmAsAssetUrl],
+  plugins: [workletAsBlobUrl, wasmAsAssetUrl],
   resolve: {
     alias: {
       audio: path.resolve(root, 'src/audio'),

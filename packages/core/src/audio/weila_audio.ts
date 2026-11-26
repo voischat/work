@@ -290,6 +290,7 @@ class WLAudio {
 
         this.playerWorkNode[playerType] = node
         node.port.addEventListener('message', this.onPlayerMessage.bind(this))
+        node.port.start()
       }
 
       this.playSampleRate[playerType] = sampleRate
@@ -636,6 +637,7 @@ class WLAudio {
 
         this.recorderWorkNode = node
         node.port.addEventListener('message', this.onRecorderMessage.bind(this))
+        node.port.start()
       }
 
       this.recordState = WLRecorderState.WL_RECORDER_OPENING
