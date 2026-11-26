@@ -1,8 +1,10 @@
 {
   "errors": 0,
   "files": {
+    "packages/core/src/main/weila_main_fsm_host.spec.ts": 8,
     "packages/core/src/main/weila_internal_data.ts": 6,
     "packages/core/src/main/weila_pb_dispatcher.ts": 9,
-    "packages/core/src/main/weila_core.ts": 3
+    "packages/core/src/main/weila_core.ts": 3,
+    "packages/core/src/main/weila_main_fsm_host.ts": 7
   }
 }

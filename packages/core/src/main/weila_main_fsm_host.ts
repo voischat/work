@@ -1,39 +1,98 @@
 import { fromPromise } from 'xstate'
+import type { AnyEventObject } from 'xstate'
 import { fsmEvents, mainFsm, systemWatchdogActor } from 'fsm/weila_fsmScript'
-import type { MainFsmUserEvent } from 'fsm/weila_fsmScript'
+import type { MainFsmContext, MainFsmUserEvent } from 'fsm/weila_fsmScript'
 import { WLConfig } from 'main/weila_config'
 import { getLogger } from 'log/weila_log'
 import { WL_LoginParam, WL_LoginResult, WL_NetworkEventID } from 'main/weila_internal_data'
+import type { WL_PromiseCallback } from 'main/weila_internal_data'
 import { WL_DataPrepareInd, WL_DataPrepareState, WL_ExtEventID } from 'main/weila_external_data'
 import { isServiceSessionType } from 'db/weila_db_data'
-import type WLLoginModule from 'main/weila_login_module'
-import type WLFriendModule from 'main/weila_friend_module'
-import type WLGroupModule from 'main/weila_group_module'
-import type WLBusinessModule from 'main/weila_business_module'
-import type WLSessionModule from 'main/weila_session_module'
+import type { WL_IDbSession, WL_IDbUserInfo } from 'db/weila_db_data'
 
 const wllog = getLogger('CORE:info')
 const wlerr = getLogger('CORE:err')
 
+export interface WeilaMainFsmLoginModule {
+  loginReq(
+    account: string,
+    password: string,
+    countryCode: string,
+    md5: boolean,
+  ): Promise<WL_IDbUserInfo>
+  logoutReq(): Promise<boolean>
+  sendHeartbeat(): Promise<boolean>
+  refreshToken(): Promise<boolean>
+  initExtension(): Promise<boolean>
+}
+
 export interface WeilaMainFsmHostDeps {
-  sendNetworkEvent(event: WL_NetworkEventID, data: any): void
-  sendExtEvent(event: WL_ExtEventID, data: any): void
+  sendNetworkEvent(event: WL_NetworkEventID, data: unknown): void
+  sendExtEvent(event: WL_ExtEventID, data: unknown): void
   sendToFsm(event: MainFsmUserEvent): void
-  setLoginUserInfo(userInfo: any): void
+  setLoginUserInfo(userInfo: WL_IDbUserInfo): void
   setLoginReady(ready: boolean): void
   requestLogout(): Promise<boolean>
   checkWaitingTimeouts(): void
   readonly maxRetryLoginTimes: number
-  readonly loginModule: WLLoginModule
-  readonly friendModule: WLFriendModule
-  readonly groupModule: WLGroupModule
-  readonly businessModule: WLBusinessModule
-  readonly sessionModule: WLSessionModule
+  readonly loginModule: WeilaMainFsmLoginModule
+  readonly friendModule: { initFriends(): Promise<boolean> }
+  readonly groupModule: { initGroups(): Promise<boolean> }
+  readonly businessModule: { initService(dbSessionList: WL_IDbSession[]): Promise<boolean> }
+  readonly sessionModule: {
+    initSessions(): Promise<boolean>
+    getSessionList(): WL_IDbSession[]
+  }
+}
+
+function isLoadResourceEvent(
+  event: AnyEventObject,
+): event is AnyEventObject & { data: WL_PromiseCallback } {
+  return event.type === fsmEvents.FSM_LOAD_RESOURCE_EVT && 'data' in event
+}
+
+interface ErrorLike {
+  message?: unknown
+  error?: unknown
+  callback?: unknown
+}
+
+function isErrorLike(value: unknown): value is ErrorLike {
+  return typeof value === 'object' && value !== null
+}
+
+function isLoginResult(value: unknown): value is WL_LoginResult {
+  if (!isErrorLike(value)) return false
+
+  const callback = value.callback
+
+  return (
+    typeof callback === 'object' &&
+    callback !== null &&
+    'resolve' in callback &&
+    'reject' in callback
+  )
+}
+
+function errorMessage(reason: unknown): string {
+  if (reason instanceof Error) return reason.message
+
+  if (isErrorLike(reason)) {
+    if (typeof reason.message === 'string') return reason.message
+
+    if (reason.error instanceof Error) return reason.error.message
+
+    if (isErrorLike(reason.error) && typeof reason.error.message === 'string') {
+      return reason.error.message
+    }
+  }
+
+  return ''
 }
 
 export default class WeilaMainFsmHost {
-  private heartbeatTimerId: any = null
-  private refreshTokenTimerId: any = null
+  private heartbeatTimerId: ReturnType<typeof setInterval> | null = null
+  private refreshTokenTimerId: ReturnType<typeof setInterval> | null = null
 
   constructor(private readonly deps: WeilaMainFsmHostDeps) {}
 
@@ -41,44 +100,48 @@ export default class WeilaMainFsmHost {
     return mainFsm.provide({
       actors: {
         loadResource: fromPromise(({ input }) => this.loadResource(input.context, input.event)),
-        prepareData: fromPromise(({ input }) => this.prepareData(input.context, input.event)),
-        loginServer: fromPromise(({ input }) => this.loginServer(input.context, input.event)),
-        logout: fromPromise(({ input }) => this.logout(input.context, input.event)),
+        prepareData: fromPromise(() => this.prepareData()),
+        loginServer: fromPromise(({ input }) => this.loginServer(input.context)),
+        logout: fromPromise(() => this.logout()),
         systemWatchdog: systemWatchdogActor,
       },
       actions: {
-        onResourceLoadFail: ({ context, event }) => {
-          if ('error' in event) this.onResourceLoadFail(context, event)
+        onResourceLoadFail: ({ event }) => {
+          if ('error' in event) this.onResourceLoadFail(event)
         },
-        onLoadingResource: this.onLoadingResource.bind(this),
-        onException: ({ context, event }) => {
-          if ('error' in event) this.onException(context, event)
+        onLoadingResource: () => this.onLoadingResource(),
+        onException: ({ event }) => {
+          if ('error' in event) this.onException(event)
         },
-        onReadyEntry: this.onReadyEntry.bind(this),
-        onReadyExit: this.onReadyExit.bind(this),
-        onSysTimeChecking: this.onSysTimeChecking.bind(this),
-        onDataInit: this.onDataInit.bind(this),
-        onDataInited: this.onDataInited.bind(this),
-        onDataPrepareFail: this.onDataPrepareFail.bind(this),
-        onLoginServerSucc: ({ context, event }) => {
-          if ('output' in event) this.onLoginSucc(context, event)
+        onReadyEntry: () => this.onReadyEntry(),
+        onReadyExit: () => this.onReadyExit(),
+        onSysTimeChecking: () => this.onSysTimeChecking(),
+        onDataInit: () => this.onDataInit(),
+        onDataInited: () => this.onDataInited(),
+        onDataPrepareFail: () => this.onDataPrepareFail(),
+        onLoginServerSucc: ({ event }) => {
+          if ('output' in event) this.onLoginSucc(event.output)
         },
-        onLoginServerFail: ({ context, event }) => {
-          if ('error' in event) this.onLoginFail(context, event)
+        onLoginServerFail: ({ event }) => {
+          if ('error' in event) this.onLoginFail(event)
         },
-        connectServer: this.connectServer.bind(this),
-        onConnecting: this.onConnecting.bind(this),
-        onDisconnectInReadyState: this.onDisconnectInReadyState.bind(this),
-        onLoginRetryFail: this.onLoginRetryFail.bind(this),
+        connectServer: () => this.connectServer(),
+        onConnecting: ({ context, event }) => this.onConnecting(context, event),
+        onDisconnectInReadyState: () => this.onDisconnectInReadyState(),
+        onLoginRetryFail: ({ context, event }) => this.onLoginRetryFail(context, event),
       },
       guards: {
-        canRetry: ({ context, event }) => this.canRetry(context, event),
+        canRetry: ({ context }) => this.canRetry(context),
         isDefinitiveRejection: ({ event }) => this.isDefinitiveRejection(event),
       },
     })
   }
 
-  private async loadResource(_context: any, event: any): Promise<any> {
+  private async loadResource(_context: MainFsmContext, event: AnyEventObject): Promise<boolean> {
+    if (!isLoadResourceEvent(event)) {
+      return Promise.reject(new Error('loadResource invoked without a promise callback'))
+    }
+
     const callback = event.data
 
     try {
@@ -95,7 +158,7 @@ export default class WeilaMainFsmHost {
     return true
   }
 
-  private async prepareData(_context: any, _event: any): Promise<boolean> {
+  private async prepareData(): Promise<boolean> {
     const ind: WL_DataPrepareInd = {
       state: WL_DataPrepareState.PREPARE_PROGRESS_IND,
       msg: 'SDK.FriendInit',
@@ -130,12 +193,17 @@ export default class WeilaMainFsmHost {
     return true
   }
 
-  private async logout(_context: any, _event: any): Promise<boolean> {
+  private async logout(): Promise<boolean> {
     return this.deps.loginModule.logoutReq()
   }
 
-  private async loginServer(context: any, _event: any): Promise<WL_LoginResult> {
-    const loginParam: WL_LoginParam = context.loginParam
+  private async loginServer(context: MainFsmContext): Promise<WL_LoginResult> {
+    const loginParam: WL_LoginParam | null = context.loginParam
+
+    if (!loginParam) {
+      return Promise.reject(new Error('loginServer invoked without a login parameter'))
+    }
+
     const loginResult: WL_LoginResult = { callback: loginParam.callback }
 
     loginParam.retryCount++
@@ -159,19 +227,19 @@ export default class WeilaMainFsmHost {
     }
   }
 
-  private onResourceLoadFail(_context: any, event: { error?: unknown }) {
+  private onResourceLoadFail(event: { error?: unknown }) {
     wlerr('初始加载数据出错', event.error)
   }
 
-  private onLoadingResource(_context: any, _event: any) {
+  private onLoadingResource() {
     wllog('加载数据成功')
   }
 
-  private onException(_context: any, event: { error?: unknown }) {
+  private onException(event: { error?: unknown }) {
     this.deps.sendExtEvent(WL_ExtEventID.WL_EXT_SYSTEM_EXCEPTION_IND, event.error)
   }
 
-  private onDataInit(_context: any, _event: any) {
+  private onDataInit() {
     const ind: WL_DataPrepareInd = {
       state: WL_DataPrepareState.START_PREPARING,
       msg: 'Commons.startPrepare',
@@ -180,7 +248,7 @@ export default class WeilaMainFsmHost {
     this.deps.sendExtEvent(WL_ExtEventID.WL_EXT_DATA_PREPARE_IND, ind)
   }
 
-  private onDataInited(_context: any, _event: any) {
+  private onDataInited() {
     const ind: WL_DataPrepareInd = {
       state: WL_DataPrepareState.PREPARE_SUCC_END,
       msg: 'Commons.prepareFinishSucc',
@@ -189,7 +257,7 @@ export default class WeilaMainFsmHost {
     this.deps.sendExtEvent(WL_ExtEventID.WL_EXT_DATA_PREPARE_IND, ind)
   }
 
-  private onDataPrepareFail(_context: any, _event: any) {
+  private onDataPrepareFail() {
     void this.deps.requestLogout().then((_value) => {})
 
     const ind: WL_DataPrepareInd = {
@@ -200,7 +268,7 @@ export default class WeilaMainFsmHost {
     this.deps.sendExtEvent(WL_ExtEventID.WL_EXT_DATA_PREPARE_IND, ind)
   }
 
-  private onLoginFail(_context: any, event: { error?: unknown }) {
+  private onLoginFail(event: { error?: unknown }) {
     wllog('onLoginFail:', event)
     this.deps.sendNetworkEvent(WL_NetworkEventID.NET_DISCONNECT_EVT, null)
     this.deps.sendToFsm({
@@ -209,10 +277,16 @@ export default class WeilaMainFsmHost {
     })
   }
 
-  private onLoginSucc(_context: any, event: { output?: any }) {
-    const loginResult: WL_LoginResult = event.output
-    wllog('onLogin:', event)
-    this.deps.setLoginUserInfo(loginResult.loginUserInfo)
+  private onLoginSucc(output: unknown) {
+    if (!isLoginResult(output)) return
+
+    const loginResult: WL_LoginResult = output
+
+    wllog('onLogin:', loginResult)
+
+    if (loginResult.loginUserInfo) {
+      this.deps.setLoginUserInfo(loginResult.loginUserInfo)
+    }
 
     if (loginResult.callback) {
       loginResult.callback.resolve(loginResult.loginUserInfo)
@@ -220,15 +294,15 @@ export default class WeilaMainFsmHost {
 
     this.deps.sendToFsm({
       type: fsmEvents.FSM_LOGIN_PROCEDURE_SUCC_EVT,
-      data: event.output,
+      data: loginResult,
     })
   }
 
-  private onSysTimeChecking(_context: any, _event: any) {
+  private onSysTimeChecking() {
     this.deps.checkWaitingTimeouts()
   }
 
-  private onReadyEntry(_context: any, _event: any) {
+  private onReadyEntry() {
     wllog('系统已经准备好，可以接受任何消息')
     this.deps.setLoginReady(true)
     this.heartbeatTimerId = setInterval(() => {
@@ -254,41 +328,45 @@ export default class WeilaMainFsmHost {
     }, 3600000)
   }
 
-  private onReadyExit(_context: any, _event: any) {
+  private onReadyExit() {
     wllog('系统没有准备好')
     this.deps.setLoginReady(false)
 
-    clearInterval(this.heartbeatTimerId)
+    if (this.heartbeatTimerId !== null) clearInterval(this.heartbeatTimerId)
     this.heartbeatTimerId = null
 
-    clearInterval(this.refreshTokenTimerId)
+    if (this.refreshTokenTimerId !== null) clearInterval(this.refreshTokenTimerId)
     this.refreshTokenTimerId = null
   }
 
-  private isDefinitiveRejection(event: any): boolean {
-    const message = `${event?.data?.error?.message ?? ''}`
+  private isDefinitiveRejection(event: AnyEventObject): boolean {
+    if (event.type !== fsmEvents.FSM_LOGIN_PROCEDURE_FAIL_EVT || !('data' in event)) return false
+
+    const message = errorMessage(event.data)
 
     return message.search(/.*-MESSAGE:.*:END/) !== -1
   }
 
-  private canRetry(context: any, _event: any): boolean {
-    const loginParam: WL_LoginParam = context.loginParam
+  private canRetry(context: MainFsmContext): boolean {
+    const loginParam = context.loginParam
+    if (!loginParam) return false
+
     wllog('canRetry', loginParam)
 
     return loginParam.retryCount < this.deps.maxRetryLoginTimes
   }
 
-  private connectServer(_context: any, _event: any) {
+  private connectServer() {
     this.deps.sendNetworkEvent(WL_NetworkEventID.NET_CONNECT_EVT, null)
   }
 
-  private onConnecting({ context, event }: { context: any; event: any }) {
+  private onConnecting(context: MainFsmContext, event: AnyEventObject) {
     wllog('onConnecting:', context, event)
   }
 
-  private onDisconnectInReadyState(_context: any, _event: any) {}
+  private onDisconnectInReadyState() {}
 
-  private onLoginRetryFail({ context, event }: { context: any; event: any }) {
+  private onLoginRetryFail(context: MainFsmContext, event: AnyEventObject) {
     wllog('onLoginRetryFail', event)
 
     const loginParam: WL_LoginParam | null = context.loginParam
@@ -299,8 +377,11 @@ export default class WeilaMainFsmHost {
       return
     }
 
-    if (event.data && event.data.error) {
-      loginParam.callback.reject(event.data.error)
+    const reason: unknown = 'data' in event ? event.data : undefined
+    const error = isErrorLike(reason) ? reason.error : undefined
+
+    if (error !== undefined && error !== null) {
+      loginParam.callback.reject(error)
     } else {
       loginParam.callback.reject(new Error('登陆尝试多次失败'))
     }

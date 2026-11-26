@@ -742,4 +742,4 @@ const fsmEvents = {
   FSM_PTT_CODED_DATA_EVT: 'FSM_PTT_CODED_DATA_EVT',
 } as const
 
-export { mainFsm, pttFsm, fsmEvents, systemWatchdogActor, type MainActor }
+export { mainFsm, pttFsm, fsmEvents, systemWatchdogActor, type MainActor, type MainFsmContext }
