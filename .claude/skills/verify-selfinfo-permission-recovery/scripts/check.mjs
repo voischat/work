@@ -78,7 +78,14 @@ const openSwitchModal = async () => {
       label: 'open member edit dialog',
     })
     await page.waitForTimeout(1000)
-    const state = await switchState()
+    let state = await switchState()
+    // The switch is disabled until get-selfinfo lands: about 0.7s after a
+    // reload, and slower when the LAN backend answers late. A disabled reading
+    // gets a bounded wait; one that never enables is still a failure.
+    for (let wait = 0; state === 'disabled' && wait < 5; wait++) {
+      await page.waitForTimeout(1000)
+      state = await switchState()
+    }
     if (state !== 'missing') return state
     await page.keyboard.press('Escape')
     await page.waitForTimeout(1000)

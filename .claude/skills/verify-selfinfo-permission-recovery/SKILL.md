@@ -17,7 +17,7 @@ Run the Launch and Doctor sections of `../verify-weila-work-web/SKILL.md`. Use t
 .claude/skills/verify-selfinfo-permission-recovery/scripts/check.sh --base "$BASE"
 ```
 
-The script runs one ego-browser TaskSpace. It logs in, opens the edit dialog for a member that exposes the switch, asserts the switch is enabled, expires the session (`login_time=0` plus an invalid refresh token), reloads, logs in again without a page reload, then asserts the switch is enabled and a token-bearing `get-selfinfo` request follows the login. A backend-rejected session can bounce back to `#/login` after the form submits; the script detects the bounce and logs in again. It exits nonzero on failure.
+The script runs one ego-browser TaskSpace. It logs in, opens the edit dialog for a member that exposes the switch, asserts the switch is enabled, expires the session (`login_time=0` plus an invalid refresh token), reloads, logs in again without a page reload, then asserts the switch is enabled and a token-bearing `get-selfinfo` request follows the login. A backend-rejected session can bounce back to `#/login` after the form submits; the script detects the bounce and logs in again. A disabled reading waits up to 5s before it counts, because the switch stays disabled until `get-selfinfo` lands: about 0.7s after a reload, and later when a LAN backend answers late (a 2026-11-26 run against `192.168.0.106` read it disabled one second in and enabled minutes later). A switch that never enables still fails. It exits nonzero on failure.
 
 Override `--account`, `--password`, or `--evidence-dir` only when the defaults do not fit. The default account is the QA owner `$WEILA_QA_ACCOUNT` with password `$WEILA_QA_PASSWORD`. `--session` is accepted for old callers and ignored.
 
