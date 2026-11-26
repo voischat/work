@@ -45,6 +45,7 @@ overrides:
   'webpack@5': 5.104.1
   'js-yaml@4': 4.3.2
   'katex@<0.18.2': 0.18.2
+  'tar@<7.5.18': 7.5.23
   'esbuild@<0.28.1': 0.28.2
   'minimatch@>=9 <11.0.1': 11.0.1
   '@vue/server-renderer@<3.5.42': 3.5.42
