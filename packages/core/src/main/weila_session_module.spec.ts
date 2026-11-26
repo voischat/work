@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from 'vitest'
+import 'fake-indexeddb/auto'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { WL } from 'proto/weilapb'
 import { WL_CoreInterface, WL_PbMsgHandler } from 'main/weila_internal_data'
 import WLSessionModule from 'main/weila_session_module'
 import { WeilaPBSessionWrapper } from 'proto/weilapb_session_wrapper'
+import { WeilaDB } from 'db/weila_db'
+import { WL_IDbSessionStatus } from 'db/weila_db_data'
+import type { JsonValue } from 'main/weila_type_guards'
 
 function makeSessionModule() {
   const rspPbMsg = vi.fn()
@@ -26,7 +30,7 @@ function makeSessionModule() {
 
   if (!handler) throw new Error('session module did not register its handler')
 
-  return { rspPbMsg, handler }
+  return { rspPbMsg, handler, sessionModule }
 }
 
 function buildResponse(
@@ -43,6 +47,21 @@ function buildResponse(
       resultCode,
     }),
     sessionMessage,
+  })
+}
+
+async function seedCorpGroupSession(extra?: JsonValue): Promise<void> {
+  await WeilaDB.getInstance().putSession({
+    combo_id_type: '80001922_18',
+    sessionId: '80001922',
+    sessionType: WL.Common.SessionType.SESSION_TYPE_CORP_GROUP,
+    sessionName: '验证群01',
+    sessionAvatar: '',
+    readMsgId: 0,
+    lastMsgId: 0,
+    latestUpdate: 0,
+    status: WL_IDbSessionStatus.SESSION_INVALID,
+    extra,
   })
 }
 
@@ -139,5 +158,40 @@ describe('WLSessionModule response routing', () => {
 
       rspPbMsg.mockClear()
     }
+  })
+})
+
+describe('WLSessionModule.updateSessionProfile member count', () => {
+  beforeEach(async () => {
+    await WeilaDB.init('member-count-test', 3)
+  })
+
+  afterEach(() => {
+    WeilaDB.close()
+  })
+
+  it('stores a corp group member count in the session extra', async () => {
+    const { sessionModule } = makeSessionModule()
+    await seedCorpGroupSession()
+
+    await sessionModule.updateSessionProfile('80001922', 18, {
+      sessionName: '验证群01',
+      memberCount: 5,
+    })
+
+    const session = await WeilaDB.getInstance().getSession('80001922', 18)
+
+    expect(session?.extra).toEqual({ memberCount: 5 })
+  })
+
+  it('preserves existing extra keys when it stores the member count', async () => {
+    const { sessionModule } = makeSessionModule()
+    await seedCorpGroupSession({ pinned: true })
+
+    await sessionModule.updateSessionProfile('80001922', 18, { memberCount: 5 })
+
+    const session = await WeilaDB.getInstance().getSession('80001922', 18)
+
+    expect(session?.extra).toEqual({ pinned: true, memberCount: 5 })
   })
 })
