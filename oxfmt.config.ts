@@ -15,7 +15,6 @@ export default defineConfig({
     'pnpm-lock.yaml',
     '**/*.wasm',
     '**/*.wav',
-    'apps/playground-vue3/public/*.iife.js',
     '.agents/**',
     '.claude/**',
     'apps/website/**',

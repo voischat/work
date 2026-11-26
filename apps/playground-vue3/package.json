@@ -9,8 +9,6 @@
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "preview:https": "vite preview",
-    "predev": "node scripts/sync-worklets.mjs",
-    "prebuild": "node scripts/sync-worklets.mjs",
     "typecheck": "vue-tsc -b"
   },
   "dependencies": {

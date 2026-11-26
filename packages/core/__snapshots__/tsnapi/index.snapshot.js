@@ -9,7 +9,6 @@ export var getErrorMsg
 export var getLogger
 export var inheritSessionProfile
 export var initLogger
-export var installWeilaAudioRuntimePatch
 export var isGroupSessionType
 export var isIndividualSessionType
 export var isLoggerEnabled

@@ -70,7 +70,6 @@ export default defineConfig({
     'packages/core/src/audio/*.worklet.js',
     'packages/core/src/proto/weilapb.js',
     'packages/core/tools/oxlint/anti-slop/**',
-    'apps/playground-vue3/public/**',
     'apps/website/**',
     '.claude/**',
     'docs/**',

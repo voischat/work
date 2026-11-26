@@ -367,44 +367,17 @@ case WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_REQ:
 
 ---
 
-### 4.3 AudioWorklet 加载问题
+### 4.3 AudioWorklet 加载
 
-**问题**: webpack 的 `worklet-loader` 在 ESM 模式下可能无法正常工作
+AudioWorklet 只接受 URL，处理器代码必须在 worklet 自己的全局作用域里执行。SDK 的处理方式：
 
-**解决方案**:
+1. `rspack.worklets.config.mts` 把 `weila_player.worklet.js` 和 `weila_recorder.worklet.js` 打成自包含 IIFE，输出到 `dist/worklets/`。
+2. `worklet-inline-loader.cjs` 在主包构建时读取这两个文件，把源码嵌入 `weilasdk.mjs`，并在模块求值时创建 Blob URL。
+3. `WLAudio.init()` 把这两个 Blob URL 传给 `audioContext.audioWorklet.addModule()`。
 
-1. 使用 public 目录中的 IIFE 文件
-2. Monkey patch `AudioWorklet.addModule` to redirect blob: URLs to IIFE files:
+worklet 依赖 Emscripten 的 Opus glue。IIFE 把依赖全部内联，所以 Blob URL 没有目录也能执行。宿主不需要再提供 worklet 文件。
 
-   ```typescript
-   const originalAddModule = window.AudioWorklet.prototype.addModule
-   let workletCallCount = 0
-   window.AudioWorklet.prototype.addModule = async function (moduleURL) {
-     // webpack worklet-loader creates blob: URLs (e.g., blob:https://localhost:5173/{uuid})
-     // Blob URLs have no base path context, so relative ES module imports fail silently
-     // Solution: redirect blob URLs to pre-built IIFE versions in public/
-     if (moduleURL.startsWith('blob:')) {
-       const workletList = [
-         '/weila_player.worklet.iife.js', // First call
-         '/weila_recorder.worklet.iife.js', // Second call
-       ]
-       const iifePath = workletList[workletCallCount++] || moduleURL
-       return originalAddModule.call(this, iifePath)
-     }
-     // Non-blob URLs: filename-based routing (fallback for compatibility)
-     const workletMap = {
-       'weila_player.worklet.js': '/weila_player.worklet.iife.js',
-       'weila_recorder.worklet.js': '/weila_recorder.worklet.iife.js',
-     }
-     const fileName = moduleURL.split('/').pop()
-     if (workletMap[fileName]) {
-       return originalAddModule.call(this, workletMap[fileName])
-     }
-     return originalAddModule.call(this, moduleURL)
-   }
-   ```
-
-   **Why blob URLs are problematic**: webpack's `worklet-loader` (with `inline: true`) generates blob: URLs that carry no base URL context. When the worklet code tries to execute relative imports like `import opus from './opus'`, the browser cannot resolve them relative to a blob origin, and the import fails silently. By redirecting to pre-built IIFE versions in `public/`, all dependencies are inlined and the worklet initializes correctly.
+`WLAudio` 在 `addEventListener('message', ...)` 之后调用 `node.port.start()`。MessagePort 的规范行为是 `onmessage` 会自动启动端口，`addEventListener` 不会。少了这一步，worklet 发出的 `OPEN_RSP` 永远到不了主线程，5 秒后报 `请求超时 1`。
 
 ---
 
@@ -482,23 +455,6 @@ case WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_REQ:
 
 ---
 
-## 七、当前已知问题
+## 七、已退役的兼容层
 
-### 问题 1: Vite 开发环境不支持 webpack worklet-loader
-
-**现象**:
-
-- 使用 `workspace:*` 引用 `@weilasdk/core` 时
-- `import PlayerWorklet from './weila_player.worklet.js'` 无法被 Vite 处理
-- webpack 的 `worklet-loader` 只在 webpack 构建时生效
-
-**影响**:
-
-- `AudioWorklet.addModule()` 无法正确加载 worklet
-- 导致 `WL_WORKLET_NODE_OPEN_RSP` 永远收不到
-- 5 秒后超时报错 "请求超时 1"
-
-**临时解决方案**:
-
-- 使用 public 目录中的 IIFE 文件
-- Monkey patch `AudioWorklet.addModule` 重定向到 IIFE 文件
+2026-11-27 起，worklet 由 SDK 内联为 Blob URL，`installWeilaAudioRuntimePatch` 和 app `public/` 下的 IIFE 副本已删除。`WLAudio` 在 `addEventListener` 后调用 `port.start()`，`请求超时 1` 的根因已在 core 修复。

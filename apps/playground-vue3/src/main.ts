@@ -1,14 +1,11 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { PiniaColada } from '@pinia/colada'
-import { installWeilaAudioRuntimePatch } from '@vois/weila-sdk-core'
 import './style.css'
 import router from './router'
 import App from './App.vue'
 import '@vois/weila-sdk-ui/index.css'
 import 'floating-vue/dist/style.css'
-
-installWeilaAudioRuntimePatch()
 
 const app = createApp(App)
 const pinia = createPinia()

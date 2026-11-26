@@ -17,16 +17,11 @@ export async function startServer() {
   const server = createServer(async (request, response) => {
     const path = normalize(decodeURIComponent(new URL(request.url, 'http://localhost').pathname))
 
-    const file =
-      path === '/'
-        ? join(PACKAGE, 'tests/fixtures/smoke.html')
-        : path.startsWith('/dist/')
-          ? join(PACKAGE, path)
-          : path.startsWith('/assets/')
-            ? join(PACKAGE, 'dist', path)
-            : path === '/weila_player.worklet.iife.js' || path === '/weila_recorder.worklet.iife.js'
-              ? join(PACKAGE, 'dist', 'worklets', path.slice(1))
-              : null
+    let file = null
+
+    if (path === '/') file = join(PACKAGE, 'tests/fixtures/smoke.html')
+    else if (path.startsWith('/dist/')) file = join(PACKAGE, path)
+    else if (path.startsWith('/assets/')) file = join(PACKAGE, 'dist', path)
 
     if (!file) {
       response.writeHead(404).end()
