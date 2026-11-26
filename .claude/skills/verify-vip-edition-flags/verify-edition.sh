@@ -30,8 +30,8 @@ command -v ego-browser >/dev/null || { echo "FAIL ego-browser not found (see the
 # The embedded ego-browser Node runtime has no shell cwd or env, so every path
 # rides in through the CFG prelude and the script imports the driver by
 # absolute path.
-CFG=$(printf '{ "edition": "%s", "base": "%s", "outDir": "%s", "fixturePath": "%s", "libPath": "%s", "account": "%s", "password": "%s" }' \
-  "$EDITION" "$BASE" "$OUT" "$FIXTURE" "$HERE/../lib/ego-driver.mjs" "${WEILA_QA_ACCOUNT:?}" "${WEILA_QA_PASSWORD:?}")
+CFG=$(printf '{ "edition": "%s", "base": "%s", "outDir": "%s", "fixturePath": "%s", "libPath": "%s", "editionsPath": "%s", "account": "%s", "password": "%s" }' \
+  "$EDITION" "$BASE" "$OUT" "$FIXTURE" "$HERE/../lib/ego-driver.mjs" "$HERE/../lib/edition-expectations.mjs" "${WEILA_QA_ACCOUNT:?}" "${WEILA_QA_PASSWORD:?}")
 
 # The ego runtime prints script output on stderr, so merge streams before tee.
 { printf 'const CFG = %s;\n' "$CFG"; cat "$HERE/verify-edition.mjs"; } | ego-browser nodejs 2>&1 | tee "$OUT/run.log"
