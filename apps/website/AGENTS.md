@@ -39,12 +39,12 @@ Vue 3 + TS 企业管理台（`apps/website`）。企业通讯：通讯录、消�
 
 ## Testing
 
-start dev server via `nr dev:prod`:
+Two profiles share the Vite HMR server. `pnpm dev` is the dev environment: `/v1`, `/v2` and the `/voischat` WebSocket proxy default to the LAN backend `https://192.168.0.106`, where the tiered pool accounts log in (`.claude/skills/verify-account-pool/SKILL.md`). `pnpm dev:prod` is stage: the same server with the production profile, talking to `https://api.voischat.cn`.
 
-login account by using `ego-browser` (ego lite). The shared helpers in `.claude/skills/lib/ego-driver.mjs` cover login, CDP network capture, and route mocking; the drive recipes live in `.claude/skills/verify-weila-work-web/SKILL.md`.
+log in with `ego-browser` (ego lite). The shared helpers in `.claude/skills/lib/ego-driver.mjs` cover login, CDP network capture, and route mocking; the drive recipes live in `.claude/skills/verify-weila-work-web/SKILL.md`.
 
-- **Account**: `$WEILA_QA_ACCOUNT`
-- **Password**: `$WEILA_QA_PASSWORD`
+- **Stage account**: `$WEILA_QA_ACCOUNT` / `$WEILA_QA_PASSWORD`
+- **Dev accounts**: the pool tiers, password `$WEILA_POOL_PASSWORD`
 
 ## 更新用户手册流程
 

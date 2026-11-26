@@ -21,13 +21,9 @@ const now = Date.now()
 
 export default defineConfig(() => {
   const isDev = process.env.NODE_ENV !== 'production'
-  const proxyTargetV1 = isDev
-    ? 'http://demo.weila.hk'
-    : 'https://api.voischat.cn'
-
-  const proxyTargetV2 = process.env.WEILA_V2_PROXY || (isDev
-    ? 'http://localhost:8090'
-    : 'https://api.voischat.cn')
+  const apiOrigin = process.env.WEILA_API_ORIGIN
+    || process.env.WEILA_V2_PROXY
+    || (isDev ? 'https://192.168.0.106' : 'https://api.voischat.cn')
 
   return {
     base: './',
@@ -89,16 +85,22 @@ export default defineConfig(() => {
       cors: true,
       proxy: {
         '/v1': {
-          target: proxyTargetV1,
+          target: apiOrigin,
           timeout: 20 * 1000,
           changeOrigin: true,
           secure: false,
         },
         '/v2': {
-          target: proxyTargetV2,
+          target: apiOrigin,
           timeout: 20 * 1000,
           changeOrigin: true,
           secure: false,
+        },
+        '/voischat': {
+          target: apiOrigin,
+          changeOrigin: true,
+          secure: false,
+          ws: true,
         },
       },
     },

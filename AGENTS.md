@@ -39,12 +39,16 @@ Repository-specific rules:
 
 ## Local environment
 
-- Ignored env files: `apps/website/.env` (`VITE_WEB_SOCK`), `apps/playground-vue3/.env` (`VITE_WEILA_WSS`, `VITE_WEILA_APP_ID`, `VITE_WEILA_APP_KEY`), `packages/core/tests/integration/.env.integration` (`WEILA_TEST_*`), and `~/.voischat/env.sh` (`WEILA_QA_ACCOUNT`, `WEILA_QA_PASSWORD`, sourced from `~/.zshrc`; add `CLOUDFLARE_API_TOKEN` there if you mint one for local deploys).
+- Ignored env files: `apps/website/.env` (optional `VITE_WEB_SOCK` WebSocket override; the console defaults to the same-origin `/voischat` proxy in dev and `wss://api.voischat.cn/voischat/bridge` elsewhere), `apps/playground-vue3/.env` (`VITE_WEILA_WSS`, `VITE_WEILA_APP_ID`, `VITE_WEILA_APP_KEY`), `packages/core/tests/integration/.env.integration` (`WEILA_TEST_*`), and `~/.voischat/env.sh` (`WEILA_QA_ACCOUNT`, `WEILA_QA_PASSWORD`, sourced from `~/.zshrc`; add `CLOUDFLARE_API_TOKEN` there if you mint one for local deploys).
 - `pnpm env:setup` renders all four from 1Password (Personal vault, item `Weila Work env`): templates live in `env/*.env.template`, hold only `op://` secret references, and are safe to commit; outputs are written with mode 0600. Requires an unlocked 1Password desktop app, or `eval $(op signin)`.
 - `packages/core/.env` deliberately does not exist. The SDK bundle must not embed app credentials; consumers pass `appId`/`appKey` to `weila_init`.
 - Claude Code worktrees copy the three repo-level files through `.worktreeinclude`. Other worktree tools do not, so run `pnpm env:setup` inside a fresh worktree.
 - The verification skills read `WEILA_QA_ACCOUNT` / `WEILA_QA_PASSWORD` from the environment; keep real values out of git.
-- `WEILA_V2_PROXY` retargets the dev server's `/v2` proxy for testing another backend, for example `WEILA_V2_PROXY=http://192.168.1.29 pnpm dev:prod`. Without it the profile defaults apply.
+- Three environments:
+  - **dev** (`pnpm dev`) is the LAN integration backend. The `/v1`, `/v2` and `/voischat` WebSocket proxies default to `https://192.168.0.106`, and the console talks to it with the demo app id. Log in with the tiered pool accounts (16675440001-4, password in `WEILA_POOL_PASSWORD`), or see `.claude/skills/verify-account-pool/SKILL.md`.
+  - **stage** (`pnpm dev:prod`, same Vite HMR server, production profile) points every proxy at `https://api.voischat.cn` and logs in with the QA account (`WEILA_QA_ACCOUNT`).
+  - **prod** is the deployed build and also talks to `https://api.voischat.cn`.
+  `WEILA_API_ORIGIN` (or the older `WEILA_V2_PROXY`) retargets all three proxies at another origin, for example `WEILA_API_ORIGIN=http://192.168.1.29 pnpm dev`.
 
 ## Commands
 
