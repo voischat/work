@@ -198,7 +198,7 @@ class WeilaCore implements WL_CoreInterface {
     this.mainFsmService.start()
   }
 
-  sendExtEvent(event: WL_ExtEventID, data: any): void {
+  sendExtEvent(event: WL_ExtEventID, data: unknown): void {
     this.emitter.emit('ext_event', event, data)
   }
 
@@ -214,11 +214,11 @@ class WeilaCore implements WL_CoreInterface {
     this.pbMsgHandlerList.set(serviceId, handler)
   }
 
-  rspPbMsg(seq: number, resultCode: number, data: any): void {
+  rspPbMsg(seq: number, resultCode: number, data: unknown): void {
     this.pbDispatcher.rspPbMsg(seq, resultCode, data)
   }
 
-  async executeCoreFunc(funcName: string, ...argvs: any[]): Promise<any> {
+  async executeCoreFunc<T = unknown>(funcName: string, ...argvs: unknown[]): Promise<T> {
     // SAFETY: executeCoreFunc is the SDK's external dispatch surface: the SDK
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion, anti-slop/no-unsafe-dictionary-type -- dispatch by name over the class's own shape
     const method: unknown = (this as Record<string, unknown>)[funcName]
@@ -230,11 +230,11 @@ class WeilaCore implements WL_CoreInterface {
     return Promise.reject(new Error('Not Support Function:' + funcName))
   }
 
-  sendPbMsg(buildPbMsg: WLBuildMsgRet, timeout?: number): Promise<any> {
-    return this.pbDispatcher.sendPbMsg(buildPbMsg, timeout)
+  sendPbMsg<T = unknown>(buildPbMsg: WLBuildMsgRet, timeout?: number): Promise<T> {
+    return this.pbDispatcher.sendPbMsg<T>(buildPbMsg, timeout)
   }
 
-  private sendNetworkEvent(eventId: WL_NetworkEventID, eventData: any) {
+  private sendNetworkEvent(eventId: WL_NetworkEventID, eventData: unknown) {
     const netEvent: WL_NetworkEvent = { eventId, eventData }
     this.network?.postMessage(netEvent, [])
   }

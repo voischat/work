@@ -10,6 +10,24 @@ import {
   WL_PbMsgHandler,
 } from 'main/weila_internal_data'
 
+interface WorkerPbMsgData {
+  header: WL_PbMsgData['header']
+  pbMsgData: ArrayBufferView
+}
+
+function isPbMsgData(value: unknown): value is WorkerPbMsgData {
+  if (
+    typeof value !== 'object' ||
+    value === null ||
+    !('header' in value) ||
+    !('pbMsgData' in value)
+  ) {
+    return false
+  }
+
+  return ArrayBuffer.isView(value.pbMsgData)
+}
+
 interface WeilaNetworkGatewayDeps {
   sendToFsm(event: MainFsmUserEvent): void
   dispatcher: WeilaPbDispatcher
@@ -25,7 +43,7 @@ export default class WeilaNetworkGateway {
     switch (netEvent.eventId) {
       case WL_NetworkEventID.NET_STATE_IND_EVT:
         {
-          const netState: WL_NetworkState = netEvent.eventData
+          const netState = netEvent.eventData
 
           if (netState === WL_NetworkState.NET_CONNECTED_STATE) {
             this.deps.sendToFsm({ type: fsmEvents.FSM_NET_CONNECTED_IND_EVT })
@@ -41,8 +59,17 @@ export default class WeilaNetworkGateway {
 
       case WL_NetworkEventID.NET_MSG_RECV_IND_EVT:
         {
-          const msgData: WL_PbMsgData = netEvent.eventData
-          const serverMessage = WL.Service.ServiceMessage.decode(msgData.pbMsgData)
+          const msgData = netEvent.eventData
+
+          if (!isPbMsgData(msgData)) break
+
+          const serverMessage = WL.Service.ServiceMessage.decode(
+            new Uint8Array(
+              msgData.pbMsgData.buffer,
+              msgData.pbMsgData.byteOffset,
+              msgData.pbMsgData.byteLength,
+            ),
+          )
 
           const serviceHead = serverMessage.serviceHead
           const serviceId = serviceHead?.serviceId ?? 0

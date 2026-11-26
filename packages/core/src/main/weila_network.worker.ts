@@ -26,6 +26,10 @@ function getWorkerScope(): WL_WorkerScope {
   }
 }
 
+function isWebsockAddr(value: unknown): value is string {
+  return typeof value === 'string'
+}
+
 class Network {
   private readonly ctx = getWorkerScope()
   private readonly maxRecvBufSize = 1024 * 1024
@@ -217,7 +221,8 @@ class Network {
     switch (netEvent.eventId) {
       case WL_NetworkEventID.NET_WEBSOCK_ADDR_SET_EVT:
         {
-          this.webSockAddr = netEvent.eventData
+          const addr = netEvent.eventData
+          this.webSockAddr = isWebsockAddr(addr) ? addr : undefined
         }
 
         break
@@ -238,7 +243,9 @@ class Network {
 
       case WL_NetworkEventID.NET_SEND_DATA_EVT:
         {
-          this.sendingPbMsgList.push(netEvent.eventData)
+          const payload = netEvent.eventData
+          const bytes = payload instanceof Uint8Array ? new Uint8Array(payload) : new Uint8Array()
+          this.sendingPbMsgList.push(bytes)
           setTimeout(this.processSending.bind(this), 0)
         }
 

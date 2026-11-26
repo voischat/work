@@ -786,7 +786,7 @@ export default class WLPttFsm {
         msgData,
         priority: this.getAudioMsgDataPriority(msgData),
         playIndex: 0,
-        recvWaitTimerId: undefined,
+        recvWaitTimerId: null,
         shouldSave,
         payloadList: [],
       }
@@ -947,7 +947,7 @@ export default class WLPttFsm {
             payloadList: [],
             playIndex: 0,
             isCompleted: pttData.mark === 0x02 || pttData.mark === 0x03,
-            recvWaitTimerId: undefined,
+            recvWaitTimerId: null,
           }
           audioItem.msgData.combo_id = id
           audioItem.msgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_NEW
@@ -1015,7 +1015,7 @@ export default class WLPttFsm {
       payloadList: decompositionAudioData(audioData.data),
       isCompleted: true,
       priority: 0,
-      recvWaitTimerId: undefined,
+      recvWaitTimerId: null,
       shouldSave: false,
     }
 
@@ -1046,7 +1046,7 @@ export default class WLPttFsm {
           payloadList: decompositionAudioData(audioData.data),
           isCompleted: true,
           priority: 0,
-          recvWaitTimerId: undefined,
+          recvWaitTimerId: null,
           shouldSave: false,
         }
 

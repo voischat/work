@@ -90,7 +90,7 @@ export default class WLFriendModule {
     )
   }
 
-  private onPbMsgHandler(data: any): void {
+  private onPbMsgHandler(data: WL.Service.IServiceMessage): void {
     const serverMessage: WL.Service.IServiceMessage = data
     const serviceHead = serverMessage.serviceHead
 
