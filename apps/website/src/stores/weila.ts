@@ -49,11 +49,16 @@ export const useWeilaStore = defineStore('weila', () => {
     ])
 
     const instance = new WeilaCore()
+    const bridgeProtocol = location.protocol === 'https:'
+      ? 'wss'
+      : 'ws'
 
     await instance.weila_init({
-      webSock: import.meta.env.DEV
-        ? (import.meta.env.VITE_WEB_SOCK || 'wss://wss.weila.hk:8899')
-        : 'wss://api.voischat.cn/voischat/bridge',
+      webSock:
+        import.meta.env.VITE_WEB_SOCK
+          || (import.meta.env.DEV
+            ? `${bridgeProtocol}://${location.host}/voischat/bridge`
+            : 'wss://api.voischat.cn/voischat/bridge'),
       appId: appid.value,
       appKey: appkey.value,
     })
