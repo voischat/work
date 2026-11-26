@@ -1,4 +1,11 @@
 import { WL } from 'proto/weilapb'
+import type {
+  WL_FriendAnswerInviteInfo,
+  WL_FriendInviteInfo,
+  WL_GroupAnswerJoinInfo,
+  WL_GroupInviteInfo,
+  WL_GroupJoinInfo,
+} from 'main/weila_external_data'
 import { isRecord, isString, type JsonValue } from 'main/weila_type_guards'
 import { dbEnum } from './db_enum'
 
@@ -12,9 +19,11 @@ enum WL_IDbSettingID {
   SETTING_CORP_SESSION_LATEST_UPDATE,
 }
 
+type WL_IDbSettingData = string | number | null
+
 interface WL_IDbSetting {
   id: WL_IDbSettingID
-  data: any
+  data: WL_IDbSettingData
 }
 
 enum WL_IDbSessionStatus {
@@ -445,10 +454,17 @@ enum WL_IDbNotificationType {
   GROUP_ANSWER_JOIN_NOTIFICATION,
 }
 
+type WL_IDbNotificationData =
+  | WL_GroupInviteInfo
+  | WL_GroupJoinInfo
+  | WL_GroupAnswerJoinInfo
+  | WL_FriendInviteInfo
+  | WL_FriendAnswerInviteInfo
+
 interface WL_IDbNotification {
   id: number
   notificationType: WL_IDbNotificationType
-  data: any
+  data: WL_IDbNotificationData
   createTime: number
 }
 
@@ -539,6 +555,42 @@ interface WL_IDbServiceSessionInfo {
   serviceSession: WL_IDbServiceSession
 }
 
+function isFileData(value: unknown): value is WL_IDbFileData {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'fileName' in value &&
+    'fileUrl' in value &&
+    'fileSize' in value
+  )
+}
+
+function isLocationShared(value: unknown): value is WL_IDbLocationShared {
+  return (
+    typeof value === 'object' && value !== null && !('fileName' in value) && !('sender' in value)
+  )
+}
+
+function isAudioData(value: unknown): value is WL_IDbAudioData {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'frameCount' in value &&
+    ('audioUrl' in value || 'data' in value)
+  )
+}
+
+function isPttData(value: unknown): value is WL_IDbPttData {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'seq' in value &&
+    'seqInPackage' in value &&
+    'mark' in value &&
+    'data' in value
+  )
+}
+
 export {
   WL_IDbSettingID,
   WL_IDbSetting,
@@ -577,6 +629,10 @@ export {
   WL_IDbLocationShared,
   WL_IDbServicePayload,
   WL_IDbPttData,
+  isFileData,
+  isLocationShared,
+  isAudioData,
+  isPttData,
   WL_IDbMsgData,
   WL_IDbLocationInfo,
   WL_IDbNotificationType,

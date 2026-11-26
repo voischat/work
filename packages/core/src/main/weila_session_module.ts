@@ -16,10 +16,15 @@ import {
   WL_SessionProfileUpdate,
   WL_IDbSettingID,
   applySessionExtraProfile,
+  isAudioData,
+  isFileData,
   isGroupSessionType,
   isIndividualSessionType,
+  isLocationShared,
+  isPttData,
   isServiceSessionType,
 } from 'db/weila_db_data'
+import { isNumber, isString } from 'main/weila_type_guards'
 import { dbEnum } from 'db/db_enum'
 import {
   default_group_logo,
@@ -116,48 +121,6 @@ type MsgBuilder = (
   data: MsgPayload,
 ) => WLBuildMsgRet
 
-function isStringPayload(data: MsgPayload): data is string {
-  return typeof data === 'string'
-}
-
-function isFilePayload(data: MsgPayload): data is WL_IDbFileData {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'fileName' in data &&
-    'fileUrl' in data &&
-    'fileSize' in data
-  )
-}
-
-function isLocationPayload(data: MsgPayload): data is WL_IDbLocationShared {
-  return typeof data === 'object' && data !== null && !('fileName' in data) && !('sender' in data)
-}
-
-function isAudioPayload(data: MsgPayload): data is WL_IDbAudioData {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'frameCount' in data &&
-    ('audioUrl' in data || 'data' in data)
-  )
-}
-
-function isPttPayload(data: MsgPayload): data is WL_IDbPttData {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'seq' in data &&
-    'seqInPackage' in data &&
-    'mark' in data &&
-    'data' in data
-  )
-}
-
-function isNumberPayload(data: MsgPayload): data is number {
-  return typeof data === 'number'
-}
-
 const MSG_BUILDERS: Partial<Record<WL_IDbMsgDataType, MsgBuilder>> = {
   [WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE]: buildTextMsg,
   [WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE]: buildFileOrVideoMsg,
@@ -175,7 +138,7 @@ function buildTextMsg(
   dbMsgData: WL_IDbMsgData,
   data: MsgPayload,
 ): WLBuildMsgRet {
-  if (!isStringPayload(data)) return { resultCode: -1 }
+  if (!isString(data)) return { resultCode: -1 }
 
   dbMsgData.textData = data
 
@@ -194,7 +157,7 @@ function buildFileOrVideoMsg(
   dbMsgData: WL_IDbMsgData,
   data: MsgPayload,
 ): WLBuildMsgRet {
-  if (!isFilePayload(data)) return { resultCode: -1 }
+  if (!isFileData(data)) return { resultCode: -1 }
 
   dbMsgData.fileInfo = data
 
@@ -214,7 +177,7 @@ function buildImageMsg(
   dbMsgData: WL_IDbMsgData,
   data: MsgPayload,
 ): WLBuildMsgRet {
-  if (!isFilePayload(data)) return { resultCode: -1 }
+  if (!isFileData(data)) return { resultCode: -1 }
 
   dbMsgData.fileInfo = data
 
@@ -233,7 +196,7 @@ function buildLocationMsg(
   dbMsgData: WL_IDbMsgData,
   data: MsgPayload,
 ): WLBuildMsgRet {
-  if (!isLocationPayload(data)) return { resultCode: -1 }
+  if (!isLocationShared(data)) return { resultCode: -1 }
 
   dbMsgData.location = data
 
@@ -252,7 +215,7 @@ function buildAudioMsg(
   dbMsgData: WL_IDbMsgData,
   data: MsgPayload,
 ): WLBuildMsgRet {
-  if (!isAudioPayload(data)) return { resultCode: -1 }
+  if (!isAudioData(data)) return { resultCode: -1 }
 
   dbMsgData.audioData = data
 
@@ -273,7 +236,7 @@ function buildPttMsg(
   dbMsgData: WL_IDbMsgData,
   data: MsgPayload,
 ): WLBuildMsgRet {
-  if (!isPttPayload(data)) return { resultCode: -1 }
+  if (!isPttData(data)) return { resultCode: -1 }
 
   dbMsgData.pttData = data
 
@@ -292,7 +255,7 @@ function buildWithdrawMsg(
   dbMsgData: WL_IDbMsgData,
   data: MsgPayload,
 ): WLBuildMsgRet {
-  if (!isNumberPayload(data)) return { resultCode: -1 }
+  if (!isNumber(data)) return { resultCode: -1 }
 
   dbMsgData.withdrawMsgId = data
 
@@ -662,7 +625,9 @@ export default class WLSessionModule {
 
       speakerInfo += '说'
 
-      const appKeyAndId = WeilaDB.getAppAuthInfo() ? WeilaDB.getAppAuthInfo() : getAppKeyAndId()
+      const appKeyAndId = WeilaDB.getAppAuthInfo() ?? getAppKeyAndId()
+      const appId = appKeyAndId.appId ?? ''
+      const appKey = appKeyAndId.appKey ?? ''
       const et = '' + (Math.floor(Date.now() / 1000) + 20)
 
       const data: SpeechSynthesisPayload = {
@@ -671,8 +636,8 @@ export default class WLSessionModule {
         speed: 8,
         vol: 6,
         et,
-        app_id: appKeyAndId.appId,
-        sign: MD5(et + appKeyAndId.appKey).toString(),
+        app_id: appId,
+        sign: MD5(et + appKey).toString(),
       }
 
       wllog('文字转语音，文字：%s', data.text)
@@ -1098,7 +1063,7 @@ export default class WLSessionModule {
     let settingItem = await dbInstance.getSettingItem(settingId)
     let latestTime = 0
 
-    if (settingItem) {
+    if (settingItem && isNumber(settingItem.data)) {
       latestTime = settingItem.data
     }
 
@@ -1228,10 +1193,11 @@ export default class WLSessionModule {
         msgId: lastMsgData ? lastMsgData.msgId + 1 : 0,
         autoReply: 0,
       }
-      dbMsgData.combo_id = getMsgDataIdByCombo(dbMsgData, seqSetting?.data ?? 0)
+      const sendSeq = isNumber(seqSetting?.data) ? seqSetting.data : 0
+      dbMsgData.combo_id = getMsgDataIdByCombo(dbMsgData, sendSeq)
 
       if (seqSetting) {
-        seqSetting.data = (seqSetting.data ?? 0) + 1
+        seqSetting.data = sendSeq + 1
         await WeilaDB.getInstance().putSettingItem(seqSetting)
       }
     }
@@ -1249,7 +1215,7 @@ export default class WLSessionModule {
         const rspMsg: WL.Session.IRspMsg = await this.coreInterface.sendPbMsg(buildResult)
         await WeilaDB.getInstance().delMsgDataByComboId(dbMsgData.combo_id)
 
-        if (msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE && isNumberPayload(data)) {
+        if (msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE && isNumber(data)) {
           const withdrawMsgId = data
 
           const originalMsg = await WeilaDB.getInstance().getMsgDataByMsgId(
@@ -1533,7 +1499,8 @@ export default class WLSessionModule {
         status: WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_UNSENT,
       }
 
-      dbMsgData.combo_id = getMsgDataIdByCombo(dbMsgData, seqSetting?.data ?? 0)
+      const burstSeq = isNumber(seqSetting?.data) ? seqSetting.data : 0
+      dbMsgData.combo_id = getMsgDataIdByCombo(dbMsgData, burstSeq)
       burstInfo.dbMsgData = dbMsgData
     } else {
       const dbMsgData = burstInfo.dbMsgData

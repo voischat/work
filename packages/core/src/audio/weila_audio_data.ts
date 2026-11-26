@@ -31,6 +31,8 @@ enum WLAudioRecorderEvent {
   WL_WORKLET_NODE_DATA_IND,
 }
 
+type WL_AudioEventPayload = WLPlayerType | Uint8Array
+
 enum WLAudioEvent {
   WL_AUDIO_FINISH_PLAY_IND,
   WL_AUDIO_OPUS_CODED_DATA_IND,
@@ -43,4 +45,10 @@ enum WLPlayerType {
   WL_PTT_PLAYER_NUM,
 }
 
-export { WLAudioPlayerEvent, WLAudioRecorderEvent, WLAudioEvent, WLPlayerType }
+export {
+  WLAudioPlayerEvent,
+  WLAudioRecorderEvent,
+  WLAudioEvent,
+  WLPlayerType,
+  type WL_AudioEventPayload,
+}

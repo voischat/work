@@ -619,7 +619,7 @@ const CASES: Array<[string, () => WLBuildMsgRet, WL.Service.ServiceID, WLCommand
         17,
         USER_ID,
         false,
-        { text: 'hi' },
+        'hi',
         1,
         WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE,
       ),

@@ -10,7 +10,8 @@ import {
 import type { WL_IDbSession } from '../database/weila_db_data'
 
 interface WL_ExtEventCallback {
-  (eventId: WL_ExtEventID, eventData: any): void
+  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- ext-event payloads vary per WL_ExtEventID; every subscriber parses its own
+  (eventId: WL_ExtEventID, eventData: unknown): void
 }
 
 interface WL_PbMsgErrorInfo {

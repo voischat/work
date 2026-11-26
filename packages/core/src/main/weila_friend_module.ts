@@ -16,6 +16,7 @@ import {
 import { dbEnum } from 'db/db_enum'
 import { getLogger } from 'log/weila_log'
 import { AsyncTime } from 'main/weila_utils'
+import { isNumber } from 'main/weila_type_guards'
 import {
   WL_AnswerStatus,
   WL_ExtEventID,
@@ -296,9 +297,9 @@ export default class WLFriendModule {
     let lastUpdateTime = 0
 
     if (friendSetting) {
-      lastUpdateTime = friendSetting.data
+      lastUpdateTime = isNumber(friendSetting.data) ? friendSetting.data : 0
     } else {
-      friendSetting = { id: WL_IDbSettingID.SETTING_FRIEND_LATEST_UPDATE, data: undefined }
+      friendSetting = { id: WL_IDbSettingID.SETTING_FRIEND_LATEST_UPDATE, data: null }
     }
 
     const buildResult = WeilaPbFriendWrapper.buildGetFriendInfoReq(Long.fromValue(lastUpdateTime))
@@ -390,7 +391,7 @@ export default class WLFriendModule {
 
   public async deleteFriends(userIds: number[], subUserId?: number): Promise<boolean> {
     const deleteUserIds: number[] = []
-    const sendPromises: Promise<any>[] = []
+    const sendPromises: Promise<unknown>[] = []
 
     for (const userId of userIds) {
       const buildMsgRet = WeilaPbFriendWrapper.buildDeleteFriendReq(userId, subUserId)
@@ -440,7 +441,7 @@ export default class WLFriendModule {
     subUserId: number,
     detail: string,
   ): Promise<boolean> {
-    const sendPromises: Promise<any>[] = []
+    const sendPromises: Promise<unknown>[] = []
 
     for (let inviteeId of inviteeIds) {
       const buildMsgRet = WeilaPbFriendWrapper.buildFriendInviteReq(

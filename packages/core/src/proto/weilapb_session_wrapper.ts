@@ -4,11 +4,23 @@ import { WL } from './weilapb'
 import { TextMsgDataParser } from './weilapb_textmsg_parser'
 import { BuildWeilaMsg } from './weilapb_wrapper'
 import {
+  isFileData,
+  isLocationShared,
+  isPttData,
   WL_IDbFileData,
   WL_IDbLocationShared,
   WL_IDbMsgDataType,
   WL_IDbPttData,
 } from 'db/weila_db_data'
+import { isNumber, isString } from 'main/weila_type_guards'
+
+type SessionMsgDataPayload =
+  | string
+  | number
+  | Uint8Array
+  | WL_IDbFileData
+  | WL_IDbLocationShared
+  | WL_IDbPttData
 
 const WeilaPBSessionWrapper = {
   buildGetSessionReq(updateTime: Long, type?: number): WLBuildMsgRet {
@@ -122,7 +134,7 @@ const WeilaPBSessionWrapper = {
     sessionType: number,
     senderId: number,
     autoReply: boolean,
-    data: any,
+    data: SessionMsgDataPayload,
     msgId: number,
     msgType: WL_IDbMsgDataType,
   ): WLBuildMsgRet {
@@ -138,15 +150,32 @@ const WeilaPBSessionWrapper = {
     switch (msgType) {
       case WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE:
       case WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE:
+        {
+          if (!isString(data)) return { resultCode: -1 }
+
+          msgData.msgType = WL.Session.MessageType.MSG_TYPE_TEXT
+          msgData.textData = TextMsgDataParser.encodeSessionTextMsg({ dataType: msgType, data })
+        }
+
+        break
+
       case WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE:
       case WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE:
+        {
+          if (!isFileData(data)) return { resultCode: -1 }
+
+          msgData.msgType = WL.Session.MessageType.MSG_TYPE_TEXT
+          msgData.textData = TextMsgDataParser.encodeSessionTextMsg({ dataType: msgType, data })
+        }
+
+        break
+
       case WL_IDbMsgDataType.WL_DB_MSG_DATA_LOCATION_TYPE:
         {
+          if (!isLocationShared(data)) return { resultCode: -1 }
+
           msgData.msgType = WL.Session.MessageType.MSG_TYPE_TEXT
-          msgData.textData = TextMsgDataParser.encodeSessionTextMsg({
-            dataType: msgType,
-            data,
-          })
+          msgData.textData = TextMsgDataParser.encodeSessionTextMsg({ dataType: msgType, data })
         }
 
         break
@@ -167,8 +196,10 @@ const WeilaPBSessionWrapper = {
 
           if (data instanceof Uint8Array) {
             msgData.audioData = { payload: data.slice() }
-          } else {
+          } else if (isString(data)) {
             msgData.audioData = { url: data }
+          } else {
+            return { resultCode: -1 }
           }
         }
 
@@ -176,7 +207,9 @@ const WeilaPBSessionWrapper = {
 
       case WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE:
         {
-          const pttData: WL_IDbPttData = data
+          if (!isPttData(data)) return { resultCode: -1 }
+
+          const pttData = data
 
           msgData.msgType = WL.Session.MessageType.MSG_TYPE_PTT
           msgData.pttData = {
@@ -196,6 +229,8 @@ const WeilaPBSessionWrapper = {
 
       case WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE:
         {
+          if (!isString(data)) return { resultCode: -1 }
+
           msgData.msgType = WL.Session.MessageType.MSG_TYPE_SERVICE
           msgData.serviceData = data
         }
@@ -204,6 +239,8 @@ const WeilaPBSessionWrapper = {
 
       case WL_IDbMsgDataType.WL_DB_MSG_DATA_SWITCH_TYPE:
         {
+          if (!isString(data)) return { resultCode: -1 }
+
           msgData.msgType = WL.Session.MessageType.MSG_TYPE_SWITCH
           msgData.switchData = { serviceData: data }
         }
@@ -212,6 +249,8 @@ const WeilaPBSessionWrapper = {
 
       case WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE:
         {
+          if (!isNumber(data)) return { resultCode: -1 }
+
           msgData.msgType = WL.Session.MessageType.MSG_TYPE_REVOCATION
           msgData.revocationMsgId = data
         }

@@ -23,7 +23,7 @@ async function fetchWithTimeout(
 
   wllog('fetch url:', input)
 
-  const timeoutPromise = (localTimeout: any) => {
+  const timeoutPromise = (localTimeout: number) => {
     return new Promise<Response>((resolve, _reject) => {
       timerId = setTimeout(() => {
         wlerr('获取URL:%s超时', input)
@@ -752,12 +752,13 @@ function getErrorMsg(errorMsg: string): string {
   return errorMsg
 }
 
+/* oxlint-disable anti-slop/no-object-parameters, anti-slop/no-unknown-parameters -- method decorators receive the class prototype and the decorated function's own this/args, which only the decorated method can type */
 function AsyncTime(notShow?: boolean) {
-  return (_target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+  return (_target: object, propertyKey: string, descriptor: PropertyDescriptor) => {
     const method = descriptor.value
 
     if (!notShow) {
-      descriptor.value = async function (...args: any[]) {
+      descriptor.value = async function (this: unknown, ...args: unknown[]) {
         console.time(propertyKey)
 
         try {
@@ -776,12 +777,14 @@ function AsyncTime(notShow?: boolean) {
   }
 }
 
+/* oxlint-enable anti-slop/no-object-parameters, anti-slop/no-unknown-parameters */
+/* oxlint-disable anti-slop/no-object-parameters, anti-slop/no-unknown-parameters -- same decorator boundary as AsyncTime */
 function SyncTime(notShow?: boolean) {
-  return (_target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+  return (_target: object, propertyKey: string, descriptor: PropertyDescriptor) => {
     const method = descriptor.value
 
     if (!notShow) {
-      descriptor.value = function (...args: any[]) {
+      descriptor.value = function (this: unknown, ...args: unknown[]) {
         console.time(propertyKey)
         const ret = method.apply(this, args)
         console.timeEnd(propertyKey)
@@ -792,7 +795,13 @@ function SyncTime(notShow?: boolean) {
   }
 }
 
-function getAppKeyAndId(): any {
+interface AppAuthInfo {
+  appId: string | undefined
+  appKey: string | undefined
+}
+
+/* oxlint-enable anti-slop/no-object-parameters, anti-slop/no-unknown-parameters */
+function getAppKeyAndId(): AppAuthInfo {
   return {
     appId: process.env.APPID,
     appKey: process.env.APPKEY,

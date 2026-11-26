@@ -26,6 +26,7 @@ import { createActor, fromCallback, fromPromise } from 'xstate'
 import type { StateValue } from 'xstate'
 import { WLAudio } from 'audio/weila_audio'
 import { WLAudioEvent, WLPlayerType } from 'audio/weila_audio_data'
+import type { WL_AudioEventPayload } from 'audio/weila_audio_data'
 import WeilaRingPlayer from 'audio/weila_ring_player'
 import { WL_ConfigID } from 'main/weila_config'
 import {
@@ -153,7 +154,7 @@ export default class WLPttFsm {
         startTalking: fromPromise(() => this.startTalking()),
         stopTalk: fromPromise(({ input }: { input: PttTalkBurst | null }) => this.stopTalk(input)),
         recorderFrames: fromCallback<PttFsmUserEvent>(({ sendBack }) => {
-          const listener = (event: WLAudioEvent, data: any) => {
+          const listener = (event: WLAudioEvent, data: WL_AudioEventPayload) => {
             if (event === WLAudioEvent.WL_AUDIO_OPUS_CODED_DATA_IND) {
               sendBack({ type: 'FSM_PTT_CODED_DATA_EVT', data })
             }
@@ -642,7 +643,7 @@ export default class WLPttFsm {
     return false
   }
 
-  private onAudioMessage(event: WLAudioEvent, _data: any): void {
+  private onAudioMessage(event: WLAudioEvent, _data: WL_AudioEventPayload): void {
     switch (event) {
       case WLAudioEvent.WL_AUDIO_FINISH_PLAY_IND:
         {
