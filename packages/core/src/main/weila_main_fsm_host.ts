@@ -14,7 +14,7 @@ import type { WL_IDbSession, WL_IDbUserInfo } from 'db/weila_db_data'
 const wllog = getLogger('CORE:info')
 const wlerr = getLogger('CORE:err')
 
-export interface WeilaMainFsmLoginModule {
+interface WeilaMainFsmLoginModule {
   loginReq: (
     account: string,
     password: string,
