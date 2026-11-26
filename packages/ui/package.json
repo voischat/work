@@ -49,6 +49,7 @@
     "@vitest/browser-playwright": "catalog:",
     "@vois/weila-sdk-core": "workspace:*",
     "@vue/test-utils": "catalog:",
+    "@weila/shared": "workspace:*",
     "autoprefixer": "catalog:",
     "jsdom": "catalog:",
     "playwright": "catalog:",

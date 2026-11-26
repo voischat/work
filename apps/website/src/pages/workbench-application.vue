@@ -88,7 +88,7 @@ function confirmDelete() {
       <a-table
         v-else
         :data="data?.apps"
-        :row-key="(record: AppItem) => record.app_id"
+        row-key="app_id"
         :pagination="{
           current: curPage + 1,
           pageSize,

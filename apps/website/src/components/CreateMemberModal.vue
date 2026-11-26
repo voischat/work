@@ -122,7 +122,7 @@ const getLocShareTooltip = computed(() => () =>
           <a-select
             v-if="props.deptId === undefined"
             allow-search :empty="t('no-data')"
-            @change="(value: string) => form.dept_id = Number(value)"
+            @change="value => form.dept_id = Number(value)"
           >
             <a-option v-for="{ name, id }, key in depts" :key :value="id" :label="name" />
           </a-select>

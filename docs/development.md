@@ -4,7 +4,7 @@ title: 本地开发环境
 
 # 本地开发环境
 
-需要 Node >= 22.18 与 pnpm 11；`mise.toml` 已固定 Node 24.22.3、pnpm 11.28.13。
+需要 Node >= 22.18 与 pnpm 12；`mise.toml` 已固定 Node 24.22.3、pnpm 12.23.0。
 
 ```bash
 curl https://mise.run | sh        # 或 brew install mise

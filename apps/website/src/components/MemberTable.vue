@@ -131,23 +131,23 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
         <a-table-column
           :title="t('type')"
           data-index="member_types"
-          :filterable="filters.has('member_types') && {
+          :filterable="filters.has('member_types') ? {
             filters: [{
               text: t('user-type.member'),
-              value: 0,
+              value: '0',
             }, {
               text: t('user-type.device'),
-              value: 1,
+              value: '1',
             }, {
               text: t('manager'),
-              value: 2,
+              value: '2',
             }, {
               text: t('user-type.owner'),
-              value: 255,
+              value: '255',
             }],
-            filter: (value: [any], record: any) => Number(record.type) === Number(value?.[0]),
+            filter: (values: string[], record: any) => Number(record.type) === Number(values?.[0]),
             multiple: false,
-          }"
+          } : undefined"
         >
           <template #cell="{ record: { type, is_dept_admin } }">
             <a-tag :color="is_dept_admin ? 'orange' : ''">
@@ -176,14 +176,14 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
         </a-table-column>
         <a-table-column
           :title="t('dept.name')" data-index="dept_ids"
-          :filterable="filters.has('dept_ids') && {
+          :filterable="filters.has('dept_ids') ? {
             filters: depts?.map((i) => ({
               text: i.name,
-              value: i.id,
+              value: String(i.id),
             })),
-            filter: (values: any[], record: any) => values.some((i: any) => i === record.dept_id),
+            filter: (values: string[], record: any) => values.some((i: string) => i === String(record.dept_id)),
             multiple: true,
-          }"
+          } : undefined"
         >
           <template #cell="{ record: { dept_id } }">
             {{ depts?.find(d => d.id === dept_id)?.name || '' }}
