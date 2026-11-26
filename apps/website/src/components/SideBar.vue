@@ -121,7 +121,7 @@ function goTo(path: string) {
             <a-descriptions
               :column="1"
               :data="[
-                { label: t('corp.number'), value: corp?.num },
+                { label: t('corp.number'), value: String(corp?.num ?? '') },
               ]"
               bordered
             />
@@ -141,7 +141,7 @@ function goTo(path: string) {
               :data="objectKeys(limitLabels).map((limit) => {
                 return {
                   label: t(limitLabels[limit]),
-                  value: vip?.[limit],
+                  value: String(vip?.[limit] ?? ''),
                 }
               }).filter(i => i.value)" bordered
             />

@@ -26,8 +26,6 @@
         "scripts/*.ts",
         // release entrypoints, invoked by .github/workflows/release.yml
         "scripts/release/*.ts",
-        // user manual site, driven by root docs: scripts
-        "docs/.vitepress/config.mts",
       ],
     },
     "apps/mock": {

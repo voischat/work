@@ -178,7 +178,6 @@ function handleSelectGroup(group: GroupModel) {
                     <template #avatar>
                       <a-avatar
                         :image-url="group.avatar?.replace(/^https?:/, '')"
-                        size="small"
                       />
                     </template>
                     <template #title>

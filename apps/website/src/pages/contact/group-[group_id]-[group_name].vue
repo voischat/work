@@ -216,14 +216,14 @@ function onSelect(member: Member, e: PointerEvent) {
           </a-table-column>
           <a-table-column
             :title="t('dept.name')" data-index="dept_ids"
-            :filterable="!isDeptAdmin && {
+            :filterable="!isDeptAdmin ? {
               filters: depts?.map((i) => ({
                 text: i.name,
-                value: i.id,
+                value: String(i.id),
               })),
-              filter: (values: any[], record: any) => values.some((i: any) => i === record.dept_id),
+              filter: (values: string[], record: any) => values.some((i: string) => i === String(record.dept_id)),
               multiple: true,
-            }"
+            } : undefined"
           >
             <template #cell="{ record: { dept_id } }">
               {{ depts?.find(d => d.id === dept_id)?.name || '' }}

@@ -245,7 +245,7 @@ function selectMember(member: Member, dept: DeptModel) {
 
         <div v-if="item.expanded" class="org-tree__members">
           <div v-if="item.loading" class="org-tree__state">
-            <a-spin size="small" />
+            <a-spin />
           </div>
           <OrgTreeMemberItem
             v-for="member in item.members"

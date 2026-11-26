@@ -103,6 +103,15 @@ async function uploadFile(option: any) {
     })
     .catch(err => onError?.(err))
 }
+
+function createUploadHandler(assign: (url: string) => void) {
+  return (options: any) => {
+    uploadFile(options).then(assign)
+    return {
+      abort() {},
+    }
+  }
+}
 </script>
 
 <template>
@@ -217,27 +226,23 @@ async function uploadFile(option: any) {
             <a-upload
               :multiple="false"
               :limit="1"
-              :file-list="[{ url: userForm.identify_card_front }].filter(i => i.url)"
+              :file-list="[{ uid: 'identify_card_front', url: userForm.identify_card_front }].filter(i => i.url)"
               :default-file-list="[]"
               list-type="picture-card"
               image-preview
-              :custom-request="(options: any) => uploadFile(options).then(url => {
-                userForm.identify_card_front = url
-              })"
+              :custom-request="createUploadHandler(url => { userForm.identify_card_front = url })"
             />
           </a-form-item>
 
           <a-form-item :label="$t('legal.label.id-card-reverse')" field="identify_card_reverse">
             <a-upload
               :multiple="false"
-              :file-list="[{ url: userForm.identify_card_reverse }].filter(i => i.url)"
+              :file-list="[{ uid: 'identify_card_reverse', url: userForm.identify_card_reverse }].filter(i => i.url)"
               :default-file-list="[]"
               :limit="1"
               list-type="picture-card"
               image-preview
-              :custom-request="(options: any) => uploadFile(options).then(url => {
-                userForm.identify_card_reverse = url
-              })"
+              :custom-request="createUploadHandler(url => { userForm.identify_card_reverse = url })"
             />
           </a-form-item>
 
@@ -280,13 +285,11 @@ async function uploadFile(option: any) {
             <a-upload
               :multiple="false"
               :default-file-list="[]"
-              :file-list="[{ url: corpForm.business_license }].filter(i => i.url)"
+              :file-list="[{ uid: 'business_license', url: corpForm.business_license }].filter(i => i.url)"
               :limit="1"
               list-type="picture-card"
               image-preview
-              :custom-request="(options: any) => uploadFile(options).then(url => {
-                corpForm.business_license = url
-              })"
+              :custom-request="createUploadHandler(url => { corpForm.business_license = url })"
             />
           </a-form-item>
 

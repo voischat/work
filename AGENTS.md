@@ -8,7 +8,8 @@ This repository merged `weila-js-sdk` and `weila-work` into one pnpm workspace. 
 .
 ├── packages/
 │   ├── core/            # @vois/weila-sdk-core, TypeScript SDK (Rspack 2 + SWC)
-│   └── ui/              # @vois/weila-sdk-ui, Vue 3 components (tsdown)
+│   ├── ui/              # @vois/weila-sdk-ui, Vue 3 components (tsdown)
+│   └── shared/          # @weila/shared, internal source modules, never built or published
 ├── apps/
 │   ├── website/         # Enterprise console, Vue 3 + Arco (was packages/web)
 │   ├── playground-vue3/ # SDK playground, Vue 3 + Vite
@@ -23,14 +24,15 @@ Repository-specific rules:
 
 - `packages/core/AGENTS.md` covers the SDK internals, aliases and build steps.
 - `apps/website/AGENTS.md` covers the console's stack, commands, testing account and the user-manual screenshot flow.
+- `packages/shared` is internal-only: `private: true`, consumed as TypeScript source, never built and never published.
 
 ## Toolchain
 
-- Node >= 22.18 (the Oxlint and Oxfmt configs use Node's type stripping), pnpm 11.28.13.
-- One lockfile, one catalog in `pnpm-workspace.yaml`. Dependencies use `catalog:` everywhere and `pnpm run manifests` enforces it: a literal range fails the gate, and a package in both `dependencies` and `devDependencies` fails too. Named catalogs cover the deliberate divergences. `native` holds the TypeScript 7 native compiler that `packages/core` builds with, while `vue-tsc` and `tsdown` stay on the 6.x API. `playground` holds the playground's `vue-router` 5 against the console's 4. Software Composition Analysis: dependency advisories surface through Dependabot alerts, but Dependabot's update and security-PR jobs are disabled because it cannot edit pnpm catalog entries. Bump versions with `pnpm up` or a catalog edit, and pin transitive security floors in the `overrides` block; `pnpm audit` must stay clean. The named `web` catalog pins the website's `vue`/`vue-tsc` pair, because neither vue-tsc 3.1.1 nor 3.3.x satisfies both the UI d.ts build and the website template typings.
+- Node >= 22.18 (the Oxlint and Oxfmt configs use Node's type stripping), pnpm 12.23.0.
+- One lockfile, one catalog in `pnpm-workspace.yaml`. Dependencies use `catalog:` everywhere and `pnpm run manifests` enforces it: a literal range fails the gate, and a package in both `dependencies` and `devDependencies` fails too. Named catalogs cover the deliberate divergences. `native` holds the TypeScript 7 native compiler that `packages/core` builds with, while `vue-tsc` and `tsdown` stay on the 6.x API. `playground` holds the playground's `vue-router` 5 against the console's 4. Software Composition Analysis: dependency advisories surface through Dependabot alerts, but Dependabot's update and security-PR jobs are disabled because it cannot edit pnpm catalog entries. Bump versions with `pnpm up` or a catalog edit, and pin transitive security floors in the `overrides` block; `pnpm audit` must stay clean. The named `web` catalog pins the website's `vue`/`vue-tsc` pair, because vue-tsc 3.3.x breaks the website template typings (Pinia store unwrap), so the website stays on 3.1.1 while `packages/ui` builds on 3.3.x.
 - A shared `no-comments` rule (`tools/lint/no-comments.mjs`) runs in both lint engines: it allows only tool directives, legal headers, `SAFETY:` rationale and bare links, and it autofixes by deleting the comment. `scripts/no-comments.ts` covers the surfaces neither linter parses (Vue templates and style blocks, plain CSS/Less/HTML) and runs as `lint:comments`.
 - Lint and format run as two tracks:
-  - `packages/*` and `apps/playground-vue3` use Oxlint and Oxfmt (`oxlint.config.ts`, `oxfmt.config.ts`). The lint-budget gate lives at `packages/core/scripts/lint-budget.mjs`. Type-aware linting runs on `tsrs` (the `native` catalog entry), the same engine as core's `typecheck`. The budget script passes `--report-unused-disable-directives`, so a suppression comment that no longer suppresses anything fails the gate. Oxlint can also emit compiler diagnostics through `--type-check` at no extra cost, but the lint scope covers tests that live outside `tsconfig.json`, so the gate keeps type checking to the `typecheck` scripts.
+  - `packages/*` and `apps/playground-vue3` use Oxlint and Oxfmt (`oxlint.config.ts`, `oxfmt.config.ts`). The lint-budget gate lives at `packages/core/scripts/lint-budget.mjs`. Type-aware linting runs on `tsrs` (the `native` catalog entry), the same engine as core's `typecheck`. The budget script passes `--report-unused-disable-directives`, so a suppression comment that no longer suppresses anything fails the gate. Oxlint is pinned to 1.94.0 with `@oxlint/plugins`: 1.95.0 ships the type-aware `no-unsafe-class-instance-assignment` rule, which `oxlint-tsgolint` 7.0.2008 rejects as unknown. Oxlint can also emit compiler diagnostics through `--type-check` at no extra cost, but the lint scope covers tests that live outside `tsconfig.json`, so the gate keeps type checking to the `typecheck` scripts.
   - `apps/website` uses ESLint (`eslint.config.mjs`).
   - The pre-commit hook (`nano-staged`) routes staged files to the matching track.
 - Turborepo drives every workspace task. The `:sdk` aliases filter to `./packages/*`, `build:web` filters to the website, and the unfiltered commands cover all four projects, so a website build pulls its SDK dependencies first through `dependsOn: ["^build"]`.
