@@ -6,6 +6,7 @@ import { computed, useTemplateRef, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useForm } from 'zod-arco-rules/valibot'
 import { TrackType } from '~/api/contact'
+import { useLocShareGate } from '~/composables/useLocShareGate'
 import { useWeilaFetch } from '~/composables/useWeilaFetch'
 import { useWeilaMutation } from '~/composables/useWeilaMutation'
 import { useAppStore } from '~/stores/app'
@@ -42,6 +43,8 @@ const { form, rules, handleSubmit, reset } = useForm(v.object({
   loc_share: v.optional(v.number(), 1),
   track: v.optional(v.number(), 0),
 }))
+
+const { isLocked: isLocShareLocked } = useLocShareGate(form)
 
 watchEffect(() => {
   if (open.value) {
@@ -90,10 +93,6 @@ const getFastTrackTooltip = computed(() => () =>
   isFastTrackDisabled.value
     ? getFlagshipFeatureTooltip()
     : getPowerWarningTooltip(),
-)
-
-const isLocShareLocked = computed(() =>
-  authStore.vip?.supports.location === false,
 )
 
 const getLocShareTooltip = computed(() => () =>
