@@ -336,7 +336,7 @@ case WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_REQ:
 2. 检查 Network 面板中 WASM 文件请求状态
 3. 开启详细日志：
    ```typescript
-   initLogger('MOD:*, CORE:*, FSM:*, AUDIO:*, DB:*, NET:*')
+   setLogLevel('debug')
    ```
 4. 检查 IndexedDB 中 `WeilaConfigDB` 的缓存数据
 

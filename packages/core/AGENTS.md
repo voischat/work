@@ -50,7 +50,7 @@ packages/core/
 │   ├── audio/          # Audio processing, Web Audio API, Opus encoding
 │   ├── database/       # Dexie (IndexedDB) for local storage
 │   ├── fsm/            # XState finite state machine definitions
-│   ├── log/            # Debug logging utilities
+│   ├── log/            # Logging utilities
 │   ├── main/           # Core SDK logic, modules, networking
 │   ├── proto/          # Protobuf message wrappers and utilities
 │   ├── assets/         # Binary resources (WASM, audio files)
@@ -110,7 +110,7 @@ import Long from 'long'
 import { WL_CoreInterface, WL_LoginParam, WL_LoginResult } from 'main/weila_internal_data'
 
 // Internal modules
-import { getLogger } from 'log/weila_log'
+import { createLogger } from 'log/weila_log'
 import { WLConfig } from 'main/weila_config'
 ```
 
@@ -145,7 +145,7 @@ callback.resolve = (value: any) => {
 ### Error Handling
 
 - **try/catch**: Wrap async operations and potential failures
-- **Error logging**: Use `wlerr()` (from log module) before rejecting/throwing
+- **Error logging**: Use `log.error()` (from log module) before rejecting/throwing
 - **Promise rejection**: Return `Promise.reject(new Error(message))` for async failures
 - **Error message format**: Structured strings like `"RET_CODE:${code}-MESSAGE:${msg}:END"`
 - **No custom error classes**: Use standard `Error` objects
@@ -157,28 +157,14 @@ try {
   await WLConfig.loadResource()
   callback.resolve(true)
 } catch (e) {
-  wlerr('加载数据失败', e)
+  log.error('加载数据失败', e)
   callback.reject(e)
 }
 ```
 
 ### Comments
 
-- **JSDoc**: Required for public API methods with `@param` and `@returns`
-- **Inline comments**: Use `//` for explanations (Chinese acceptable for internal logic)
-- **Keep brief**: Explain "why", not "what" (code should be self-documenting)
-
-Example:
-
-```typescript
-/**
- * 注册微喇SDK的事件回调函数，所有的SDK外发信息都会发到这个回调函数中去
- * @param callback 事件回调函数，回调的事件在weila_external_data.d.ts定义
- */
-public weila_onEvent(callback: WL_ExtEventCallback): void {
-    this.emitter.on('ext_event', callback);
-}
-```
+The repository's `no-comments` lint rule allows only tool directives, legal headers, `SAFETY:` rationale and bare links. Put the reason in the code or the commit message instead of a comment.
 
 ---
 
@@ -215,7 +201,7 @@ public weila_onEvent(callback: WL_ExtEventCallback): void {
 
 - Use `markRaw()` to wrap WeilaCore instance (avoid Proxy wrapping)
 - Import dynamically: `const weilaModule = await import('weilasdk');`
-- Initialize logger: `initLogger('MOD:*, CORE:*, FSM:*, AUDIO:*, DB:*, NET:*, -socket-client:*');`
+- Initialize logger: `setLogLevel('debug');`
 
 ### For UniApp Projects
 
@@ -265,7 +251,7 @@ Before committing changes:
 - [ ] Production build succeeds (`pnpm run build`)
 - [ ] Development build succeeds (`pnpm run build:dev`)
 - [ ] No `@ts-ignore` added without justification
-- [ ] Public APIs have JSDoc comments
+- [ ] Public APIs are exported from the entry points
 - [ ] Import paths use configured aliases (not relative paths like `../../`)
-- [ ] Error handling includes logging with `wlerr()`
-- [ ] No console.log left in code (use debug logger instead)
+- [ ] Error handling includes logging with `log.error()`
+- [ ] No console.log left in code (use the SDK logger instead)

@@ -850,33 +850,30 @@ SDK 定义了丰富的错误码，以下是常见错误：
 
 ## 17. 日志配置
 
-### 17.1 初始化日志
+### 17.1 设置日志级别
 
 ```typescript
-import { initLogger } from 'weilasdk'
+import { setLogLevel } from 'weilasdk'
 
-// 初始化日志模块
-// 使用 debug 库的命名空间格式
-initLogger('MOD:*, CORE:*, FSM:*, AUDIO:*, DB:*, NET:*, -socket-client:*')
+setLogLevel('debug')
 ```
 
-### 17.2 日志格式说明
+默认级别为 `silent`，不输出日志。可选级别：`debug`、`info`、`warn`、`error`、`silent`。
 
-- `MOD:*` - 所有模块日志
-- `CORE:*` - 核心模块日志
-- `FSM:*` - 状态机日志
-- `AUDIO:*` - 音频模块日志
-- `DB:*` - 数据库模块日志
-- `NET:*` - 网络模块日志
-- `-socket-client:*` - 排除 socket-client 日志
+### 17.2 日志格式
+
+每条日志输出为 `[模块] 消息 参数...`。模块前缀由创建 logger 时指定，例如 `CORE`、`MOD:session`、`MOD:login`、`FSM`、`AUDIO:core`、`DB:core`、`CFG`、`UTIL`、`ALI-OSS`。
+
+`debug` 和 `info` 写入 `console.log`，`warn` 写入 `console.warn`，`error` 写入 `console.error`。
 
 ### 17.3 获取指定 Logger
 
 ```typescript
-import { getLogger } from 'weilasdk'
+import { createLogger } from 'weilasdk'
 
-const logger = getLogger('CORE:info')
-logger('这是核心模块的日志')
+const log = createLogger('CORE')
+log.info('这是核心模块的日志')
+log.error('操作失败', error)
 ```
 
 ---
@@ -1122,8 +1119,8 @@ import { markRaw } from 'vue'
 const weila = markRaw(new WeilaCore())
 
 // 初始化日志
-import { initLogger } from 'weilasdk'
-initLogger('MOD:*, CORE:*, FSM:*, AUDIO:*, DB:*, NET:*, -socket-client:*')
+import { setLogLevel } from 'weilasdk'
+setLogLevel('debug')
 ```
 
 ### UniApp 项目
