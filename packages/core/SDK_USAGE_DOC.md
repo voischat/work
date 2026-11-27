@@ -21,7 +21,7 @@ core 预览包没有 URL 形式的传递依赖，不需要额外配置。UI 预�
 SDK 只发布 ESM（`dist/*.mjs`），面向浏览器。Node 环境下模块求值期会访问 `window`，无法直接运行。CommonJS 项目请用动态 `import()`，或交给打包器处理。
 
 ```typescript
-import { WeilaCore, initLogger } from '@vois/weila-sdk-core'
+import { WeilaCore, setLogLevel } from '@vois/weila-sdk-core'
 
 // 类型与数据库结构
 import type { WL_IDbUserInfo } from '@vois/weila-sdk-core'
@@ -38,9 +38,9 @@ import type { WL_IDbMsgData } from '@vois/weila-sdk-core/data'
 
 ```typescript
 import { markRaw } from 'vue'
-import { WeilaCore, initLogger } from '@vois/weila-sdk-core'
+import { WeilaCore, setLogLevel } from '@vois/weila-sdk-core'
 
-initLogger('CORE:*, MOD:*, FSM:*, AUDIO:*, DB:*, NET:*')
+setLogLevel('debug')
 const weila = markRaw(new WeilaCore())
 
 weila.weila_onEvent((eventId, eventData) => {
@@ -104,10 +104,10 @@ setConfigData([
 ## 日志
 
 ```typescript
-initLogger('CORE:*, MOD:*, -socket-client:*')
+setLogLevel('debug')
 ```
 
-前缀：`CORE`、`MOD`、`FSM`、`AUDIO`、`DB`、`NET`、`CFG`。
+默认 `silent`，不输出日志。可选 `debug`、`info`、`warn`、`error`、`silent`。模块前缀由 `createLogger('CORE')` 指定。
 
 ## 框架集成
 
