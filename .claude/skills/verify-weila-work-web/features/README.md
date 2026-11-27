@@ -23,5 +23,6 @@ await task.finish({ keep: [] })
 | Dept list page                   | `dept-list.md`               | mapped; pager missing (known gap) |
 | Org tree department multi-select | `org-tree-multi-select.md`   | mapped, driven 2026-11-17         |
 | Member edit permissions          | `member-edit-permissions.md` | mapped, driven 2026-11-18         |
+| Member table filters             | `member-table-filters.md`    | mapped, driven 2026-11-27         |
 
 Add a row here when you map a feature. Keep journeys honest: if seed data lacks a precondition, record the failure in Gotchas instead of weakening the journey.
