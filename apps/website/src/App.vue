@@ -13,6 +13,7 @@ import { onBeforeRouteUpdate, useRouter } from 'vue-router'
 import { useBundleInfo } from '~/composables/useBundleInfo'
 import { appname, useWeilaApi } from '~/composables/useWeilaApi'
 import { useAuthStore } from '~/stores/auth'
+import { toastError } from '~/utils/errorToast'
 import { getApiBaseUrl } from './composables/useWeilaApi'
 import { appid, appkey } from './shared/const'
 import { autoLogin } from './shared/states'
@@ -33,7 +34,6 @@ onBeforeRouteUpdate(() => {
 const router = useRouter()
 
 const REFRESH_COOLDOWN_MS = 30_000
-const ERROR_TOAST_WINDOW_MS = 10_000
 const PUBLIC_PATH_KEYWORDS = [
   'login',
   'auth/refresh',
@@ -46,7 +46,6 @@ const PUBLIC_PATH_KEYWORDS = [
 let refreshing: Promise<AuthModel | undefined> | null = null
 let lastRefreshFailure = 0
 let lastRefreshNotice = 0
-const recentErrorToasts = new Map<string, number>()
 
 const weilaApi = useWeilaApi()
 
@@ -145,19 +144,6 @@ weilaApi.value.hook('auth:error', () => {
   localStorage.setItem('token', '')
   window.location.reload()
 })
-
-function toastError(message: string) {
-  const now = Date.now()
-  if (now - (recentErrorToasts.get(message) ?? 0) < ERROR_TOAST_WINDOW_MS)
-    return
-
-  recentErrorToasts.set(message, now)
-  Message.error(message)
-  window.setTimeout(() => {
-    if (recentErrorToasts.get(message) === now)
-      recentErrorToasts.delete(message)
-  }, ERROR_TOAST_WINDOW_MS)
-}
 
 function onError(error: any) {
   console.error('error', error)
