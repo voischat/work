@@ -10,6 +10,7 @@ import { useRouter } from 'vue-router'
 import { useWeilaFetch } from '~/composables/useWeilaFetch'
 import { useSelfInfoStore } from '~/stores/selfInfo'
 import { useWeilaStore } from '~/stores/weila'
+import { toMemberListFilters } from '~/utils/memberFilters'
 
 definePage({
   alias: 'member',
@@ -43,14 +44,14 @@ watch(key, () => {
   curPage.value = 0
 })
 
-const filters = shallowRef<{ [key: string]: any }>({})
+const filters = shallowRef<Record<string, string[]>>({})
 
 const { data } = useWeilaFetch<{
   count: number
   members: Member[]
 }>(() => `corp/address/get-member-list?page=${curPage.value}&size=${pageSize.value}`, {
   body: () => ({
-    ...filters.value,
+    ...toMemberListFilters(filters.value),
     key: key.value,
   }),
 })
