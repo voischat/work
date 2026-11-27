@@ -31,6 +31,7 @@ interface ModalState {
   fastTitle?: string
   loc?: string
   locDisabled?: boolean | null
+  locChecked?: boolean | null
   locTitle?: string
 }
 
@@ -142,12 +143,13 @@ try {
     hashRoute: string,
     trigger: string,
     shot: string,
+    triggerXpath?: string,
   ): Promise<ModalState> => {
     await page.evaluate((h) => {
       location.hash = h
     }, hashRoute)
     await page.waitForTimeout(4000)
-    await page.click(`xpath=(//*[text()="${trigger}"])[1]`, { label: `open ${trigger} dialog` })
+    await page.click(triggerXpath ?? `xpath=(//*[text()="${trigger}"])[1]`, { label: `open ${trigger} dialog` })
     await page.waitForTimeout(2000)
     await page.screenshot({ path: join(CFG.outDir, `${shot}.png`) })
     return await page.evaluate(() => {
@@ -188,6 +190,9 @@ try {
           ? locSwitch.className.includes('disabled')
             || Boolean(locSwitch.querySelector('input[disabled]'))
           : null,
+        locChecked: locSwitch
+          ? locSwitch.getAttribute('aria-checked') === 'true'
+          : null,
         locTitle,
       }
     })
@@ -204,8 +209,9 @@ try {
     hashRoute: string,
     trigger: string,
     shot: string,
+    triggerXpath?: string,
   ): Promise<void> => {
-    const s = await modalState(hashRoute, trigger, shot)
+    const s = await modalState(hashRoute, trigger, shot, triggerXpath)
     await closeModals()
     await page.waitForTimeout(1000)
     if (s.error) {
@@ -222,11 +228,19 @@ try {
       String(s.locDisabled) === String(ed.locDisabled),
       `位置共享 disabled=${s.locDisabled} (expect ${ed.locDisabled})`,
     )
+    if (ed.locDisabled) chk(s.locChecked === false, `位置共享 off while disabled (checked=${s.locChecked})`)
+    else note(`INFO ${surface} 位置共享 checked=${s.locChecked} (unlocked)`)
     if (ed.locTitle) chk((s.locTitle ?? '').includes(ed.locTitle), `位置共享 hover '${s.locTitle}'`)
     else chk(s.locTitle === '', `位置共享 no hover hint when enabled`)
   }
 
-  await checkModal('edit-member', '#/contact/member', '编辑', 'edit-member-modal')
+  await checkModal(
+    'edit-member',
+    '#/contact/member',
+    '编辑',
+    'edit-member-modal',
+    'xpath=(//tr[.//span[contains(@class,"arco-tag-green")]]//*[text()="编辑"])[1]',
+  )
   await checkModal('create-member', '#/contact/member', '创建成员', 'create-member-modal')
   await checkModal('add-device', '#/contact/member', '新增设备', 'add-device-modal')
 
