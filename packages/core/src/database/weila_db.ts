@@ -43,15 +43,14 @@ import {
 } from './weila_db_data'
 import { isNumber, isRecord } from 'main/weila_type_guards'
 import { dbEnum } from './db_enum'
-import { getLogger } from 'log/weila_log'
+import { createLogger } from 'log/weila_log'
 import TinyPinyin from 'tiny-pinyin'
 import { default_group_logo } from 'main/weila_internal_data'
 import { TextMsgDataParser } from 'proto/weilapb_textmsg_parser'
 import { parseSessionServiceMsg } from 'proto/weilapb_service_msg_parser'
 import { AsyncTime, calculateOpusDataFrame, getMsgDataIdByCombo, SyncTime } from 'main/weila_utils'
 
-const wllog = getLogger('DB:core:info')
-const wlerr = getLogger('DB:core:err')
+const log = createLogger('DB:core')
 
 function readInstalledSchemaVersion(dbName: string): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -177,7 +176,7 @@ class WeilaDB extends Dexie {
     } catch (error) {
       const initError = error instanceof Error ? error : new Error(String(error))
       this.initError = initError
-      wlerr('读取数据库版本失败:', dbName, initError)
+      log.error('读取数据库版本失败:', dbName, initError)
       throw initError
     }
 
@@ -187,7 +186,7 @@ class WeilaDB extends Dexie {
       )
 
       this.initError = error
-      wlerr(
+      log.error(
         '拒绝降级打开数据库 %s: 已安装版本 %d, 当前 SDK 声明版本 %d (Dexie VersionError)',
         dbName,
         installedVersion,
@@ -202,13 +201,13 @@ class WeilaDB extends Dexie {
     try {
       await this.instance.repairLegacyServiceMsgDatas()
     } catch (error) {
-      wlerr('修复遗留服务消息失败:', dbName, error)
+      log.error('修复遗留服务消息失败:', dbName, error)
     }
 
     try {
       await this.instance.migrateServiceSessionExtra()
     } catch (error) {
-      wlerr('迁移客服会话 extra 失败:', dbName, error)
+      log.error('迁移客服会话 extra 失败:', dbName, error)
     }
   }
 
@@ -273,7 +272,7 @@ class WeilaDB extends Dexie {
     this.extensions = this.table('extensions')
     this.service = this.table('service')
     this.service_staffs = this.table('service_staffs')
-    wllog('create db name:%s version:%d', dbName, version, this)
+    log.info('create db name:%s version:%d', dbName, version, this)
 
     this.settings
       .get(WL_IDbSettingID.SETTING_MSG_SENDING_SEQ)
@@ -290,7 +289,7 @@ class WeilaDB extends Dexie {
         return undefined
       })
       .catch((error) => {
-        wlerr('初始化数据库设置失败:', this.name, error)
+        log.error('初始化数据库设置失败:', this.name, error)
       })
   }
 
@@ -370,7 +369,7 @@ class WeilaDB extends Dexie {
       }
 
       inheritSessionProfile(session, await this.getSession(session.sessionId, session.sessionType))
-      wllog('sessionId:%s lastMsgDataRaw:', session.sessionId, raw.latestMsgData)
+      log.info('sessionId:%s lastMsgDataRaw:', session.sessionId, raw.latestMsgData)
       const latestMsgData = raw.latestMsgData
 
       if (latestMsgData) {
@@ -379,7 +378,7 @@ class WeilaDB extends Dexie {
           this.loginUserId,
         )
 
-        wllog('sessionId:%s lastMsgData:', session.sessionId, msgDatas)
+        log.info('sessionId:%s lastMsgData:', session.sessionId, msgDatas)
 
         if (msgDatas.length) {
           session.lastMsgId = msgDatas[0].msgId
@@ -400,7 +399,7 @@ class WeilaDB extends Dexie {
   @AsyncTime()
   public async putSessions(sessions: WL_IDbSession[]): Promise<boolean> {
     const ids = await this.sessions.bulkPut(sessions, { allKeys: true })
-    wllog('存入%d个会话', ids.length)
+    log.info('存入%d个会话', ids.length)
 
     return true
   }
@@ -408,7 +407,7 @@ class WeilaDB extends Dexie {
   @AsyncTime()
   public async putSession(session: WL_IDbSession): Promise<string> {
     const id = await this.sessions.put(session)
-    wllog('存入单个会话，返回id', id)
+    log.info('存入单个会话，返回id', id)
 
     return id
   }
@@ -469,7 +468,7 @@ class WeilaDB extends Dexie {
     sessionType: number,
     params: WL_IDbSessionSettingParams,
   ): Promise<boolean> {
-    wllog('updateSessionSetting', params)
+    log.info('updateSessionSetting', params)
     const setting: WL_IDbSessionSettingParams = {}
 
     if (params.tts !== undefined) {
@@ -505,7 +504,7 @@ class WeilaDB extends Dexie {
     let sessionSetting = await this.session_setting.get(id)
 
     if (sessionSetting !== undefined) {
-      wllog('修改.......', setting)
+      log.info('修改.......', setting)
       await this.session_setting.where('combo_id_type').equals(id).modify(setting)
     } else {
       sessionSetting = {
@@ -540,7 +539,7 @@ class WeilaDB extends Dexie {
   @AsyncTime()
   public async getSessions(): Promise<WL_IDbSession[]> {
     const list = await this.sessions.toCollection().toArray()
-    wllog(list)
+    log.info('getSessions:', list)
 
     return list
   }
@@ -599,7 +598,7 @@ class WeilaDB extends Dexie {
   @AsyncTime()
   public async putGroups(groups: WL_IDbGroup[]): Promise<boolean> {
     const ids = await this.groups.bulkPut(groups, { allKeys: true })
-    wllog('存入%d个群:', ids.length)
+    log.info('存入%d个群:', ids.length)
 
     return true
   }
@@ -607,7 +606,7 @@ class WeilaDB extends Dexie {
   @AsyncTime()
   public async putGroup(group: WL_IDbGroup): Promise<string> {
     const id = await this.groups.put(group)
-    wllog('存入单个群:', id)
+    log.info('存入单个群:', id)
 
     return id
   }
@@ -617,7 +616,7 @@ class WeilaDB extends Dexie {
     return this.transaction<void>('rw', this.groups, this.group_members, async () => {
       await this.groups.bulkDelete(groupIds)
       await this.group_members.where('groupId').anyOf(groupIds).delete()
-      wllog('批量删除群')
+      log.info('批量删除群')
     })
   }
 
@@ -688,7 +687,7 @@ class WeilaDB extends Dexie {
   @AsyncTime()
   public async putMemberInfos(memberInfos: WL_IDbMemberInfo[]): Promise<boolean> {
     const ids = await this.group_members.bulkPut(memberInfos, { allKeys: true })
-    wllog('批量存入%d个成员信息', ids.length)
+    log.info('批量存入%d个成员信息', ids.length)
 
     return true
   }
@@ -696,7 +695,7 @@ class WeilaDB extends Dexie {
   @AsyncTime()
   public async putMemberInfo(memberInfo: WL_IDbMemberInfo): Promise<string> {
     const id = await this.group_members.put(memberInfo)
-    wllog('存入成员信息', id)
+    log.info('存入成员信息', id)
 
     return id
   }
@@ -711,7 +710,7 @@ class WeilaDB extends Dexie {
       })
       .delete()
 
-    wllog('删除了%d个群成员', count)
+    log.info('删除了%d个群成员', count)
   }
 
   @AsyncTime()
@@ -846,7 +845,7 @@ class WeilaDB extends Dexie {
   @AsyncTime()
   public async putFriendInfos(friendInfos: WL_IDbFriendInfo[]): Promise<boolean> {
     const ids = await this.friends.bulkPut(friendInfos, { allKeys: true })
-    wllog('批量存入%d个好友:', ids.length)
+    log.info('批量存入%d个好友:', ids.length)
 
     return true
   }
@@ -854,7 +853,7 @@ class WeilaDB extends Dexie {
   @AsyncTime()
   public async putFriendInfo(friendInfo: WL_IDbFriendInfo): Promise<number> {
     const id = await this.friends.put(friendInfo)
-    wllog('存入单个好友:', id)
+    log.info('存入单个好友:', id)
 
     return id
   }
@@ -972,16 +971,16 @@ class WeilaDB extends Dexie {
   @AsyncTime()
   public async putUserInfos(userInfos: WL_IDbUserInfo[]): Promise<boolean> {
     const ids = await this.users.bulkPut(userInfos, { allKeys: true })
-    wllog('批量存入%d个用户信息:', ids.length)
+    log.info('批量存入%d个用户信息:', ids.length)
 
     return true
   }
 
   @AsyncTime()
   public async putUserInfo(userInfo: WL_IDbUserInfo): Promise<number> {
-    wllog('存入单个用户信息:', this, userInfo)
+    log.info('存入单个用户信息:', this, userInfo)
     const id = await this.users.put(userInfo)
-    wllog('存入单个用户信息:', id)
+    log.info('存入单个用户信息:', id)
 
     return id
   }
@@ -1040,7 +1039,7 @@ class WeilaDB extends Dexie {
   ): WL_IDbMsgData[] {
     const count = msgDataRaws.length
     const msgDatas: WL_IDbMsgData[] = []
-    wllog('msgCount:', count)
+    log.info('msgCount:', count)
 
     for (let i = 0; i < count; i++) {
       const raw = msgDataRaws[i]
@@ -1175,7 +1174,7 @@ class WeilaDB extends Dexie {
     }
 
     const ids = await this.msgDatas.bulkPut(msgDatas, { allKeys: true })
-    wllog('批量存入%d条消息:', ids.length)
+    log.info('批量存入%d条消息:', ids.length)
 
     return ids
   }
@@ -1209,7 +1208,7 @@ class WeilaDB extends Dexie {
       await this.sessions.bulkPut(repairedSessions)
     }
 
-    wllog('修复遗留服务消息%d条', repairedMsgDatas.length)
+    log.info('修复遗留服务消息%d条', repairedMsgDatas.length)
 
     return repairedMsgDatas.length
   }
@@ -1272,14 +1271,14 @@ class WeilaDB extends Dexie {
       await this.sessions.bulkPut(migrated)
     }
 
-    wllog('迁移客服会话 extra %d 条', migrated.length)
+    log.info('迁移客服会话 extra %d 条', migrated.length)
 
     return migrated.length
   }
 
   @AsyncTime()
   public async delMsgDataByComboId(combo_id: string): Promise<void> {
-    wllog('删除单个消息:', combo_id)
+    log.info('删除单个消息:', combo_id)
 
     return this.msgDatas.delete(combo_id)
   }
@@ -1345,7 +1344,7 @@ class WeilaDB extends Dexie {
     count: number,
   ): Promise<WL_IDbMsgData[]> {
     await this.applyWithdrawControlMessages(sessionId, sessionType)
-    wllog('获取最后%d条消息:', count)
+    log.info('获取最后%d条消息:', count)
 
     const result = await this.msgDatas
       .orderBy('created')
@@ -1376,7 +1375,7 @@ class WeilaDB extends Dexie {
       count = fromMsgId
     }
 
-    wllog('获取从%d获取%d条消息:', fromMsgId, count)
+    log.info('获取从%d获取%d条消息:', fromMsgId, count)
 
     const result = await this.msgDatas
       .orderBy('created')
@@ -1441,7 +1440,7 @@ class WeilaDB extends Dexie {
       .equals([sessionId, sessionType])
       .delete()
 
-    wllog('批量删除消息%d个', deletedNum)
+    log.info('批量删除消息%d个', deletedNum)
   }
 
   @AsyncTime()
@@ -1462,7 +1461,7 @@ class WeilaDB extends Dexie {
   @AsyncTime()
   public async putNotification(notification: Omit<WL_IDbNotification, 'id'>): Promise<number> {
     const id = await this.notifications.put(notification)
-    wllog('存入通知消息:', id)
+    log.info('存入通知消息:', id)
 
     return id
   }
@@ -1470,7 +1469,7 @@ class WeilaDB extends Dexie {
   @AsyncTime()
   public async putNotifications(notifications: WL_IDbNotification[]): Promise<number[]> {
     const ids = await this.notifications.bulkPut(notifications, { allKeys: true })
-    wllog('批量存入%d条通知消息:', ids.length)
+    log.info('批量存入%d条通知消息:', ids.length)
 
     return ids
   }

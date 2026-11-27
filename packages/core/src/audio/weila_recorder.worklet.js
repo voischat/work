@@ -1,10 +1,9 @@
 import { WLAudioRecorderEvent } from './weila_audio_data'
 import { WeilaRingBuffer } from './weila_ringbuffer'
 import opus from './opus.js'
-import { getLogger } from 'log/weila_log'
+import { createLogger } from 'log/weila_log'
 
-const wllog = getLogger('AUDIO:recorder_worker:info')
-const wlerr = getLogger('AUDIO:recorder_worker:err')
+const log = createLogger('AUDIO:recorder_worker')
 
 const RECORD_OPENING = 0
 const RECORD_OPENED = 1
@@ -30,7 +29,7 @@ class WLRecorderWorklet extends AudioWorkletProcessor {
     this.pcmArray = null
     this.frameRingBuffer = null
     this.transportWithList = options.processorOptions.transportWithList
-    wllog('传输类型:%s', this.transportWithList ? '数组' : '缓存')
+    log.info('传输类型:%s', this.transportWithList ? '数组' : '缓存')
   }
 
   reportRspEvent(event, result, errorMsg) {
@@ -58,7 +57,7 @@ class WLRecorderWorklet extends AudioWorkletProcessor {
 
   onMessage(event) {
     const ev = event.data
-    wllog('录音器收到事件:%d', ev.event)
+    log.info('录音器收到事件:%d', ev.event)
     switch (ev.event) {
       case WLAudioRecorderEvent.WL_WORKLET_NODE_OPEN_REQ:
         {

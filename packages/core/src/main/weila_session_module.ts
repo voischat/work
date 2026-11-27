@@ -40,7 +40,7 @@ import Long from 'long'
 import { WeilaPBSessionWrapper } from 'proto/weilapb_session_wrapper'
 import { WeilaDB } from 'db/weila_db'
 import { WLBuildMsgRet } from 'proto/weilapb_wrapper_data'
-import { getLogger } from 'log/weila_log'
+import { createLogger } from 'log/weila_log'
 import WLPttFsm from 'main/weila_pttFsm'
 import { isRecord, type JsonValue } from 'main/weila_type_guards'
 import {
@@ -59,8 +59,7 @@ import {
   WL_PttRecordState,
 } from 'main/weila_external_data'
 
-const wllog = getLogger('MOD:session:info')
-const wlerr = getLogger('MOD:session:err')
+const log = createLogger('MOD:session')
 
 interface SpeechSynthesisPayload {
   user_id: number
@@ -492,7 +491,7 @@ export default class WLSessionModule {
 
     if (buildResult.resultCode === 0) {
       const rsp = await this.coreInterface.sendPbMsg(buildResult)
-      wllog('设已读的响应结果', rsp)
+      log.info('设已读的响应结果', rsp)
 
       return true
     }
@@ -555,7 +554,7 @@ export default class WLSessionModule {
           try {
             await this.coreInterface.executeCoreFunc('weila_getGroupFromServer', session.sessionId)
           } catch (err) {
-            wlerr('新消息创建会话时获取群信息失败:', {
+            log.error('新消息创建会话时获取群信息失败:', {
               sessionId: session.sessionId,
               sessionType: session.sessionType,
               err,
@@ -585,7 +584,7 @@ export default class WLSessionModule {
     if (shouldMarkRead && msgData.msgId > 0) {
       void this.syncSessionReadAck(msgData.sessionId, msgData.sessionType, msgData.msgId).catch(
         (reason) => {
-          wlerr('同步活跃会话已读失败:', reason)
+          log.error('同步活跃会话已读失败:', reason)
         },
       )
     }
@@ -640,7 +639,7 @@ export default class WLSessionModule {
         sign: MD5(et + appKey).toString(),
       }
 
-      wllog('文字转语音，文字：%s', data.text)
+      log.info('文字转语音，文字：%s', data.text)
 
       const response = await fetchWithTimeout(
         '/v1/speech/synthesis/ptt-flx?access-token=' + weilaToken,
@@ -666,12 +665,12 @@ export default class WLSessionModule {
                   return value.arrayBuffer()
                 }
 
-                wlerr('获取音频数据出错:', value.statusText)
+                log.error('获取音频数据出错:', value.statusText)
 
                 return null
               })
               .catch((reason) => {
-                wlerr('获取音频数据失败', reason)
+                log.error('获取音频数据失败', reason)
               })
 
             if (audioData) {
@@ -749,7 +748,7 @@ export default class WLSessionModule {
             loginUserInfo.userId,
           )
 
-          wllog('转换后的消息:', msgDatas, msgDatas.length)
+          log.info('转换后的消息:', msgDatas, msgDatas.length)
 
           if (msgDatas.length) {
             const msgData = msgDatas[0]
@@ -771,7 +770,7 @@ export default class WLSessionModule {
                   }
                 })
                 .catch((reason) => {
-                  wlerr('转TTS出错', reason)
+                  log.error('转TTS出错', reason)
                 })
             } else if (msgData.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE) {
               msgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_NEW
@@ -780,7 +779,7 @@ export default class WLSessionModule {
               msgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_READ
             }
 
-            wllog('incoming msgdata:', msgData)
+            log.info('incoming msgdata:', msgData)
 
             if (!isPttMsg) {
               if (msgData.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE) {
@@ -797,7 +796,7 @@ export default class WLSessionModule {
                     withdrawMsgId,
                   )
 
-                  wllog('withdraw msg is:', withdrawMsgData)
+                  log.info('withdraw msg is:', withdrawMsgData)
 
                   if (withdrawMsgData) {
                     withdrawMsgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_WITHDRAW
@@ -815,7 +814,7 @@ export default class WLSessionModule {
       } else if (
         serviceHead.commandId === WL.Session.SessionCommandId.SESSION_COMMAND_BURST_CONTROL
       ) {
-        wllog('收到发言控制消息:', sessionMessage.ntfBurstControl)
+        log.info('收到发言控制消息:', sessionMessage.ntfBurstControl)
       }
     }
   }
@@ -862,7 +861,7 @@ export default class WLSessionModule {
     if (buildResult.resultCode === 0) {
       const rspGetMsg: WL.Session.IRspGetMsg = await this.coreInterface.sendPbMsg(buildResult)
       const msgList = rspGetMsg.msgList ?? []
-      wllog('从服务器获取:' + msgList.length + ' 条记录')
+      log.info('从服务器获取:' + msgList.length + ' 条记录')
 
       let msgDatas = WeilaDB.getInstance().convertFromMsgDataRaws(
         msgList,
@@ -927,7 +926,7 @@ export default class WLSessionModule {
       })
 
       await WeilaDB.getInstance().putMsgDatas(msgDatas)
-      wllog('从服务器中获取会话%d条消息成功', msgDatas.length)
+      log.info('从服务器中获取会话%d条消息成功', msgDatas.length)
 
       return true
     }
@@ -969,7 +968,7 @@ export default class WLSessionModule {
         this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_MSG_AUDIO_READY_IND, msgData)
       }
     } catch (e) {
-      wlerr('后台获取音频数据异常:', e)
+      log.error('后台获取音频数据异常:', e)
     } finally {
       this.audioPrefetchInFlight.delete(msgData.combo_id)
     }
@@ -994,7 +993,7 @@ export default class WLSessionModule {
       )
     }
 
-    wllog('从数据库得到的%d条数据:', dbMsgDataList.length)
+    log.info('从数据库得到的%d条数据:', dbMsgDataList.length)
 
     if (dbMsgDataList.length < count) {
       await this.getMsgDataFromServer(sessionId, sessionType, startMsgId, count)
@@ -1075,7 +1074,7 @@ export default class WLSessionModule {
         30000,
       )
 
-      wllog('buildGetSessionReq type=%d:', type, rspMsg)
+      log.info('buildGetSessionReq type=%d:', type, rspMsg)
 
       const latestUpdated = Long.fromValue(rspMsg.latestUpdated ?? 0).toNumber()
 
@@ -1088,14 +1087,14 @@ export default class WLSessionModule {
       await dbInstance.putSettingItem(settingItem)
 
       const sessionInfoList = rspMsg.sessionInfoList ?? []
-      wllog('initSessions type=%d:', type, sessionInfoList)
+      log.info('initSessions type=%d:', type, sessionInfoList)
 
       if (sessionInfoList.length) {
         const sessionInfos: WL_IDbSession[] =
           await dbInstance.convertFromSessionRaw(sessionInfoList)
 
         await dbInstance.putSessions(sessionInfos)
-        wllog('after convert type=%d:', type, sessionInfos)
+        log.info('after convert type=%d:', type, sessionInfos)
       }
 
       return true
@@ -1109,7 +1108,7 @@ export default class WLSessionModule {
     await this.syncSessionsByType(1, WL_IDbSettingID.SETTING_CORP_SESSION_LATEST_UPDATE)
 
     this.sessionList = await WeilaDB.getInstance().getSessions()
-    wllog('会话列表:', this.sessionList)
+    log.info('会话列表:', this.sessionList)
 
     return true
   }
@@ -1231,14 +1230,14 @@ export default class WLSessionModule {
           }
         }
 
-        wllog('发送消息成功,返回结果id:', rspMsg.msgId)
+        log.info('发送消息成功,返回结果id:', rspMsg.msgId)
         dbMsgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_SENT
         dbMsgData.msgId = rspMsg.msgId ?? 0
         dbMsgData.combo_id = getMsgDataIdByCombo(dbMsgData, 0)
 
         if (index !== -1) {
           this.applySessionMsgData(this.sessionList[index], dbMsgData, true)
-          wllog('session:', this.sessionList)
+          log.info('session:', this.sessionList)
           await this.persistSessionUpdate(this.sessionList[index])
         } else {
           await this.startSession(sessionId, sessionType, undefined, dbMsgData.msgId, dbMsgData)
@@ -1246,7 +1245,7 @@ export default class WLSessionModule {
 
         return true
       } catch (e) {
-        wlerr('发送会话消息失败:', e)
+        log.error('发送会话消息失败:', e)
         dbMsgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_UNSENT
 
         return Promise.reject(e)
@@ -1457,7 +1456,7 @@ export default class WLSessionModule {
 
     if (!burstInfo) return
 
-    wllog('onPttPacketRecv', burstInfo)
+    log.info('onPttPacketRecv', burstInfo)
 
     const pttData: WL_IDbPttData = {
       seq: pttPacket.seq,

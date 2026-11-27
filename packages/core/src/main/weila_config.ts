@@ -5,10 +5,9 @@ import start_record_wav from '../assets/start_record.wav'
 import stop_record_wav from '../assets/stop_record.wav'
 import opus_lib_wasm from '../assets/opuslibs.wasm'
 
-import { getLogger } from 'log/weila_log'
+import { createLogger } from 'log/weila_log'
 
-const wllog = getLogger('CFG:info')
-const wlerr = getLogger('CFG:err')
+const log = createLogger('CFG')
 
 enum WL_ConfigID {
   WL_RES_RING_START_PLAY_ID,
@@ -90,7 +89,7 @@ function validateWasmData(data: ArrayBuffer, url: string): void {
 
 function setConfigData(params: SetConfigDataParam[]) {
   for (let param of params) {
-    wllog('setConfigData id:%d url:%s', param.id, param.url)
+    log.info('setConfigData id:%d url:%s', param.id, param.url)
 
     for (let item of configItemInfo) {
       if (param.id === item.id) {
@@ -106,7 +105,7 @@ const WLConfig = {
     const db = new WLConfigDB()
 
     for (let item of configItemInfo) {
-      wllog('id:%d url:%s', item.id, item.url)
+      log.info('id:%d url:%s', item.id, item.url)
 
       const configDataItem: IConfigData = {
         latestTime: new Date().getTime(),
@@ -176,12 +175,12 @@ const WLConfig = {
     dataType: XMLHttpRequestResponseType,
   ): Promise<Blob | ArrayBuffer | string | null> {
     return new Promise<Blob | ArrayBuffer | string | null>((resolve, reject) => {
-      wllog('获取URL:' + url + ' 的数据')
+      log.info('获取URL:' + url + ' 的数据')
       const xhr = new XMLHttpRequest()
       xhr.responseType = dataType
       xhr.open('GET', url)
       xhr.onloadend = () => {
-        wllog('获取数据结束:', xhr.readyState)
+        log.info('获取数据结束:', xhr.readyState)
 
         if (xhr.readyState === XMLHttpRequest.DONE) {
           resolve(xhr.response)
@@ -205,7 +204,7 @@ const WLConfig = {
 
       return item?.data
     } catch (e) {
-      wlerr('获取配置信息出错:' + e)
+      log.error('获取配置信息出错:' + e)
       throw e
     }
   },

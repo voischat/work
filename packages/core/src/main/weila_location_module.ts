@@ -1,4 +1,4 @@
-import { getLogger } from 'log/weila_log'
+import { createLogger } from 'log/weila_log'
 import { WL_CoreInterface } from 'main/weila_internal_data'
 import { WL } from 'proto/weilapb'
 import { WL_IDbLocationInfo } from 'db/weila_db_data'
@@ -6,7 +6,7 @@ import { WeilaPbLocationWrapper } from 'proto/weilapb_location_wrapper'
 import { WLBuildMsgRet, WLSessionInfo } from 'proto/weilapb_wrapper_data'
 import Long from 'long'
 
-const wllog = getLogger('MOD:location:info')
+const log = createLogger('MOD:location')
 
 type LocationResponseRoute = (
   serviceHead: WL.Service.ServiceHead.$Properties,
@@ -18,7 +18,7 @@ export default class WLLocationModule {
     [
       WL.Location.LocationCommandId.LOCATION_COMMAND_GET_LOCATION,
       (serviceHead, locationMessage) => {
-        wllog('获取的消息结果', locationMessage)
+        log.info('获取的消息结果', locationMessage)
         this.coreInterface.rspPbMsg(
           serviceHead.seq ?? 0,
           serviceHead.resultCode ?? 0,

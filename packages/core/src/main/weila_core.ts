@@ -55,7 +55,7 @@ import {
 } from 'db/weila_db_data'
 import { WLConfig } from 'main/weila_config'
 import { dbEnum } from 'db/db_enum'
-import { getLogger } from 'log/weila_log'
+import { createLogger } from 'log/weila_log'
 import { fetchAudioDataFromUrl, getMsgDataIdByCombo } from 'main/weila_utils'
 import { isCallable, isNumber, isRecord, isString } from 'main/weila_type_guards'
 import WLLoginModule from 'main/weila_login_module'
@@ -81,8 +81,7 @@ import { AliOssHelper } from 'main/weila_ali_oss'
 import { TextMsgDataParser } from 'proto/weilapb_textmsg_parser'
 import WLBusinessModule from 'main/weila_business_module'
 
-const wllog = getLogger('CORE:info')
-const wlerr = getLogger('CORE:err')
+const log = createLogger('CORE')
 
 interface WL_SubscribeRequest {
   topic: WL_SubscribeTopic
@@ -209,7 +208,7 @@ class WeilaCore implements WL_CoreInterface {
 
     const previousState = { current: this.mainFsmService.getSnapshot() }
     this.mainFsmService.subscribe((state: { value: unknown }) => {
-      wllog(
+      log.info(
         '从状态:%s ===> 状态:%s',
         JSON.stringify(previousState.current.value),
         JSON.stringify(state.value),
@@ -657,7 +656,7 @@ class WeilaCore implements WL_CoreInterface {
         sessionName,
       })
     } catch (err) {
-      wlerr('补全会话资料失败:', err)
+      log.error('补全会话资料失败:', err)
     } finally {
       this.resolvingSessionProfileKeys.delete(key)
     }
@@ -669,7 +668,7 @@ class WeilaCore implements WL_CoreInterface {
     try {
       return await this.profileResolver(userId)
     } catch (err) {
-      wlerr('补全用户资料失败:', err)
+      log.error('补全用户资料失败:', err)
 
       return null
     }
@@ -681,7 +680,7 @@ class WeilaCore implements WL_CoreInterface {
     try {
       return await this.groupProfileResolver(groupId)
     } catch (err) {
-      wlerr('补全群资料失败:', err)
+      log.error('补全群资料失败:', err)
 
       return null
     }
@@ -978,7 +977,7 @@ class WeilaCore implements WL_CoreInterface {
         data,
       )
     } catch (error) {
-      wlerr('上传文件失败:', error)
+      log.error('上传文件失败:', error)
       msgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_UNSENT
       await WeilaDB.getInstance().putMsgData(msgData)
       this.sendExtEvent(WL_ExtEventID.WL_EXT_MSG_SEND_IND, msgData)
@@ -1119,9 +1118,9 @@ class WeilaCore implements WL_CoreInterface {
           avatar = uploadResult.remoteUrl
         }
 
-        wllog('上传头像成功:', uploadResult)
+        log.info('上传头像成功:', uploadResult)
       } catch (e) {
-        wllog('上传头像失败:', e)
+        log.info('上传头像失败:', e)
         avatar = ''
       }
     }
@@ -1176,7 +1175,7 @@ class WeilaCore implements WL_CoreInterface {
   ): Promise<string> {
     const name = new Date().toTimeString() + '_map.png'
     const url = await this.uploadFileToCache(sessionId, sessionType, name, imageFile)
-    wllog('weila_uploadImageCache', url)
+    log.info('weila_uploadImageCache', url)
 
     return url
   }
@@ -1398,7 +1397,7 @@ class WeilaCore implements WL_CoreInterface {
       }
     }
 
-    wlerr(`weila_subscribe: unknown topic '${topic}'`)
+    log.error(`weila_subscribe: unknown topic '${topic}'`)
 
     return () => {}
   }

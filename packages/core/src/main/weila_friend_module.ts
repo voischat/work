@@ -14,7 +14,7 @@ import {
   WL_IDbUserInfo,
 } from 'db/weila_db_data'
 import { dbEnum } from 'db/db_enum'
-import { getLogger } from 'log/weila_log'
+import { createLogger } from 'log/weila_log'
 import { AsyncTime } from 'main/weila_utils'
 import { isNumber } from 'main/weila_type_guards'
 import {
@@ -24,8 +24,7 @@ import {
   WL_FriendInviteInfo,
 } from 'main/weila_external_data'
 
-const wllog = getLogger('MOD:friend:info')
-const wlerr = getLogger('MOD:friend:err')
+const log = createLogger('MOD:friend')
 
 type FriendResponseRoute = (
   serviceHead: WL.Service.ServiceHead.$Properties,
@@ -106,7 +105,7 @@ export default class WLFriendModule {
         if (route) route(serviceHead, serverMessage.friendMessage)
       }
     } else if (serviceHead.commandType === WL.Service.CommandType.COMMAND_NOTIFY) {
-      wllog('好友的通知信息', serverMessage)
+      log.info('好友的通知信息', serverMessage)
       const friendMessage = serverMessage.friendMessage
 
       if (!friendMessage) return
@@ -123,7 +122,7 @@ export default class WLFriendModule {
             this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_FRIEND_DELETED_IND, userId)
           })
           .catch((reason) => {
-            wlerr('删除好友:%d失败', userId, reason)
+            log.error('删除好友:%d失败', userId, reason)
           })
       } else if (
         serviceHead.commandId === WL.Friend.FriendCommandId.FRIEND_COMMAND_CHANGE_FRIENDINFO
@@ -175,12 +174,12 @@ export default class WLFriendModule {
             }
 
             await WeilaDB.getInstance().putFriendInfo(friendInfo)
-            wllog('变更好友成功')
+            log.info('变更好友成功')
 
             this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_FRIEND_MODIFIED_IND, friendInfo)
           })
           .catch((reason) => {
-            wlerr('好友信息变更失败', reason)
+            log.error('好友信息变更失败', reason)
           })
       } else if (serviceHead.commandId === WL.Friend.FriendCommandId.FRIEND_COMMAND_FRIEND_INVITE) {
         void (async () => {
@@ -279,7 +278,7 @@ export default class WLFriendModule {
           const friend = await WeilaDB.getInstance().getFriend(friendInfo.userId)
           this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_FRIEND_NEW_IND, friend)
         })().catch((reason) => {
-          wlerr('保存好友信息出错:', reason)
+          log.error('保存好友信息出错:', reason)
         })
       }
     }
@@ -303,7 +302,7 @@ export default class WLFriendModule {
     }
 
     const buildResult = WeilaPbFriendWrapper.buildGetFriendInfoReq(Long.fromValue(lastUpdateTime))
-    wllog('最近更新时间:', lastUpdateTime)
+    log.info('最近更新时间:', lastUpdateTime)
 
     if (buildResult.resultCode === 0) {
       const rspGetFriendInfo: WL.Friend.IRspGetFriendInfo = await this.coreInterface.sendPbMsg(
@@ -329,7 +328,7 @@ export default class WLFriendModule {
         return value.userId
       })
 
-      wllog('获取的好友用户id', friendUserIdList)
+      log.info('获取的好友用户id', friendUserIdList)
 
       if (deleteFriendIdList.length) {
         await WeilaDB.getInstance().delFriendInfos(deleteFriendIdList)
@@ -337,15 +336,15 @@ export default class WLFriendModule {
 
       if (normalFriendList.length) {
         const friendInfos: WL_IDbFriendInfo[] = dbInstance.convertFromFriendRaw(normalFriendList)
-        wllog('转换后的好友信息:', friendInfos)
+        log.info('转换后的好友信息:', friendInfos)
         result = await dbInstance.putFriendInfos(friendInfos)
-        wllog('保存好友结果:', result)
+        log.info('保存好友结果:', result)
         const userInfos = dbInstance.convertFromUserRaw(rspGetFriendInfo.userInfos ?? [])
         await dbInstance.putUserInfos(userInfos)
       }
 
       friendSetting.data = new Date().getUTCSeconds() / 1000
-      wllog('下一次更新时间:', friendSetting.data)
+      log.info('下一次更新时间:', friendSetting.data)
       await dbInstance.putSettingItem(friendSetting)
 
       return true
@@ -467,7 +466,7 @@ export default class WLFriendModule {
     if (buildMsgRet.resultCode === 0) {
       const friends: WL_IDbFriend[] = []
       const rsp: WL.Friend.IRspGetFriendInfo = await this.coreInterface.sendPbMsg(buildMsgRet)
-      wllog('getDeviceSubFriends', rsp)
+      log.info('getDeviceSubFriends', rsp)
 
       if (rsp.friendInfos) {
         const friendInfos: WL_IDbFriendInfo[] = WeilaDB.getInstance().convertFromFriendRaw(

@@ -267,9 +267,6 @@ catalogs:
     '@types/crypto-js':
       specifier: ^4.2.2
       version: 4.2.2
-    '@types/debug':
-      specifier: ^4.1.13
-      version: 4.1.13
     '@types/md5':
       specifier: ^2.3.6
       version: 2.3.6
@@ -348,9 +345,6 @@ catalogs:
     dayjs:
       specifier: ^1.11.23
       version: 1.11.23
-    debug:
-      specifier: ^4.4.3
-      version: 4.4.3
     dexie:
       specifier: ^4.4.7
       version: 4.4.7
@@ -942,9 +936,6 @@ importers:
       crypto-js:
         specifier: 'catalog:'
         version: 4.2.0
-      debug:
-        specifier: 'catalog:'
-        version: 4.4.3(supports-color@10.2.2)
       dexie:
         specifier: 'catalog:'
         version: 4.4.7
@@ -979,9 +970,6 @@ importers:
       '@types/crypto-js':
         specifier: 'catalog:'
         version: 4.2.2
-      '@types/debug':
-        specifier: 'catalog:'
-        version: 4.1.13
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.6

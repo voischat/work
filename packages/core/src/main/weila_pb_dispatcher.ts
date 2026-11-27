@@ -1,11 +1,11 @@
-import { getLogger } from 'log/weila_log'
+import { createLogger } from 'log/weila_log'
 import { getPbResultCodeMassage } from 'main/weila_utils'
 import { dbEnum } from 'db/db_enum'
 import { WL } from 'proto/weilapb'
 import type { WLBuildMsgRet } from 'proto/weilapb_wrapper_data'
 import { WL_PbMsgData } from 'main/weila_internal_data'
 
-const wllog = getLogger('CORE:info')
+const log = createLogger('CORE')
 
 /* oxlint-disable anti-slop/no-unknown-parameters -- the dispatcher hands each decoded proto response to the promise of the module that sent the request; that module owns the response shape */
 interface WL_WaitingRspPbMsgInfo {
@@ -78,14 +78,14 @@ export default class WeilaPbDispatcher {
   checkTimeouts(): void {
     if (this.waitingRspMap.size === 0) return
 
-    wllog('--------->onSysTimeChecking', this.waitingRspMap.size)
+    log.info('--------->onSysTimeChecking', this.waitingRspMap.size)
 
     const timeoutKeyList: number[] = []
 
     const now = new Date().getTime()
 
     this.waitingRspMap.forEach((value, key) => {
-      wllog('checkSendingMsgItemTimeout:', value.timeout, now)
+      log.info('checkSendingMsgItemTimeout:', value.timeout, now)
 
       if (value.timeout <= now) {
         timeoutKeyList.push(key)
@@ -103,7 +103,7 @@ export default class WeilaPbDispatcher {
   }
 
   private processSendingPbMsg(): void {
-    wllog('处理PB消息，队列有%d个等待发送消息', this.sendingPbMsgList.length)
+    log.info('处理PB消息，队列有%d个等待发送消息', this.sendingPbMsgList.length)
 
     if (this.sendingPbMsgList.length > 0) {
       const sendingItem = this.sendingPbMsgList.shift()!

@@ -16,7 +16,9 @@ export type { SetConfigDataParam } from './main/weila_config'
 
 export { setConfigData, WL_ConfigID } from './main/weila_config'
 
-export { initLogger, getLogger, setLoggerEnabled, isLoggerEnabled } from './log/weila_log'
+export { createLogger, getLogLevel, setLogLevel } from './log/weila_log'
+
+export type { Logger, LogLevel, LogLevelSetting } from './log/weila_log'
 
 export * from './weilasdk_data'
 

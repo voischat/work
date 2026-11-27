@@ -13,7 +13,7 @@ import {
 } from 'db/weila_db_data'
 import { dbEnum } from 'db/db_enum'
 import Long from 'long'
-import { getLogger } from 'log/weila_log'
+import { createLogger } from 'log/weila_log'
 import { getAppKeyAndId } from 'main/weila_utils'
 import { isNumber } from 'main/weila_type_guards'
 import {
@@ -23,8 +23,7 @@ import {
   WL_bindAnswerInfo,
 } from 'main/weila_external_data'
 
-const wllog = getLogger('MOD:login:info')
-const wlerr = getLogger('MOD:login:err')
+const log = createLogger('MOD:login')
 
 type LoginResponseRoute = (
   serviceHead: WL.Service.ServiceHead.$Properties,
@@ -47,7 +46,7 @@ export default class WLLoginModule {
         if (serviceHead.resultCode === 0) {
           void WeilaDB.init(loginMessage!.rspLoginApp!.userInfo!.userId!.toString(), 3)
             .catch((error) => {
-              wlerr('初始化数据库失败:', error)
+              log.error('初始化数据库失败:', error)
             })
             .finally(respond)
 
@@ -71,7 +70,7 @@ export default class WLLoginModule {
     [
       WL.Login.LoginCommandId.LOGIN_COMMAND_HEARTBEAT,
       (serviceHead) => {
-        wllog('收到心跳响应')
+        log.info('收到心跳响应')
         this.coreInterface.rspPbMsg(serviceHead.seq ?? 0, serviceHead.resultCode ?? 0, null)
       },
     ],
@@ -227,7 +226,7 @@ export default class WLLoginModule {
     countryCode: string,
     md5: boolean = true,
   ): Promise<WL_IDbUserInfo> {
-    wllog('登录请求:', account, countryCode, md5)
+    log.info('登录请求:', account, countryCode, md5)
     const appKeyAndId = WeilaDB.getAppAuthInfo() ?? getAppKeyAndId()
 
     const wlBuildMsgRet = WeilaPBLoginWrapper.buildLoginAppReq(
@@ -357,7 +356,7 @@ export default class WLLoginModule {
       version = subUserVerItem.data
     }
 
-    wllog('initExtension', version)
+    log.info('initExtension', version)
     const buildMsgRet = WeilaPBLoginWrapper.buildGetExtensionListReq()
 
     if (buildMsgRet.resultCode === 0) {
@@ -441,13 +440,13 @@ export default class WLLoginModule {
     subUserId: number,
   ): Promise<string> {
     const buildMsgRet = WeilaPBLoginWrapper.buildSetExtensionConfig(subUserId, cfgKey, cfgValue)
-    wllog('setDeviceConfig', cfgKey, cfgValue, subUserId)
+    log.info('setDeviceConfig', cfgKey, cfgValue, subUserId)
 
     if (buildMsgRet.resultCode === 0) {
       const rspConfig: WL.Login.IRspSetExtensionConfig =
         await this.coreInterface.sendPbMsg(buildMsgRet)
 
-      wllog('setDeviceConfig', rspConfig)
+      log.info('setDeviceConfig', rspConfig)
 
       return rspConfig.config ?? ''
     }

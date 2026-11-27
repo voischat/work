@@ -7,13 +7,6 @@ import {
 import WeilaMsgHeader from 'proto/weilapb_msg_header'
 import { getWebsocketAddr } from 'main/weila_utils'
 
-function getLogger(_tagName: string) {
-  return (..._args: unknown[]) => {}
-}
-
-const wllog = getLogger('NET:info')
-const wlerr = getLogger('NET:err')
-
 interface WL_WorkerScope {
   addEventListener(type: 'message', listener: (event: MessageEvent) => void): void
   postMessage(message: WL_NetworkEvent, options?: StructuredSerializeOptions): void
@@ -51,17 +44,13 @@ class Network {
     this.ctx.addEventListener('message', this.onMessage.bind(this))
   }
 
-  private onSocketOpen(event: Event): void {
-    wllog('SOCKET打开处理:', JSON.stringify(event))
-
+  private onSocketOpen(_event: Event): void {
     if (this.socket) {
       let eventData: WL_NetworkState | undefined
 
       if (this.socket.readyState === WebSocket.CONNECTING) {
-        wllog('SOCKET连接中...')
         eventData = WL_NetworkState.NET_CONNECTING_STATE
       } else if (this.socket.readyState === WebSocket.OPEN) {
-        wllog('SOCKET已连接')
         eventData = WL_NetworkState.NET_CONNECTED_STATE
         this.isConnected = true
 
@@ -109,27 +98,15 @@ class Network {
             } else {
               break
             }
-          } else {
-            wlerr('!!!!!!!!!!!!!!!严重错误，收到错误的数据!!!!!!!!!!!!!!!!!!!!')
-
-            let buf = this.recvBuffer.reduce((previousValue, currentValue) => {
-              return previousValue + currentValue.toString(16).padStart(2, '0')
-            }, '')
-
-            wllog(buf)
           }
         }
       }
     }
   }
 
-  private onSocketClose(event: CloseEvent): void {
-    wllog('SOCKET关闭:', JSON.stringify(event))
-
+  private onSocketClose(_event: CloseEvent): void {
     if (this.socket) {
-      const closeEvent = event
       this.socket = undefined
-      wllog('错误码:', closeEvent.code, closeEvent.reason)
     }
 
     const netEvent: WL_NetworkEvent = {
@@ -142,8 +119,6 @@ class Network {
   }
 
   private disconnect(code: number, reason?: string) {
-    wllog('disconnect ', code, reason)
-
     if (this.socket) {
       const netEvent: WL_NetworkEvent = {
         eventId: WL_NetworkEventID.NET_STATE_IND_EVT,
@@ -161,7 +136,6 @@ class Network {
   }
 
   private onSocketError(event: Event): void {
-    wlerr('SOCKET错误:' + event.type)
     this.disconnect(3000, JSON.stringify(event))
 
     const netEvent: WL_NetworkEvent = {
@@ -177,7 +151,6 @@ class Network {
     try {
       if (this.socket === undefined) {
         this.socket = new WebSocket(this.webSockAddr ? this.webSockAddr : getWebsocketAddr())
-        wllog('服务器连接中...')
 
         this.socket.binaryType = 'arraybuffer'
         this.socket.addEventListener('open', this.onSocketOpen.bind(this))
@@ -186,7 +159,6 @@ class Network {
         this.socket.addEventListener('error', this.onSocketError.bind(this))
       }
     } catch (e) {
-      wlerr('连接WS Socket 出异常', e)
       this.socket = undefined
 
       const netEvent: WL_NetworkEvent = {
@@ -209,7 +181,6 @@ class Network {
     const data = this.sendingPbMsgList.shift()
 
     if (data !== undefined) {
-      wllog('发送了数据')
       socket.send(data)
       setTimeout(this.processSending.bind(this), 0)
     }

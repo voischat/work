@@ -12,11 +12,10 @@ import {
 import CompoUint8Array from './weila_compositor_array'
 import { WL_ConfigID, WLConfig } from 'main/weila_config'
 import { TinyEmitter } from 'tiny-emitter'
-import { getLogger } from 'log/weila_log'
+import { createLogger } from 'log/weila_log'
 import type { WL_AudioEventPayload } from 'audio/weila_audio_data'
 
-const wllog = getLogger('AUDIO:core:info')
-const wlerr = getLogger('AUDIO:core:err')
+const log = createLogger('AUDIO:core')
 
 /* oxlint-disable anti-slop/no-unknown-parameters -- the sending-event map multiplexes boolean and number promises by response event, so the shared callback can only promise the worklet's raw response value; rejections are logged, not parsed */
 interface WLAudioCallback {
@@ -158,8 +157,8 @@ class WLAudio {
         await audioContext.resume()
       }
 
-      wllog('audioContext:', audioContext)
-      wllog('audioContext audioWorklet is :', audioContext.audioWorklet)
+      log.info('audioContext:', audioContext)
+      log.info('audioContext audioWorklet is :', audioContext.audioWorklet)
 
       try {
         await audioContext.audioWorklet.addModule(PlayerWorklet)
@@ -193,7 +192,7 @@ class WLAudio {
   }
 
   private replyPlayRequest(rspEvent: WLAudioPlayerEvent, data: WorkletMessageData['data']): void {
-    wllog('响应请求事件:%d, 数据:%O', rspEvent, data)
+    log.info('响应请求事件:%d, 数据:%O', rspEvent, data)
     const callback = this.sendingEventListMap.get(rspEvent)
 
     if (!callback) {
@@ -216,7 +215,7 @@ class WLAudio {
 
   private onPlayerMessage(event: { data: WorkletMessageData }): void {
     const ev = event.data
-    wllog('播放器%d 处理事件:%d 数据:%O', ev.playerType, ev.event, ev.data)
+    log.info('播放器%d 处理事件:%d 数据:%O', ev.playerType, ev.event, ev.data)
 
     switch (ev.event) {
       case WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_RSP:
@@ -300,13 +299,13 @@ class WLAudio {
     const node = this.playerWorkNode[playerType]
 
     if (node) {
-      wllog('发送播放器事件:', event)
+      log.info('发送播放器事件:', event)
       node.port.postMessage({ event: event, data: data })
     }
   }
 
   public async openPlayer(playerType: WLPlayerType, sampleRate: number): Promise<boolean> {
-    wllog('打开播放器:%d 采样率:%d', playerType, sampleRate)
+    log.info('打开播放器:%d 采样率:%d', playerType, sampleRate)
 
     if (this.playState[playerType] !== WLPlayerState.WL_PLAYER_CLOSED) {
       return Promise.reject(new Error('播放器状态不正确:' + this.playState))
@@ -367,7 +366,7 @@ class WLAudio {
     rspEvent: WLAudioPlayerEvent,
     data: WorkletPlayerRequest | null,
   ): Promise<boolean> {
-    wllog('播放器 %d 操作事件%d', playerType, reqEvent)
+    log.info('播放器 %d 操作事件%d', playerType, reqEvent)
 
     return new Promise<boolean>((resolve, reject) => {
       this.sendPlayerEvent(playerType, reqEvent, data)
@@ -417,7 +416,7 @@ class WLAudio {
   }
 
   public startPlay(playerType: WLPlayerType): Promise<boolean> {
-    wllog('播放器:%d 开始播放:', playerType)
+    log.info('播放器:%d 开始播放:', playerType)
 
     if (this.playState[playerType] !== WLPlayerState.WL_PLAYER_STOPPED) {
       return Promise.reject(new Error('播放器状态不正确:' + this.playState[playerType]))
@@ -435,7 +434,7 @@ class WLAudio {
   }
 
   public pausePlay(playerType: WLPlayerType): Promise<boolean> {
-    wllog('播放器:%d 暂停播放', playerType)
+    log.info('播放器:%d 暂停播放', playerType)
 
     if (this.playState[playerType] !== WLPlayerState.WL_PLAYER_STARTED) {
       return Promise.reject(new Error('播放器状态不正确:' + this.playState[playerType]))
@@ -452,7 +451,7 @@ class WLAudio {
   }
 
   public resumePlay(playerType: WLPlayerType): Promise<boolean> {
-    wllog('播放器:%d 恢复播放', playerType)
+    log.info('播放器:%d 恢复播放', playerType)
 
     if (this.playState[playerType] !== WLPlayerState.WL_PLAYER_PAUSED) {
       return Promise.reject(new Error('播放器状态不正确:' + this.playState[playerType]))
@@ -470,7 +469,7 @@ class WLAudio {
   }
 
   public stopPlay(playerType: WLPlayerType): Promise<boolean> {
-    wllog('播放器:%d 停止播放', playerType)
+    log.info('播放器:%d 停止播放', playerType)
 
     if (
       this.playState[playerType] !== WLPlayerState.WL_PLAYER_STARTING &&
@@ -501,7 +500,7 @@ class WLAudio {
   }
 
   public closePlayer(playerType: WLPlayerType): Promise<boolean> {
-    wllog('播放器:%d 关闭播放器', playerType)
+    log.info('播放器:%d 关闭播放器', playerType)
 
     if (
       this.playState[playerType] === WLPlayerState.WL_PLAYER_CLOSED ||
@@ -534,7 +533,7 @@ class WLAudio {
         [compoBuffer!.buffer],
       )
     } else {
-      wllog('播放器:%d 播放最后一帧', playerType)
+      log.info('播放器:%d 播放最后一帧', playerType)
       this.sendPlayerEvent(playerType, WLAudioPlayerEvent.WL_WORKLET_NODE_END_DATA, null)
     }
   }
@@ -564,7 +563,7 @@ class WLAudio {
     event: WLAudioRecorderEvent,
     data: WorkletRecorderRequest | null,
   ): void {
-    wllog('发送录音器事件%d', event)
+    log.info('发送录音器事件%d', event)
 
     if (this.recorderWorkNode) {
       this.recorderWorkNode.port.postMessage({ event: event, data: data })
@@ -575,7 +574,7 @@ class WLAudio {
     rspEvent: WLAudioRecorderEvent,
     data: WorkletMessageData['data'],
   ): void {
-    wllog('回复录音器请求%d', rspEvent)
+    log.info('回复录音器请求%d', rspEvent)
     const callback = this.sendingEventListMap.get(rspEvent)
 
     if (!callback) {
@@ -593,7 +592,7 @@ class WLAudio {
 
   private onRecorderMessage(event: { data: WorkletMessageData }): void {
     const ev = event.data
-    wllog('录音器事件处理%d', ev.event)
+    log.info('录音器事件处理%d', ev.event)
 
     switch (ev.event) {
       case WLAudioRecorderEvent.WL_WORKLET_NODE_START_RSP:
@@ -663,16 +662,16 @@ class WLAudio {
   }
 
   public async openRecorder(sampleRate: number, bitRate: number): Promise<boolean> {
-    wllog('开启录音器, 采样率:%d 位宽:%d', sampleRate, bitRate)
+    log.info('开启录音器, 采样率:%d 位宽:%d', sampleRate, bitRate)
 
     if (this.recordState !== WLRecorderState.WL_RECORDER_CLOSED) {
-      wlerr('openRecorder error:', new Error('录音器状态不正确:' + this.playState))
+      log.error('openRecorder error:', new Error('录音器状态不正确:' + this.playState))
 
       return Promise.reject(new Error('录音器状态不正确:' + this.playState))
     }
 
     try {
-      wllog('浏览器:' + navigator.userAgent)
+      log.info('浏览器:' + navigator.userAgent)
 
       if (this.recorderWorkNode === null) {
         const configData = await WLConfig.getConfigData(WL_ConfigID.WL_RES_DATA_OPUS_WASM_ID)
@@ -692,7 +691,7 @@ class WLAudio {
 
       this.recordState = WLRecorderState.WL_RECORDER_OPENING
     } catch (e) {
-      wlerr('openRecorder error:', e)
+      log.error('openRecorder error:', e)
       this.recordState = WLRecorderState.WL_RECORDER_CLOSED
 
       return Promise.reject(e)
@@ -707,7 +706,7 @@ class WLAudio {
         '打开麦克风超时',
       )
     } catch (error) {
-      wlerr('getUserMedia', error)
+      log.error('getUserMedia', error)
       void this.closeRecorder()
       throw error
     }
@@ -739,7 +738,7 @@ class WLAudio {
     rspEvent: WLAudioRecorderEvent,
     data: WorkletRecorderRequest | null,
   ): Promise<boolean> {
-    wllog('录音器操作:%d', reqEvent)
+    log.info('录音器操作:%d', reqEvent)
 
     return new Promise<boolean>((resolve, reject) => {
       this.sendRecorderEvent(reqEvent, data)
@@ -761,7 +760,7 @@ class WLAudio {
   }
 
   public startRecord(): Promise<boolean> {
-    wllog('开始录音')
+    log.info('开始录音')
 
     if (this.recordState !== WLRecorderState.WL_RECORDER_STOPPED) {
       return Promise.reject(new Error('录音器状态不正确:' + this.playState))
@@ -782,7 +781,7 @@ class WLAudio {
   }
 
   public stopRecord(): Promise<boolean> {
-    wllog('停止录音')
+    log.info('停止录音')
 
     if (
       this.recordState !== WLRecorderState.WL_RECORDER_STARTING &&
@@ -801,7 +800,7 @@ class WLAudio {
   }
 
   public closeRecorder(): Promise<boolean> {
-    wllog('关闭录音器')
+    log.info('关闭录音器')
 
     if (
       this.recordState === WLRecorderState.WL_RECORDER_CLOSING ||

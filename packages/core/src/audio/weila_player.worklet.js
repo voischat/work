@@ -2,10 +2,9 @@ import opus from './opus'
 import { WLAudioPlayerEvent } from './weila_audio_data'
 import CompoUint8Array from './weila_compositor_array'
 import { WeilaRingBuffer } from './weila_ringbuffer'
-import { getLogger } from 'log/weila_log'
+import { createLogger } from 'log/weila_log'
 
-const wllog = getLogger('AUDIO:play_worker:info')
-const wlerr = getLogger('AUDIO:play_worker:err')
+const log = createLogger('AUDIO:play_worker')
 
 const PLAY_OPENING = 0
 const PLAY_OPENED = 1
@@ -40,7 +39,7 @@ class WLPlayerWorklet extends AudioWorkletProcessor {
     this.playerType = options.processorOptions.playerType
     this.playedFrames = 0
 
-    wllog('worker name:%s playerType:%d', options.processorOptions.workerName, this.playerType)
+    log.info('worker name:%s playerType:%d', options.processorOptions.workerName, this.playerType)
   }
 
   reportRsp(event, result, errorMsg) {
@@ -104,7 +103,7 @@ class WLPlayerWorklet extends AudioWorkletProcessor {
 
   onMessage(event) {
     const ev = event.data
-    wllog('worklet 执行事件:%d 播放器类型:%d', ev.event, this.playerType)
+    log.info('worklet 执行事件:%d 播放器类型:%d', ev.event, this.playerType)
     switch (ev.event) {
       case WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_REQ:
         {
@@ -353,7 +352,7 @@ class WLPlayerWorklet extends AudioWorkletProcessor {
       this.playedFrames += pulled
     } else {
       if (this.noMoreData) {
-        wllog('已经没有coded数据了, 还剩', this.pcmRingBuffer.frameAvailable)
+        log.info('已经没有coded数据了, 还剩', this.pcmRingBuffer.frameAvailable)
         if (this.pcmRingBuffer.frameAvailable) {
           const buffer = new Float32Array(this.pcmRingBuffer.frameAvailable)
           this.pcmRingBuffer.pull(buffer)

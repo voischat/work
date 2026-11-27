@@ -1,9 +1,8 @@
 import type { WL_IDbUserInfo } from '@vois/weila-sdk-core'
 import {
   createWeilaAudioInitController,
-  initLogger,
   setConfigData,
-  setLoggerEnabled,
+  setLogLevel,
   WeilaCore,
   WL_ConfigID,
 } from '@vois/weila-sdk-core'
@@ -37,8 +36,11 @@ export const useWeilaStore = defineStore('weila', () => {
     if (core.value)
       return core.value
 
-    initLogger('MOD:*, CORE:*, AUDIO:*, DB:, NET:*')
-    setLoggerEnabled(false)
+    setLogLevel(
+      import.meta.env.DEV
+        ? 'info'
+        : 'silent',
+    )
 
     setConfigData([
       {

@@ -17,7 +17,7 @@ import {
 } from 'db/weila_db_data'
 import { dbEnum } from 'db/db_enum'
 
-import { getLogger } from 'log/weila_log'
+import { createLogger } from 'log/weila_log'
 import {
   WL_AnswerStatus,
   WL_DataPrepareInd,
@@ -33,8 +33,7 @@ import { AsyncTime } from 'main/weila_utils'
 import { WLGroupAttributeInfo } from 'proto/weilapb_wrapper_data'
 import type { WLBuildMsgRet } from 'proto/weilapb_wrapper_data'
 
-const wllog = getLogger('MOD:group:info')
-const wlerr = getLogger('MOD:group:err')
+const log = createLogger('MOD:group')
 
 type GroupResponseRoute = (
   serviceHead: WL.Service.ServiceHead.$Properties,
@@ -211,7 +210,7 @@ export default class WLGroupModule {
         if (route) route(serviceHead, serverMessage.groupMessage)
       }
     } else if (serviceHead.commandType === WL.Service.CommandType.COMMAND_NOTIFY) {
-      wllog('WLGroupModule', serverMessage)
+      log.info('WLGroupModule', serverMessage)
 
       switch (serviceHead.commandId) {
         case WL.Group.GroupCommandId.GROUP_COMMAND_GROUP_INVITE:
@@ -396,11 +395,11 @@ export default class WLGroupModule {
                 }
 
                 await WeilaDB.getInstance().putGroup(groupInfo)
-                wllog('群属性变更了:', groupId)
+                log.info('群属性变更了:', groupId)
                 this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_GROUP_MODIFIED_IND, groupInfo)
               })
               .catch((reason) => {
-                wlerr('保存群属性异常:' + reason)
+                log.error('保存群属性异常:' + reason)
               })
           }
 
@@ -463,7 +462,7 @@ export default class WLGroupModule {
                   }
 
                   await WeilaDB.getInstance().putMemberInfo(memberInfo)
-                  wllog('群成员变更了')
+                  log.info('群成员变更了')
                   this.coreInterface.sendExtEvent(
                     WL_ExtEventID.WL_EXT_GROUP_MEMBERS_MODIFIED_IND,
                     memberInfo,
@@ -471,7 +470,7 @@ export default class WLGroupModule {
                 }
               })
               .catch((reason) => {
-                wlerr('保存群成员异常:' + reason)
+                log.error('保存群成员异常:' + reason)
               })
           }
 
@@ -485,7 +484,7 @@ export default class WLGroupModule {
 
             const groupId = Long.fromValue(ntfDeleteGroup.groupId ?? 0).toString(10)
 
-            wllog('群被删除的通知，群ID:', groupId)
+            log.info('群被删除的通知，群ID:', groupId)
 
             WeilaDB.getInstance()
               .delGroups([groupId])
@@ -493,7 +492,7 @@ export default class WLGroupModule {
                 this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_GROUP_DELETED_IND, groupId)
               })
               .catch((reason) => {
-                wlerr('删除群失败', reason)
+                log.error('删除群失败', reason)
               })
           }
 
@@ -510,7 +509,7 @@ export default class WLGroupModule {
             WeilaDB.getInstance()
               .delMemberInfos(groupId, userIdList)
               .then((_value) => {
-                wllog('删除了群成员成功')
+                log.info('删除了群成员成功')
 
                 const info: WL_GroupMemberDeleteInfo = {
                   groupId,
@@ -521,7 +520,7 @@ export default class WLGroupModule {
                 this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_GROUP_MEMBER_DELETED_IND, info)
               })
               .catch((reason) => {
-                wlerr('删除群成员异常:' + reason)
+                log.error('删除群成员异常:' + reason)
               })
           }
 
@@ -533,7 +532,7 @@ export default class WLGroupModule {
 
             if (!ntfNewMember) break
 
-            wllog('有新成员消息:', ntfNewMember)
+            log.info('有新成员消息:', ntfNewMember)
             ;(async () => {
               const groupId = Long.fromValue(ntfNewMember.groupId ?? 0).toString(10)
               const groupInfo = await WeilaDB.getInstance().getGroup(groupId)
@@ -558,14 +557,14 @@ export default class WLGroupModule {
                 }
               }
 
-              wllog('保存群成员信息')
+              log.info('保存群成员信息')
 
               this.coreInterface.sendExtEvent(
                 WL_ExtEventID.WL_EXT_GROUP_NEW_MEMBER_JOINED_IND,
                 ntfNewMember.memberInfoList,
               )
             })().catch((reason) => {
-              wlerr('保存信息出错!', reason)
+              log.error('保存信息出错!', reason)
             })
           }
 
@@ -669,7 +668,7 @@ export default class WLGroupModule {
       const rsp: WL.Group.IRspGetGroupInfo = await this.coreInterface.sendPbMsg(buildMsgRet)
 
       if (!rsp?.groupAttribute) {
-        wlerr('获取群信息失败，服务端未返回群属性:', { groupId, rsp })
+        log.error('获取群信息失败，服务端未返回群属性:', { groupId, rsp })
 
         return undefined
       }
@@ -712,7 +711,7 @@ export default class WLGroupModule {
         return Long.fromValue(value.groupId ?? 0).toString(10)
       })
 
-      wllog('获取的群ids', groupIds)
+      log.info('获取的群ids', groupIds)
       const oldGroups = await WeilaDB.getInstance().getGroups()
 
       const invalidGroups = oldGroups
@@ -723,7 +722,7 @@ export default class WLGroupModule {
           return value.groupId
         })
 
-      wllog('无效群ids', invalidGroups)
+      log.info('无效群ids', invalidGroups)
 
       if (invalidGroups.length) {
         await WeilaDB.getInstance().delGroups(invalidGroups)
@@ -731,13 +730,13 @@ export default class WLGroupModule {
 
       for (let i = 0; i < versionInfoList.length; i++) {
         const ver = versionInfoList[i]
-        wllog('群版本信息:', ver)
+        log.info('群版本信息:', ver)
 
         const dbGroup = await WeilaDB.getInstance().getGroup(
           Long.fromValue(ver.groupId ?? 0).toString(10),
         )
 
-        wllog('获取群信息:', dbGroup)
+        log.info('获取群信息:', dbGroup)
 
         if (
           !dbGroup ||
@@ -755,7 +754,7 @@ export default class WLGroupModule {
               30000,
             )
 
-            wllog('获取得到群：', rspGroupInfo)
+            log.info('获取得到群：', rspGroupInfo)
 
             if (!dbGroup || dbGroup.memberVersion !== ver.memberVersion) {
               const groupAttribute = rspGroupInfo.groupAttribute
@@ -797,12 +796,12 @@ export default class WLGroupModule {
                   const userInfos = dbInstance.convertFromUserRaw(userRawInfos.userInfoList ?? [])
                   allUserInfos.push(...userInfos)
                 } else {
-                  wlerr('获取群成员失败', buildGetUser.resultCode)
+                  log.error('获取群成员失败', buildGetUser.resultCode)
                 }
               }
             }
           } else {
-            wlerr('创建获取群信息失败:' + buildGroupInfo.resultCode)
+            log.error('创建获取群信息失败:' + buildGroupInfo.resultCode)
           }
         }
       }
@@ -857,7 +856,7 @@ export default class WLGroupModule {
       avatar = default_group_logo
     }
 
-    wllog('创建群组，头像:', avatar)
+    log.info('创建群组，头像:', avatar)
 
     const buildResult = WeilaPBGroupWrapper.buildCreateGroupReq(
       name,
@@ -886,7 +885,7 @@ export default class WLGroupModule {
         rspCreateGroup.memberInfoList ?? [],
       )
 
-      wllog('创建群成功消息:', rspCreateGroup)
+      log.info('创建群成功消息:', rspCreateGroup)
 
       await WeilaDB.getInstance().putGroup(groupInfos[0])
       await WeilaDB.getInstance().putMemberInfos(memberInfos)
@@ -993,7 +992,7 @@ export default class WLGroupModule {
   }
 
   public async dismissGroup(groupId: string): Promise<boolean> {
-    wllog('删除群ID:', groupId)
+    log.info('删除群ID:', groupId)
     const buildMsgRet = WeilaPBGroupWrapper.buildDelGroupReq(Long.fromValue(groupId))
 
     if (buildMsgRet.resultCode === 0) {
@@ -1010,7 +1009,7 @@ export default class WLGroupModule {
   }
 
   public async changeGroupOwner(groupId: string, ownerUserId: number): Promise<boolean> {
-    wllog('更换群主', groupId, ownerUserId)
+    log.info('更换群主', groupId, ownerUserId)
 
     const attributes: WLGroupAttributeInfo = {
       groupId: Long.fromValue(groupId),
@@ -1074,7 +1073,7 @@ export default class WLGroupModule {
   }
 
   public async quitGroup(groupId: string, subUserId?: number): Promise<boolean> {
-    wllog('退出群ID', groupId)
+    log.info('退出群ID', groupId)
 
     const groupInfo = await WeilaDB.getInstance().getGroup(groupId)
 
@@ -1123,7 +1122,7 @@ export default class WLGroupModule {
     if (memberInfo) {
       memberInfo.memberType = dbEnum<WL_IDbMemberType>(memberType)
       const id = WeilaDB.getInstance().putMemberInfo(memberInfo)
-      wllog('更新好友[%s]信息', id)
+      log.info('更新好友[%s]信息', id)
     }
 
     return true
