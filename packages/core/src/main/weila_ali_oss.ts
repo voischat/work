@@ -1,7 +1,7 @@
 import { WeilaDB } from 'db/weila_db'
 import { fetchWithTimeout } from 'main/weila_utils'
 import OSS from 'ali-oss'
-import { getLogger } from 'log/weila_log'
+import { createLogger } from 'log/weila_log'
 import { isNumber, isRecord, isString } from 'main/weila_type_guards'
 import {
   WL_IDbSettingID,
@@ -10,8 +10,7 @@ import {
   isServiceSessionType,
 } from 'db/weila_db_data'
 
-const wllog = getLogger('ALI-OSS:info')
-const wlerr = getLogger('ALI-OSS:err')
+const log = createLogger('ALI-OSS')
 
 interface StsResponse {
   errcode: number
@@ -102,7 +101,7 @@ class AliOssHelper {
       }
 
       if (keyData.errcode === 0) {
-        wllog('关键数据:', keyData)
+        log.info('关键数据:', keyData)
         this.expireTimeout = Number(keyData.data.Expiration)
 
         return {
@@ -247,7 +246,7 @@ class AliOssHelper {
               }
 
               uploadParams.resolve(uploadResult)
-              wllog('上传结果:', objResult)
+              log.info('上传结果:', objResult)
             })
             .catch((reason) => {
               uploadParams.reject(reason)
@@ -261,7 +260,7 @@ class AliOssHelper {
         }
       })
       .catch((reason) => {
-        wlerr('!!!!严重错误，获取key失败!!!!!', reason)
+        log.error('!!!!严重错误，获取key失败!!!!!', reason)
         this.rejectQueuedUploads(reason)
       })
   }

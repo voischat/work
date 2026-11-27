@@ -4,9 +4,8 @@ import { useLocalStorage } from '@vueuse/core'
 import {
   WeilaCore,
   createWeilaAudioInitController,
-  initLogger,
-  setLoggerEnabled,
   setConfigData,
+  setLogLevel,
   WL_ConfigID,
   WL_ExtEventID,
 } from '@vois/weila-sdk-core'
@@ -64,8 +63,7 @@ export const useWeilaStore = defineStore('weila', () => {
   async function init() {
     if (core.value) return core.value
 
-    initLogger('MOD:*, CORE:*, AUDIO:*, DB:, NET:*')
-    setLoggerEnabled(false)
+    setLogLevel(import.meta.env.DEV ? 'debug' : 'silent')
 
     setConfigData([
       {

@@ -2,11 +2,11 @@ import { default_user_logo, WL_CoreInterface } from 'main/weila_internal_data'
 import { WL } from 'proto/weilapb'
 import { WeilaPbUserWrapper } from 'proto/weilapb_user_wrapper'
 import Long from 'long'
-import { getLogger } from 'log/weila_log'
+import { createLogger } from 'log/weila_log'
 import TinyPinyin from 'tiny-pinyin'
 import { WL_IDbUserInfo } from 'db/weila_db_data'
 
-const wllog = getLogger('MOD:user:info')
+const log = createLogger('MOD:user')
 
 type UserResponseRoute = (
   serviceHead: WL.Service.ServiceHead.$Properties,
@@ -18,7 +18,7 @@ export default class WLUserModule {
     [
       WL.User.UserCommandId.USER_COMMAND_GET_USERINFO,
       (serviceHead, userMessage) => {
-        wllog('搜索用户信息结果')
+        log.info('搜索用户信息结果')
         this.coreInterface.rspPbMsg(
           serviceHead.seq ?? 0,
           serviceHead.resultCode ?? 0,

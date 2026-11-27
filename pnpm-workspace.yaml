@@ -87,7 +87,6 @@ catalog:
   '@tanstack/vue-query-devtools': ^6.4.7
   '@types/ali-oss': ^6.23.4
   '@types/crypto-js': ^4.2.2
-  '@types/debug': ^4.1.13
   '@types/md5': ^2.3.6
   '@types/node': ^26.6.6
   '@types/nprogress': ^0.2.3
@@ -115,7 +114,6 @@ catalog:
   cross-env: ^10.1.0
   crypto-js: ^4.2.0
   dayjs: ^1.11.23
-  debug: ^4.4.3
   dexie: ^4.4.7
   eslint: ^10.15.0
   eslint-factory: ^0.1.2

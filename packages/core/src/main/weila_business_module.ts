@@ -1,6 +1,6 @@
 import { WL_CoreInterface } from 'main/weila_internal_data'
 import { WL } from 'proto/weilapb'
-import { getLogger } from 'log/weila_log'
+import { createLogger } from 'log/weila_log'
 import {
   WL_IDbService,
   WL_IDbServiceSessionInfo,
@@ -26,7 +26,7 @@ import {
   WL_StaffSessionInfo,
 } from 'main/weila_external_data'
 
-const wllog = getLogger('MOD:business:info')
+const log = createLogger('MOD:business')
 
 type BusinessResponseRoute = (
   serviceHead: WL.Service.ServiceHead.$Properties,
@@ -453,7 +453,7 @@ export default class WLBusinessModule {
       let dbUserInfos: WL_IDbUserInfo[] = []
       let allStaffs: WL_IDbServiceStaff[] = []
 
-      wllog('buildCommonGetSessionsReq', rsp)
+      log.info('buildCommonGetSessionsReq', rsp)
 
       const sessions = rsp.sessions ?? []
 

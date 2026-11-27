@@ -1,16 +1,48 @@
-import { describe, expect, it } from 'vitest'
-import { getLogger, initLogger, isLoggerEnabled, setLoggerEnabled } from './weila_log'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createLogger, getLogLevel, setLogLevel } from './weila_log'
 
 describe('weila log', () => {
-  it('enables only the configured namespaces', () => {
-    initLogger('CORE:test')
-    expect(getLogger('CORE:test').enabled).toBe(true)
-    expect(getLogger('OTHER:test').enabled).toBe(false)
+  const log = createLogger('CORE:test')
+
+  beforeEach(() => {
+    setLogLevel('silent')
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 
-  it('keeps the logger enabled by default', () => {
-    expect(isLoggerEnabled()).toBe(true)
-    setLoggerEnabled(false)
-    expect(isLoggerEnabled()).toBe(true)
+  afterEach(() => {
+    setLogLevel('silent')
+    vi.restoreAllMocks()
+  })
+
+  it('stays silent by default', () => {
+    expect(getLogLevel()).toBe('silent')
+    log.error('hidden')
+    expect(console.error).not.toHaveBeenCalled()
+  })
+
+  it('drops levels below the configured one', () => {
+    setLogLevel('warn')
+    log.info('hidden')
+    log.warn('shown')
+    log.error('shown too')
+    expect(console.log).not.toHaveBeenCalled()
+    expect(console.warn).toHaveBeenCalledWith('[CORE:test] shown')
+    expect(console.error).toHaveBeenCalledWith('[CORE:test] shown too')
+  })
+
+  it('writes debug and info through console.log', () => {
+    setLogLevel('debug')
+    log.debug('debug line', 1)
+    log.info('info line')
+    expect(console.log).toHaveBeenNthCalledWith(1, '[CORE:test] debug line', 1)
+    expect(console.log).toHaveBeenNthCalledWith(2, '[CORE:test] info line')
+  })
+
+  it('keeps one module prefix per logger', () => {
+    setLogLevel('info')
+    createLogger('DB:core').info('db line')
+    expect(console.log).toHaveBeenCalledWith('[DB:core] db line')
   })
 })

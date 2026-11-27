@@ -48,7 +48,6 @@
   "dependencies": {
     "ali-oss": "catalog:",
     "crypto-js": "catalog:",
-    "debug": "catalog:",
     "dexie": "catalog:",
     "long": "catalog:",
     "protobufjs": "catalog:",
@@ -62,7 +61,6 @@
     "@rspack/core": "catalog:",
     "@types/ali-oss": "catalog:",
     "@types/crypto-js": "catalog:",
-    "@types/debug": "catalog:",
     "@types/node": "catalog:",
     "fake-indexeddb": "catalog:",
     "gently-copy": "catalog:",

@@ -2,7 +2,7 @@ import { fromPromise } from 'xstate'
 import type { AnyEventObject } from 'xstate'
 import { fsmEvents, mainFsm, systemWatchdogActor } from 'fsm/weila_fsmScript'
 import type { MainFsmContext, MainFsmUserEvent } from 'fsm/weila_fsmScript'
-import { getLogger } from 'log/weila_log'
+import { createLogger } from 'log/weila_log'
 import { WL_LoginParam, WL_LoginResult, WL_NetworkEventID } from 'main/weila_internal_data'
 import type { WL_NetworkEventPayload } from 'main/weila_internal_data'
 import type { WL_PromiseCallback } from 'main/weila_internal_data'
@@ -11,8 +11,7 @@ import { isServiceSessionType } from 'db/weila_db_data'
 import { isString } from 'main/weila_type_guards'
 import type { WL_IDbSession, WL_IDbUserInfo } from 'db/weila_db_data'
 
-const wllog = getLogger('CORE:info')
-const wlerr = getLogger('CORE:err')
+const log = createLogger('CORE')
 
 interface WeilaMainFsmLoginModule {
   loginReq: (
@@ -151,9 +150,9 @@ export default class WeilaMainFsmHost {
     try {
       await this.deps.loadResource()
       callback.resolve(true)
-      wllog('加载数据成功')
+      log.info('加载数据成功')
     } catch (e) {
-      wlerr('加载数据失败', e)
+      log.error('加载数据失败', e)
       callback.reject(e)
 
       return Promise.reject(e)
@@ -191,7 +190,7 @@ export default class WeilaMainFsmHost {
         }),
       )
     } catch (e) {
-      wlerr('初始化服务失败:', e)
+      log.error('初始化服务失败:', e)
     }
 
     return true
@@ -213,30 +212,30 @@ export default class WeilaMainFsmHost {
     loginParam.retryCount++
 
     try {
-      wllog('开始登陆')
+      log.info('开始登陆')
       loginResult.loginUserInfo = await this.deps.loginModule.loginReq(
         loginParam.account,
         loginParam.password,
         loginParam.countryCode,
         loginParam.md5,
       )
-      wllog('loginServer succ', loginResult)
+      log.info('loginServer succ', loginResult)
 
       return loginResult
     } catch (e) {
       loginResult.error = e
-      wllog('loginServer error', loginResult, e)
+      log.info('loginServer error', loginResult, e)
 
       return Promise.reject(loginResult)
     }
   }
 
   private onResourceLoadFail(event: { error?: unknown }) {
-    wlerr('初始加载数据出错', event.error)
+    log.error('初始加载数据出错', event.error)
   }
 
   private onLoadingResource() {
-    wllog('加载数据成功')
+    log.info('加载数据成功')
   }
 
   private onException(event: { error?: unknown }) {
@@ -273,7 +272,7 @@ export default class WeilaMainFsmHost {
   }
 
   private onLoginFail(event: { error?: unknown }) {
-    wllog('onLoginFail:', event)
+    log.info('onLoginFail:', event)
     this.deps.sendNetworkEvent(WL_NetworkEventID.NET_DISCONNECT_EVT, null)
     this.deps.sendToFsm({
       type: fsmEvents.FSM_LOGIN_PROCEDURE_FAIL_EVT,
@@ -282,7 +281,7 @@ export default class WeilaMainFsmHost {
   }
 
   private onLoginSucc(loginResult: WL_LoginResult) {
-    wllog('onLogin:', loginResult)
+    log.info('onLogin:', loginResult)
 
     if (loginResult.loginUserInfo) {
       this.deps.setLoginUserInfo(loginResult.loginUserInfo)
@@ -303,16 +302,16 @@ export default class WeilaMainFsmHost {
   }
 
   private onReadyEntry() {
-    wllog('系统已经准备好，可以接受任何消息')
+    log.info('系统已经准备好，可以接受任何消息')
     this.deps.setLoginReady(true)
     this.heartbeatTimerId = setInterval(() => {
       this.deps.loginModule
         .sendHeartbeat()
         .then((_value) => {
-          wllog('发送心跳成功')
+          log.info('发送心跳成功')
         })
         .catch((reason) => {
-          wlerr('发送心跳失败', reason)
+          log.error('发送心跳失败', reason)
         })
     }, 59000)
 
@@ -320,16 +319,16 @@ export default class WeilaMainFsmHost {
       this.deps.loginModule
         .refreshToken()
         .then((_value) => {
-          wllog('刷新token成功')
+          log.info('刷新token成功')
         })
         .catch((reason) => {
-          wlerr('刷新token失败:', reason)
+          log.error('刷新token失败:', reason)
         })
     }, 3600000)
   }
 
   private onReadyExit() {
-    wllog('系统没有准备好')
+    log.info('系统没有准备好')
     this.deps.setLoginReady(false)
 
     if (this.heartbeatTimerId !== null) clearInterval(this.heartbeatTimerId)
@@ -352,7 +351,7 @@ export default class WeilaMainFsmHost {
 
     if (!loginParam) return false
 
-    wllog('canRetry', loginParam)
+    log.info('canRetry', loginParam)
 
     return loginParam.retryCount < this.deps.maxRetryLoginTimes
   }
@@ -362,13 +361,13 @@ export default class WeilaMainFsmHost {
   }
 
   private onConnecting(context: MainFsmContext, event: AnyEventObject) {
-    wllog('onConnecting:', context, event)
+    log.info('onConnecting:', context, event)
   }
 
   private onDisconnectInReadyState() {}
 
   private onLoginRetryFail(context: MainFsmContext, event: AnyEventObject) {
-    wllog('onLoginRetryFail', event)
+    log.info('onLoginRetryFail', event)
 
     const loginParam: WL_LoginParam | null = context.loginParam
 

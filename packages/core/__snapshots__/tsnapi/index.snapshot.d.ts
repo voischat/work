@@ -8,8 +8,9 @@ export declare const WL_BUILD_ID: string;
 // #region Re-exports
 export * from './weilasdk_data';
 export { calculateAudioDuration, getErrorMsg } from './main/weila_utils';
+export { createLogger, getLogLevel, setLogLevel } from './log/weila_log';
 export { createWeilaAudioInitController } from './main/weila_audio_init_controller';
-export { initLogger, getLogger, setLoggerEnabled, isLoggerEnabled } from './log/weila_log';
+export type { Logger, LogLevel, LogLevelSetting } from './log/weila_log';
 export { setConfigData, WL_ConfigID } from './main/weila_config';
 export type { SetConfigDataParam } from './main/weila_config';
 export { WeilaCore } from './main/weila_core';

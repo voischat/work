@@ -27,23 +27,25 @@
     "WeilaCore",
     "applySessionExtraProfile",
     "calculateAudioDuration",
+    "createLogger",
     "createWeilaAudioInitController",
     "getErrorMsg",
-    "getLogger",
+    "getLogLevel",
     "inheritSessionProfile",
-    "initLogger",
     "isAudioData",
     "isFileData",
     "isGroupSessionType",
     "isIndividualSessionType",
     "isLocationShared",
-    "isLoggerEnabled",
     "isPttData",
     "isServiceSessionType",
     "setConfigData",
-    "setLoggerEnabled"
+    "setLogLevel"
   ],
   "dtsExports": [
+    "LogLevel",
+    "LogLevelSetting",
+    "Logger",
     "SetConfigDataParam",
     "WL_AudioInitController",
     "WL_AudioInitControllerOptions",
@@ -55,13 +57,12 @@
     "WL_LoginOptions",
     "WeilaCore",
     "calculateAudioDuration",
+    "createLogger",
     "createWeilaAudioInitController",
     "getErrorMsg",
-    "getLogger",
-    "initLogger",
-    "isLoggerEnabled",
+    "getLogLevel",
     "setConfigData",
-    "setLoggerEnabled"
+    "setLogLevel"
   ],
   "assets": [
     "opuslibs.wasm",
@@ -128,8 +129,8 @@
       "sha256": "a61e15eb78018f02e186557382b16c897e8b7a70417f98c3bdc2e3dc3fabcd05"
     },
     "log/weila_log.d.ts": {
-      "bytes": 318,
-      "sha256": "4b963fe68c44eef1b057f6807376717c3ebaabb413f537c62073ed41ea102f2e"
+      "bytes": 538,
+      "sha256": "3fc0f1b25539bcafca0a5b500f8d6ef0cae3cc944392e20bb82cd1f68d690684"
     },
     "main/weila_ali_oss.d.ts": {
       "bytes": 862,
@@ -138,10 +139,6 @@
     "main/weila_audio_init_controller.d.ts": {
       "bytes": 724,
       "sha256": "75daf09fc2cdac24c8fec59dc193a7899d2a1c4d3840a2802331af6b4c9e2943"
-    },
-    "main/weila_audio_runtime.d.ts": {
-      "bytes": 213,
-      "sha256": "0b969bb379ca1ad2b7ff82fc6920e9ee59c1f9cd17cbee66507ab97ff3b0b56b"
     },
     "main/weila_business_module.d.ts": {
       "bytes": 1596,
@@ -272,12 +269,12 @@
       "sha256": "bb42fe8e3a75fc941bb92ce24cf6b9e53b0c83567fd92ada91cb13ec84585e31"
     },
     "weilasdk.d.ts": {
-      "bytes": 730,
-      "sha256": "96f8ab35537b64d73bf7a2f085015a74af8c823b35816bd7cc237b9e00c02ff8"
+      "bytes": 786,
+      "sha256": "1094003ea32f058dfa757dfae6ba9396b4eb8454fd7dcd3de3be66d960d6f226"
     },
     "weilasdk.mjs": {
-      "bytes": 5011856,
-      "sha256": "4131e9ac9219a776fd978892fc49f92454a1633c224891658994464eff68122a"
+      "bytes": 4976526,
+      "sha256": "a8ff9bfd2a739f17ad0678ff486e32d33a7a6552e34826cb0286e68084f35082"
     },
     "weilasdk_compile_cfg.mjs": {
       "bytes": 951,
@@ -292,20 +289,20 @@
       "sha256": "31fa53c6fd5753eca77241b51c2fbff2953bf9e1ac371e59b487044b4e1ce93b"
     },
     "weilasdk_log.d.ts": {
-      "bytes": 92,
-      "sha256": "d5f4a5580fd9cdef38350455097935e0a71dc93bea4f9fa7a09dd1feaadbd61e"
+      "bytes": 148,
+      "sha256": "2966b73ab140ffed19e972e184b400245023f1c2437d7e17ecb01a03ec96a45a"
     },
     "weilasdk_log.mjs": {
-      "bytes": 6489,
-      "sha256": "cb5ffd09dd73c6cc4e812ceaaacb152435338148e7d020e353eb5a241aaf10e3"
+      "bytes": 737,
+      "sha256": "8f9f5333da1170185f473b34bf12886cf2950145be4a9509ded697668a79d57f"
     },
     "worklets/weila_player.worklet.iife.js": {
-      "bytes": 85996,
-      "sha256": "00de01f6f17263bc4be086a3ee6df79ad215bc7caa7653f558cd847dba2bfa64"
+      "bytes": 80087,
+      "sha256": "58068af1e3baf472e450d56b6ffb4a2b07d96e1818c29a131ff02c36efd902df"
     },
     "worklets/weila_recorder.worklet.iife.js": {
-      "bytes": 82796,
-      "sha256": "9a712fc1c609ee96c4ead55bd344169d1ffb080b95aa3769f0f6144c0bde5a18"
+      "bytes": 76882,
+      "sha256": "b8b1f1bb7672a0a60369683b97d336453fdbc9c412f419a68b93b6c09ccaed25"
     }
   }
 }

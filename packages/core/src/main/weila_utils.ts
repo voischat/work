@@ -1,13 +1,12 @@
 import { WL } from 'proto/weilapb'
-import { getLogger } from 'log/weila_log'
+import { createLogger } from 'log/weila_log'
 import { WL_PttPayload } from 'main/weila_internal_data'
 import { WL_IDbAudioData, WL_IDbMsgData } from 'db/weila_db_data'
 import { WL_PttPackType } from 'main/weila_internal_data'
 import type { WL_PttPacket } from 'main/weila_internal_data'
 import { dbEnum } from 'db/db_enum'
 
-const wllog = getLogger('UTIL:info')
-const wlerr = getLogger('UTIL:err')
+const log = createLogger('UTIL')
 const OPUS_FRAME_DURATION_SEC = 0.02
 
 async function fetchWithTimeout(
@@ -21,12 +20,12 @@ async function fetchWithTimeout(
   const localInit: RequestInit = init ?? {}
   localInit.signal = signal
 
-  wllog('fetch url:', input)
+  log.info('fetch url:', input)
 
   const timeoutPromise = (localTimeout: number) => {
     return new Promise<Response>((resolve, _reject) => {
       timerId = setTimeout(() => {
-        wlerr('获取URL:%s超时', input)
+        log.error('获取URL:%s超时', input)
         resolve(new Response('timeout', { status: 504, statusText: 'timeout' }))
         controller.abort()
       }, localTimeout)
@@ -35,14 +34,14 @@ async function fetchWithTimeout(
 
   const fetchPromise = () => {
     return new Promise<Response>((resolve, reject) => {
-      wllog('输入URL', input)
+      log.info('输入URL', input)
       fetch(input, localInit)
         .then((value) => {
           clearTimeout(timerId)
           resolve(value)
         })
         .catch((reason) => {
-          wlerr('获取失败', reason)
+          log.error('获取失败', reason)
           reject(reason)
         })
     })
@@ -726,7 +725,7 @@ function getPbResultCodeMassage(resultCode: WL.Service.ResultCode): string {
     }
   }
 
-  wllog('resultCode:', resultCode, 'msg:', msg)
+  log.info('resultCode:', resultCode, 'msg:', msg)
 
   return msg
 }
@@ -767,7 +766,7 @@ function AsyncTime(notShow?: boolean) {
 
           return ret
         } catch (e) {
-          wlerr(propertyKey, e)
+          log.error(propertyKey, e)
           console.timeEnd(propertyKey)
 
           return Promise.reject(e)
@@ -902,9 +901,9 @@ async function fetchAudioDataFromUrl(url: string): Promise<WL_IDbAudioData | und
       return audioData
     }
 
-    wlerr('获取音频数据失败 HTTP:%d 地址:%s', result.status, url)
+    log.error('获取音频数据失败 HTTP:%d 地址:%s', result.status, url)
   } catch (e) {
-    wlerr('获取数据异常', e)
+    log.error('获取数据异常', e)
   }
 
   return undefined
