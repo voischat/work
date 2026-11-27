@@ -41,9 +41,8 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: node scripts/release/publish.ts
-      - name: Build website archive
-        if: startsWith(github.ref_name, 'v')
-        run: node scripts/release/archive.ts
+      - name: Build release assets
+        run: node scripts/release/assets.ts
       - name: Create GitHub release
         env:
           GITHUB_TOKEN: ${{ github.token }}

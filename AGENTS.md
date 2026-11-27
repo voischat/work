@@ -86,7 +86,7 @@ Run from the repo root.
 
 ## Releases
 
-Tags drive `.github/workflows/release.yml`. `vX.Y.Z` releases the console, `@vois/weila-sdk-core@X.Y.Z` and `@vois/weila-sdk-ui@X.Y.Z` publish those packages. The workflow checks the tag against the package version, builds, publishes with provenance using the `NPM_TOKEN` secret, and creates a GitHub Release with changelogithub. Console tags also build the website and attach `weila-work-web_X.Y.Z.tar.gz` (the contents of `apps/website/dist` at the archive root) for nginx deployments. Local `pnpm release`, `pnpm release:core` and `pnpm release:ui` run bumpp to bump, commit, tag and push. The UI package must not be released before the core version it depends on exists on npm, and `scripts/release/publish.ts` enforces that.
+Tags drive `.github/workflows/release.yml`. `vX.Y.Z` releases the console, `@vois/weila-sdk-core@X.Y.Z` and `@vois/weila-sdk-ui@X.Y.Z` publish those packages. The workflow checks the tag against the package version, builds, publishes with provenance using the `NPM_TOKEN` secret, and creates a GitHub Release with changelogithub. Console tags also build the website and attach `weila-work-web_X.Y.Z.tar.gz` (the contents of `apps/website/dist` at the archive root) for nginx deployments. Package tags attach the packed npm tarball `<name>-<version>.tgz` (for example `vois-weila-sdk-core-1.1.5.tgz`), built by `scripts/release/assets.ts` with `pnpm pack`, so the published artifact can be downloaded without the registry. Local `pnpm release`, `pnpm release:core` and `pnpm release:ui` run bumpp to bump, commit, tag and push. The UI package must not be released before the core version it depends on exists on npm, and `scripts/release/publish.ts` enforces that.
 
 ## Deployments
 
