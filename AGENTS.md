@@ -37,6 +37,7 @@ Repository-specific rules:
   - `apps/website` uses ESLint (`eslint.config.mjs`).
   - The pre-commit hook (`nano-staged`) routes staged files to the matching track.
 - Turborepo drives every workspace task. The `:sdk` aliases filter to `./packages/*`, `build:web` filters to the website, and the unfiltered commands cover all four projects, so a website build pulls its SDK dependencies first through `dependsOn: ["^build"]`.
+- The root `postinstall` runs `build:sdk`, so a fresh `pnpm install` populates `packages/*/dist` before anyone starts `pnpm dev`.
 
 ## Local environment
 

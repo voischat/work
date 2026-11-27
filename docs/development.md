@@ -13,6 +13,8 @@ mise trust && mise install
 pnpm install
 ```
 
+根目录的 `postinstall` 会在安装后执行 `build:sdk`，所以新机器上 `pnpm install` 结束时 SDK 的 `dist` 已经就绪，`pnpm dev` 可以直接启动。
+
 ## 环境变量
 
 密钥存放在 1Password（vault `Personal`，条目 `Weila Work env`），`env/*.env.template` 只含 `op://` 引用，可安全提交。

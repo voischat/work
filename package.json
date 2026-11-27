@@ -43,6 +43,7 @@
     "contract:baseline": "node packages/core/scripts/artifact-contract.ts --write",
     "contract:check": "node packages/core/scripts/artifact-contract.ts",
     "prepare": "simple-git-hooks",
+    "postinstall": "pnpm run build:sdk",
     "lint:staged": "nano-staged",
     "manifests": "node scripts/manifest-checks.ts",
     "build:sdk": "turbo run build --filter='./packages/*'",
