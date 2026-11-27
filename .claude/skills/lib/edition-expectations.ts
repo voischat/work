@@ -1,8 +1,19 @@
-// Shared per-edition UI expectations for the weila-work verify skills. Each key
-// mirrors the membership `name` returned by corp/org/get-vip-membership, and
-// `level` is the numeric `level` on the same payload.
+export type EditionKey = 'free' | 'standard' | 'professional' | 'flagship'
 
-export const EDITIONS = {
+export interface EditionExpectation {
+  level: number
+  name: string
+  sidebarDisabled: string[]
+  sidebarEnabled: string[]
+  editTrack: 'present' | 'absent'
+  fast: 'enabled' | 'disabled' | 'absent'
+  fastTitle: string
+  locDisabled: boolean
+  locTitle: string
+  routeGuards: [string, 'blocked' | 'allowed'][]
+}
+
+export const EDITIONS: Record<EditionKey, EditionExpectation> = {
   free: {
     level: 0,
     name: '免费版',

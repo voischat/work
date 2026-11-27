@@ -15,7 +15,7 @@ Login, click 成员管理, or open a department from 部门管理. The shared me
 `BASE` is the `Local:` URL from the dev-server log.
 
 ```js
-const driver = await import('<repo>/.claude/skills/lib/ego-driver.mjs') // <repo> = absolute path to the weila-work checkout
+const driver = await import('<repo>/.claude/skills/lib/ego-driver.ts') // <repo> = absolute path to the weila-work checkout
 const task = await taskSpace('weila verify member-list-pagination')
 const page = task.page('p1')
 console.log(

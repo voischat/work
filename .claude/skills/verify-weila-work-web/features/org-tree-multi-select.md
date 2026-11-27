@@ -19,7 +19,7 @@ Login, open 群组管理, click the zero-member group 验证群02 (id 80001120),
 Open the group modal:
 
 ```js
-const driver = await import('<repo>/.claude/skills/lib/ego-driver.mjs') // <repo> = absolute path to the weila-work checkout
+const driver = await import('<repo>/.claude/skills/lib/ego-driver.ts') // <repo> = absolute path to the weila-work checkout
 const task = await taskSpace('weila verify org-tree-multi-select')
 const page = task.page('p1')
 console.log(

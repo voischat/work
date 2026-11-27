@@ -41,7 +41,7 @@ Vue 3 + TS 企业管理台（`apps/website`）。企业通讯：通讯录、消�
 
 Two profiles share the Vite HMR server. `pnpm dev` is the dev environment: `/v1`, `/v2` and the `/voischat` WebSocket proxy default to the LAN backend `https://192.168.0.106`, where the tiered pool accounts log in (`.claude/skills/verify-account-pool/SKILL.md`). `pnpm dev:prod` is stage: the same server with the production profile, talking to `https://api.voischat.cn`.
 
-log in with `ego-browser` (ego lite). The shared helpers in `.claude/skills/lib/ego-driver.mjs` cover login, CDP network capture, and route mocking; the drive recipes live in `.claude/skills/verify-weila-work-web/SKILL.md`.
+log in with `ego-browser` (ego lite). The shared helpers in `.claude/skills/lib/ego-driver.ts` cover login, CDP network capture, and route mocking; the drive recipes live in `.claude/skills/verify-weila-work-web/SKILL.md`.
 
 - **Stage account**: `$WEILA_QA_ACCOUNT` / `$WEILA_QA_PASSWORD`
 - **Dev accounts**: the pool tiers, password `$WEILA_POOL_PASSWORD`
@@ -62,7 +62,7 @@ log in with `ego-browser` (ego lite). The shared helpers in `.claude/skills/lib/
    - 密码：`$WEILA_QA_PASSWORD`
    - 示例脚本（通过 `ego-browser nodejs` 运行）：
      ```js
-     const driver = await import('<仓库绝对路径>/.claude/skills/lib/ego-driver.mjs')
+     const driver = await import('<仓库绝对路径>/.claude/skills/lib/ego-driver.ts')
      const task = await taskSpace('weila docs screenshots')
      const page = task.page('p1')
      await driver.ensureLogin(page, '<dev server 日志里的 Local: 地址>', process.env.WEILA_QA_ACCOUNT, process.env.WEILA_QA_PASSWORD)

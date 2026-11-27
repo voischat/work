@@ -53,7 +53,7 @@ export default defineConfig({
     'eslint-plugin-sonarjs',
     {
       name: 'no-comments',
-      specifier: './tools/lint/no-comments.mjs',
+      specifier: './tools/lint/no-comments.ts',
     },
   ],
   settings: {

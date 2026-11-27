@@ -16,7 +16,7 @@
 To check one dialog by hand, run one script that opens `#/contact/member`, clicks a row's 编辑, and reads the switch state:
 
 ```js
-const driver = await import('<repo>/.claude/skills/lib/ego-driver.mjs') // <repo> = absolute path to the weila-work checkout
+const driver = await import('<repo>/.claude/skills/lib/ego-driver.ts') // <repo> = absolute path to the weila-work checkout
 const task = await taskSpace('weila verify member-edit-permissions')
 const page = task.page('p1')
 console.log(

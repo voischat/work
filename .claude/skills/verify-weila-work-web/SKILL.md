@@ -9,10 +9,10 @@ The app is a Vue 3 + TS admin console (`apps/website`) talking to the real corp 
 
 All commands run from the repo root. Work from a worktree for changes; verification drives whatever code the dev server you start serves.
 
-ego-browser runs one Node script per observation. A whole verification is a sequence of scripts against one TaskSpace, not a sequence of CLI calls. Start a script with the session setup below and end the flow's last script with `task.finish`. The shared helpers live at `.claude/skills/lib/ego-driver.mjs`; import them by absolute path because the embedded runtime has no shell cwd or environment.
+ego-browser runs one Node script per observation. A whole verification is a sequence of scripts against one TaskSpace, not a sequence of CLI calls. Start a script with the session setup below and end the flow's last script with `task.finish`. The shared helpers live at `.claude/skills/lib/ego-driver.ts`; import them by absolute path because the embedded runtime has no shell cwd or environment. The piped script itself must stay plain JavaScript — ego parses stdin as JS — so type annotations belong only in the imported `.ts` modules (or in a `.ts` file the prelude imports).
 
 ```js
-const driver = await import('/abs/path/to/weila-work/.claude/skills/lib/ego-driver.mjs')
+const driver = await import('/abs/path/to/weila-work/.claude/skills/lib/ego-driver.ts')
 const task = await taskSpace('weila verify <feature>') // resume by numeric id once printed
 const page = task.page('p1')
 ```
@@ -57,7 +57,7 @@ The Ego profile keeps its localStorage across TaskSpaces, so the session on scre
 Login, with the shared driver handling the cold-transform retry, the already-logged-in case, and the consent checkbox. The already-logged-in case is identity-checked: `ensureLogin` reuses a kept session only when a stamp it wrote at login still matches the account and the console's `login_time`, and empties and replaces any other session. A token refresh or any other login rewrites `login_time`, so such a session is replaced too.
 
 ```js
-const driver = await import('/abs/path/to/weila-work/.claude/skills/lib/ego-driver.mjs')
+const driver = await import('/abs/path/to/weila-work/.claude/skills/lib/ego-driver.ts')
 const task = await taskSpace('weila verify <feature>')
 const page = task.page('p1')
 console.log(
@@ -181,7 +181,7 @@ The drive stays on thin ego-browser primitives (goto/snapshot, fill/click with t
   await driver.settlePump(page, pump)
   await page.cdp('Fetch.disable')
   ```
-  The body must be the raw backend envelope `{errcode:0, errmsg, data:...}`, not the already-unwrapped shape. Keep the interception armed for the whole flow, across reloads. See `../verify-vip-edition-flags/verify-edition.mjs` for a working script.
+  The body must be the raw backend envelope `{errcode:0, errmsg, data:...}`, not the already-unwrapped shape. Keep the interception armed for the whole flow, across reloads. See `../verify-vip-edition-flags/verify-edition.ts` for a working script.
 - Measure layout stability before and after the interaction:
   ```js
   await page.evaluate((sel) => {

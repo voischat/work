@@ -3,19 +3,38 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+interface StrictBudget {
+  diagnostics: number
+  suppressions: number
+}
+
+interface ExecFailure {
+  status?: number | null
+  stdout?: string | Buffer | null
+  stderr?: string | Buffer | null
+}
+
 const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), '..')
 const BUDGET = join(PACKAGE, 'artifacts/strict-budget.json')
 
-export function countDiagnostics(output) {
+function isExecFailure(error: unknown): error is ExecFailure {
+  return typeof error === 'object' && error !== null && 'status' in error && 'stdout' in error
+}
+
+export function countDiagnostics(output: string): number {
   return [...output.matchAll(/error TS\d+:/g)].length
 }
 
-export function countSuppressions(source) {
+export function countSuppressions(source: string): number {
   return [...source.matchAll(/@ts-(?:ignore|expect-error|nocheck)/g)].length
 }
 
-export function compareBudget(current, budget, origin) {
-  const problems = []
+export function compareBudget(
+  current: StrictBudget,
+  budget: StrictBudget,
+  origin: StrictBudget | null,
+): string[] {
+  const problems: string[] = []
 
   if (current.diagnostics > budget.diagnostics)
     problems.push(`${current.diagnostics} strict diagnostics, budget ${budget.diagnostics}`)
@@ -29,7 +48,7 @@ export function compareBudget(current, budget, origin) {
   return problems
 }
 
-function measure() {
+function measure(): StrictBudget {
   let output = ''
   let status = 0
 
@@ -44,8 +63,9 @@ function measure() {
       },
     )
   } catch (error) {
-    output = `${error.stdout ?? ''}${error.stderr ?? ''}`
-    status = error.status ?? 1
+    const failure = isExecFailure(error) ? error : {}
+    output = `${failure.stdout ? String(failure.stdout) : ''}${failure.stderr ? String(failure.stderr) : ''}`
+    status = failure.status ?? 1
   }
 
   const diagnostics = countDiagnostics(output)
@@ -65,7 +85,7 @@ function measure() {
   return { diagnostics, suppressions: countSuppressions(sources) }
 }
 
-function main() {
+function main(): void {
   const current = measure()
 
   if (process.argv.includes('--write')) {
@@ -78,7 +98,7 @@ function main() {
     return
   }
 
-  const problems = []
+  const problems: string[] = []
 
   if (!existsSync(BUDGET))
     problems.push(`Missing ${relative(PACKAGE, BUDGET)}. Run with --write first.`)

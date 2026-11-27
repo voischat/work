@@ -10,10 +10,10 @@ description: Prove the Weila 106 LAN test-account pool (free/标准版/专业版
 Four real accounts on the LAN backend at `https://192.168.0.106` each log in through the console and render the VIP tier their org claims. Per account the run asserts:
 
 - the login lands on `#/contact/` and the captured `corp/auth/login` traffic is a real request,
-- `data.membership.name` and `data.membership.level` from the captured `corp/org/get-vip-membership` response equal the tier's entry in `../lib/edition-expectations.mjs` (免费版 0 / 标准版 16 / 专业版 32 / 旗舰版 48),
+- `data.membership.name` and `data.membership.level` from the captured `corp/org/get-vip-membership` response equal the tier's entry in `../lib/edition-expectations.ts` (免费版 0 / 标准版 16 / 专业版 32 / 旗舰版 48),
 - the four sidebar items 消息/实时位置/轨迹/应用管理 are enabled or grayed per that tier (same `.arco-menu-item` / `arco-menu-disabled` class check as [verify-vip-edition-flags](../verify-vip-edition-flags/SKILL.md)).
 
-The pool lives in `../lib/account-pool.mjs` with tiers ordered `free, standard, professional, flagship`. Login is the 11-digit account number plus `WEILA_POOL_PASSWORD`.
+The pool lives in `../lib/account-pool.ts` with tiers ordered `free, standard, professional, flagship`. Login is the 11-digit account number plus `WEILA_POOL_PASSWORD`.
 
 ## Preconditions
 

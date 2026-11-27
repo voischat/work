@@ -1,5 +1,6 @@
 import { createServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
+import type { AddressInfo } from 'node:net'
 import { dirname, extname, join, normalize } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -11,13 +12,24 @@ const TYPES = {
   '.mjs': 'text/javascript; charset=utf-8',
   '.wasm': 'application/wasm',
   '.wav': 'audio/wav',
+} satisfies Record<string, string>
+
+function isTcpAddress(address: string | AddressInfo | null): address is AddressInfo {
+  return typeof address === 'object' && address !== null
 }
 
-export async function startServer() {
-  const server = createServer(async (request, response) => {
-    const path = normalize(decodeURIComponent(new URL(request.url, 'http://localhost').pathname))
+export interface SmokeServer {
+  url: string
+  close: () => Promise<void>
+}
 
-    let file = null
+export async function startServer(): Promise<SmokeServer> {
+  const server = createServer(async (request, response) => {
+    const path = normalize(
+      decodeURIComponent(new URL(request.url ?? '/', 'http://localhost').pathname),
+    )
+
+    let file: string | null = null
 
     if (path === '/') file = join(PACKAGE, 'tests/fixtures/smoke.html')
     else if (path.startsWith('/dist/')) file = join(PACKAGE, path)
@@ -40,11 +52,13 @@ export async function startServer() {
     }
   })
 
-  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
-  const { port } = server.address()
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
+  const address = server.address()
+
+  if (!isTcpAddress(address)) throw new Error('smoke server did not bind a TCP port')
 
   return {
-    url: `http://127.0.0.1:${port}/`,
-    close: () => new Promise((resolve) => server.close(resolve)),
+    url: `http://127.0.0.1:${address.port}/`,
+    close: () => new Promise<void>((resolve) => server.close(() => resolve())),
   }
 }

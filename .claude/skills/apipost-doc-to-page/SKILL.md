@@ -20,7 +20,7 @@ console.log(await page.evaluate(() => document.body.textContent)) // host, path,
 console.log(await page.snapshot()) // nav refs, to click sibling endpoints
 ```
 
-If a page renders empty, capture the backing docs requests instead. `await page.cdp("Network.enable")` before the reload, then drain `page.events()` through the pump in `.claude/skills/lib/ego-driver.mjs` and read the request URLs and response bodies (`Network.getResponseBody` works while the document that received them is still loaded), or grep the app JS bundle for the docs API host. Do not spend long bundle-hunting; the rendered tree is faster. End the flow with `await task.finish({ keep: [] })`.
+If a page renders empty, capture the backing docs requests instead. `await page.cdp("Network.enable")` before the reload, then drain `page.events()` through the pump in `.claude/skills/lib/ego-driver.ts` and read the request URLs and response bodies (`Network.getResponseBody` works while the document that received them is still loaded), or grep the app JS bundle for the docs API host. Do not spend long bundle-hunting; the rendered tree is faster. End the flow with `await task.finish({ keep: [] })`.
 
 Extract, for every endpoint: HTTP method, full relative path, query params, request body, and the response example. Note the host shown in each example; a `localhost` example is the doc author's machine, not a deployment.
 
@@ -56,7 +56,7 @@ A workbench page is three auto-discovered pieces. No central route or menu regis
 
 Use [verify-weila-work-web](../verify-weila-work-web/SKILL.md) for the mechanics (login, drive, evidence, backend probing, mocks, box measurement).
 
-- If the backend is absent, mock each endpoint with a CDP Fetch interception that fulfills `*<path>*` from the fixture, armed before the navigation that fires the request (cross-ref [verify-weila-work-web](../verify-weila-work-web/SKILL.md), Helpers, and the working script at `../verify-vip-edition-flags/verify-edition.mjs`). The body must be the raw envelope `{errcode:0, errmsg, data:...}`. Mock secrets must be plain literal dummies such as `sk-test-0000`, never placeholder-shaped strings.
+- If the backend is absent, mock each endpoint with a CDP Fetch interception that fulfills `*<path>*` from the fixture, armed before the navigation that fires the request (cross-ref [verify-weila-work-web](../verify-weila-work-web/SKILL.md), Helpers, and the working script at `../verify-vip-edition-flags/verify-edition.ts`). The body must be the raw envelope `{errcode:0, errmsg, data:...}`. Mock secrets must be plain literal dummies such as `sk-test-0000`, never placeholder-shaped strings.
 - Exercise every flow you shipped: list, create, delete, reveal and copy, pagination.
 - Then do one zero-mock load of every flow before handover. Mock-verified is a proxy, not proof.
 - When a control changes cell content in an Arco auto-fit table (for example a mask/reveal toggle), measure the column box with `page.evaluate` getBoundingClientRect before and after and assert the width is unchanged.

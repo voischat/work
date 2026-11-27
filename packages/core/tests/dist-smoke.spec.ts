@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import vm from 'node:vm'
 import type { Browser, Page } from '@playwright/test'
 import { chromium, expect, test } from '@playwright/test'
-import { startServer } from './server.mjs'
+import { startServer } from './server.ts'
 
 interface ContractBaseline {
   exports: string[]

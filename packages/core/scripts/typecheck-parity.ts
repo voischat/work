@@ -4,17 +4,32 @@ import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+interface ExecFailure {
+  status?: number | null
+  stdout?: string | Buffer | null
+  stderr?: string | Buffer | null
+}
+
+interface RunResult {
+  status: number
+  output: string
+}
+
 const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), '..')
 const require = createRequire(import.meta.url)
 const KNOWN = join(PACKAGE, 'artifacts/typecheck-known-differences.json')
 
-function loadedTypeScriptVersion(fromPackage) {
+function isExecFailure(error: unknown): error is ExecFailure {
+  return typeof error === 'object' && error !== null && 'status' in error && 'stdout' in error
+}
+
+function loadedTypeScriptVersion(fromPackage: string): string {
   const entry = require.resolve(fromPackage, { paths: [PACKAGE] })
 
   return createRequire(entry)('typescript/package.json').version
 }
 
-function run(binary, args) {
+function run(binary: string, args: string[]): RunResult {
   try {
     const output = execFileSync(join(PACKAGE, 'node_modules/.bin', binary), args, {
       cwd: PACKAGE,
@@ -24,17 +39,22 @@ function run(binary, args) {
 
     return { status: 0, output }
   } catch (error) {
-    return { status: error.status ?? 1, output: `${error.stdout ?? ''}${error.stderr ?? ''}` }
+    const failure = isExecFailure(error) ? error : {}
+
+    return {
+      status: failure.status ?? 1,
+      output: `${failure.stdout ? String(failure.stdout) : ''}${failure.stderr ? String(failure.stderr) : ''}`,
+    }
   }
 }
 
-function diagnostics(output) {
+function diagnostics(output: string): string[] {
   return [...output.matchAll(/^(.+?)\((\d+),(\d+)\): error (TS\d+): (.+)$/gm)]
     .map((match) => `${match[1]}(${match[2]},${match[3]}) ${match[4]} ${match[5]}`)
     .toSorted()
 }
 
-const problems = []
+const problems: string[] = []
 const coreTypeScript = require(join(PACKAGE, 'node_modules/typescript/package.json')).version
 
 if (!coreTypeScript.startsWith('7.'))
@@ -58,7 +78,7 @@ if (tsrs.status !== 0 && tsrsDiagnostics.length === 0)
 if (tsc.status !== 0 && tscDiagnostics.length === 0)
   problems.push(`tsc exited ${tsc.status} without diagnostics`)
 
-const known = existsSync(KNOWN) ? JSON.parse(readFileSync(KNOWN, 'utf8')) : []
+const known: string[] = existsSync(KNOWN) ? JSON.parse(readFileSync(KNOWN, 'utf8')) : []
 const expected = new Set(known)
 
 for (const entry of tscDiagnostics) {

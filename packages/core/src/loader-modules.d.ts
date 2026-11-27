@@ -1,5 +1,5 @@
 // Ambient declarations for modules that only exist after the Rspack loaders
-// run: worklet bundles are inlined by worklet-inline-loader.cjs (default
+// run: worklet bundles are inlined by worklet-inline-loader.ts (default
 // export is the module URL), and wav/wasm files are emitted by
 // type: 'asset/resource' (default export is the asset URL).
 declare module '*.worklet.js' {

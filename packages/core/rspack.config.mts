@@ -110,7 +110,7 @@ export default {
         test: /\.worklet\.js$/,
         include: SRC,
         type: 'javascript/esm',
-        use: [{ loader: path.resolve(ROOT, 'worklet-inline-loader.cjs') }],
+        use: [{ loader: path.resolve(ROOT, 'worklet-inline-loader.ts') }],
       },
       { test: /\.js$/, include: SRC, type: 'javascript/esm' },
       { test: /\.(wav|wasm)$/, type: 'asset/resource' },

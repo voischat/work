@@ -3,20 +3,37 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSy
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+interface ArtifactFile {
+  bytes: number
+  sha256: string
+}
+
+export interface ArtifactContract {
+  entry: string
+  exports: string[]
+  dtsExports: string[]
+  assets: string[]
+  files: Record<string, ArtifactFile>
+}
+
 const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), '..')
 const DIST = join(PACKAGE, 'dist')
 const BASELINE = join(PACKAGE, 'artifacts', 'contract-baseline.json')
 const ENTRY = 'weilasdk.mjs'
 const LICENSE_SIDECAR = /\.LICENSE\.txt$/
 
-export function parseEsmExports(source) {
-  const names = new Set()
+export function parseEsmExports(source: string): string[] {
+  const names = new Set<string>()
 
   for (const match of source.matchAll(/export\s*(?:type\s+)?\{([^}]*)\}/g)) {
     for (const part of match[1].split(',')) {
       const name = part.trim()
 
-      if (name) names.add(name.split(/\s+as\s+/).pop())
+      if (name) {
+        const exported = name.split(/\s+as\s+/).pop()
+
+        if (exported) names.add(exported)
+      }
     }
   }
 
@@ -28,14 +45,18 @@ export function parseEsmExports(source) {
   return [...names].toSorted((a, b) => (a < b ? -1 : a > b ? 1 : 0))
 }
 
-export function parseDtsExports(source) {
-  const names = new Set()
+export function parseDtsExports(source: string): string[] {
+  const names = new Set<string>()
 
   for (const match of source.matchAll(/export\s*(?:type\s+)?\{([^}]*)\}/g)) {
     for (const part of match[1].split(',')) {
       const name = part.trim().replace(/^type\s+/, '')
 
-      if (name) names.add(name.split(/\s+as\s+/).pop())
+      if (name) {
+        const exported = name.split(/\s+as\s+/).pop()
+
+        if (exported) names.add(exported)
+      }
     }
   }
 
@@ -47,8 +68,8 @@ export function parseDtsExports(source) {
   return [...names].toSorted((a, b) => (a < b ? -1 : a > b ? 1 : 0))
 }
 
-function walk(directory) {
-  const files = []
+function walk(directory: string): string[] {
+  const files: string[] = []
 
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     const full = join(directory, entry.name)
@@ -60,7 +81,7 @@ function walk(directory) {
   return files
 }
 
-export function collectArtifacts(dist = DIST) {
+export function collectArtifacts(dist = DIST): ArtifactContract {
   const entryPath = join(dist, ENTRY)
 
   if (!existsSync(entryPath))
@@ -71,7 +92,7 @@ export function collectArtifacts(dist = DIST) {
   if (exportNames.length === 0)
     throw new Error(`${ENTRY} exports nothing. Refusing to capture a broken contract.`)
 
-  const files = {}
+  const files: Record<string, ArtifactFile> = {}
 
   for (const full of walk(dist).toSorted((a, b) => (a < b ? -1 : a > b ? 1 : 0))) {
     const path = relative(dist, full)
@@ -98,8 +119,8 @@ export function collectArtifacts(dist = DIST) {
   }
 }
 
-export function compareContract(baseline, current) {
-  const problems = []
+export function compareContract(baseline: ArtifactContract, current: ArtifactContract): string[] {
+  const problems: string[] = []
 
   for (const path of Object.keys(baseline.files)) {
     if (!(path in current.files)) problems.push(`missing file ${path}`)
@@ -120,7 +141,7 @@ export function compareContract(baseline, current) {
   return problems
 }
 
-function main() {
+function main(): void {
   const write = process.argv.includes('--write')
 
   if (write) {
@@ -137,7 +158,7 @@ function main() {
   if (!existsSync(BASELINE))
     throw new Error(`Missing ${BASELINE}. Run with --write on a clean trunk build first.`)
 
-  const baseline = JSON.parse(readFileSync(BASELINE, 'utf8'))
+  const baseline: ArtifactContract = JSON.parse(readFileSync(BASELINE, 'utf8'))
   const current = collectArtifacts()
   const problems = compareContract(baseline, current)
   console.log(

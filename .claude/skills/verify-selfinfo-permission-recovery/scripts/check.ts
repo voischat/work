@@ -1,26 +1,43 @@
-// check.mjs — drive the owner path through a failed token refresh, an SPA
+// check.ts — drive the owner path through a failed token refresh, an SPA
 // re-login, and the member edit dialog. Fails unless the 部门管理员 switch is
 // enabled after re-login and a token-bearing get-selfinfo request follows the
-// login. Piped to `ego-browser nodejs` behind a CFG prelude by check.sh.
+// login. The shell wrapper pipes a JS bootstrap that sets globalThis.CFG and
+// imports this module; see check.sh.
 
-const { mkdirSync, writeFileSync } = await import('node:fs')
-const { join } = await import('node:path')
-const driver = await import(CFG.libPath)
+import { mkdirSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+import process from 'node:process'
+import * as driver from '../../lib/ego-driver.ts'
+import type { EgoTask } from '../../lib/ego-driver.ts'
+
+interface VerifySelfInfoConfig {
+  base: string
+  account: string
+  password: string
+  evidenceDir: string
+}
+
+declare const CFG: VerifySelfInfoConfig
+declare const taskSpace: (name: string) => EgoTask
+
+function messageOf(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
 
 mkdirSync(CFG.evidenceDir, { recursive: true })
-const lines = []
-const note = (line) => {
+const lines: string[] = []
+const note = (line: string): void => {
   lines.push(line)
   console.log(line)
 }
-const failures = () => lines.filter((l) => l.startsWith('FAIL')).length
+const failures = (): number => lines.filter((l) => l.startsWith('FAIL')).length
 
 const task = await taskSpace(`weila-selfinfo-${Math.floor(Date.now() / 1000)}`)
 const page = task.page('p1')
 const { pump, requests } = driver.makePump(page, null)
 await page.cdp('Network.enable')
 
-const switchState = () =>
+const switchState = (): Promise<string> =>
   page.evaluate(() => {
     const label = [...document.querySelectorAll('.arco-form-item-label')].find(
       (el) => el.textContent.trim() === '部门管理员',
@@ -32,7 +49,7 @@ const switchState = () =>
 
 // A session the backend rejects bounces back to #/login even after the form
 // submitted; log in again whenever the bounce is observed.
-const ensureConsole = async () => {
+const ensureConsole = async (): Promise<void> => {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       await page.waitForFunction(
@@ -50,7 +67,7 @@ const ensureConsole = async () => {
   throw new Error('console did not render after re-login')
 }
 
-const openSwitchModal = async () => {
+const openSwitchModal = async (): Promise<string> => {
   await page.evaluate(() => {
     location.hash = '#/contact/member'
   })
@@ -93,7 +110,7 @@ const openSwitchModal = async () => {
   throw new Error('no member edit dialog exposed the 部门管理员 switch')
 }
 
-const waitForUrl = async (pattern, seconds) => {
+const waitForUrl = async (pattern: string, seconds: number): Promise<boolean> => {
   for (let i = 0; i < seconds; i++) {
     if ((await page.url()).includes(pattern)) return true
     await page.waitForTimeout(1000)
@@ -101,7 +118,7 @@ const waitForUrl = async (pattern, seconds) => {
   return false
 }
 
-const selfinfoTokenCountAfter = (marker) =>
+const selfinfoTokenCountAfter = (marker: number): number =>
   [...requests.values()].filter(
     (r) => r.url.includes('get-selfinfo') && r.ts > marker && /[?&]token=/.test(r.url),
   ).length
@@ -163,8 +180,8 @@ try {
   note('PASS after re-login: 部门管理员 switch enabled')
   note(`PASS self-info refetched after re-login (${count} request(s))`)
   note(`PASS evidence in ${CFG.evidenceDir}`)
-} catch (e) {
-  note(`FAIL ${e.message}`)
+} catch (error) {
+  note(`FAIL ${messageOf(error)}`)
 } finally {
   const rc = failures()
   note(`RESULT selfinfo failures=${rc}`)

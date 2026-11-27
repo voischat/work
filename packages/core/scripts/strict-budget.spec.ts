@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { compareBudget, countDiagnostics, countSuppressions } from './strict-budget.mjs'
+import { compareBudget, countDiagnostics, countSuppressions } from './strict-budget.ts'
 
 void test('countDiagnostics counts TypeScript error lines', () => {
   const output = 'src/a.ts(1,2): error TS2322: bad\nsrc/b.ts(3,4): error TS2531: worse\n'

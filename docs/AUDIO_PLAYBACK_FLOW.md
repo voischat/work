@@ -372,7 +372,7 @@ case WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_REQ:
 AudioWorklet 只接受 URL，处理器代码必须在 worklet 自己的全局作用域里执行。SDK 的处理方式：
 
 1. `rspack.worklets.config.mts` 把 `weila_player.worklet.js` 和 `weila_recorder.worklet.js` 打成自包含 IIFE，输出到 `dist/worklets/`。
-2. `worklet-inline-loader.cjs` 在主包构建时读取这两个文件，把源码嵌入 `weilasdk.mjs`，并在模块求值时创建 Blob URL。
+2. `worklet-inline-loader.ts` 在主包构建时读取这两个文件，把源码嵌入 `weilasdk.mjs`，并在模块求值时创建 Blob URL。
 3. `WLAudio.init()` 把这两个 Blob URL 传给 `audioContext.audioWorklet.addModule()`。
 
 worklet 依赖 Emscripten 的 Opus glue。IIFE 把依赖全部内联，所以 Blob URL 没有目录也能执行。宿主不需要再提供 worklet 文件。

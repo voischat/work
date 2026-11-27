@@ -3,12 +3,32 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+interface Diagnostic {
+  severity: string
+  filename?: string
+}
+
+interface ExecFailure {
+  status?: number | null
+  stdout?: string | Buffer | null
+  stderr?: string | Buffer | null
+}
+
+export interface LintBudget {
+  errors: number
+  files: Record<string, number>
+}
+
 const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), '..')
 const REPO = join(PACKAGE, '..', '..')
 const BUDGET = join(PACKAGE, 'artifacts/lint-budget.json')
 
-export function collect(diagnostics, base = REPO) {
-  const files = {}
+function isExecFailure(error: unknown): error is ExecFailure {
+  return typeof error === 'object' && error !== null && 'status' in error && 'stdout' in error
+}
+
+export function collect(diagnostics: Diagnostic[], base = REPO): LintBudget {
+  const files: Record<string, number> = {}
   let errors = 0
 
   for (const diagnostic of diagnostics) {
@@ -21,12 +41,16 @@ export function collect(diagnostics, base = REPO) {
   return { errors, files }
 }
 
-export function totalWarnings(budget) {
+export function totalWarnings(budget: LintBudget): number {
   return Object.values(budget.files ?? {}).reduce((sum, count) => sum + count, 0)
 }
 
-export function compareBudget(current, budget, origin) {
-  const problems = []
+export function compareBudget(
+  current: LintBudget,
+  budget: LintBudget,
+  origin: LintBudget | null,
+): string[] {
+  const problems: string[] = []
 
   if (current.errors > 0) problems.push(`${current.errors} lint errors`)
 
@@ -42,7 +66,7 @@ export function compareBudget(current, budget, origin) {
   return problems
 }
 
-function runLint() {
+function runLint(): { diagnostics?: Diagnostic[] } {
   try {
     const output = execFileSync(
       join(REPO, 'node_modules/.bin/oxlint'),
@@ -56,11 +80,14 @@ function runLint() {
 
     return JSON.parse(output)
   } catch (error) {
-    return JSON.parse(error.stdout || '{}')
+    const failure = isExecFailure(error) ? error : {}
+    const output = failure.stdout ? String(failure.stdout) : '{}'
+
+    return JSON.parse(output)
   }
 }
 
-function budgetFromOrigin() {
+function budgetFromOrigin(): LintBudget | null {
   try {
     const raw = execFileSync(
       'git',
@@ -78,7 +105,7 @@ function budgetFromOrigin() {
   }
 }
 
-function main() {
+function main(): void {
   const current = collect(runLint().diagnostics ?? [])
 
   if (process.argv.includes('--write')) {
@@ -91,7 +118,7 @@ function main() {
     return
   }
 
-  const problems = []
+  const problems: string[] = []
 
   if (!existsSync(BUDGET))
     problems.push(`Missing ${relative(REPO, BUDGET)}. Run with --write first.`)

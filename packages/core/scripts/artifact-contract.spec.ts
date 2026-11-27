@@ -8,7 +8,7 @@ import {
   compareContract,
   parseDtsExports,
   parseEsmExports,
-} from './artifact-contract.mjs'
+} from './artifact-contract.ts'
 
 const baseline = {
   entry: 'weilasdk.mjs',

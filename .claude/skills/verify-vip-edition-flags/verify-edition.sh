@@ -27,14 +27,17 @@ OUT="$(cd "$OUT" && pwd)"
 command -v ego-browser >/dev/null || { echo "FAIL ego-browser not found (see the ego-browser skill's install reference)" >&2; exit 2; }
 [ -f "$FIXTURE" ] || { echo "FAIL fixture missing: $FIXTURE" >&2; exit 2; }
 
-# The embedded ego-browser Node runtime has no shell cwd or env, so every path
-# rides in through the CFG prelude and the script imports the driver by
-# absolute path.
-CFG=$(printf '{ "edition": "%s", "base": "%s", "outDir": "%s", "fixturePath": "%s", "libPath": "%s", "editionsPath": "%s", "account": "%s", "password": "%s" }' \
-  "$EDITION" "$BASE" "$OUT" "$FIXTURE" "$HERE/../lib/ego-driver.mjs" "$HERE/../lib/edition-expectations.mjs" "${WEILA_QA_ACCOUNT:?}" "${WEILA_QA_PASSWORD:?}")
+# The embedded ego-browser Node runtime parses stdin as JavaScript and has no
+# shell cwd or environment, so the prelude stays JS: it sets the CFG global and
+# imports the typed entry. node -e escapes the strings instead of hand-rolling
+# JSON quoting.
+CFG=$(node -e '
+const [edition, base, outDir, fixturePath, account, password, scriptPath] = process.argv.slice(1)
+process.stdout.write(JSON.stringify({ edition, base, outDir, fixturePath, account, password, scriptPath }))
+' "$EDITION" "$BASE" "$OUT" "$FIXTURE" "${WEILA_QA_ACCOUNT:?}" "${WEILA_QA_PASSWORD:?}" "$HERE/verify-edition.ts")
 
 # The ego runtime prints script output on stderr, so merge streams before tee.
-{ printf 'const CFG = %s;\n' "$CFG"; cat "$HERE/verify-edition.mjs"; } | ego-browser nodejs 2>&1 | tee "$OUT/run.log"
+{ printf 'globalThis.CFG = %s;\nawait import(globalThis.CFG.scriptPath);\n' "$CFG"; } | ego-browser nodejs 2>&1 | tee "$OUT/run.log"
 
 if grep -q '^FAIL' "$OUT/assertions.log" || ! grep -q 'RESULT .* failures=0' "$OUT/assertions.log"; then
   exit 1

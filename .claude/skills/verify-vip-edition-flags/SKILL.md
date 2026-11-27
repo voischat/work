@@ -32,7 +32,7 @@ To test against a backend other than the default, start the server with `WEILA_A
 
 ## Account pool (106 LAN)
 
-The 106 backend carries four real accounts, one per tier (0 免费版 / 16 标准版 / 32 专业版 / 48 旗舰版), so the gating can also be proven without the mock: see [verify-account-pool](../verify-account-pool/SKILL.md). Its module `../lib/account-pool.mjs` logs each account in and asserts the real `get-vip-membership` payload plus the sidebar flags. The shared per-edition expectations (`../lib/edition-expectations.mjs`) are the same table this skill asserts against, so a gating change lands in one file.
+The 106 backend carries four real accounts, one per tier (0 免费版 / 16 标准版 / 32 专业版 / 48 旗舰版), so the gating can also be proven without the mock: see [verify-account-pool](../verify-account-pool/SKILL.md). Its module `../lib/account-pool.ts` logs each account in and asserts the real `get-vip-membership` payload plus the sidebar flags. The shared per-edition expectations (`../lib/edition-expectations.ts`) are the same table this skill asserts against, so a gating change lands in one file.
 
 The pool runs on the dev profile, which points at 106 with no environment variables:
 

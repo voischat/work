@@ -1,43 +1,60 @@
-// verify-pool.mjs — prove the 106 LAN account pool logs in and renders the
-// membership tier each org holds. Piped to `ego-browser nodejs` behind a CFG
-// prelude by verify-pool.sh; see that wrapper for usage and preconditions.
+// verify-pool.ts — prove the 106 LAN account pool logs in and renders the
+// membership tier each org holds. The shell wrapper pipes a JS bootstrap that
+// sets globalThis.CFG and imports this module; see verify-pool.sh for usage
+// and preconditions.
 
-const { writeFileSync, mkdirSync } = await import('node:fs')
-const { join } = await import('node:path')
-const driver = await import(CFG.libPath)
-const pool = await import(CFG.poolLibPath)
-const { EDITIONS } = await import(CFG.editionsPath)
+import { mkdirSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+import process from 'node:process'
+import * as pool from '../lib/account-pool.ts'
+import * as driver from '../lib/ego-driver.ts'
+import type { EgoTask } from '../lib/ego-driver.ts'
+import { EDITIONS } from '../lib/edition-expectations.ts'
+
+interface VerifyPoolConfig {
+  base: string
+  outDir: string
+  password: string
+  poolJson: string
+}
+
+declare const CFG: VerifyPoolConfig
+declare const taskSpace: (name: string) => EgoTask
+
+function messageOf(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
 
 mkdirSync(CFG.outDir, { recursive: true })
-const lines = []
-const note = (line) => {
+const lines: string[] = []
+const note = (line: string): void => {
   lines.push(line)
   console.log(line)
 }
-const failures = () => lines.filter((l) => l.startsWith('FAIL')).length
+const failures = (): number => lines.filter((l) => l.startsWith('FAIL')).length
 
 const SIDEBAR_ITEMS = ['消息', '实时位置', '轨迹', '应用管理']
 
 const task = await taskSpace(`weila-account-pool-${Math.floor(Date.now() / 1000)}`)
 const page = task.page('p1')
 
-let entries = []
+let entries: pool.PoolEntry[] = []
 try {
   try {
     entries = pool.getPool({ WEILA_POOL_JSON: CFG.poolJson })
-  } catch (e) {
-    note(`FAIL pool config: ${e.message}`)
+  } catch (error) {
+    note(`FAIL pool config: ${messageOf(error)}`)
   }
 
   for (const entry of entries) {
     const { tier } = entry
     const ed = EDITIONS[tier]
 
-    let landed
+    let landed: pool.LoginResult
     try {
       landed = await pool.loginFresh(page, CFG.base, entry, CFG.password)
-    } catch (e) {
-      note(`FAIL ${tier} login: ${e.message}`)
+    } catch (error) {
+      note(`FAIL ${tier} login: ${messageOf(error)}`)
       await page.screenshot({ path: join(CFG.outDir, `${tier}.png`) }).catch(() => {})
       continue
     }
@@ -70,8 +87,8 @@ try {
       else note(`FAIL ${tier} sidebar ${item} expected ${expected}, got '${actual}'`)
     }
   }
-} catch (e) {
-  note(`FAIL unexpected error: ${e.message}`)
+} catch (error) {
+  note(`FAIL unexpected error: ${messageOf(error)}`)
 } finally {
   const rc = failures()
   note(`RESULT accounts=${entries.length} failures=${rc}`)

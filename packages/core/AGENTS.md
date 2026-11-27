@@ -64,7 +64,7 @@ packages/core/
 ├── tsconfig.json       # TypeScript configuration
 ├── rspack.config.mts   # Rspack build configuration
 ├── rspack.worklets.config.mts
-└── worklet-inline-loader.cjs
+└── worklet-inline-loader.ts
 ```
 
 ### Module Path Aliases
@@ -193,7 +193,7 @@ public weila_onEvent(callback: WL_ExtEventCallback): void {
 ### Worklets (Audio)
 
 - Worklet files use `.worklet.js` suffix
-- `rspack.worklets.config.mts` builds each worklet as a standalone IIFE, and `worklet-inline-loader.cjs` embeds the result as a Blob URL factory
+- `rspack.worklets.config.mts` builds each worklet as a standalone IIFE, and `worklet-inline-loader.ts` embeds the result as a Blob URL factory
 
 ### Binary Assets
 

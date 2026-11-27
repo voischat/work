@@ -15,7 +15,7 @@ Login, then click 群组管理 in the left menu, or open `#/contact/group` direc
 `BASE` is the `Local:` URL from the dev-server log.
 
 ```js
-const driver = await import('<repo>/.claude/skills/lib/ego-driver.mjs') // <repo> = absolute path to the weila-work checkout
+const driver = await import('<repo>/.claude/skills/lib/ego-driver.ts') // <repo> = absolute path to the weila-work checkout
 const task = await taskSpace('weila verify group-list-pagination')
 const page = task.page('p1')
 console.log(

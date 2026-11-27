@@ -14,7 +14,7 @@ Login, open the workbench chat page, act on the control that opens the session p
 `BASE` is the `Local:` URL from the dev-server log.
 
 ```js
-const driver = await import('<repo>/.claude/skills/lib/ego-driver.mjs') // <repo> = absolute path to the weila-work checkout
+const driver = await import('<repo>/.claude/skills/lib/ego-driver.ts') // <repo> = absolute path to the weila-work checkout
 const task = await taskSpace('weila verify chat-session-picker')
 const page = task.page('p1')
 console.log(

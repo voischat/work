@@ -9,7 +9,7 @@
   "ignoreBinaries": ["op"],
   "workspaces": {
     ".": {
-      // tsdown and vue-tsc are resolved by packages/core/scripts/typecheck-parity.mjs.
+      // tsdown and vue-tsc are resolved by packages/core/scripts/typecheck-parity.ts.
       // tsrs is oxlint's type-aware backend, resolved at runtime rather than imported.
       "ignoreDependencies": ["tsdown", "tsrs", "vue-tsc"],
       "entry": [
@@ -21,7 +21,7 @@
         "scripts/*.spec.ts",
         "scripts/release/*.spec.ts",
         // agent verification scripts, run ad hoc through ego-browser
-        ".claude/skills/**/*.mjs",
+        ".claude/skills/**/*.ts",
         // repo scripts, including the manifest policy check
         "scripts/*.ts",
         // release entrypoints, invoked by .github/workflows/release.yml
@@ -49,7 +49,7 @@
     "packages/core": {
       // Manual script: copies dist/assets into the consuming app's public/
       // (documented in packages/core/AGENTS.md, used by UniApp integrations)
-      "entry": ["post-copy.js", "scripts/*.spec.mjs"],
+      "entry": ["scripts/post-copy.ts", "scripts/*.spec.ts"],
       // Vendored Oxlint plugin. It is loaded by Oxlint, not imported by package code.
       // weilapb.js is generated protocol code; its default export is unused.
       "ignore": ["tools/oxlint/anti-slop/**", "src/proto/weilapb.js"],

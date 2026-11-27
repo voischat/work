@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import process from 'node:process'
-import { isAllowedComment } from '../tools/lint/no-comments.mjs'
+import { isAllowedComment } from '../tools/lint/no-comments.ts'
 
 const ROOTS = ['apps', 'packages', 'scripts', 'infra', 'tools']
 const SKIP_DIRS = new Set([

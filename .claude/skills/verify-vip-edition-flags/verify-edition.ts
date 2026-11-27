@@ -1,25 +1,54 @@
-// verify-edition.mjs — prove VIP edition gating in weila-work-web under a
+// verify-edition.ts — prove VIP edition gating in weila-work-web under a
 // mocked corp/org/get-vip-membership payload, driving the real UI like a user through
-// ego-browser. Piped to `ego-browser nodejs` behind a CFG prelude by
-// verify-edition.sh; see that wrapper for usage and evidence locations.
+// ego-browser. The shell wrapper pipes a JS bootstrap that sets globalThis.CFG
+// and imports this module; see verify-edition.sh for usage and evidence
+// locations.
 //
 // The mock intercepts ONLY get-vip-membership; everything else (login, member list,
 // self-info) hits the real backend, so the gated UI consumes a real login
 // token and real surrounding data.
 
-const { readFileSync, writeFileSync, mkdirSync } = await import('node:fs')
-const { join } = await import('node:path')
-const driver = await import(CFG.libPath)
-const { EDITIONS } = await import(CFG.editionsPath)
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+import process from 'node:process'
+import * as driver from '../lib/ego-driver.ts'
+import type { CapturedRequest, EgoTask } from '../lib/ego-driver.ts'
+import { EDITIONS } from '../lib/edition-expectations.ts'
+
+interface VerifyEditionConfig {
+  edition: 'standard' | 'professional' | 'flagship'
+  base: string
+  outDir: string
+  fixturePath: string
+  account: string
+  password: string
+}
+
+interface ModalState {
+  error?: string
+  track?: 'present' | 'absent'
+  fast?: string
+  fastTitle?: string
+  loc?: string
+  locDisabled?: boolean | null
+  locTitle?: string
+}
+
+declare const CFG: VerifyEditionConfig
+declare const taskSpace: (name: string) => EgoTask
+
+function messageOf(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
 
 const ed = EDITIONS[CFG.edition]
 mkdirSync(CFG.outDir, { recursive: true })
-const lines = []
-const note = (line) => {
+const lines: string[] = []
+const note = (line: string): void => {
   lines.push(line)
   console.log(line)
 }
-const failures = () => lines.filter((l) => l.startsWith('FAIL')).length
+const failures = (): number => lines.filter((l) => l.startsWith('FAIL')).length
 
 const fixtureB64 = readFileSync(CFG.fixturePath).toString('base64')
 const task = await taskSpace(`weila-vip-${CFG.edition}-${Math.floor(Date.now() / 1000)}`)
@@ -35,14 +64,14 @@ await page.cdp('Fetch.enable', {
   patterns: [{ urlPattern: '*corp/org/get-vip-membership*', requestStage: 'Request' }],
 })
 
-let fatal = null
+let fatal: string | null = null
 try {
-  let landed
+  let landed: string
   try {
     landed = await driver.ensureLogin(page, CFG.base, CFG.account, CFG.password, 0)
-  } catch (e) {
-    fatal = `login failed: ${e.message}`
-    throw e
+  } catch (error) {
+    fatal = `login failed: ${messageOf(error)}`
+    throw error
   }
   if (!landed.includes('#/login')) note(`PASS logged in (${driver.scrubUrl(landed)})`)
   else {
@@ -55,14 +84,14 @@ try {
   await page.waitForTimeout(3000)
   await page.screenshot({ path: join(CFG.outDir, 'sidebar.png') })
 
-  const sidebarState = (item) =>
+  const sidebarState = (item: string): Promise<string> =>
     page.evaluate((name) => {
       const el = [...document.querySelectorAll('.arco-menu-item')].find(
         (x) => x.textContent.trim() === name,
       )
       return el ? (el.className.includes('arco-menu-disabled') ? 'disabled' : 'enabled') : 'missing'
     }, item)
-  const hoverTitle = (item) =>
+  const hoverTitle = (item: string): Promise<string> =>
     page.evaluate((name) => {
       const el = [...document.querySelectorAll('.arco-menu-item')].find(
         (x) => x.textContent.trim() === name,
@@ -109,7 +138,11 @@ try {
   if (badge === ed.name) note(`PASS home shows ${ed.name}`)
   else note(`FAIL home vip name '${badge}' != '${ed.name}'`)
 
-  const modalState = async (hashRoute, trigger, shot) => {
+  const modalState = async (
+    hashRoute: string,
+    trigger: string,
+    shot: string,
+  ): Promise<ModalState> => {
     await page.evaluate((h) => {
       location.hash = h
     }, hashRoute)
@@ -152,21 +185,26 @@ try {
         fastTitle,
         loc: locSwitch ? 'present' : 'absent',
         locDisabled: locSwitch
-          ? locSwitch.className.includes('disabled') ||
-            Boolean(locSwitch.querySelector('input[disabled]'))
+          ? locSwitch.className.includes('disabled')
+            || Boolean(locSwitch.querySelector('input[disabled]'))
           : null,
         locTitle,
       }
     })
   }
-  const closeModals = () =>
+  const closeModals = (): Promise<void> =>
     page.evaluate(() => {
-      ;[...document.querySelectorAll('.arco-modal .arco-modal-close-btn')]
+      [...document.querySelectorAll('.arco-modal .arco-modal-close-btn')]
         .filter((b) => b.offsetParent !== null)
         .forEach((b) => b.click())
     })
 
-  const checkModal = async (surface, hashRoute, trigger, shot) => {
+  const checkModal = async (
+    surface: string,
+    hashRoute: string,
+    trigger: string,
+    shot: string,
+  ): Promise<void> => {
     const s = await modalState(hashRoute, trigger, shot)
     await closeModals()
     await page.waitForTimeout(1000)
@@ -174,16 +212,17 @@ try {
       note(`FAIL ${surface}: ${s.error}`)
       return
     }
-    const chk = (cond, msg) => note(`${cond ? 'PASS' : 'FAIL'} ${surface} ${msg}`)
+    const chk = (cond: boolean, msg: string): void =>
+      note(`${cond ? 'PASS' : 'FAIL'} ${surface} ${msg}`)
     chk(s.track === ed.editTrack, `轨迹 ${s.track} (expect ${ed.editTrack})`)
     chk(s.fast === ed.fast, `1分钟 ${s.fast} (expect ${ed.fast})`)
-    if (ed.fastTitle) chk(s.fastTitle.includes(ed.fastTitle), `1分钟 hover '${s.fastTitle}'`)
+    if (ed.fastTitle) chk((s.fastTitle ?? '').includes(ed.fastTitle), `1分钟 hover '${s.fastTitle}'`)
     chk(s.loc === 'present', `位置共享 ${s.loc}`)
     chk(
       String(s.locDisabled) === String(ed.locDisabled),
       `位置共享 disabled=${s.locDisabled} (expect ${ed.locDisabled})`,
     )
-    if (ed.locTitle) chk(s.locTitle.includes(ed.locTitle), `位置共享 hover '${s.locTitle}'`)
+    if (ed.locTitle) chk((s.locTitle ?? '').includes(ed.locTitle), `位置共享 hover '${s.locTitle}'`)
     else chk(s.locTitle === '', `位置共享 no hover hint when enabled`)
   }
 
@@ -195,20 +234,20 @@ try {
   for (const [hashRoute, expected] of ed.routeGuards) {
     await page.goto(`${CFG.base}/${hashRoute}`, { waitUntil: 'domcontentloaded', timeout: 30000 })
     await driver.settlePump(page, pump)
-    await page.waitForTimeout(4000) // guard redirect + auto-dismissing warning
+    await page.waitForTimeout(4000)
     const u = await page.url()
     const stayed = u.includes(hashRoute)
     const ok = expected === 'blocked' ? !stayed : stayed
     if (ok) note(`PASS route-guard ${hashRoute} ${expected}`)
     else note(`FAIL route-guard ${hashRoute} expected ${expected}, landed ${u}`)
   }
-} catch (e) {
+} catch (error) {
   if (fatal) note(`FAIL ${fatal}`)
-  else note(`FAIL unexpected error: ${e.message}`)
+  else note(`FAIL unexpected error: ${messageOf(error)}`)
 } finally {
   await page.cdp('Fetch.disable').catch(() => {})
   const vipLines = [...requests.values()]
-    .filter((r) => r.url.includes('get-vip-membership'))
+    .filter((r: CapturedRequest) => r.url.includes('get-vip-membership'))
     .map(
       (r) =>
         `[${new Date(r.ts).toISOString()}] ${r.method} ${driver.scrubUrl(r.url)} ${r.status ?? '…'}`,

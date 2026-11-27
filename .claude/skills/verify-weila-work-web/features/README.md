@@ -7,7 +7,7 @@ One file per user-facing feature. Each says how a user reaches it, how to drive 
 `BASE` is the `Local:` URL from the dev-server log. ego-browser runs one Node script per observation, piped to `ego-browser nodejs`. A verification is a sequence of scripts in one TaskSpace. Import the shared helpers by absolute path, because the embedded runtime has no shell cwd.
 
 ```js
-const driver = await import('<repo>/.claude/skills/lib/ego-driver.mjs') // <repo> = absolute path to the weila-work checkout
+const driver = await import('<repo>/.claude/skills/lib/ego-driver.ts') // <repo> = absolute path to the weila-work checkout
 const task = await taskSpace('weila verify <feature>')
 const page = task.page('p1')
 // drive with page.goto / page.click / page.fill / page.evaluate, and capture

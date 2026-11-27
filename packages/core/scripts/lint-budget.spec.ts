@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { collect, compareBudget, totalWarnings } from './lint-budget.mjs'
+import { collect, compareBudget, totalWarnings } from './lint-budget.ts'
 
 void test('collect counts errors and warnings by file', () => {
   const result = collect(

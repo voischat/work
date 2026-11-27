@@ -11,7 +11,16 @@ const SOURCE_MAP = /^[#@]\s*sourceMappingURL=/
 const SAFETY = /^SAFETY:/
 const LINK = /^https?:\/\/\S+$/
 
-function isAllowedComment(comment, index) {
+interface CommentLike {
+  value: string
+  range?: [number, number]
+}
+
+interface SourceCodeLike {
+  text: string
+}
+
+function isAllowedComment(comment: CommentLike, index: number): boolean {
   const body = comment.value.trim()
   if (index === 0 && LEGAL.test(body)) return true
   return (
@@ -28,7 +37,7 @@ function isAllowedComment(comment, index) {
   )
 }
 
-function removalRange(sourceCode, comment) {
+function removalRange(sourceCode: SourceCodeLike, comment: CommentLike): [number, number] | null {
   if (!comment.range) return null
   const text = sourceCode.text
   const [start, end] = comment.range
@@ -53,21 +62,21 @@ const noCommentsRule = {
         'Delete this comment. Encode the reason in code, a type, a test, or an allowed directive.',
     },
   },
-  create(context) {
+  create(context: any) {
     return {
       Program() {
         const sourceCode = context.sourceCode ?? context.getSourceCode()
-        const comments = [
+        const comments: CommentLike[] = [
           ...sourceCode.getAllComments(),
           ...(sourceCode.ast?.templateBody?.comments ?? []),
-        ].toSorted((a, b) => a.range[0] - b.range[0])
+        ].toSorted((a: CommentLike, b: CommentLike) => a.range![0] - b.range![0])
         comments.forEach((comment, index) => {
           if (isAllowedComment(comment, index)) return
           const range = removalRange(sourceCode, comment)
           context.report({
             loc: comment.loc,
             messageId: 'comment',
-            fix: range ? (fixer) => fixer.removeRange(range) : undefined,
+            fix: range ? (fixer: any) => fixer.removeRange(range) : undefined,
           })
         })
       },

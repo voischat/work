@@ -11,7 +11,7 @@ export default defineConfig({
   external: ['vue', '@vois/weila-sdk-core'],
   hooks: {
     'build:done'() {
-      execSync('node scripts/build-css.mjs', { stdio: 'inherit' })
+      execSync('node scripts/build-css.ts', { stdio: 'inherit' })
       execSync('cp -r src/components/Emoji/assets dist/')
     },
   },

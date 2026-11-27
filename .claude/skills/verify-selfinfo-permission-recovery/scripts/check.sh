@@ -35,14 +35,17 @@ mkdir -p "$EVIDENCE_DIR"
 EVIDENCE_DIR="$(cd "$EVIDENCE_DIR" && pwd)"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
-# The embedded ego-browser Node runtime has no shell cwd or env, so every path
-# rides in through the CFG prelude and the script imports the driver by
-# absolute path.
-CFG=$(printf '{ "base": "%s", "account": "%s", "password": "%s", "evidenceDir": "%s", "libPath": "%s" }' \
-  "$BASE" "$ACCOUNT" "$PASSWORD" "$EVIDENCE_DIR" "$HERE/../../lib/ego-driver.mjs")
+# The embedded ego-browser Node runtime parses stdin as JavaScript and has no
+# shell cwd or environment, so the prelude stays JS: it sets the CFG global and
+# imports the typed entry. node -e escapes the strings instead of hand-rolling
+# JSON quoting.
+CFG=$(node -e '
+const [base, account, password, evidenceDir, scriptPath] = process.argv.slice(1)
+process.stdout.write(JSON.stringify({ base, account, password, evidenceDir, scriptPath }))
+' "$BASE" "$ACCOUNT" "$PASSWORD" "$EVIDENCE_DIR" "$HERE/check.ts")
 
 # The ego runtime prints script output on stderr, so merge streams before tee.
-{ printf 'const CFG = %s;\n' "$CFG"; cat "$HERE/check.mjs"; } | ego-browser nodejs 2>&1 | tee "$EVIDENCE_DIR/run.log"
+{ printf 'globalThis.CFG = %s;\nawait import(globalThis.CFG.scriptPath);\n' "$CFG"; } | ego-browser nodejs 2>&1 | tee "$EVIDENCE_DIR/run.log"
 
 if grep -q '^FAIL' "$EVIDENCE_DIR/assertions.log" || ! grep -q 'RESULT .* failures=0' "$EVIDENCE_DIR/assertions.log"; then
   exit 1

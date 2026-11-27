@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Browser, Page } from '@playwright/test'
 import { chromium } from '@playwright/test'
-import { startServer } from '../server.mjs'
+import { startServer } from '../server.ts'
 
 const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const ENV_FILE = join(PACKAGE, 'tests/integration/.env.integration')

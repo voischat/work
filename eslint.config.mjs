@@ -3,7 +3,7 @@ import vueI18n from '@intlify/eslint-plugin-vue-i18n'
 import pluginQuery from '@tanstack/eslint-plugin-query'
 import { createSimplePlugin } from 'eslint-factory'
 import { createAutoInsert } from 'eslint-plugin-unimport'
-import noComments from './tools/lint/no-comments.mjs'
+import noComments from './tools/lint/no-comments.ts'
 
 const ignores = [
   '**/pages-deprecated/**',
@@ -17,7 +17,7 @@ const ignores = [
   'apps/playground-vue3/**',
   // Agent-runtime scripts: they execute inside ego-browser's embedded Node
   // runtime (top-level await, injected CFG global, console output), not the app.
-  '.claude/skills/**/*.mjs',
+  '.claude/skills/**/*.ts',
 ]
 
 export default antfu(
