@@ -10,6 +10,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useWeilaFetch } from '~/composables/useWeilaFetch'
 import { useSelfInfoStore } from '~/stores/selfInfo'
 import { useWeilaStore } from '~/stores/weila'
+import { toMemberListFilters } from '~/utils/memberFilters'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -35,7 +36,7 @@ watch(key, () => {
   curPage.value = 0
 })
 
-const filters = shallowRef<{ [key: string]: any }>({})
+const filters = shallowRef<Record<string, string[]>>({})
 
 const route = useRoute('/contact/dept-[dept_id]-[dept_name]')
 const { data, refetch } = useWeilaFetch<{
@@ -46,7 +47,7 @@ const { data, refetch } = useWeilaFetch<{
   {
     body: () => ({
       dept_id: Number(route.params.dept_id),
-      ...filters.value,
+      ...toMemberListFilters(filters.value),
       key: key.value,
     }),
   },
