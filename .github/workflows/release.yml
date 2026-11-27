@@ -21,6 +21,8 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-24.04
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -37,7 +39,7 @@ jobs:
       - name: Verify tag version
         run: node scripts/release/check.ts
       - name: Publish npm package
-        if: startsWith(github.ref_name, '@vois/')
+        if: startsWith(github.ref_name, '@vois/') && env.NPM_TOKEN != ''
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: node scripts/release/publish.ts
