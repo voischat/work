@@ -1,18 +1,18 @@
 import Message from '@arco-design/web-vue/es/message'
 
-const ERROR_TOAST_WINDOW_MS = 10_000
+export const ERROR_TOAST_DURATION_MS = 3_000
 
-const recentErrorToasts = new Map<string, number>()
+const lastShownAt = new Map<string, number>()
 
 export function toastError(message: string) {
   const now = Date.now()
-  if (now - (recentErrorToasts.get(message) ?? 0) < ERROR_TOAST_WINDOW_MS)
+  if (now - (lastShownAt.get(message) ?? 0) < ERROR_TOAST_DURATION_MS)
     return
 
-  recentErrorToasts.set(message, now)
-  Message.error(message)
+  lastShownAt.set(message, now)
+  Message.error({ content: message, duration: ERROR_TOAST_DURATION_MS })
   setTimeout(() => {
-    if (recentErrorToasts.get(message) === now)
-      recentErrorToasts.delete(message)
-  }, ERROR_TOAST_WINDOW_MS)
+    if (lastShownAt.get(message) === now)
+      lastShownAt.delete(message)
+  }, ERROR_TOAST_DURATION_MS)
 }
