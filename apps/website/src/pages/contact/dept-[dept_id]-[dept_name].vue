@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Member } from '~/types/api'
+import type { TableFilters } from '~/utils/tableModel'
 import Message from '@arco-design/web-vue/es/message'
 import { WL_IDbSessionType } from '@vois/weila-sdk-core'
 import { useDebounce } from '@vueuse/core'
@@ -10,7 +11,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { useWeilaFetch } from '~/composables/useWeilaFetch'
 import { useSelfInfoStore } from '~/stores/selfInfo'
 import { useWeilaStore } from '~/stores/weila'
-import { toMemberListFilters } from '~/utils/memberFilters'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -36,7 +36,7 @@ watch(key, () => {
   curPage.value = 0
 })
 
-const filters = shallowRef<Record<string, string[]>>({})
+const filters = shallowRef<TableFilters>({})
 
 const route = useRoute('/contact/dept-[dept_id]-[dept_name]')
 const { data, refetch } = useWeilaFetch<{
@@ -47,7 +47,7 @@ const { data, refetch } = useWeilaFetch<{
   {
     body: () => ({
       dept_id: Number(route.params.dept_id),
-      ...toMemberListFilters(filters.value),
+      ...filters.value,
       key: key.value,
     }),
   },
@@ -159,11 +159,8 @@ async function handleSendMessage(member: Member) {
       </template>
 
       <MemberTable
-        v-model:page="curPage" v-model:selected-item="selectedItem" :members :count="data?.count || 0" :filters="new Set(['member_types'])"
-        @change="(_: any, e: any) => {
-          if (e.type === 'filter')
-            filters = e.filters
-        }"
+        v-model:page="curPage" :members :count="data?.count || 0"
+        @filter-change="filters = $event"
       >
         <template #actions="{ record }">
           <a-button-group>

@@ -573,3 +573,6 @@ tooltips:
     flagship-feature: Flagship feature
   vip-unsupported: Requires a higher VIP level
   vip-load-failed: Failed to load membership info. Refresh the page and retry
+table:
+  ok: OK
+  reset: Reset
