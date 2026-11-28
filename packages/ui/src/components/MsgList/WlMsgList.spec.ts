@@ -1,6 +1,7 @@
 import type { WL_TextMsgData } from '@vois/weila-sdk-core'
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { nextTick } from 'vue'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { WL_IDbMsgDataStatus, WL_IDbMsgDataType } from '@vois/weila-sdk-core'
 import WlMsgList from './WlMsgList.vue'
 
@@ -19,6 +20,19 @@ function textMessage(overrides: Partial<WL_TextMsgData> = {}): WL_TextMsgData {
     ...overrides,
   }
 }
+
+const scrollToDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollTo')
+let scrollTo: ReturnType<typeof vi.fn>
+
+beforeEach(() => {
+  scrollTo = vi.fn()
+  Object.defineProperty(Element.prototype, 'scrollTo', { configurable: true, value: scrollTo })
+})
+
+afterEach(() => {
+  if (scrollToDescriptor) Object.defineProperty(Element.prototype, 'scrollTo', scrollToDescriptor)
+  else Reflect.deleteProperty(Element.prototype, 'scrollTo')
+})
 
 describe('wlMsgList sender label', () => {
   it('falls back to the message tag when sender info is missing', () => {
@@ -64,5 +78,25 @@ describe('wlMsgList sender label', () => {
 
     expect(wrapper.text()).toContain('王刚')
     expect(wrapper.text()).not.toContain('1875437')
+  })
+
+  it('scrolls to the bottom when a new message arrives while the list is at the bottom', async () => {
+    const wrapper = mount(WlMsgList, {
+      props: {
+        currentUserId: 1531720,
+        senderInfos: new Map(),
+        messages: [textMessage()],
+      },
+    })
+
+    await nextTick()
+    scrollTo.mockClear()
+
+    await wrapper.setProps({
+      messages: [textMessage(), textMessage({ msgId: 2, combo_id: '80001922_18_2_0' })],
+    })
+    await nextTick()
+
+    expect(scrollTo).toHaveBeenCalled()
   })
 })

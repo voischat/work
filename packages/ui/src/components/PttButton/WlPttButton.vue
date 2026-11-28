@@ -36,7 +36,11 @@ const buttonClass = computed(() => [
 ])
 
 const handleClick = () => {
-  if (props.disabled || props.status === 'processing') return
+  if (props.disabled) return
+  if (props.status === 'processing') {
+    emit('stop')
+    return
+  }
   if (props.status === 'idle') emit('start')
   else emit('stop')
 }
