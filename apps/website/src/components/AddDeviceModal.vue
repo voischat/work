@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { AvatarUploaderExpose } from '~/types'
 import { Message } from '@arco-design/web-vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import * as v from 'valibot'
@@ -26,7 +27,7 @@ const formRef = useTemplateRef('formRef')
 const open = defineModel('open', { default: false })
 const authStore = useAuthStore()
 
-const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
+const avatarUploaderRef = useTemplateRef<AvatarUploaderExpose>('avatarUploaderRef')
 
 const { data: depts } = useWeilaFetch<any>('corp/address/get-my-manage-all-dept', {}, {
   enabled: open,
@@ -72,8 +73,9 @@ const { mutate, isPending } = useWeilaMutation('corp/address/add-device', {
 })
 
 const submit = handleSubmit(async (values: any) => {
-  // @ts-expect-error type error: `defineExpose` no type declare find
-  const { upload } = avatarUploaderRef.value
+  const upload = avatarUploaderRef.value?.upload
+  if (!upload)
+    return
   if (form.value.avatar && !isRemoteImage(form.value.avatar)) {
     if (!(await upload()))
       return

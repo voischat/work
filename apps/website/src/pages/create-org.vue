@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Corp } from '~/types'
+import type { AvatarUploaderExpose, Corp } from '~/types'
 import Message from '@arco-design/web-vue/es/message'
 import { useQueryClient } from '@tanstack/vue-query'
 import * as v from 'valibot'
@@ -28,7 +28,7 @@ watchEffect(() => {
     router.push('/contact/org')
 })
 
-const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
+const avatarUploaderRef = useTemplateRef<AvatarUploaderExpose>('avatarUploaderRef')
 
 const open = defineModel('open', { default: false })
 
@@ -54,8 +54,9 @@ const { mutateAsync, isPending } = useWeilaMutation<{
 })
 
 const submit = handleSubmit(async (values: any) => {
-  // @ts-expect-error type error: `defineExpose` no type declare find
-  const { upload } = avatarUploaderRef.value
+  const upload = avatarUploaderRef.value?.upload
+  if (!upload)
+    return
   if (form.value.avatar && !isRemoteImage(form.value.avatar)) {
     if (!(await upload()))
       return

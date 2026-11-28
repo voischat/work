@@ -24,8 +24,9 @@ export function setup(
   fn({
     app,
     router,
-    // @ts-expect-error type error
-    route: (routerOptions.routes || []),
+    route: [
+      ...(routerOptions.routes ?? []),
+    ],
     isClient,
   })
 

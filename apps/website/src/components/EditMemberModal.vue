@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { AvatarUploaderExpose } from '~/types'
 import type { Member } from '~/types/api'
 
 import Message from '@arco-design/web-vue/es/message'
@@ -27,7 +28,7 @@ const emits = defineEmits(['success'])
 
 const { t } = useI18n()
 const { themeColor } = useAppStore()
-const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
+const avatarUploaderRef = useTemplateRef<AvatarUploaderExpose>('avatarUploaderRef')
 
 const open = defineModel('open', { default: false })
 const authStore = useAuthStore()
@@ -94,8 +95,9 @@ const { mutate: edit, isPending } = useWeilaMutation('corp/address/change-member
 })
 
 const submit = handleSubmit(async (values) => {
-  // @ts-expect-error type error: `defineExpose` no type declare find
-  const { upload } = avatarUploaderRef.value
+  const upload = avatarUploaderRef.value?.upload
+  if (!upload)
+    return
   if (form.value.avatar !== props.member?.avatar && !isRemoteImage(form.value.avatar || '')) {
     if (!(await upload()))
       return

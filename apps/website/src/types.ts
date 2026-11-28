@@ -8,6 +8,10 @@ export type UserModule = (ctx: {
   app: App<Element>
 }) => void
 
+export interface AvatarUploaderExpose {
+  upload: () => Promise<boolean>
+}
+
 export interface Corp {
   address_ver: number
   avatar: string

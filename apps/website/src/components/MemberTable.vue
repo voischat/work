@@ -31,8 +31,8 @@ const selected = defineModel<Member | undefined>('selected-item', { default: und
 function onSelect(member: Member, e: PointerEvent) {
   selected.value = member
 
-  // @ts-expect-error type error
-  if (!e.target?.className?.includes?.('arco-table')) {
+  const target = e.target
+  if (!(target instanceof HTMLElement) || !target.className.includes('arco-table')) {
     return void 0
   }
 
