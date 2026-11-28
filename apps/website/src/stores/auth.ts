@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { computed, nextTick } from 'vue'
 import { useWeilaFetch } from '~/composables/useWeilaFetch'
 import { autoLogin } from '~/shared/states'
+import { needsRefresh } from '~/utils/authRefresh'
 import { clearAuthStorage } from '~/utils/authStorage'
 
 export interface AuthModel {
@@ -69,9 +70,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function needRefresh() {
-    const expireTime = loginTime.value + (expiresIn.value / 2) * 1000
-    const now = Date.now()
-    return expireTime < now
+    return needsRefresh(loginTime.value, expiresIn.value, Date.now())
   }
 
   return {
