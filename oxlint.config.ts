@@ -164,22 +164,16 @@ export default defineConfig({
       },
     },
     {
-      files: ['packages/core/src/main/weila_pb_dispatcher.ts'],
+      files: ['packages/core/src/database/db_enum.ts'],
       rules: {
-        'anti-slop/no-unknown-parameters': 'off',
+        'typescript/no-unnecessary-type-parameters': 'off',
+        'typescript/no-unsafe-type-assertion': 'off',
       },
     },
     {
       files: ['packages/core/src/main/weila_core.ts', 'packages/core/src/audio/weila_audio.ts'],
       rules: {
         'import/default': 'off',
-      },
-    },
-    {
-      files: ['packages/core/src/database/db_enum.ts'],
-      rules: {
-        'typescript/no-unnecessary-type-parameters': 'off',
-        'typescript/no-unsafe-type-assertion': 'off',
       },
     },
     {

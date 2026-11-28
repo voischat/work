@@ -252,7 +252,10 @@ class WeilaCore implements WL_CoreInterface {
     return Promise.reject(new Error('Not Support Function:' + funcName))
   }
 
-  sendPbMsg<T = unknown>(buildPbMsg: WLBuildMsgRet, timeout?: number): Promise<T> {
+  sendPbMsg<T extends WL_PbMsgResponse = WL_PbMsgResponse>(
+    buildPbMsg: WLBuildMsgRet,
+    timeout?: number,
+  ): Promise<T> {
     return this.pbDispatcher.sendPbMsg<T>(buildPbMsg, timeout)
   }
 
