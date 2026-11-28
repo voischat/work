@@ -163,7 +163,13 @@ class WeilaDB extends Dexie {
   private static initError: Error | null = null
 
   public static async init(userId: string, version: number): Promise<void> {
-    if (this.instance !== null) return
+    const nextLoginUserId = Number.parseInt(userId)
+
+    if (this.instance !== null) {
+      if (this.instance.loginUserId === nextLoginUserId) return
+      this.close()
+    }
+
     const dbName = 'WL_' + userId + '_DB'
     let installedVersion: number
 
@@ -248,7 +254,7 @@ class WeilaDB extends Dexie {
       users: 'userId, weilaNum, status, pinyinName, created, userType',
       group_members: 'combo_gid_uid, groupId, userId, [groupId+memberType], memberType, created',
       msgDatas:
-        'combo_id, sessionId, sessionType, [sessionId+sessionType], msgType, created, msgId',
+        'combo_id, sessionId, sessionType, [sessionId+sessionType], [sessionId+sessionType+created], [sessionId+sessionType+msgId], msgType, created, msgId',
       settings: 'id',
       notifications: '++id, createTime, notificationType',
       extensions: 'userId, supervisorId, extensionType',
@@ -1333,13 +1339,10 @@ class WeilaDB extends Dexie {
     log.info('获取最后%d条消息:', count)
 
     const result = await this.msgDatas
-      .orderBy('created')
+      .where('[sessionId+sessionType+created]')
+      .between([sessionId, sessionType, Dexie.minKey], [sessionId, sessionType, Dexie.maxKey])
       .and((x) => {
-        return (
-          x.sessionId === sessionId &&
-          x.sessionType === sessionType &&
-          x.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE
-        )
+        return x.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE
       })
       .reverse()
       .limit(count)
@@ -1364,14 +1367,10 @@ class WeilaDB extends Dexie {
     log.info('获取从%d获取%d条消息:', fromMsgId, count)
 
     const result = await this.msgDatas
-      .orderBy('created')
+      .where('[sessionId+sessionType+msgId]')
+      .between([sessionId, sessionType, Dexie.minKey], [sessionId, sessionType, fromMsgId])
       .and((x) => {
-        return (
-          x.sessionId === sessionId &&
-          x.sessionType === sessionType &&
-          x.msgId <= fromMsgId &&
-          x.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE
-        )
+        return x.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE
       })
       .reverse()
       .limit(count)
@@ -1392,11 +1391,10 @@ class WeilaDB extends Dexie {
     sinceMsgId: number,
   ): Promise<WL_IDbMsgData[]> {
     return this.msgDatas
-      .where('[sessionId+sessionType]')
-      .equals([sessionId, sessionType])
+      .where('[sessionId+sessionType+msgId]')
+      .between([sessionId, sessionType, sinceMsgId], [sessionId, sessionType, Dexie.maxKey])
       .and((x) => {
         return (
-          x.msgId >= sinceMsgId &&
           x.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE &&
           x.status === WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_NEW
         )
@@ -1411,11 +1409,8 @@ class WeilaDB extends Dexie {
     msgId: number,
   ): Promise<WL_IDbMsgData | undefined> {
     return this.msgDatas
-      .where('[sessionId+sessionType]')
-      .equals([sessionId, sessionType])
-      .and((x) => {
-        return x.msgId === msgId
-      })
+      .where('[sessionId+sessionType+msgId]')
+      .equals([sessionId, sessionType, msgId])
       .first()
   }
 
@@ -1435,10 +1430,8 @@ class WeilaDB extends Dexie {
     sessionType: number,
   ): Promise<WL_IDbMsgData | undefined> {
     const msg = await this.msgDatas
-      .orderBy('created')
-      .and((x) => {
-        return x.sessionId === sessionId && x.sessionType === sessionType
-      })
+      .where('[sessionId+sessionType+created]')
+      .between([sessionId, sessionType, Dexie.minKey], [sessionId, sessionType, Dexie.maxKey])
       .last()
 
     return msg

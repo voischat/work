@@ -197,6 +197,19 @@ afterEach(() => {
   WeilaDB.close()
 })
 
+describe('WeilaDB user isolation', () => {
+  it('reopens the database when the login user changes', async () => {
+    const firstUser = nextUserId()
+    const secondUser = nextUserId()
+
+    await WeilaDB.init(firstUser, CURRENT_DB_VERSION)
+    expect(WeilaDB.getInstance().loginUserId).toBe(Number(firstUser))
+
+    await WeilaDB.init(secondUser, CURRENT_DB_VERSION)
+    expect(WeilaDB.getInstance().loginUserId).toBe(Number(secondUser))
+  })
+})
+
 describe('WeilaDB schema', () => {
   it('opens every stored table at the declared schema version', async () => {
     const db = await openDb(nextUserId(), CURRENT_DB_VERSION)
