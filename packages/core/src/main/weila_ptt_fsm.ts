@@ -147,6 +147,7 @@ export default class WLPttFsm {
         appendBurstFrame: this.appendBurstFrame.bind(this),
         emitBurstPacket: this.emitBurstPacket.bind(this),
         onReleaseTalk: this.onReleaseTalk.bind(this),
+        rejectTalkRequest: this.rejectTalkRequest.bind(this),
       },
       guards: {
         burstPacketFull: ({ context: guardContext }: { context: PttFsmContext }) =>
@@ -342,9 +343,25 @@ export default class WLPttFsm {
     return this.historyPttPlayItems?.[this.historyPttPlayIndex]
   }
 
+  private isPlaybackFamilyActive(family: StartPlaybackInput['family']): boolean {
+    const state = this.pttFsmService.getSnapshot()
+
+    if (family === 'realtime') return state.matches('realtimePlaying')
+
+    if (family === 'history') return state.matches('historyPlaying')
+
+    return state.matches('singlePlaying')
+  }
+
   private async runStartPlayback(input: StartPlaybackInput): Promise<void> {
     try {
       await this.audioManager.openPlayer(input.playerType, 16000)
+
+      if (!this.isPlaybackFamilyActive(input.family)) {
+        await this.audioManager.closePlayer(input.playerType).catch(() => {})
+
+        return
+      }
 
       try {
         await this.ringPlayer.weila_playRing(WL_ConfigID.WL_RES_RING_START_PLAY_ID)
@@ -357,6 +374,13 @@ export default class WLPttFsm {
 
       const startRet = await this.audioManager.startPlay(input.playerType)
       log.info('播放器开始:', startRet)
+
+      if (!this.isPlaybackFamilyActive(input.family)) {
+        await this.audioManager.stopPlay(input.playerType).catch(() => {})
+        await this.audioManager.closePlayer(input.playerType).catch(() => {})
+
+        return
+      }
 
       const item = this.playbackItem(input.family)
 
@@ -378,6 +402,13 @@ export default class WLPttFsm {
 
       await delay(this.PLAY_DELAY)
 
+      if (!this.isPlaybackFamilyActive(input.family)) {
+        await this.audioManager.stopPlay(input.playerType).catch(() => {})
+        await this.audioManager.closePlayer(input.playerType).catch(() => {})
+
+        return
+      }
+
       const feedItem = this.playbackItem(input.family)
 
       if (feedItem) {
@@ -393,18 +424,37 @@ export default class WLPttFsm {
   async startTalking(): Promise<boolean> {
     await this.audioManager.openRecorder(16000, 20000)
 
+    if (!this.pttFsmService.getSnapshot().matches('startTalk')) {
+      await this.audioManager.closeRecorder().catch(() => {})
+
+      return false
+    }
+
     try {
       await this.ringPlayer.weila_playRing(WL_ConfigID.WL_RES_RING_START_RECORD_ID)
     } catch {
       log.error('播放铃声失败')
     }
 
+    if (!this.pttFsmService.getSnapshot().matches('startTalk')) {
+      await this.audioManager.closeRecorder().catch(() => {})
+
+      return false
+    }
+
     try {
       await this.audioManager.startRecord()
     } catch (_e) {
-      await this.audioManager.closeRecorder()
+      await this.audioManager.closeRecorder().catch(() => {})
 
       return Promise.reject(_e)
+    }
+
+    if (!this.pttFsmService.getSnapshot().matches('startTalk')) {
+      await this.audioManager.stopRecord().catch(() => {})
+      await this.audioManager.closeRecorder().catch(() => {})
+
+      return false
     }
 
     return true
@@ -526,6 +576,14 @@ export default class WLPttFsm {
     if (talk.curMarker !== null) {
       talk.curMarker = WL_PttPackType.PTT_END_PACK
     }
+
+    talk.callback.resolve(false)
+  }
+
+  rejectTalkRequest({ event }: PttActionArgs) {
+    if (event.type !== 'FSM_REQ_TALK_EVT' || !event.data) return
+
+    event.data.callback.reject(new Error('对讲请求已在进行中'))
   }
 
   burstPacketFull(context: PttFsmContext): boolean {
@@ -1045,9 +1103,22 @@ export default class WLPttFsm {
     await this.initAudio()
 
     return new Promise<boolean>((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('请求对讲超时')), 30_000)
+
+      const callback = {
+        resolve: (value: boolean) => {
+          clearTimeout(timer)
+          resolve(value)
+        },
+        reject: (error: Error) => {
+          clearTimeout(timer)
+          reject(error)
+        },
+      }
+
       this.pttFsmService.send({
         type: fsmEvents.FSM_REQ_TALK_EVT,
-        data: { callback: { resolve, reject }, stopByErr: false },
+        data: { callback, stopByErr: false },
       })
     })
   }
@@ -1060,6 +1131,8 @@ export default class WLPttFsm {
 
   async releaseTalk(): Promise<boolean> {
     this.pttFsmService.send({ type: fsmEvents.FSM_REL_TALK_EVT, data: { stopByErr: false } })
+
+    await this.waitForIdle(20_000)
 
     return true
   }
