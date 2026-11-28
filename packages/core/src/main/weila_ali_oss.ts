@@ -1,5 +1,5 @@
 import { WeilaDB } from 'db/weila_db'
-import { fetchWithTimeout } from 'main/weila_utils'
+import { fetchWithTimeout, toError } from 'main/weila_utils'
 import OSS from 'ali-oss'
 import { createLogger } from 'log/weila_log'
 import { isNumber, isRecord, isString } from 'main/weila_type_guards'
@@ -40,8 +40,7 @@ interface WL_UploadParams {
   fileName?: string
   fileData: Blob
   resolve: (value: WL_UploadResult) => void
-  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- upload failures travel from fetch/OSS callbacks and are logged, not parsed
-  reject: (err: unknown) => void
+  reject: (err: Error) => void
   checkPoint?: unknown
   clientType: WL_UploadClientType
 }
@@ -204,12 +203,11 @@ class AliOssHelper {
     return url
   }
 
-  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- upload failures travel from fetch/OSS callbacks and are logged, not parsed
-  private rejectQueuedUploads(reason: unknown): void {
+  private rejectQueuedUploads(reason: Error): void {
     this.isUploading = false
 
     for (const uploadParams of this.uploadingQueue.splice(0)) {
-      uploadParams.reject(reason)
+      uploadParams.reject(toError(reason))
     }
   }
 
@@ -249,19 +247,19 @@ class AliOssHelper {
               log.info('上传结果:', objResult)
             })
             .catch((reason) => {
-              uploadParams.reject(reason)
+              uploadParams.reject(toError(reason))
             })
             .finally(() => {
               this.finishUpload()
             })
         } catch (reason) {
-          uploadParams.reject(reason)
+          uploadParams.reject(toError(reason))
           this.finishUpload()
         }
       })
       .catch((reason) => {
         log.error('!!!!严重错误，获取key失败!!!!!', reason)
-        this.rejectQueuedUploads(reason)
+        this.rejectQueuedUploads(toError(reason))
       })
   }
 

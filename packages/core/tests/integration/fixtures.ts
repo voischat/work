@@ -28,8 +28,7 @@ async function openCoreSession(options: CoreSessionOptions = {}) {
 
 export const test = base.extend<{ core: CoreSession; coreAudio: CoreSession }>({
   core: [
-    // eslint-disable-next-line no-empty-pattern -- Playwright requires the destructuring signature
-    async ({}, use) => {
+    async (_fixtures, use) => {
       const session = await openCoreSession()
 
       try {
@@ -41,8 +40,7 @@ export const test = base.extend<{ core: CoreSession; coreAudio: CoreSession }>({
     { scope: 'worker' },
   ],
   coreAudio: [
-    // eslint-disable-next-line no-empty-pattern -- Playwright requires the destructuring signature
-    async ({}, use) => {
+    async (_fixtures, use) => {
       const session = await openCoreSession({ launchArgs: AUDIO_LAUNCH_ARGS })
 
       try {

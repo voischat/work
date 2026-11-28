@@ -24,6 +24,7 @@ import {
 } from 'db/weila_db_data'
 import { WeilaDB } from 'db/weila_db'
 import { createLogger } from 'log/weila_log'
+import { toError } from 'main/weila_utils'
 import { createActor, fromCallback, fromPromise } from 'xstate'
 import type { StateValue } from 'xstate'
 import { WLAudio } from 'audio/weila_audio'
@@ -475,7 +476,7 @@ export default class WLPttFsm {
     if (!talk) return
 
     if ('error' in event) {
-      talk.callback.reject(event.error)
+      talk.callback.reject(toError(event.error))
 
       return
     }

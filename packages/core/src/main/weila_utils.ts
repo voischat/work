@@ -5,6 +5,7 @@ import { WL_IDbAudioData, WL_IDbMsgData } from 'db/weila_db_data'
 import { WL_PttPackType } from 'main/weila_internal_data'
 import type { WL_PttPacket } from 'main/weila_internal_data'
 import { dbEnum } from 'db/db_enum'
+import { isString } from 'main/weila_type_guards'
 
 const log = createLogger('UTIL')
 const OPUS_FRAME_DURATION_SEC = 0.02
@@ -180,13 +181,28 @@ function getErrorMsg(errorMsg: string): string {
   return errorMsg
 }
 
-/* oxlint-disable anti-slop/no-object-parameters, anti-slop/no-unknown-parameters -- method decorators receive the class prototype and the decorated function's own this/args, which only the decorated method can type */
+function toError(cause: unknown): Error {
+  if (cause instanceof Error) return cause
+
+  if (isString(cause)) return new Error(cause)
+
+  try {
+    return new Error(JSON.stringify(cause))
+  } catch {
+    return new Error(String(cause))
+  }
+}
+
+interface DecoratorTarget {
+  readonly constructor: unknown
+}
+
 function AsyncTime(notShow?: boolean) {
-  return (_target: object, propertyKey: string, descriptor: PropertyDescriptor) => {
+  return (_target: DecoratorTarget, propertyKey: string, descriptor: PropertyDescriptor) => {
     const method = descriptor.value
 
     if (!notShow) {
-      descriptor.value = async function (this: unknown, ...args: unknown[]) {
+      descriptor.value = async function (this: never, ...args: unknown[]) {
         console.time(propertyKey)
 
         try {
@@ -205,14 +221,12 @@ function AsyncTime(notShow?: boolean) {
   }
 }
 
-/* oxlint-enable anti-slop/no-object-parameters, anti-slop/no-unknown-parameters */
-/* oxlint-disable anti-slop/no-object-parameters, anti-slop/no-unknown-parameters -- same decorator boundary as AsyncTime */
 function SyncTime(notShow?: boolean) {
-  return (_target: object, propertyKey: string, descriptor: PropertyDescriptor) => {
+  return (_target: DecoratorTarget, propertyKey: string, descriptor: PropertyDescriptor) => {
     const method = descriptor.value
 
     if (!notShow) {
-      descriptor.value = function (this: unknown, ...args: unknown[]) {
+      descriptor.value = function (this: never, ...args: unknown[]) {
         console.time(propertyKey)
         const ret = method.apply(this, args)
         console.timeEnd(propertyKey)
@@ -228,7 +242,6 @@ interface AppAuthInfo {
   appKey: string | undefined
 }
 
-/* oxlint-enable anti-slop/no-object-parameters, anti-slop/no-unknown-parameters */
 function getAppKeyAndId(): AppAuthInfo {
   return {
     appId: process.env.APPID,
@@ -486,6 +499,7 @@ export {
   fetchAudioDataFromUrl,
   getPbResultCodeMessage,
   getErrorMsg,
+  toError,
   AsyncTime,
   SyncTime,
   getAppKeyAndId,

@@ -2,14 +2,13 @@ import { WLBuildMsgRet, WLMsgHeader } from 'proto/weilapb_wrapper_data'
 import { WL_IDbUserInfo, WL_AudioMsgData } from 'db/weila_db_data'
 import { WLPlayerType } from 'audio/weila_audio_data'
 import { WL } from 'proto/weilapb'
-import { WL_ExtEventID, WL_PttPlayIndData } from 'main/weila_external_data'
+import { WL_ExtEventID, WL_ExtEventPayload, WL_PttPlayIndData } from 'main/weila_external_data'
 
 type WL_PromiseResult = boolean | number | WL_IDbUserInfo | undefined
 
 interface WL_PromiseCallback<T = WL_PromiseResult> {
   resolve: (data: T) => void
-  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- rejection reasons travel unbranched from fetch/proto/network errors and are logged, not parsed
-  reject: (reason: unknown) => void
+  reject: (reason: Error) => void
 }
 
 const default_user_logo =
@@ -65,12 +64,45 @@ interface WL_LoginResult {
   error?: unknown
 }
 
+type WL_PbMsgResponse =
+  | WL.Business.IRspCommonGetSessions
+  | WL.Business.IRspCommonGetStaffInvite
+  | WL.Business.IRspStaffSearchStaffs
+  | WL.Friend.IRspGetFriendInfo
+  | WL.Friend.IRspGetFriendUserInfo
+  | WL.Friend.IRspGetOnlineFriend
+  | WL.Group.IRspAddSubMember
+  | WL.Group.IRspChangeGroupAttribute
+  | WL.Group.IRspCreateGroup
+  | WL.Group.IRspGetGroupAttribute
+  | WL.Group.IRspGetGroupInfo
+  | WL.Group.IRspGetGroupOnlineMember
+  | WL.Group.IRspGetGroupVersion
+  | WL.Group.IRspGetMemberUserInfo
+  | WL.Group.IRspGetSubGroupAttribute
+  | WL.Group.IRspGroupBroadcast
+  | WL.Group.IRspGroupInvite
+  | WL.Group.IRspGroupJoin
+  | WL.Location.IRspGetLocation
+  | WL.Login.IRspBindExtension
+  | WL.Login.IRspGetExtensionList
+  | WL.Login.IRspLoginApp
+  | WL.Login.IRspRefreshAccessToken
+  | WL.Login.IRspSetExtensionConfig
+  | WL.Login.IRspUnbindExtension
+  | WL.Session.IRspGetMsg
+  | WL.Session.IRspGetSession
+  | WL.Session.IRspMsgRead
+  | WL.User.IRspGetUserInfo
+  | WL.User.IRspSetConfig
+  | null
+  | undefined
+  | boolean
+
 interface WL_CoreInterface {
-  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- ext-event payloads vary per WL_ExtEventID and each listener parses its own
-  sendExtEvent(event: WL_ExtEventID, data: unknown): void
-  sendPbMsg<T = unknown>(buildPbMsg: WLBuildMsgRet, timeout?: number): Promise<T>
-  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- rspPbMsg hands the decoded proto response to the awaiting module, which owns its shape
-  rspPbMsg(seq: number, resultCode: number, data: unknown): void
+  sendExtEvent(event: WL_ExtEventID, data: WL_ExtEventPayload): void
+  sendPbMsg<T = WL_PbMsgResponse>(buildPbMsg: WLBuildMsgRet, timeout?: number): Promise<T>
+  rspPbMsg(seq: number, resultCode: number, data: WL_PbMsgResponse): void
   registerPbMsgHandler(serviceId: number, handler: WL_PbMsgHandler): void
   executeCoreFunc<T = unknown>(funcName: string, ...argvs: unknown[]): Promise<T>
   getLoginUserInfo(): WL_IDbUserInfo
@@ -115,6 +147,7 @@ interface WL_PttFsmListener {
 }
 
 export {
+  WL_PbMsgResponse,
   WL_PromiseCallback,
   default_user_logo,
   default_group_logo,

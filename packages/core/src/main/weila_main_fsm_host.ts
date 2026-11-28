@@ -6,9 +6,15 @@ import { createLogger } from 'log/weila_log'
 import { WL_LoginParam, WL_LoginResult, WL_NetworkEventID } from 'main/weila_internal_data'
 import type { WL_NetworkEventPayload } from 'main/weila_internal_data'
 import type { WL_PromiseCallback } from 'main/weila_internal_data'
-import { WL_DataPrepareInd, WL_DataPrepareState, WL_ExtEventID } from 'main/weila_external_data'
+import {
+  WL_DataPrepareInd,
+  WL_DataPrepareState,
+  WL_ExtEventID,
+  WL_ExtEventPayload,
+} from 'main/weila_external_data'
 import { isServiceSessionType } from 'db/weila_db_data'
 import { isString } from 'main/weila_type_guards'
+import { toError } from 'main/weila_utils'
 import type { WL_IDbSession, WL_IDbUserInfo } from 'db/weila_db_data'
 
 const log = createLogger('CORE')
@@ -29,8 +35,7 @@ interface WeilaMainFsmLoginModule {
 export interface WeilaMainFsmHostDeps {
   loadResource: () => Promise<boolean>
   sendNetworkEvent: (event: WL_NetworkEventID, data: WL_NetworkEventPayload) => void
-  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- ext-event payloads vary per WL_ExtEventID and each listener parses its own
-  sendExtEvent: (event: WL_ExtEventID, data: unknown) => void
+  sendExtEvent: (event: WL_ExtEventID, data: WL_ExtEventPayload) => void
   sendToFsm: (event: MainFsmUserEvent) => void
   setLoginUserInfo: (userInfo: WL_IDbUserInfo) => void
   setLoginReady: (ready: boolean) => void
@@ -76,17 +81,16 @@ function isLoginResult(value: unknown): value is WL_LoginResult {
   )
 }
 
-// oxlint-disable-next-line anti-slop/no-unknown-parameters -- rejection reasons arrive unparsed from fetch/proto/network and are only logged
-function errorMessage(reason: unknown): string {
-  if (reason instanceof Error) return reason.message
+function errorMessage(cause: unknown): string {
+  if (cause instanceof Error) return cause.message
 
-  if (isErrorLike(reason)) {
-    if (isString(reason.message)) return reason.message
+  if (isErrorLike(cause)) {
+    if (isString(cause.message)) return cause.message
 
-    if (reason.error instanceof Error) return reason.error.message
+    if (cause.error instanceof Error) return cause.error.message
 
-    if (isErrorLike(reason.error) && isString(reason.error.message)) {
-      return reason.error.message
+    if (isErrorLike(cause.error) && isString(cause.error.message)) {
+      return cause.error.message
     }
   }
 
@@ -153,7 +157,7 @@ export default class WeilaMainFsmHost {
       log.info('加载数据成功')
     } catch (e) {
       log.error('加载数据失败', e)
-      callback.reject(e)
+      callback.reject(toError(e))
 
       return Promise.reject(e)
     }
@@ -239,7 +243,7 @@ export default class WeilaMainFsmHost {
   }
 
   private onException(event: { error?: unknown }) {
-    this.deps.sendExtEvent(WL_ExtEventID.WL_EXT_SYSTEM_EXCEPTION_IND, event.error)
+    this.deps.sendExtEvent(WL_ExtEventID.WL_EXT_SYSTEM_EXCEPTION_IND, toError(event.error))
   }
 
   private onDataInit() {
@@ -381,7 +385,7 @@ export default class WeilaMainFsmHost {
     const error = isErrorLike(reason) ? reason.error : undefined
 
     if (error !== undefined && error !== null) {
-      loginParam.callback.reject(error)
+      loginParam.callback.reject(toError(error))
     } else {
       loginParam.callback.reject(new Error('登陆尝试多次失败'))
     }

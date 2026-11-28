@@ -43,9 +43,9 @@ describe('WeilaPbDispatcher', () => {
 
     expect(poster).toHaveBeenCalledTimes(1)
 
-    dispatcher.rspPbMsg(7, 0, { value: 42 })
+    dispatcher.rspPbMsg(7, 0, true)
 
-    await expect(pending).resolves.toEqual({ value: 42 })
+    await expect(pending).resolves.toBe(true)
   })
 
   it('rejects with the RET_CODE message shape on a non-zero result code', async () => {
@@ -66,9 +66,9 @@ describe('WeilaPbDispatcher', () => {
     await vi.advanceTimersByTimeAsync(0)
 
     dispatcher.rspPbMsg(999, 0, null)
-    dispatcher.rspPbMsg(5, 0, 'mine')
+    dispatcher.rspPbMsg(5, 0, true)
 
-    expect(await settled).toBe('resolved:"mine"')
+    expect(await settled).toBe('resolved:true')
   })
 
   it('rejects expired waits on checkTimeouts and keeps fresh ones', async () => {
@@ -80,10 +80,10 @@ describe('WeilaPbDispatcher', () => {
 
     dispatcher.checkTimeouts()
 
-    dispatcher.rspPbMsg(2, 0, 'still waiting')
+    dispatcher.rspPbMsg(2, 0, true)
 
     expect(await shortWait).toBe('消息超时')
-    expect(await longWait).toBe('resolved:"still waiting"')
+    expect(await longWait).toBe('resolved:true')
   })
 
   it('rejects every wait when the network drops', async () => {

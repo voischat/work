@@ -3,26 +3,23 @@ import { getPbResultCodeMessage } from 'main/weila_utils'
 import { dbEnum } from 'db/db_enum'
 import { WL } from 'proto/weilapb'
 import type { WLBuildMsgRet } from 'proto/weilapb_wrapper_data'
-import { WL_PbMsgData } from 'main/weila_internal_data'
+import { WL_PbMsgData, WL_PbMsgResponse } from 'main/weila_internal_data'
 
 const log = createLogger('CORE')
 
-/* oxlint-disable anti-slop/no-unknown-parameters -- the dispatcher hands each decoded proto response to the promise of the module that sent the request; that module owns the response shape */
 interface WL_WaitingRspPbMsgInfo {
   resolve(value: unknown): void
-  reject(reason: unknown): void
+  reject(reason: Error): void
   pbMsgData: WL_PbMsgData
   timeout: number
 }
 
 interface WL_SendingPbMsgInfo {
   resolve(value: unknown): void
-  reject(reason: unknown): void
+  reject(reason: Error): void
   buildPbMsg: WLBuildMsgRet
   timeout?: number
 }
-
-/* oxlint-enable anti-slop/no-unknown-parameters */
 
 export default class WeilaPbDispatcher {
   private readonly waitingRspMap = new Map<number, WL_WaitingRspPbMsgInfo>()
@@ -44,8 +41,7 @@ export default class WeilaPbDispatcher {
     })
   }
 
-  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- the decoded response is typed by the module awaiting this seq
-  rspPbMsg(seq: number, resultCode: number, data: unknown): void {
+  rspPbMsg(seq: number, resultCode: number, data: WL_PbMsgResponse): void {
     if (this.waitingRspMap.has(seq)) {
       const sendingItem = this.waitingRspMap.get(seq)
       this.waitingRspMap.delete(seq)
