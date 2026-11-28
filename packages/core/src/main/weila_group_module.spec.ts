@@ -8,6 +8,7 @@ import { WeilaPBGroupWrapper } from 'proto/weilapb_group_wrapper'
 import { WeilaDB } from 'db/weila_db'
 import { WL_IDbNotificationType } from 'db/weila_db_data'
 import { WL_AnswerStatus, WL_ExtEventID } from 'main/weila_external_data'
+import { setLogLevel } from 'log/weila_log'
 
 function makeGroupModule() {
   const rspPbMsg = vi.fn()
@@ -592,5 +593,146 @@ describe('WLGroupModule notify handling', () => {
     await Promise.resolve()
 
     expect(sendExtEvent).not.toHaveBeenCalled()
+  })
+})
+
+function collectUnhandledRejections() {
+  let count = 0
+
+  const listener = () => {
+    count += 1
+  }
+
+  process.on('unhandledRejection', listener)
+
+  return {
+    count: () => count,
+    stop: () => process.off('unhandledRejection', listener),
+  }
+}
+
+function captureLoggedErrors() {
+  setLogLevel('error')
+
+  return vi.spyOn(console, 'error').mockImplementation(() => {})
+}
+
+describe('WLGroupModule notify failures', () => {
+  afterEach(() => {
+    setLogLevel('silent')
+    vi.restoreAllMocks()
+  })
+
+  it('logs a failed invite without an unhandled rejection', async () => {
+    const { handler, sendPbMsg } = makeGroupModule()
+    await openDb()
+    sendPbMsg.mockRejectedValue(new Error('network down'))
+    const logged = captureLoggedErrors()
+    const unhandled = collectUnhandledRejections()
+
+    handler(
+      buildNotify(
+        WL.Group.GroupCommandId.GROUP_COMMAND_GROUP_INVITE,
+        new WL.Group.GroupMessage({
+          ntfGroupInvite: {
+            groupId: Long.fromString(GROUP_ID),
+            inviterId: 5,
+            userInfo: makeUserRaw(5, 'Inviter'),
+          },
+        }),
+      ),
+    )
+
+    await vi.waitFor(() => expect(logged).toHaveBeenCalled())
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    unhandled.stop()
+
+    expect(unhandled.count()).toBe(0)
+  })
+
+  it('logs a failed join without an unhandled rejection', async () => {
+    const { handler } = makeGroupModule()
+    const db = await openDb()
+    vi.spyOn(db, 'putUserInfo').mockRejectedValue(new Error('quota'))
+    const logged = captureLoggedErrors()
+    const unhandled = collectUnhandledRejections()
+
+    handler(
+      buildNotify(
+        WL.Group.GroupCommandId.GROUP_COMMAND_GROUP_JOIN,
+        new WL.Group.GroupMessage({
+          ntfGroupJoin: {
+            groupId: Long.fromString(GROUP_ID),
+            joinId: 6,
+            detail: 'please',
+            userInfo: makeUserRaw(6, 'Joiner'),
+          },
+        }),
+      ),
+    )
+
+    await vi.waitFor(() => expect(logged).toHaveBeenCalled())
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    unhandled.stop()
+
+    expect(unhandled.count()).toBe(0)
+  })
+
+  it('logs a failed answer-join without an unhandled rejection', async () => {
+    const { handler } = makeGroupModule()
+    const db = await openDb()
+    vi.spyOn(db, 'putNotification').mockRejectedValue(new Error('quota'))
+    const logged = captureLoggedErrors()
+    const unhandled = collectUnhandledRejections()
+
+    handler(
+      buildNotify(
+        WL.Group.GroupCommandId.GROUP_COMMAND_ANSWER_GROUP_JOIN,
+        new WL.Group.GroupMessage({
+          ntfAnswerGroupJoin: {
+            groupId: Long.fromString(GROUP_ID),
+            joinId: 6,
+            answerId: 5,
+            status: 1,
+            updated: Long.fromNumber(1700000123),
+          },
+        }),
+      ),
+    )
+
+    await vi.waitFor(() => expect(logged).toHaveBeenCalled())
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    unhandled.stop()
+
+    expect(unhandled.count()).toBe(0)
+  })
+
+  it('logs a failed answer-invite without an unhandled rejection', async () => {
+    const { handler } = makeGroupModule()
+    const db = await openDb()
+    vi.spyOn(db, 'putNotification').mockRejectedValue(new Error('quota'))
+    const logged = captureLoggedErrors()
+    const unhandled = collectUnhandledRejections()
+
+    handler(
+      buildNotify(
+        WL.Group.GroupCommandId.GROUP_COMMAND_ANSWER_GROUP_INVITE,
+        new WL.Group.GroupMessage({
+          ntfAnswerGroupInvite: {
+            groupId: Long.fromString(GROUP_ID),
+            inviterId: 5,
+            inviteeId: 6,
+            status: 2,
+            updated: Long.fromNumber(1700000456),
+          },
+        }),
+      ),
+    )
+
+    await vi.waitFor(() => expect(logged).toHaveBeenCalled())
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    unhandled.stop()
+
+    expect(unhandled.count()).toBe(0)
   })
 })
