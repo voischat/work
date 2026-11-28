@@ -2,6 +2,10 @@
 
 This repository merged `weila-js-sdk` and `weila-work` into one pnpm workspace. The SDK packages keep their history and layout, the enterprise console moved to `apps/website`, and the SDK playground moved to `apps/playground-vue3`.
 
+## Ownership
+
+You own this codebase and will keep working in it over time. Leave each area better than you found it. Fix the root cause, delete the dead branch, and keep the gates green. Before you add a guard, a layer or a compatibility shim, try the smallest structural change that removes the problem. Record decisions that outlive the task in the nearest `AGENTS.md`.
+
 ## Layout
 
 ```
