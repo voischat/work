@@ -6,7 +6,7 @@
 
 **Package Manager**: pnpm (pnpm-lock.yaml in monorepo root)
 **Build Tool**: Rspack 2 with SWC
-**Language**: TypeScript (target: ESNext, strict mode: disabled)
+**Language**: TypeScript (target: ESNext, strict mode: on through `tsconfig.base.json`)
 
 ---
 
@@ -31,14 +31,15 @@ Builds the same artifacts in development mode with source maps, written to `dist
 ### Type Checking
 
 ```bash
-pnpm exec tsc --noEmit
+pnpm run typecheck
+pnpm run typecheck:tsc
 ```
 
-Run TypeScript compiler for type checking without emitting files.
+`typecheck` runs `tsrs` and is the gate. `typecheck:tsc` runs the TypeScript compiler as a cross-check. The repo gates also run `typecheck:parity` and `typecheck:strict-budget`.
 
 ### Testing
 
-Unit tests run with Vitest (`pnpm test`). The built bundle is smoke-tested in Chromium with Playwright (`pnpm test:dist`).
+Unit tests run with Vitest (`pnpm test`). The built bundle is smoke-tested in Chromium with Playwright (`pnpm test:dist`). The real-backend suite under `tests/integration` runs with `pnpm test:integration` and skips when `.env.integration` is absent.
 
 ---
 
@@ -59,8 +60,9 @@ packages/core/
 │   ├── weilasdk_log.ts
 │   └── weila_compile_config.ts
 ├── dist/               # Build output (ESM bundles, assets, worklets)
-├── test/               # Empty test directory
-├── .env                # Environment variables
+├── tests/              # Dist smoke test and the real-backend integration suite
+├── scripts/            # Lint and typecheck budget gates
+├── docs/               # SDK documentation
 ├── tsconfig.json       # TypeScript configuration
 ├── rspack.config.mts   # Rspack build configuration
 ├── rspack.worklets.config.mts
@@ -118,9 +120,9 @@ import { WLConfig } from 'main/weila_config'
 
 - **Explicit typing**: Always provide type annotations for function parameters and return types
 - **Interfaces over types**: Use `interface` for object shapes, reserve `type` for unions/intersections
-- **No implicit any**: Even though strict mode is disabled, avoid implicit `any` types
+- **No implicit any**: Strict mode is on, so an implicit `any` fails the gate
 - **Generics**: Use for collections (`Promise<boolean>`, `Map<number, T>`)
-- **No type suppression**: Avoid `as any`, `@ts-ignore` except for edge cases (like web worker imports)
+- **No type suppression**: Avoid `as any` and `@ts-ignore`. Declare loader-produced modules in `src/loader-modules.d.ts` instead.
 
 ### Function Declarations
 
@@ -173,7 +175,7 @@ The repository's `no-comments` lint rule allows only tool directives, legal head
 ### Web Workers
 
 - Worker files use `.worker.ts` suffix (e.g., `weila_network.worker.ts`)
-- Import with `@ts-ignore` directive: `// @ts-ignore\nimport Network from 'main/weila_network.worker';`
+- Import `main/weila_network.worker` directly. The module declaration lives in `src/loader-modules.d.ts`.
 - Configured with `worker-rspack-loader` in `rspack.config.mts` and inlined as a Blob
 
 ### Worklets (Audio)
@@ -189,9 +191,9 @@ The repository's `no-comments` lint rule allows only tool directives, legal head
 
 ### Environment Variables
 
-- Loaded from `.env` in `rspack.config.mts` and injected with `rspack.DefinePlugin`
-- Defined in `.env` file (not committed to git)
-- Accessible via `process.env.VARIABLE_NAME`
+- `rspack.config.mts` reads optional `APPID`, `APPKEY` and `WSS` values from a gitignored `.env`, then injects them with `rspack.DefinePlugin`
+- The file does not exist by default. The SDK must not embed app credentials, so consumers pass `appId` and `appKey` to `weila_init`.
+- Access the injected values through `process.env.VARIABLE_NAME`
 
 ---
 
@@ -225,7 +227,7 @@ Required API endpoints:
 ### Adding New Modules
 
 1. Create module file in `src/main/` (e.g., `weila_new_module.ts`)
-2. Define module class extending base behavior
+2. Define a module class that takes `WL_CoreInterface` and registers its service handler in the constructor
 3. Import and initialize in `weila_core.ts`
 4. Export public API in module and re-export in `weilasdk.ts`
 
@@ -245,13 +247,14 @@ Required API endpoints:
 
 ## Verification Checklist
 
-Before committing changes:
+Before committing changes, run these from the repo root:
 
-- [ ] TypeScript compiles without errors (`pnpm exec tsc --noEmit`)
-- [ ] Production build succeeds (`pnpm run build`)
-- [ ] Development build succeeds (`pnpm run build:dev`)
-- [ ] No `@ts-ignore` added without justification
+- [ ] `pnpm run typecheck:sdk` and `pnpm run typecheck:tsc:sdk` pass
+- [ ] `pnpm run lint:sdk` reports 0 errors and stays within the warning budget
+- [ ] `pnpm run test:sdk` passes
+- [ ] `pnpm run build:sdk` succeeds
+- [ ] No `@ts-ignore` or `as any` added
 - [ ] Public APIs are exported from the entry points
-- [ ] Import paths use configured aliases (not relative paths like `../../`)
-- [ ] Error handling includes logging with `log.error()`
-- [ ] No console.log left in code (use the SDK logger instead)
+- [ ] Import paths use configured aliases, not relative `../../` paths
+- [ ] Failures are logged with `log.error()`
+- [ ] No `console.log`; use `createLogger` from `log/weila_log`
