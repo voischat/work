@@ -83,6 +83,13 @@ Run from the repo root.
 | `pnpm release:ui`              | bump UI, commit and tag `@vois/weila-sdk-ui@X.Y.Z`              |
 | `pnpm docs:dev` / `docs:build` | VitePress user manual                                           |
 
+### Testing
+
+Run these from the package that owns the tests (`pnpm -C packages/core exec vitest run ...`); the root has no vitest binary.
+
+- After a change, run `vitest run --since-last-run` to test only what the change affects.
+- Before you finish, run `vitest run` once for the whole suite.
+
 ## Gates
 
 `.github/workflows/gates.yml` runs, for the SDK track: `fmt:check`, `manifests`, `lint:workflows`, `build:sdk`, `api:snapshot`, `typecheck:sdk`, `typecheck:tsc:sdk`, `typecheck:parity`, `typecheck:strict-budget`, `knip`, `lint:names`, `lint:sdk`, `lint:comments`, `test:scripts`, `test:sdk`, the Playwright dist smoke test, and `build:story`. The `web` job runs `lint:web` and then the website's turbo `typecheck`, `test` and `build`, which pull the SDK builds through the task graph.
