@@ -168,16 +168,6 @@ try {
 
 The repository's `no-comments` lint rule allows only tool directives, legal headers, `SAFETY:` rationale and bare links. Put the reason in the code or the commit message instead of a comment.
 
-### Lint Overrides
-
-Three file-scoped override blocks in `oxlint.config.ts` cover boundaries the rules cannot express:
-
-- `weila_core.ts` and `weila_audio.ts` import worker and worklet modules whose default export exists only after the Rspack loader runs.
-- `db_enum.ts` restores the caller-chosen numeric enum label and keeps unknown wire values unchanged for comparisons.
-- `weila_type_guards.ts` returns a caller-chosen callable result type.
-
-Keep each override scoped to its file. Do not add inline `oxlint-disable` comments.
-
 ---
 
 ## Special Considerations

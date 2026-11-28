@@ -1,5 +1,7 @@
+/* oxlint-disable import/default -- worklet-inline-loader emits these as URL strings */
 import PlayerWorklet from './weila_player.worklet.js'
 import RecorderWorklet from './weila_recorder.worklet.js'
+/* oxlint-enable import/default */
 
 import {
   WLAudioEvent,

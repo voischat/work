@@ -1,4 +1,6 @@
+/* oxlint-disable import/default -- worker-rspack-loader emits this module as a Worker factory with a default export */
 import Network from 'main/weila_network.worker'
+/* oxlint-enable import/default */
 import WeilaPbDispatcher from 'main/weila_pb_dispatcher'
 import WeilaNetworkGateway from 'main/weila_network_gateway'
 import WeilaMainFsmHost from 'main/weila_main_fsm_host'
@@ -245,8 +247,10 @@ class WeilaCore implements WL_CoreInterface {
   async executeCoreFunc<T = unknown>(funcName: string, ...argvs: unknown[]): Promise<T> {
     const method = isRecord(this) ? this[funcName] : undefined
 
-    if (isCallable<Promise<T>>(method)) {
-      return method.call(this, ...argvs)
+    if (isCallable(method)) {
+      // SAFETY: the caller names the function and every weila_* method keeps its promise contract for that name.
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- a dynamic dispatch cannot restate T
+      return method.call(this, ...argvs) as Promise<T>
     }
 
     return Promise.reject(new Error('Not Support Function:' + funcName))
