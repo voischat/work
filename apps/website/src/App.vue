@@ -9,14 +9,13 @@ import { storeToRefs } from 'pinia'
 import { stringifyQuery } from 'ufo'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { onBeforeRouteUpdate, useRouter } from 'vue-router'
+import { onBeforeRouteUpdate } from 'vue-router'
 import { useBundleInfo } from '~/composables/useBundleInfo'
 import { appname, useWeilaApi } from '~/composables/useWeilaApi'
 import { useAuthStore } from '~/stores/auth'
 import { toastError } from '~/utils/errorToast'
 import { getApiBaseUrl } from './composables/useWeilaApi'
 import { appid, appkey } from './shared/const'
-import { autoLogin } from './shared/states'
 
 const { locale } = useI18n()
 
@@ -27,15 +26,17 @@ const arcoLang = computed(() => ({
 
 const { update } = useBundleInfo()
 
+const authStore = useAuthStore()
+
 onBeforeRouteUpdate(() => {
   update()
 })
 
-const router = useRouter()
-
 const REFRESH_COOLDOWN_MS = 30_000
 const PUBLIC_PATH_KEYWORDS = [
   'login',
+  'auth/regist',
+  'auth/reset-password',
   'auth/refresh',
   'common/get-image-verifycode',
   'common/send-sms-verifycode',
@@ -50,28 +51,19 @@ let lastRefreshNotice = 0
 const weilaApi = useWeilaApi()
 
 weilaApi.value.hook('request:prepare', async (ctx) => {
-  const { needRefresh } = useAuthStore()
-  const { refreshToken, token, expiresIn, loginTime } = storeToRefs(useAuthStore())
-
-  const clean = () => {
-    token.value = ''
-    refreshToken.value = ''
-    expiresIn.value = -1
-    loginTime.value = -1
-    autoLogin.value = false
-  }
+  const { refreshToken, token, expiresIn, loginTime } = storeToRefs(authStore)
 
   const handleRefreshFailure = (error: unknown) => {
     lastRefreshFailure = Date.now()
     console.error('refresh token failed', error)
-    clean()
+    authStore.clearAuth()
 
     if (Date.now() - lastRefreshNotice > 1000) {
       lastRefreshNotice = Date.now()
       Message.error('登录已过期，请重新登录')
     }
 
-    router.push('/login')
+    window.location.replace('/#/login')
   }
 
   try {
@@ -81,7 +73,7 @@ weilaApi.value.hook('request:prepare', async (ctx) => {
       : request.url || ''
     const isPublic = PUBLIC_PATH_KEYWORDS.some(keyword => url.includes(keyword))
 
-    if (isPublic || !needRefresh())
+    if (!token.value || isPublic || !authStore.needRefresh())
       return
 
     if (!refreshToken.value)
@@ -141,7 +133,7 @@ weilaApi.value.hook('request:error', onError)
 weilaApi.value.hook('response:error', onError)
 
 weilaApi.value.hook('auth:error', () => {
-  localStorage.setItem('token', '')
+  authStore.clearAuth()
   window.location.reload()
 })
 

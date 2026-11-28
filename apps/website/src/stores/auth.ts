@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { computed } from 'vue'
 import { useWeilaFetch } from '~/composables/useWeilaFetch'
 import { autoLogin } from '~/shared/states'
+import { clearAuthStorage } from '~/utils/authStorage'
 
 export interface AuthModel {
   access_token: string
@@ -51,10 +52,17 @@ export const useAuthStore = defineStore('auth', () => {
     enabled: computed(() => Boolean(token.value)),
   })
 
-  function logout() {
-    localStorage.removeItem('token')
+  function clearAuth() {
+    token.value = ''
+    refreshToken.value = ''
+    expiresIn.value = -1
+    loginTime.value = -1
     autoLogin.value = false
+    clearAuthStorage()
+  }
 
+  function logout() {
+    clearAuth()
     window.location.reload()
   }
 
@@ -69,6 +77,7 @@ export const useAuthStore = defineStore('auth', () => {
     refreshToken,
     expiresIn,
     loginTime,
+    clearAuth,
     logout,
     vip,
     needRefresh,
