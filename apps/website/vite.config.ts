@@ -1,4 +1,4 @@
-import { writeFile } from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import path, { resolve } from 'node:path'
 import process from 'node:process'
 import { vitePluginForArco as Arco } from '@arco-plugins/vite-vue'
@@ -150,7 +150,10 @@ export default defineConfig(() => {
       {
         name: 'vite-plugin-build-info',
         async closeBundle() {
-          return await writeFile('./dist/build-info.json', JSON.stringify({
+          const outDir = resolve(__dirname, 'dist')
+
+          await mkdir(outDir, { recursive: true })
+          return await writeFile(resolve(outDir, 'build-info.json'), JSON.stringify({
             timestamp: now,
           }, null, 2))
         },
