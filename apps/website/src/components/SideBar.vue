@@ -38,7 +38,7 @@ interface Menu {
 }
 
 const menu = computed<Menu>(() => {
-  const data = {
+  const data: Menu = {
     contact: {
       name: t('menu.contact'),
       submenu: [],
@@ -61,7 +61,6 @@ const menu = computed<Menu>(() => {
     if (!rootKey)
       continue
 
-    // @ts-expect-error type error
     const menuItem = data?.[rootKey]
     if (!menuItem)
       continue

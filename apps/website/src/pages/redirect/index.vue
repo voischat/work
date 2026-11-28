@@ -10,8 +10,9 @@ definePage({
 const router = useRouter()
 const route = useRoute()
 
-// @ts-expect-error type error
-const gotoPath = route.params.path as string
+const gotoPath = typeof route.query.path === 'string'
+  ? route.query.path
+  : '/'
 
 router.replace({ path: gotoPath })
 </script>

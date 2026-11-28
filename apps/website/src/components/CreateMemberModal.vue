@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { AvatarUploaderExpose } from '~/types'
 import Message from '@arco-design/web-vue/es/message'
 import { useQueryClient } from '@tanstack/vue-query'
 import md5 from 'md5'
@@ -20,7 +21,7 @@ const props = defineProps<{
 
 const { t } = useI18n()
 const { themeColor } = useAppStore()
-const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
+const avatarUploaderRef = useTemplateRef<AvatarUploaderExpose>('avatarUploaderRef')
 const authStore = useAuthStore()
 
 const open = defineModel('open', { default: false })
@@ -70,8 +71,9 @@ const { mutate: createMember, isPending } = useWeilaMutation('corp/address/creat
 })
 
 const submit = handleSubmit(async (values: any) => {
-  // @ts-expect-error type error: `defineExpose` no type declare find
-  const { upload } = avatarUploaderRef.value
+  const upload = avatarUploaderRef.value?.upload
+  if (!upload)
+    return
   if (form.value.avatar && !isRemoteImage(form.value.avatar)) {
     if (!(await upload()))
       return

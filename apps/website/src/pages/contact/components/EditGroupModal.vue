@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { AvatarUploaderExpose } from '~/types'
 import Message from '@arco-design/web-vue/es/message'
 import * as v from 'valibot'
 import { shallowRef, useTemplateRef } from 'vue'
@@ -18,7 +19,7 @@ const weilaStore = useWeilaStore()
 
 const open = shallowRef(false)
 
-const avatarUploaderRef = useTemplateRef('avatarUploaderRef')
+const avatarUploaderRef = useTemplateRef<AvatarUploaderExpose>('avatarUploaderRef')
 
 const { form, rules, handleSubmit, reset } = useForm(v.object({
   name: v.optional(v.string(), () => props.group?.name),
@@ -42,8 +43,9 @@ const { mutateAsync: change, isPending } = useWeilaMutation('corp/group/change-g
 })
 
 const submit = handleSubmit(async (values) => {
-  // @ts-expect-error type error: `defineExpose` no type declare find
-  const { upload } = avatarUploaderRef.value
+  const upload = avatarUploaderRef.value?.upload
+  if (!upload)
+    return
   if (form.value.avatar !== props.group?.avatar && !isRemoteImage(form.value.avatar || '')) {
     if (!(await upload()))
       return
