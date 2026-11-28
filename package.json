@@ -51,6 +51,7 @@
     "typecheck:tsc:sdk": "turbo run typecheck:tsc --filter='./packages/*'",
     "test:sdk": "turbo run test:run --filter='./packages/*'",
     "lint:comments": "node scripts/no-comments.ts",
+    "lint:workflows": "node scripts/lint-workflows.ts",
     "release": "bumpp apps/website/package.json --tag 'v{version}' --commit 'chore: release v{version}'",
     "release:core": "bumpp packages/core/package.json --tag '@vois/weila-sdk-core@{version}' --commit 'chore(release): @vois/weila-sdk-core@{version}'",
     "release:ui": "bumpp packages/ui/package.json --tag '@vois/weila-sdk-ui@{version}' --commit 'chore(release): @vois/weila-sdk-ui@{version}'",

@@ -72,6 +72,7 @@ Run from the repo root.
 | `pnpm typecheck`               | turbo typecheck for every workspace project                     |
 | `pnpm typecheck:sdk`           | turbo typecheck limited to `packages/*`                         |
 | `pnpm lint`                    | `lint:names`, `lint:web`, `lint:sdk` and `lint:comments`        |
+| `pnpm run lint:workflows`      | actionlint over `.github/workflows` (binary or Docker)          |
 | `pnpm test`                    | turbo test for every workspace project (website runs non-watch) |
 | `pnpm test:run`                | turbo test:run for `packages/*`                                 |
 | `pnpm knip`                    | unused files, exports, dependencies (must report zero findings) |
@@ -84,7 +85,7 @@ Run from the repo root.
 
 ## Gates
 
-`.github/workflows/gates.yml` runs, for the SDK track: `fmt:check`, `manifests`, `build:sdk`, `api:snapshot`, `typecheck:sdk`, `typecheck:tsc:sdk`, `typecheck:parity`, `typecheck:strict-budget`, `knip`, `lint:names`, `lint:sdk`, `lint:comments`, `test:scripts`, `test:sdk`, the Playwright dist smoke test, and `build:story`. The `web` job runs `lint:web` and then the website's turbo `typecheck`, `test` and `build`, which pull the SDK builds through the task graph.
+`.github/workflows/gates.yml` runs, for the SDK track: `fmt:check`, `manifests`, `lint:workflows`, `build:sdk`, `api:snapshot`, `typecheck:sdk`, `typecheck:tsc:sdk`, `typecheck:parity`, `typecheck:strict-budget`, `knip`, `lint:names`, `lint:sdk`, `lint:comments`, `test:scripts`, `test:sdk`, the Playwright dist smoke test, and `build:story`. The `web` job runs `lint:web` and then the website's turbo `typecheck`, `test` and `build`, which pull the SDK builds through the task graph.
 
 `scripts/commit-hooks.spec.ts` asserts the hook wiring, so changing `nano-staged` globs or the hook runner means updating that spec.
 
