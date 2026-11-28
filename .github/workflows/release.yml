@@ -12,7 +12,6 @@ env:
 
 permissions:
   contents: write
-  id-token: write
 
 concurrency:
   group: release-${{ github.ref_name }}
@@ -21,8 +20,6 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-24.04
-    env:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -34,15 +31,11 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-          registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
+      - run: pnpm run test:sdk
+      - run: pnpm run typecheck:sdk
       - name: Verify tag version
         run: node scripts/release/check.ts
-      - name: Publish npm package
-        if: startsWith(github.ref_name, '@vois/') && env.NPM_TOKEN != ''
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: node scripts/release/publish.ts
       - name: Build release assets
         run: node scripts/release/assets.ts
       - name: Create GitHub release
