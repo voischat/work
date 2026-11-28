@@ -6,8 +6,8 @@ const ACTIONLINT_VERSION = '1.7.7'
 const WORKFLOW_DIR = '.github/workflows'
 
 const files = readdirSync(WORKFLOW_DIR)
-  .filter(name => name.endsWith('.yml') || name.endsWith('.yaml'))
-  .map(name => join(WORKFLOW_DIR, name))
+  .filter((name) => name.endsWith('.yml') || name.endsWith('.yaml'))
+  .map((name) => join(WORKFLOW_DIR, name))
 
 function run(command: string, args: string[]): number {
   const result = spawnSync(command, [...args, ...files], { stdio: 'inherit' })
@@ -21,8 +21,7 @@ function isAvailable(command: string, args: string[]): boolean {
   return result.status === 0
 }
 
-if (isAvailable('actionlint', ['--version']))
-  process.exit(run('actionlint', []))
+if (isAvailable('actionlint', ['--version'])) process.exit(run('actionlint', []))
 
 if (isAvailable('docker', ['info'])) {
   process.exit(
