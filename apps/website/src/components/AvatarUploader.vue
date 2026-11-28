@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { UseImage } from '@vueuse/components'
 import { useFileDialog } from '@vueuse/core'
-import { defineEmits } from 'unplugin-vue-macros/macros'
 
 import { computed, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -9,7 +8,7 @@ import TheCropper from '~/components/TheCropper.vue'
 import { useWeilaApi } from '~/composables/useWeilaApi'
 
 const emits = defineEmits<{
-  uploading: (precent: number) => void
+  uploading: [percent: number]
 }>()
 const src = defineModel('src', { default: '' })
 const { t } = useI18n()

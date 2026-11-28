@@ -36,10 +36,6 @@
       // UnoCSS and rspack plugin setup, which needs app env vars and prints
       // errors during the gate. The single ~ alias matches tsconfig paths.
       "vite": { "config": [] },
-      "entry": [
-        // auto-read by unplugin-vue-macros during the vite build
-        "vue-macros.config.ts",
-      ],
       "ignoreDependencies": [
         // icon sets resolved to CSS by UnoCSS/Iconify at build time
         "@iconify-json/carbon",

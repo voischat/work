@@ -10,7 +10,6 @@ import UnoCSS from 'unocss/vite'
 import Unused from 'unplugin-unused/vite'
 import { ArcoResolver } from 'unplugin-vue-components/resolvers'
 import Components from 'unplugin-vue-components/vite'
-import VueMacros from 'unplugin-vue-macros/vite'
 import VueRouter from 'unplugin-vue-router/vite'
 import { defineConfig } from 'vite'
 import mkcert from 'vite-plugin-mkcert'
@@ -129,15 +128,12 @@ export default defineConfig(() => {
         ],
       }),
 
-      VueMacros({
-        plugins: {
-          vue: Vue(),
-          vueRouter: VueRouter({
-            extensions: ['.vue'],
-            exclude: ['**/components/**'],
-          }),
-        },
+      VueRouter({
+        extensions: ['.vue'],
+        exclude: ['**/components/**'],
       }),
+
+      Vue(),
 
       // https://github.com/arco-design/arco-plugins/blob/main/packages/plugin-vite-vue/README.md
       Arco({}),

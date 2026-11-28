@@ -18,7 +18,6 @@
       "vitest",
       "vite/client",
       "vite-plugin-vue-layouts/client",
-      "unplugin-vue-macros/macros-global",
       "unplugin-vue-router/client"
     ],
     "allowJs": true,
@@ -30,11 +29,6 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "skipLibCheck": true
-  },
-  "vueCompilerOptions": {
-    "plugins": [
-      "unplugin-vue-macros/volar"
-    ]
   },
   "exclude": [
     "dist",
