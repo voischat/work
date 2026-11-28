@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { WL_IDbMsgData, WL_IDbUserInfo } from '@vois/weila-sdk-core'
+import type { WL_VideoMsgData, WL_IDbUserInfo } from '@vois/weila-sdk-core'
 import { WL_IDbMsgDataStatus } from '@vois/weila-sdk-core'
 import { computed, shallowRef, watch } from 'vue'
 import { useWeilaUiI18n } from '../../i18n'
 import { getMessageThumbnailUrl } from '../../utils'
 
 export interface WlVideoBubbleProps {
-  msg: WL_IDbMsgData
+  msg: WL_VideoMsgData
   isSelf?: boolean
   sender?: WL_IDbUserInfo
 }
@@ -21,7 +21,7 @@ const emit = defineEmits<{
   (e: 'click', url: string): void
 }>()
 
-const thumbnailUrl = computed(() => getMessageThumbnailUrl(props.msg.fileInfo?.fileUrl, 'video'))
+const thumbnailUrl = computed(() => getMessageThumbnailUrl(props.msg.fileInfo.fileUrl, 'video'))
 const loadFailed = shallowRef(false)
 
 watch(thumbnailUrl, () => {
@@ -40,11 +40,11 @@ function isUploadFailed() {
   <div
     class="rounded-xl overflow-hidden"
     :class="isSelf ? 'bg-blue-500' : 'bg-white'"
-    @click="msg.fileInfo?.fileUrl && emit('click', msg.fileInfo.fileUrl)"
+    @click="msg.fileInfo.fileUrl && emit('click', msg.fileInfo.fileUrl)"
   >
     <div
       class="relative max-w-[200px]"
-      :class="msg.fileInfo?.fileUrl ? 'cursor-pointer' : 'opacity-60'"
+      :class="msg.fileInfo.fileUrl ? 'cursor-pointer' : 'opacity-60'"
     >
       <img
         v-if="thumbnailUrl && !loadFailed"
@@ -58,7 +58,7 @@ function isUploadFailed() {
       </div>
 
       <div
-        v-if="msg.fileInfo?.fileUrl"
+        v-if="msg.fileInfo.fileUrl"
         class="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors"
       >
         <div class="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center">
@@ -79,7 +79,7 @@ function isUploadFailed() {
       </div>
 
       <div
-        v-if="msg.fileInfo?.fileName"
+        v-if="msg.fileInfo.fileName"
         class="absolute bottom-0 left-0 right-0 px-2 py-1 bg-gradient-to-t from-black/60 to-transparent"
       >
         <div class="text-xs text-white truncate">

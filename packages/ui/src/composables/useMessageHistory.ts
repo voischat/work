@@ -31,20 +31,27 @@ interface UseMessageHistoryOptions {
 }
 
 function mergeMessage(existing: WL_IDbMsgData, next: WL_IDbMsgData): WL_IDbMsgData {
-  const base = next.audioData || !existing.audioData ? next : existing
-  const fallback = base === next ? existing : next
-  const audioData = base.audioData || fallback.audioData
+  const audioMsg =
+    next.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE
+      ? next
+      : existing.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE
+        ? existing
+        : undefined
 
-  return {
-    ...fallback,
-    ...base,
-    audioData,
-    pttData: audioData
-      ? undefined
-      : base.pttData
-        ? { ...fallback.pttData, ...base.pttData }
-        : fallback.pttData,
+  if (!audioMsg) {
+    if (
+      existing.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE &&
+      next.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE
+    ) {
+      return { ...existing, ...next, pttData: { ...existing.pttData, ...next.pttData } }
+    }
+
+    return next
   }
+
+  const other = audioMsg === next ? existing : next
+
+  return { ...other, ...audioMsg, pttData: undefined }
 }
 
 function getMessageIdentity(msg: WL_IDbMsgData): string {

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { WL_IDbMsgData, WL_IDbUserInfo } from '@vois/weila-sdk-core'
+import type { WL_LocationMsgData, WL_IDbUserInfo } from '@vois/weila-sdk-core'
 import { isValidLocation } from '../../utils'
 
 export interface WlLocationBubbleProps {
-  msg: WL_IDbMsgData
+  msg: WL_LocationMsgData
   isSelf?: boolean
   sender?: WL_IDbUserInfo
 }
@@ -20,8 +20,6 @@ const emit = defineEmits<{
 }>()
 
 function handleClick() {
-  if (!props.msg.location) return
-
   const location = {
     latitude: props.msg.location.latitude,
     longitude: props.msg.location.longitude,
@@ -36,7 +34,6 @@ function handleClick() {
 
 <template>
   <div
-    v-if="msg.location"
     class="max-w-[240px] rounded-xl overflow-hidden cursor-pointer"
     :class="isSelf ? 'bg-blue-500' : 'bg-white'"
     @click="handleClick"

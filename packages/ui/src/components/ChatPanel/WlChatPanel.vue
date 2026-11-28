@@ -274,6 +274,8 @@ onBeforeUnmount(() => {
 })
 
 async function handleAudioPlay(msg: WL_IDbMsgData) {
+  if (msg.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE) return
+
   try {
     if (pausedAudioId.value === msg.combo_id) {
       pausedAudioId.value = null

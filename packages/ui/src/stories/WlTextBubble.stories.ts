@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
-import type { WL_IDbMsgData } from '@vois/weila-sdk-core'
+import type { WL_TextMsgData } from '@vois/weila-sdk-core'
 import { WL_IDbMsgDataStatus, WL_IDbMsgDataType } from '@vois/weila-sdk-core'
 import WlTextBubble from '../components/Message/WlTextBubble.vue'
 
@@ -21,7 +21,7 @@ const meta: Meta<typeof WlTextBubble> = {
 export default meta
 type Story = StoryObj<typeof WlTextBubble>
 
-const msg = (textData: string, created = Math.floor(Date.now() / 1000)): WL_IDbMsgData => ({
+const msg = (textData: string, created = Math.floor(Date.now() / 1000)): WL_TextMsgData => ({
   created,
   msgId: 0,
   senderId: 0,

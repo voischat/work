@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { WL_IDbMsgData, WL_IDbUserInfo } from '@vois/weila-sdk-core'
+import type { WL_FileMsgData, WL_IDbUserInfo } from '@vois/weila-sdk-core'
 import { WL_IDbMsgDataStatus } from '@vois/weila-sdk-core'
 import { useWeilaUiI18n } from '../../i18n'
 
 export interface WlFileBubbleProps {
-  msg: WL_IDbMsgData
+  msg: WL_FileMsgData
   isSelf?: boolean
   sender?: WL_IDbUserInfo
 }
@@ -36,13 +36,13 @@ function formatFileSize(bytes?: number): string {
 
 <template>
   <div
-    v-if="msg.fileInfo?.fileName"
+    v-if="msg.fileInfo.fileName"
     class="rounded-xl overflow-hidden"
     :class="[
       isSelf ? 'bg-blue-500' : 'bg-white',
-      msg.fileInfo?.fileUrl ? 'cursor-pointer' : 'opacity-60',
+      msg.fileInfo.fileUrl ? 'cursor-pointer' : 'opacity-60',
     ]"
-    @click="msg.fileInfo?.fileUrl && emit('click', msg.fileInfo!.fileUrl)"
+    @click="msg.fileInfo.fileUrl && emit('click', msg.fileInfo.fileUrl)"
   >
     <div class="flex items-center gap-2.5 px-3 py-2.5">
       <img
@@ -63,7 +63,7 @@ function formatFileSize(bytes?: number): string {
         </div>
         <div class="text-xs mt-0.5" :class="isSelf ? 'text-blue-200' : 'text-neutral-400'">
           {{
-            msg.fileInfo?.fileUrl
+            msg.fileInfo.fileUrl
               ? formatFileSize(msg.fileInfo.fileSize)
               : isUploadFailed()
                 ? t('message.uploadFailed')

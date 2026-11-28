@@ -1,23 +1,6 @@
 import { WL_IDbMsgDataType } from 'db/weila_db_data'
-import type { WL_IDbFileData, WL_IDbLocationShared, WL_IDbServicePayload } from 'db/weila_db_data'
+import type { WL_MsgContent } from 'db/weila_db_data'
 import { isRecord, isString, type JsonValue } from 'main/weila_type_guards'
-
-interface ParsedMediaServiceMsgData {
-  msgType:
-    | WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE
-    | WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE
-    | WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE
-    | WL_IDbMsgDataType.WL_DB_MSG_DATA_LOCATION_TYPE
-  fileInfo?: WL_IDbFileData
-  location?: WL_IDbLocationShared
-}
-
-interface ParsedPayloadServiceMsgData {
-  msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE
-  servicePayload: WL_IDbServicePayload
-}
-
-type ParsedServiceMsgData = ParsedMediaServiceMsgData | ParsedPayloadServiceMsgData
 
 type ServiceMsgContent = Record<string, JsonValue>
 
@@ -26,9 +9,7 @@ interface ServiceMsgPayload {
   content?: ServiceMsgContent
 }
 
-type ServiceContentParser = (
-  content: ServiceMsgContent | undefined,
-) => ParsedServiceMsgData | undefined
+type ServiceContentParser = (content: ServiceMsgContent | undefined) => WL_MsgContent | undefined
 
 const SERVICE_MSG_TYPE = WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE
 
@@ -76,9 +57,7 @@ function readHttpUrl(content: ServiceMsgContent | undefined, key: string): strin
   return parseHttpUrl(readString(content, key))
 }
 
-function parseImageContent(
-  content: ServiceMsgContent | undefined,
-): ParsedMediaServiceMsgData | undefined {
+function parseImageContent(content: ServiceMsgContent | undefined): WL_MsgContent | undefined {
   const url = readHttpUrl(content, 'url')
 
   if (url === undefined) {
@@ -91,9 +70,7 @@ function parseImageContent(
   }
 }
 
-function parseVideoContent(
-  content: ServiceMsgContent | undefined,
-): ParsedMediaServiceMsgData | undefined {
+function parseVideoContent(content: ServiceMsgContent | undefined): WL_MsgContent | undefined {
   const url = readHttpUrl(content, 'url')
 
   if (url === undefined) {
@@ -111,9 +88,7 @@ function parseVideoContent(
   }
 }
 
-function parseFileContent(
-  content: ServiceMsgContent | undefined,
-): ParsedMediaServiceMsgData | undefined {
+function parseFileContent(content: ServiceMsgContent | undefined): WL_MsgContent | undefined {
   const url = readHttpUrl(content, 'url')
   const name = readString(content, 'name')
 
@@ -132,9 +107,7 @@ function parseFileContent(
   }
 }
 
-function parseLocationContent(
-  content: ServiceMsgContent | undefined,
-): ParsedMediaServiceMsgData | undefined {
+function parseLocationContent(content: ServiceMsgContent | undefined): WL_MsgContent | undefined {
   const latitude = readNumber(content, 'latitude')
   const longitude = readNumber(content, 'longitude')
 
@@ -162,9 +135,7 @@ function parseLocationContent(
   }
 }
 
-function parseQrcodeContent(
-  content: ServiceMsgContent | undefined,
-): ParsedPayloadServiceMsgData | undefined {
+function parseQrcodeContent(content: ServiceMsgContent | undefined): WL_MsgContent | undefined {
   const url = readHttpUrl(content, 'url')
 
   if (url === undefined) {
@@ -201,7 +172,7 @@ function parseMember(value: JsonValue): Array<{ userId: number; nick: string }> 
 
 function parseMemberChangeContent(
   content: ServiceMsgContent | undefined,
-): ParsedPayloadServiceMsgData | undefined {
+): WL_MsgContent | undefined {
   const action = readString(content, 'action')
   const rawMembers = content?.members
 
@@ -221,7 +192,7 @@ function parseMemberChangeContent(
   }
 }
 
-function parseGroupDestroyContent(): ParsedPayloadServiceMsgData {
+function parseGroupDestroyContent(): WL_MsgContent {
   return { msgType: SERVICE_MSG_TYPE, servicePayload: { type: 'group-destroy' } }
 }
 
@@ -241,9 +212,7 @@ function readAlarmUser(content: ServiceMsgContent | undefined): AlarmUserFields 
   }
 }
 
-function parseAlarmPowerContent(
-  content: ServiceMsgContent | undefined,
-): ParsedPayloadServiceMsgData {
+function parseAlarmPowerContent(content: ServiceMsgContent | undefined): WL_MsgContent {
   return {
     msgType: SERVICE_MSG_TYPE,
     servicePayload: {
@@ -255,9 +224,7 @@ function parseAlarmPowerContent(
   }
 }
 
-function parseAlarmGeofenceContent(
-  content: ServiceMsgContent | undefined,
-): ParsedPayloadServiceMsgData {
+function parseAlarmGeofenceContent(content: ServiceMsgContent | undefined): WL_MsgContent {
   return {
     msgType: SERVICE_MSG_TYPE,
     servicePayload: {
@@ -274,7 +241,7 @@ function parseAlarmGeofenceContent(
   }
 }
 
-function parseAlarmSosContent(content: ServiceMsgContent | undefined): ParsedPayloadServiceMsgData {
+function parseAlarmSosContent(content: ServiceMsgContent | undefined): WL_MsgContent {
   return {
     msgType: SERVICE_MSG_TYPE,
     servicePayload: {
@@ -313,18 +280,25 @@ function isServiceMsgPayload(value: unknown): value is ServiceMsgPayload {
   return isString(service_type) && (content === undefined || isRecord(content))
 }
 
-export function parseSessionServiceMsg(serviceData: string): ParsedServiceMsgData | undefined {
+function unknownServiceContent(raw: string): WL_MsgContent {
+  return { msgType: SERVICE_MSG_TYPE, servicePayload: { type: 'unknown', raw } }
+}
+
+export function parseSessionServiceMsg(serviceData: string): WL_MsgContent {
   let payload: unknown
 
   try {
     payload = JSON.parse(serviceData)
   } catch {
-    return undefined
+    return unknownServiceContent(serviceData)
   }
 
   if (!isServiceMsgPayload(payload)) {
-    return undefined
+    return unknownServiceContent(serviceData)
   }
 
-  return SERVICE_CONTENT_PARSERS.get(payload.service_type)?.(payload.content)
+  return (
+    SERVICE_CONTENT_PARSERS.get(payload.service_type)?.(payload.content) ??
+    unknownServiceContent(serviceData)
+  )
 }

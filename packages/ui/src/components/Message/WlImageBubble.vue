@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { WL_IDbMsgData, WL_IDbUserInfo } from '@vois/weila-sdk-core'
+import type { WL_ImageMsgData, WL_IDbUserInfo } from '@vois/weila-sdk-core'
 import { WL_IDbMsgDataStatus } from '@vois/weila-sdk-core'
 import { computed, shallowRef, watch } from 'vue'
 import { useWeilaUiI18n } from '../../i18n'
 import { getMessageThumbnailUrl } from '../../utils'
 
 export interface WlImageBubbleProps {
-  msg: WL_IDbMsgData
+  msg: WL_ImageMsgData
   isSelf?: boolean
   sender?: WL_IDbUserInfo
 }
@@ -21,7 +21,7 @@ const emit = defineEmits<{
   (e: 'click', url: string): void
 }>()
 
-const thumbnailUrl = computed(() => getMessageThumbnailUrl(props.msg.fileInfo?.fileUrl, 'image'))
+const thumbnailUrl = computed(() => getMessageThumbnailUrl(props.msg.fileInfo.fileUrl, 'image'))
 const loadFailed = shallowRef(false)
 
 watch(thumbnailUrl, () => {
@@ -36,7 +36,7 @@ function isUploadFailed() {
 }
 
 function handleClick() {
-  const url = props.msg.fileInfo?.fileUrl
+  const url = props.msg.fileInfo.fileUrl
   if (url) emit('click', url)
 }
 </script>

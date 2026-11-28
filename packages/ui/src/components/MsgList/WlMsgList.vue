@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import { ref, useTemplateRef, watch, nextTick } from 'vue'
-import type { WL_IDbMsgData, WL_IDbUserInfo } from '@vois/weila-sdk-core'
+import type {
+  WL_AudioMsgData,
+  WL_IDbMsgData,
+  WL_IDbUserInfo,
+  WL_FileMsgData,
+  WL_ImageMsgData,
+  WL_LocationMsgData,
+  WL_ServiceMsgData,
+  WL_TextMsgData,
+  WL_VideoMsgData,
+} from '@vois/weila-sdk-core'
 import { WL_IDbMsgDataStatus, WL_IDbMsgDataType } from '@vois/weila-sdk-core'
 import WlAudioBubble from '../Message/WlAudioBubble.vue'
 import WlTextBubble from '../Message/WlTextBubble.vue'
@@ -109,15 +119,20 @@ function getStatusIcon(msg: WL_IDbMsgData) {
   return null
 }
 
-const isText = (msg: WL_IDbMsgData) => msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE
-const isAudio = (msg: WL_IDbMsgData) => msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE
-const isImage = (msg: WL_IDbMsgData) => msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE
-const isLocation = (msg: WL_IDbMsgData) =>
+const isText = (msg: WL_IDbMsgData): msg is WL_TextMsgData =>
+  msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE
+const isAudio = (msg: WL_IDbMsgData): msg is WL_AudioMsgData =>
+  msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE
+const isImage = (msg: WL_IDbMsgData): msg is WL_ImageMsgData =>
+  msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE
+const isLocation = (msg: WL_IDbMsgData): msg is WL_LocationMsgData =>
   msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_LOCATION_TYPE
-const isFile = (msg: WL_IDbMsgData) => msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE
-const isVideo = (msg: WL_IDbMsgData) => msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE
-const isServicePayload = (msg: WL_IDbMsgData) =>
-  msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE && Boolean(msg.servicePayload)
+const isFile = (msg: WL_IDbMsgData): msg is WL_FileMsgData =>
+  msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE
+const isVideo = (msg: WL_IDbMsgData): msg is WL_VideoMsgData =>
+  msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE
+const isServicePayload = (msg: WL_IDbMsgData): msg is WL_ServiceMsgData =>
+  msg.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE
 
 const isSupportedForwardType = (msg: WL_IDbMsgData) =>
   isText(msg) || isAudio(msg) || isImage(msg) || isVideo(msg) || isLocation(msg) || isFile(msg)
@@ -149,7 +164,7 @@ const copiedMsgIds = ref<Set<string>>(new Set())
 const COPY_FEEDBACK_DURATION = 1500
 
 async function handleCopyText(msg: WL_IDbMsgData) {
-  if (!msg.textData || copiedMsgIds.value.has(msg.combo_id)) return
+  if (!isText(msg) || copiedMsgIds.value.has(msg.combo_id)) return
 
   try {
     await navigator.clipboard.writeText(msg.textData)
@@ -325,7 +340,7 @@ watch(
           />
 
           <WlLocationBubble
-            v-else-if="isLocation(msg) && msg.location"
+            v-else-if="isLocation(msg)"
             :msg="msg"
             :is-self="isSelf(msg)"
             :sender="getSender(msg)"

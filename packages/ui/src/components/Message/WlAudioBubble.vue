@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { WL_IDbMsgData } from '@vois/weila-sdk-core'
+import type { WL_AudioMsgData } from '@vois/weila-sdk-core'
 import { calculateAudioDuration } from '@vois/weila-sdk-core'
 
 export interface WlAudioBubbleProps {
-  msg: WL_IDbMsgData
+  msg: WL_AudioMsgData
   isSelf?: boolean
   playing?: boolean
   paused?: boolean
@@ -23,7 +23,7 @@ const emit = defineEmits<{
   (e: 'pause'): void
 }>()
 
-const duration = computed(() => calculateAudioDuration(props.msg.audioData?.frameCount ?? 0))
+const duration = computed(() => calculateAudioDuration(props.msg.audioData.frameCount))
 
 const handleClick = () => {
   if (props.playing && !props.paused) {
