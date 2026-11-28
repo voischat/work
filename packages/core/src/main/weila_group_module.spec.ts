@@ -34,7 +34,7 @@ function makeGroupModule() {
 
   if (!handler) throw new Error('group module did not register its handler')
 
-  return { rspPbMsg, sendPbMsg, sendExtEvent, handler }
+  return { rspPbMsg, sendPbMsg, sendExtEvent, handler, groupModule }
 }
 
 function buildResponse(
@@ -126,7 +126,6 @@ describe('WLGroupModule response routing', () => {
   } satisfies Record<string, WL.Group.GroupCommandId>
 
   const NOT_AWAITED = new Set<number>([
-    WL.Group.GroupCommandId.GROUP_COMMAND_CHANGE_MEMBERINFO,
     WL.Group.GroupCommandId.GROUP_COMMAND_GET_GROUP_INVITEINFO,
     WL.Group.GroupCommandId.GROUP_COMMAND_GET_GROUP_JOININFO,
     WL.Group.GroupCommandId.GROUP_COMMAND_GET_BLACKLIST,
@@ -734,5 +733,20 @@ describe('WLGroupModule notify failures', () => {
     unhandled.stop()
 
     expect(unhandled.count()).toBe(0)
+  })
+})
+
+describe('WLGroupModule changeMemberType', () => {
+  it('sends the change and updates the stored member', async () => {
+    const { sendPbMsg, groupModule } = makeGroupModule()
+    const db = await openDb()
+    await seedGroup(db)
+    await seedMember(db, 7)
+    sendPbMsg.mockResolvedValue(true)
+
+    await expect(groupModule.changeMemberType(GROUP_ID, 7, 2)).resolves.toBe(true)
+
+    expect(sendPbMsg).toHaveBeenCalledTimes(1)
+    expect((await db.getGroupMemberInfo(GROUP_ID, 7))?.memberType).toBe(2)
   })
 })

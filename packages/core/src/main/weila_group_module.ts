@@ -188,6 +188,16 @@ export default class WLGroupModule {
         )
       },
     ],
+    [
+      WL.Group.GroupCommandId.GROUP_COMMAND_CHANGE_MEMBERINFO,
+      (serviceHead) => {
+        this.coreInterface.rspPbMsg(
+          serviceHead.seq ?? 0,
+          serviceHead.resultCode ?? 0,
+          serviceHead.resultCode === 0,
+        )
+      },
+    ],
   ])
 
   private readonly notificationRoutes = new Map<number, GroupNotificationRoute>([
@@ -1120,11 +1130,30 @@ export default class WLGroupModule {
   ): Promise<boolean> {
     const memberInfo = await WeilaDB.getInstance().getGroupMemberInfo(groupId, memberUserId)
 
-    if (memberInfo) {
-      memberInfo.memberType = dbEnum<WL_IDbMemberType>(memberType)
-      const id = WeilaDB.getInstance().putMemberInfo(memberInfo)
-      log.info('更新好友[%s]信息', id)
-    }
+    if (!memberInfo) return Promise.reject('群成员不存在:' + memberUserId)
+
+    const nextMemberType = dbEnum<WL_IDbMemberType>(memberType)
+
+    const buildMsgRet = WeilaPBGroupWrapper.buildChangeGroupMemberInfoReq(Long.fromValue(groupId), {
+      userId: memberInfo.userId,
+      memberType: nextMemberType,
+      remark: memberInfo.remark,
+      priority: memberInfo.priority,
+      speechAvailable: memberInfo.speechEnable,
+      speechDisableTimeout: memberInfo.speechDisableTimeout,
+      bannedStatus: memberInfo.blockedStatus ? 1 : 0,
+      tts: memberInfo.tts,
+      locationShared: memberInfo.locationShared,
+      createdTime: Long.fromValue(memberInfo.created),
+    })
+
+    if (buildMsgRet.resultCode !== 0)
+      return Promise.reject('创建消息失败:' + buildMsgRet.resultCode)
+
+    await this.coreInterface.sendPbMsg(buildMsgRet)
+
+    memberInfo.memberType = nextMemberType
+    await WeilaDB.getInstance().putMemberInfo(memberInfo)
 
     return true
   }
