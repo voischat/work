@@ -14,6 +14,16 @@ import {
 } from '@vois/weila-sdk-core'
 
 const PAGE_SIZE = 20
+const MAX_MESSAGES = 300
+
+type MessageHistoryCore = Pick<
+  WeilaCore,
+  | 'weila_getGroupMembers'
+  | 'weila_getMsgDatas'
+  | 'weila_getUserInfo'
+  | 'weila_offEvent'
+  | 'weila_onEvent'
+>
 
 function isMsgData(value: unknown): value is WL_IDbMsgData {
   return (
@@ -74,8 +84,16 @@ function dedupeMessages(nextMessages: WL_IDbMsgData[]): WL_IDbMsgData[] {
   return [...byId.values()]
 }
 
+function retainNewest(messages: WL_IDbMsgData[]): WL_IDbMsgData[] {
+  return messages.length > MAX_MESSAGES ? messages.slice(messages.length - MAX_MESSAGES) : messages
+}
+
+function retainOldest(messages: WL_IDbMsgData[]): WL_IDbMsgData[] {
+  return messages.length > MAX_MESSAGES ? messages.slice(0, MAX_MESSAGES) : messages
+}
+
 export function useMessageHistory(
-  getCore: () => WeilaCore | null,
+  getCore: () => MessageHistoryCore | null,
   getSession: () => WL_IDbSession | undefined,
   options: UseMessageHistoryOptions = {},
 ) {
@@ -162,14 +180,14 @@ export function useMessageHistory(
       return
     }
 
-    messages.value = [...messages.value, msg]
+    messages.value = retainNewest([...messages.value, msg])
     await ensureSenderInfo(msg.senderId)
   }
 
   async function loadMore(cursorMsgId?: number) {
     const core = getCore()
     const session = getSession()
-    if (!core || !session) return
+    if (!core || !session || loading.value) return
 
     const cursor = cursorMsgId ?? (messages.value[0]?.msgId ? messages.value[0].msgId - 1 : 0)
 
@@ -201,10 +219,12 @@ export function useMessageHistory(
         messages.value = dedupedResult
       } else {
         const existingIds = new Set(messages.value.map(getMessageIdentity))
-        messages.value = dedupeMessages([
-          ...dedupedResult.filter((m) => !existingIds.has(getMessageIdentity(m))),
-          ...messages.value,
-        ])
+        messages.value = retainOldest(
+          dedupeMessages([
+            ...dedupedResult.filter((m) => !existingIds.has(getMessageIdentity(m))),
+            ...messages.value,
+          ]),
+        )
       }
 
       await ensureSenderInfos(dedupedResult)
