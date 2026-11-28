@@ -3,12 +3,23 @@
   "version": "2.0.1",
   "private": false,
   "description": "微喇网页SDK",
-  "keywords": [],
+  "keywords": [
+    "audio",
+    "indexeddb",
+    "protobuf",
+    "sdk",
+    "websocket",
+    "weila"
+  ],
+  "homepage": "https://github.com/voischat/work#readme",
+  "bugs": {
+    "url": "https://github.com/voischat/work/issues"
+  },
   "license": "SEE LICENSE IN LICENSE",
   "author": "Jack Chen",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kvoon9/weila-js-sdk.git",
+    "url": "git+https://github.com/voischat/work.git",
     "directory": "packages/core"
   },
   "files": [
