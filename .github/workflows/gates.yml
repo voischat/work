@@ -13,8 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  gates:
-    # Playwright 1.59.1 has no ubuntu-26.04 support; keep the runner pinned to 24.04.
+  static:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -28,19 +27,31 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run fmt:check
       - run: pnpm run manifests
+      - run: pnpm knip
+      - run: pnpm run lint:names
+      - run: pnpm run lint:sdk
+      - run: pnpm run lint:comments
+      - run: pnpm run test:scripts
+
+  sdk:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 12.23.0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - run: pnpm run build:sdk
       - run: pnpm run api:snapshot
       - run: pnpm run typecheck:sdk
       - run: pnpm run typecheck:tsc:sdk
       - run: pnpm run typecheck:parity
       - run: pnpm run typecheck:strict-budget
-      - run: pnpm knip
-      - run: pnpm run lint:names
-      - run: pnpm run lint:sdk
-      - run: pnpm run lint:comments
-      - run: pnpm run test:scripts
       - run: pnpm run test:sdk
-      # Browsers change only when the Playwright version changes; keep them across runs.
       - uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
@@ -50,7 +61,7 @@ jobs:
       - run: pnpm -C packages/core run test:dist
       - run: pnpm run build:story
 
-  web:
+  web-checks:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -65,4 +76,29 @@ jobs:
       - run: pnpm run lint:web
       - run: pnpm exec turbo run typecheck --filter=weila-work-web --filter=@weilasdk/playground-vue3
       - run: pnpm exec turbo run test --filter=weila-work-web -- --passWithNoTests
+
+  web-build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 12.23.0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - run: pnpm exec turbo run build --filter=weila-work-web
+
+  gates:
+    needs: [static, sdk]
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "gates passed"
+
+  web:
+    needs: [web-checks, web-build]
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "web passed"
