@@ -28,10 +28,6 @@ export default defineConfig(() => {
   return {
     base: './',
 
-    css: {
-      preprocessorMaxWorkers: 0,
-    },
-
     build: {
       rollupOptions: {
         input: {
@@ -73,6 +69,7 @@ export default defineConfig(() => {
     },
 
     css: {
+      preprocessorMaxWorkers: 0,
       preprocessorOptions: {
         less: {
           modifyVars: {
