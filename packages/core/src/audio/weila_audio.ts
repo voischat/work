@@ -99,12 +99,24 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promi
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
 }
 
+function stopMediaStreamTracks(stream: MediaStream): void {
+  stream.getTracks().forEach((track) => track.stop())
+}
+
+function playerEventKey(playerType: number, event: WLAudioPlayerEvent): string {
+  return `${playerType}:${event}`
+}
+
+function recorderEventKey(event: WLAudioRecorderEvent): string {
+  return `recorder:${event}`
+}
+
 class WLAudio {
   private audioContext: AudioContext | null
   private playerWorkNode: (AudioWorkletNode | null)[]
   private recorderWorkNode: AudioWorkletNode | null
   private playerSource: (AudioBufferSourceNode | null)[]
-  private sendingEventListMap: Map<number, WLAudioPendingCallback>
+  private sendingEventListMap: Map<string, WLAudioPendingCallback>
   private micMedia: MediaStream | null
   private micSource: MediaStreamAudioSourceNode | null
   private emitter: TinyEmitter
@@ -151,6 +163,26 @@ class WLAudio {
   }
 
   public async init(): Promise<boolean> {
+    if (this.isInited && this.audioContext) {
+      const state = this.audioContext.state
+
+      if (state === 'running') {
+        return true
+      }
+
+      if (state === 'suspended') {
+        await this.audioContext.resume()
+
+        return this.audioContext.state === 'running'
+      }
+
+      this.isInited = false
+      this.audioContext = null
+      this.playerWorkNode = [null, null, null]
+      this.playerSource = [null, null, null]
+      this.recorderWorkNode = null
+    }
+
     if (!this.isInited) {
       const audioContext = new AudioContext({ sampleRate: defaulSampleRate })
 
@@ -192,15 +224,20 @@ class WLAudio {
     this.emitter.emit('event', event, data)
   }
 
-  private replyPlayRequest(rspEvent: WLAudioPlayerEvent, data: WorkletMessageData['data']): void {
+  private replyPlayRequest(
+    playerType: number,
+    rspEvent: WLAudioPlayerEvent,
+    data: WorkletMessageData['data'],
+  ): void {
     log.info('响应请求事件:%d, 数据:%O', rspEvent, data)
-    const pending = this.sendingEventListMap.get(rspEvent)
+    const key = playerEventKey(playerType, rspEvent)
+    const pending = this.sendingEventListMap.get(key)
 
     if (!pending || pending.kind !== 'result') {
       return
     }
 
-    this.sendingEventListMap.delete(rspEvent)
+    this.sendingEventListMap.delete(key)
 
     const callback = pending.callback
 
@@ -223,10 +260,16 @@ class WLAudio {
     switch (ev.event) {
       case WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_RSP:
         {
-          this.replyPlayRequest(ev.event, ev.data)
-
           if (ev.playerType !== undefined) {
-            this.playState[ev.playerType] = WLPlayerState.WL_PLAYER_STOPPED
+            const playerType = ev.playerType
+
+            this.replyPlayRequest(playerType, ev.event, ev.data)
+
+            if (this.playState[playerType] === WLPlayerState.WL_PLAYER_OPENING) {
+              this.playState[playerType] = ev.data?.result
+                ? WLPlayerState.WL_PLAYER_STOPPED
+                : WLPlayerState.WL_PLAYER_CLOSED
+            }
           }
         }
 
@@ -236,6 +279,8 @@ class WLAudio {
       case WLAudioPlayerEvent.WL_WORKLET_NODE_CLOSE_RSP:
       case WLAudioPlayerEvent.WL_WORKLET_NODE_PAUSE_RSP:
         {
+          const playerType = ev.playerType ?? 0
+
           if (ev.playerType !== undefined) {
             if (ev.event === WLAudioPlayerEvent.WL_WORKLET_NODE_PAUSE_RSP) {
               this.playState[ev.playerType] = WLPlayerState.WL_PLAYER_PAUSED
@@ -248,7 +293,7 @@ class WLAudio {
             this.stopAudioSource(ev.playerType)
           }
 
-          this.replyPlayRequest(ev.event, ev.data)
+          this.replyPlayRequest(playerType, ev.event, ev.data)
         }
 
         break
@@ -256,11 +301,13 @@ class WLAudio {
       case WLAudioPlayerEvent.WL_WORKLET_NODE_START_RSP:
       case WLAudioPlayerEvent.WL_WORKLET_NODE_RESUME_RSP:
         {
+          const playerType = ev.playerType ?? 0
+
           if (ev.playerType !== undefined) {
             this.playState[ev.playerType] = WLPlayerState.WL_PLAYER_STARTED
           }
 
-          this.replyPlayRequest(ev.event, ev.data)
+          this.replyPlayRequest(playerType, ev.event, ev.data)
         }
 
         break
@@ -276,10 +323,11 @@ class WLAudio {
 
       case WLAudioPlayerEvent.WL_WORKLET_NODE_POS_RSP:
         {
-          const pending = this.sendingEventListMap.get(ev.event)
+          const key = playerEventKey(ev.playerType ?? 0, ev.event)
+          const pending = this.sendingEventListMap.get(key)
 
           if (pending && pending.kind === 'frames') {
-            this.sendingEventListMap.delete(ev.event)
+            this.sendingEventListMap.delete(key)
 
             const callback = pending.callback
 
@@ -347,6 +395,8 @@ class WLAudio {
     }
 
     return new Promise<boolean>((resolve, reject) => {
+      const key = playerEventKey(playerType, WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_RSP)
+
       this.sendPlayerEvent(playerType, WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_REQ, {
         sampleRate: sampleRate,
       })
@@ -355,16 +405,14 @@ class WLAudio {
         (cb) => {
           if (cb.reject) {
             this.playState[playerType] = WLPlayerState.WL_PLAYER_CLOSED
+            this.sendingEventListMap.delete(key)
             cb.reject(new Error('请求超时 1'))
           }
         },
         5000,
         callback,
       )
-      this.sendingEventListMap.set(WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_RSP, {
-        kind: 'result',
-        callback,
-      })
+      this.sendingEventListMap.set(key, { kind: 'result', callback })
     })
   }
 
@@ -377,6 +425,8 @@ class WLAudio {
     log.info('播放器 %d 操作事件%d', playerType, reqEvent)
 
     return new Promise<boolean>((resolve, reject) => {
+      const key = playerEventKey(playerType, rspEvent)
+
       this.sendPlayerEvent(playerType, reqEvent, data)
 
       if (this.playerWorkNode[playerType]) {
@@ -385,13 +435,14 @@ class WLAudio {
           (cb) => {
             if (cb.reject) {
               this.playState[playerType] = playRequestTimeoutState[reqEvent]!
+              this.sendingEventListMap.delete(key)
               cb.reject(new Error('请求超时'))
             }
           },
           5000,
           callback,
         )
-        this.sendingEventListMap.set(rspEvent, { kind: 'result', callback })
+        this.sendingEventListMap.set(key, { kind: 'result', callback })
       }
     })
   }
@@ -548,23 +599,22 @@ class WLAudio {
 
   public async getPlayerPlayedMs(playerType: WLPlayerType): Promise<number> {
     return new Promise<number>((resolve, reject) => {
+      const key = playerEventKey(playerType, WLAudioPlayerEvent.WL_WORKLET_NODE_POS_RSP)
+
       this.sendPlayerEvent(playerType, WLAudioPlayerEvent.WL_WORKLET_NODE_POS_REQ, null)
 
       const callback: WLAudioCallback<number> = { resolve, reject, waitRspTimer: null }
       callback.waitRspTimer = setTimeout(
         (cb) => {
           if (cb.reject) {
-            this.sendingEventListMap.delete(WLAudioPlayerEvent.WL_WORKLET_NODE_POS_RSP)
+            this.sendingEventListMap.delete(key)
             cb.reject(new Error('查询播放进度超时'))
           }
         },
         2000,
         callback,
       )
-      this.sendingEventListMap.set(WLAudioPlayerEvent.WL_WORKLET_NODE_POS_RSP, {
-        kind: 'frames',
-        callback,
-      })
+      this.sendingEventListMap.set(key, { kind: 'frames', callback })
     }).then((frames) => {
       return Math.round((frames / this.playSampleRate[playerType]) * 1000)
     })
@@ -586,13 +636,14 @@ class WLAudio {
     data: WorkletMessageData['data'],
   ): void {
     log.info('回复录音器请求%d', rspEvent)
-    const pending = this.sendingEventListMap.get(rspEvent)
+    const key = recorderEventKey(rspEvent)
+    const pending = this.sendingEventListMap.get(key)
 
     if (!pending || pending.kind !== 'result') {
       return
     }
 
-    this.sendingEventListMap.delete(rspEvent)
+    this.sendingEventListMap.delete(key)
 
     const callback = pending.callback
 
@@ -612,7 +663,9 @@ class WLAudio {
       case WLAudioRecorderEvent.WL_WORKLET_NODE_OPEN_RSP:
         {
           if (ev.event === WLAudioRecorderEvent.WL_WORKLET_NODE_OPEN_RSP) {
-            this.recordState = WLRecorderState.WL_RECORDER_STOPPED
+            if (this.recordState === WLRecorderState.WL_RECORDER_OPENING) {
+              this.recordState = WLRecorderState.WL_RECORDER_STOPPED
+            }
           } else {
             this.recordState = WLRecorderState.WL_RECORDER_STARTED
           }
@@ -646,6 +699,7 @@ class WLAudio {
           }
 
           if (this.micMedia) {
+            stopMediaStreamTracks(this.micMedia)
             this.micMedia = null
           }
 
@@ -710,16 +764,23 @@ class WLAudio {
       return Promise.reject(e)
     }
 
+    let mediaPromise: Promise<MediaStream> | undefined
     let mediaStream: MediaStream
 
     try {
-      mediaStream = await withTimeout(
-        navigator.mediaDevices.getUserMedia({ audio: true }),
-        10_000,
-        '打开麦克风超时',
-      )
+      mediaPromise = navigator.mediaDevices.getUserMedia({ audio: true })
+      mediaStream = await withTimeout(mediaPromise, 10_000, '打开麦克风超时')
     } catch (error) {
       log.error('getUserMedia', error)
+
+      if (mediaPromise) {
+        void mediaPromise
+          .then((stream) => {
+            stopMediaStreamTracks(stream)
+          })
+          .catch(() => {})
+      }
+
       void this.closeRecorder()
       throw error
     }
@@ -732,20 +793,21 @@ class WLAudio {
     })
 
     return new Promise<boolean>((resolve, reject) => {
+      const key = recorderEventKey(WLAudioRecorderEvent.WL_WORKLET_NODE_OPEN_RSP)
+
       const callback: WLAudioCallback<boolean> = { resolve, reject, waitRspTimer: null }
       callback.waitRspTimer = setTimeout(
         (cb) => {
           if (cb.reject) {
+            this.recordState = WLRecorderState.WL_RECORDER_CLOSED
+            this.sendingEventListMap.delete(key)
             cb.reject(new Error('请求超时'))
           }
         },
         5000,
         callback,
       )
-      this.sendingEventListMap.set(WLAudioRecorderEvent.WL_WORKLET_NODE_OPEN_RSP, {
-        kind: 'result',
-        callback,
-      })
+      this.sendingEventListMap.set(key, { kind: 'result', callback })
     })
   }
 
@@ -760,17 +822,19 @@ class WLAudio {
       this.sendRecorderEvent(reqEvent, data)
 
       if (this.recorderWorkNode) {
+        const key = recorderEventKey(rspEvent)
         const callback: WLAudioCallback<boolean> = { resolve, reject, waitRspTimer: null }
         callback.waitRspTimer = setTimeout(
           (cb) => {
             if (cb.reject) {
+              this.sendingEventListMap.delete(key)
               cb.reject(new Error('请求超时'))
             }
           },
           5000,
           callback,
         )
-        this.sendingEventListMap.set(rspEvent, { kind: 'result', callback })
+        this.sendingEventListMap.set(key, { kind: 'result', callback })
       }
     })
   }

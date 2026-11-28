@@ -66,9 +66,42 @@ class WLPlayerWorklet extends AudioWorkletProcessor {
       this.encodedData = 0
     }
 
-    this.opusModule = null
     this.pcmRingBuffer = null
     this.encodedDataList = null
+  }
+
+  initPlayer() {
+    this.decoder = this.opusModule._Opus_initDecoder(this.sampleRate, 1)
+
+    if (!this.decoder) {
+      this.reportRsp(WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_RSP, false, '编码器初始化失败')
+      this.reset()
+      this.state = PLAY_CLOSED
+      return
+    }
+
+    this.pcmBuffer = this.opusModule._malloc(
+      this.processFrameCount * Int16Array.BYTES_PER_ELEMENT * 2,
+    )
+
+    if (!this.pcmBuffer) {
+      this.reportRsp(WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_RSP, false, '申请缓存内存失败')
+      this.reset()
+      this.state = PLAY_CLOSED
+      return
+    }
+
+    this.encodedData = this.opusModule._malloc(256)
+
+    if (!this.encodedData) {
+      this.reportRsp(WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_RSP, false, '申请编码内存失败')
+      this.reset()
+      this.state = PLAY_CLOSED
+      return
+    }
+
+    this.reportRsp(WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_RSP, true)
+    this.state = PLAY_OPENED
   }
 
   decodeOpus() {
@@ -119,7 +152,7 @@ class WLPlayerWorklet extends AudioWorkletProcessor {
             Module['wasmBinary'] = this.wasmData
             opus(Module)
               .then((value) => {
-                if (this.state === PLAY_CLOSING) {
+                if (this.state === PLAY_CLOSING || this.state === PLAY_CLOSED) {
                   this.reset()
                   this.reportRsp(
                     WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_RSP,
@@ -130,46 +163,7 @@ class WLPlayerWorklet extends AudioWorkletProcessor {
                 }
 
                 this.opusModule = value
-                this.decoder = this.opusModule._Opus_initDecoder(this.sampleRate, 1)
-                if (!this.decoder) {
-                  this.reportRsp(
-                    WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_RSP,
-                    false,
-                    '编码器初始化失败',
-                  )
-                  this.reset()
-                  this.state = PLAY_CLOSED
-                  return
-                }
-
-                this.pcmBuffer = this.opusModule._malloc(
-                  this.processFrameCount * Int16Array.BYTES_PER_ELEMENT * 2,
-                )
-                if (!this.pcmBuffer) {
-                  this.reportRsp(
-                    WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_RSP,
-                    false,
-                    '申请缓存内存失败',
-                  )
-                  this.reset()
-                  this.state = PLAY_CLOSED
-                  return
-                }
-
-                this.encodedData = this.opusModule._malloc(256)
-                if (!this.encodedData) {
-                  this.reportRsp(
-                    WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_RSP,
-                    false,
-                    '申请编码内存失败',
-                  )
-                  this.reset()
-                  this.state = PLAY_CLOSED
-                  return
-                }
-
-                this.reportRsp(WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_RSP, true)
-                this.state = PLAY_OPENED
+                this.initPlayer()
               })
               .catch((reason) => {
                 this.reportRsp(
@@ -181,8 +175,7 @@ class WLPlayerWorklet extends AudioWorkletProcessor {
                 this.state = PLAY_CLOSED
               })
           } else {
-            this.reportRsp(WLAudioPlayerEvent.WL_WORKLET_NODE_OPEN_RSP, true)
-            this.state = PLAY_OPENED
+            this.initPlayer()
           }
         }
         break
