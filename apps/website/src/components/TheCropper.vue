@@ -4,7 +4,6 @@ import { computedAsync } from '@vueuse/core'
 import imageCompression from 'browser-image-compression'
 import Cropper from 'cropperjs'
 import { ToolbarButton, ToolbarLink, ToolbarRoot, ToolbarSeparator } from 'radix-vue'
-import { defineEmits } from 'unplugin-vue-macros/macros'
 import { computed, nextTick, shallowRef, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { readImageFile } from '~/utils/file'
@@ -14,7 +13,7 @@ const props = defineProps<{
 }>()
 
 const emits = defineEmits<{
-  save: (file: Blob) => void
+  save: [file: Blob]
 }>()
 
 const { t } = useI18n()
