@@ -3,10 +3,20 @@
   "version": "0.0.3",
   "private": false,
   "description": "集成了 Weila SDK 的 UI 组件",
+  "keywords": [
+    "components",
+    "ui",
+    "vue",
+    "weila"
+  ],
+  "homepage": "https://github.com/voischat/work#readme",
+  "bugs": {
+    "url": "https://github.com/voischat/work/issues"
+  },
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kvoon9/weila-js-sdk.git",
+    "url": "git+https://github.com/voischat/work.git",
     "directory": "packages/ui"
   },
   "files": [
@@ -21,6 +31,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./i18n": {
+      "types": "./dist/i18n.d.ts",
+      "import": "./dist/i18n.js",
+      "require": "./dist/i18n.cjs"
     },
     "./index.css": "./dist/index.css",
     "./dist/index.css": "./dist/index.css"
