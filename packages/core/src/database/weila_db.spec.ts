@@ -17,7 +17,7 @@ import {
   type WL_IDbSession,
 } from './weila_db_data'
 
-const CURRENT_DB_VERSION = 3
+const CURRENT_DB_VERSION = 5
 
 const CAPTURED_IMAGE_URL =
   'http://weilacache.oss-cn-shenzhen.aliyuncs.com/media/cg/80001922/20261125/1875437_142130_1.jpg'
@@ -61,6 +61,7 @@ const TABLE_NAMES = [
   'extensions',
   'service',
   'service_staffs',
+  'service_sessions',
 ]
 
 let userSeq = 0
@@ -301,7 +302,7 @@ describe('WeilaDB service messages', () => {
     expect(messages[0]).not.toHaveProperty('serviceData')
   })
 
-  it('migrates a legacy service session extra into the serviceSession key', async () => {
+  it('moves a legacy service session extra into the service_sessions table', async () => {
     const db = await openDb(nextUserId(), CURRENT_DB_VERSION)
 
     const session = makeSession('5001')
@@ -318,33 +319,32 @@ describe('WeilaDB service messages', () => {
 
     await db.sessions.put(session)
 
-    await expect(db.migrateServiceSessionExtra()).resolves.toBe(1)
+    await expect(db.migrateServiceSessionsToTable()).resolves.toBe(1)
 
-    const migrated = await db.getSession(session.sessionId, session.sessionType)
-    expect(migrated?.extra).toEqual({
-      serviceSession: {
-        serviceId: 9,
-        customerId: 7,
-        staffIds: [7, 8],
-        serviceStatus: WL_ServiceStatus.SERVICE_STATUS_FINISH,
-        createdTime: 100,
-        updatedTime: 200,
-      },
+    await expect(db.getServiceSession(session.sessionId)).resolves.toEqual({
+      sessionId: '5001',
+      serviceId: 9,
+      customerId: 7,
+      staffIds: [7, 8],
+      serviceStatus: WL_ServiceStatus.SERVICE_STATUS_FINISH,
+      createdTime: 100,
+      updatedTime: 200,
     })
 
-    await expect(db.migrateServiceSessionExtra()).resolves.toBe(0)
+    const migrated = await db.getSession(session.sessionId, session.sessionType)
+    expect(migrated?.extra).toBeUndefined()
+
+    await expect(db.migrateServiceSessionsToTable()).resolves.toBe(0)
   })
 
-  it('leaves non-service and already-migrated session extras alone', async () => {
+  it('moves a nested serviceSession and keeps the display fields', async () => {
     const db = await openDb(nextUserId(), CURRENT_DB_VERSION)
 
-    const plain = makeSession('5002')
-    plain.extra = { memberCount: 5 }
-
-    const migrated = makeSession('5003')
-    migrated.combo_id_type = `5003_${WL.Common.SessionType.SESSION_TYPE_SERVICE}`
-    migrated.sessionType = WL.Common.SessionType.SESSION_TYPE_SERVICE
-    migrated.extra = {
+    const session = makeSession('5003')
+    session.combo_id_type = `5003_${WL.Common.SessionType.SESSION_TYPE_SERVICE}`
+    session.sessionType = WL.Common.SessionType.SESSION_TYPE_SERVICE
+    session.extra = {
+      sessionName: 'Support',
       serviceSession: {
         serviceId: 9,
         customerId: 7,
@@ -355,15 +355,42 @@ describe('WeilaDB service messages', () => {
       },
     }
 
-    await db.sessions.bulkPut([plain, migrated])
+    await db.sessions.put(session)
 
-    await expect(db.migrateServiceSessionExtra()).resolves.toBe(0)
+    await expect(db.migrateServiceSessionsToTable()).resolves.toBe(1)
+    await expect(db.getServiceSession(session.sessionId)).resolves.toMatchObject({
+      sessionId: '5003',
+      serviceId: 9,
+      staffIds: [7],
+    })
+
+    const migrated = await db.getSession(session.sessionId, session.sessionType)
+    expect(migrated?.extra).toEqual({ sessionName: 'Support' })
+  })
+
+  it('leaves sessions without a service session alone', async () => {
+    const db = await openDb(nextUserId(), CURRENT_DB_VERSION)
+
+    const plain = makeSession('5002')
+    plain.extra = { memberCount: 5 }
+
+    const displayOnly = makeSession('5004')
+    displayOnly.combo_id_type = `5004_${WL.Common.SessionType.SESSION_TYPE_SERVICE}`
+    displayOnly.sessionType = WL.Common.SessionType.SESSION_TYPE_SERVICE
+    displayOnly.extra = { sessionName: 'Support' }
+
+    await db.sessions.bulkPut([plain, displayOnly])
+
+    await expect(db.migrateServiceSessionsToTable()).resolves.toBe(0)
 
     const unchangedPlain = await db.getSession(plain.sessionId, plain.sessionType)
     expect(unchangedPlain?.extra).toEqual({ memberCount: 5 })
 
-    const unchangedMigrated = await db.getSession(migrated.sessionId, migrated.sessionType)
-    expect(unchangedMigrated?.extra).toEqual(migrated.extra)
+    const unchangedDisplay = await db.getSession(displayOnly.sessionId, displayOnly.sessionType)
+    expect(unchangedDisplay?.extra).toEqual({ sessionName: 'Support' })
+
+    await expect(db.getServiceSession(plain.sessionId)).resolves.toBeUndefined()
+    await expect(db.getServiceSession(displayOnly.sessionId)).resolves.toBeUndefined()
   })
 
   it('repairs service messages already stored as legacy rows', async () => {

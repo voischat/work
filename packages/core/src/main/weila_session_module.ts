@@ -589,7 +589,10 @@ export default class WLSessionModule {
           session.sessionType = dbEnum<WL_IDbSessionType>(msgData.sessionType)
           session.sessionName = serviceSession.service.name
           session.sessionAvatar = serviceSession.service.avatar
-          session.extra = { ...session.extra, serviceSession: serviceSession.serviceSession }
+          await WeilaDB.getInstance().putServiceSession(
+            msgData.sessionId,
+            serviceSession.serviceSession,
+          )
         }
       } else {
         if (isGroupSessionType(msgData.sessionType)) {

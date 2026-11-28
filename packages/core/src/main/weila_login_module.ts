@@ -44,7 +44,7 @@ export default class WLLoginModule {
         }
 
         if (serviceHead.resultCode === 0) {
-          void WeilaDB.init(loginMessage!.rspLoginApp!.userInfo!.userId!.toString(), 4)
+          void WeilaDB.init(loginMessage!.rspLoginApp!.userInfo!.userId!.toString(), 5)
             .catch((error) => {
               log.error('初始化数据库失败:', error)
             })
