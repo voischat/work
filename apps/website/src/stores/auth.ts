@@ -1,6 +1,6 @@
 import { useLocalStorage } from '@vueuse/core'
 import { defineStore } from 'pinia'
-import { computed } from 'vue'
+import { computed, nextTick } from 'vue'
 import { useWeilaFetch } from '~/composables/useWeilaFetch'
 import { autoLogin } from '~/shared/states'
 import { clearAuthStorage } from '~/utils/authStorage'
@@ -43,26 +43,28 @@ export interface VipSupports {
 export type VipFlag = keyof VipSupports
 
 export const useAuthStore = defineStore('auth', () => {
-  const refreshToken = useLocalStorage('refresh_token', '')
-  const token = useLocalStorage('token', '')
-  const expiresIn = useLocalStorage('expires_in', 7200)
-  const loginTime = useLocalStorage('login_time', 0, {})
+  const storageOptions = { writeDefaults: false }
+  const refreshToken = useLocalStorage('refresh_token', '', storageOptions)
+  const token = useLocalStorage('token', '', storageOptions)
+  const expiresIn = useLocalStorage('expires_in', 7200, storageOptions)
+  const loginTime = useLocalStorage('login_time', 0, storageOptions)
 
   const { data: vip } = useWeilaFetch<VipInfo>('corp/org/get-vip-membership', {}, {
     enabled: computed(() => Boolean(token.value)),
   })
 
-  function clearAuth() {
+  async function clearAuth() {
     token.value = ''
     refreshToken.value = ''
     expiresIn.value = -1
     loginTime.value = -1
     autoLogin.value = false
+    await nextTick()
     clearAuthStorage()
   }
 
-  function logout() {
-    clearAuth()
+  async function logout() {
+    await clearAuth()
     window.location.reload()
   }
 

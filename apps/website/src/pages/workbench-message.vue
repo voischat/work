@@ -59,7 +59,7 @@ async function initSdk() {
 
 async function relogin() {
   await weilaStore.logout()
-  authStore.logout()
+  await authStore.logout()
 }
 
 onMounted(() => {
