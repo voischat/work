@@ -343,7 +343,7 @@ export default class WLFriendModule {
         await dbInstance.putUserInfos(userInfos)
       }
 
-      friendSetting.data = new Date().getUTCSeconds() / 1000
+      friendSetting.data = Math.floor(Date.now() / 1000)
       log.info('下一次更新时间:', friendSetting.data)
       await dbInstance.putSettingItem(friendSetting)
 

@@ -1,16 +1,19 @@
-import { describe, expect, it, vi } from 'vitest'
+import 'fake-indexeddb/auto'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { WL } from 'proto/weilapb'
 import { WL_CoreInterface, WL_PbMsgHandler } from 'main/weila_internal_data'
 import WLFriendModule from 'main/weila_friend_module'
+import { WeilaDB } from 'db/weila_db'
+import { WL_IDbSettingID } from 'db/weila_db_data'
 import { WeilaPbFriendWrapper } from 'proto/weilapb_friend_wrapper'
 
-function makeFriendModule() {
+function makeFriendModule(send: WL_CoreInterface['sendPbMsg'] = vi.fn()) {
   const rspPbMsg = vi.fn()
   const handlers = new Map<number, WL_PbMsgHandler>()
 
   const coreInterface: WL_CoreInterface = {
     sendExtEvent: vi.fn(),
-    sendPbMsg: vi.fn(),
+    sendPbMsg: send,
     rspPbMsg,
     registerPbMsgHandler: (serviceId: number, handler: WL_PbMsgHandler) => {
       handlers.set(serviceId, handler)
@@ -26,7 +29,7 @@ function makeFriendModule() {
 
   if (!handler) throw new Error('friend module did not register its handler')
 
-  return { rspPbMsg, handler }
+  return { rspPbMsg, handler, friendModule }
 }
 
 function buildResponse(
@@ -134,5 +137,35 @@ describe('WLFriendModule response routing', () => {
 
       rspPbMsg.mockClear()
     }
+  })
+})
+
+describe('WLFriendModule friend sync cursor', () => {
+  afterEach(() => {
+    WeilaDB.close()
+  })
+
+  it('writes the cursor in epoch seconds', async () => {
+    const send = vi.fn()
+
+    const { friendModule } = makeFriendModule(send)
+
+    send.mockResolvedValue(new WL.Friend.RspGetFriendInfo())
+
+    await WeilaDB.init('friend-cursor-test', 3)
+
+    const before = Math.floor(Date.now() / 1000)
+    await friendModule.initFriends()
+
+    const setting = await WeilaDB.getInstance().getSettingItem(
+      WL_IDbSettingID.SETTING_FRIEND_LATEST_UPDATE,
+    )
+
+    expect(setting?.data).toBeTypeOf('number')
+
+    const cursor = Number(setting?.data)
+
+    expect(cursor).toBeGreaterThanOrEqual(before - 1)
+    expect(cursor).toBeLessThanOrEqual(before + 1)
   })
 })
