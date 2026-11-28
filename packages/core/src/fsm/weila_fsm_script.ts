@@ -53,11 +53,23 @@ type MainActor = {
   start(): void
 }
 
-/* oxlint-disable anti-slop/no-known-value-widening -- xstate's generic variance rejects the literal-keyed satisfies form here */
-const loginProcedureFsm: Record<
-  string,
-  StateNodeConfig<MainFsmContext, MainFsmEvent, any, any, any, any, any, any, any, any, any>
-> = {
+interface LoginProcedureFsm {
+  readonly loginProcedure: StateNodeConfig<
+    MainFsmContext,
+    MainFsmEvent,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any
+  >
+}
+
+const loginProcedureFsm: LoginProcedureFsm = {
   loginProcedure: {
     initial: 'connecting',
     on: {
@@ -137,7 +149,6 @@ const loginProcedureFsm: Record<
     },
   },
 }
-/* oxlint-enable anti-slop/no-known-value-widening */
 
 const initialMainFsmContext: MainFsmContext = {
   loginParam: null,

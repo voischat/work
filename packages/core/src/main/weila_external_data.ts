@@ -1,17 +1,21 @@
 import {
   WL_IDbExtensionInfo,
+  WL_IDbFriend,
+  WL_IDbFriendInfo,
   WL_IDbGroup,
+  WL_IDbMemberInfo,
   WL_IDbMsgData,
+  WL_IDbNotification,
   WL_IDbService,
   WL_IDbServiceSessionInfo,
   WL_IDbServiceStaffInfo,
   WL_IDbUserInfo,
 } from '../database/weila_db_data'
 import type { WL_IDbSession } from '../database/weila_db_data'
+import type { WL } from '../proto/weilapb'
 
 interface WL_ExtEventCallback {
-  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- ext-event payloads vary per WL_ExtEventID; every subscriber parses its own
-  (eventId: WL_ExtEventID, eventData: unknown): void
+  (eventId: WL_ExtEventID, eventData: WL_ExtEventPayload): void
 }
 
 interface WL_PbMsgErrorInfo {
@@ -49,7 +53,7 @@ interface WL_PttPlayIndData {
 }
 
 interface WL_PttPlayInd {
-  msgData: WL_IDbMsgData
+  msgData: WL_IDbMsgData | null
   indData: WL_PttPlayIndData
 }
 
@@ -222,9 +226,38 @@ interface WL_bindAnswerInfo {
   userInfo: WL_IDbUserInfo
 }
 
+type WL_ExtEventPayload =
+  | WL_DataPrepareInd
+  | WL_PttPlayInd
+  | WL_PttRecordInd
+  | WL_IDbMsgData
+  | WL_IDbSession
+  | WL_IDbNotification
+  | WL_IDbGroup
+  | WL_IDbMemberInfo
+  | WL_IDbFriend
+  | WL_IDbFriendInfo
+  | WL_IDbServiceSessionInfo
+  | WL_StaffInvite
+  | WL_CommonAnswerStaffInvite
+  | WL_StaffSessionInfo
+  | WL_ServiceSessionInvite
+  | WL_StaffAnswerSessionInvite
+  | WL_bindAnswerInfo
+  | WL_KickoutInfo
+  | WL_GroupMemberDeleteInfo
+  | WL.Group.IGroupMemberInfo[]
+  | Error
+  | null
+  | string
+  | number
+  | boolean
+  | undefined
+
 export {
   WL_PbMsgErrorInfo,
   WL_ExtEventID,
+  WL_ExtEventPayload,
   WL_DataPrepareState,
   WL_ExtEventCallback,
   WL_PttAudioPlayState,

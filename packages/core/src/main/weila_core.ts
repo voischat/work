@@ -1,6 +1,4 @@
-/* oxlint-disable import/default -- worker-rspack-loader emits this module as a Worker factory with a default export */
 import Network from 'main/weila_network.worker'
-/* oxlint-enable import/default */
 import WeilaPbDispatcher from 'main/weila_pb_dispatcher'
 import WeilaNetworkGateway from 'main/weila_network_gateway'
 import WeilaMainFsmHost from 'main/weila_main_fsm_host'
@@ -16,6 +14,7 @@ import {
   WL_NetworkEventPayload,
   WL_NetworkEventID,
   WL_PbMsgHandler,
+  WL_PbMsgResponse,
   WL_PromiseCallback,
 } from 'main/weila_internal_data'
 import { createMediaMsgContent } from 'main/weila_msg_content'
@@ -76,6 +75,7 @@ import {
   WL_DataPrepareState,
   WL_ExtEventCallback,
   WL_ExtEventID,
+  WL_ExtEventPayload,
   WL_PttAudioPlaySource,
   WL_PttAudioPlayState,
   WL_SubscribeMap,
@@ -222,8 +222,7 @@ class WeilaCore implements WL_CoreInterface {
     this.mainFsmService.start()
   }
 
-  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- ext-event payloads vary per WL_ExtEventID and each listener parses its own
-  sendExtEvent(event: WL_ExtEventID, data: unknown): void {
+  sendExtEvent(event: WL_ExtEventID, data: WL_ExtEventPayload): void {
     this.emitter.emit('ext_event', event, data)
   }
 
@@ -239,18 +238,15 @@ class WeilaCore implements WL_CoreInterface {
     this.pbMsgHandlerList.set(serviceId, handler)
   }
 
-  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- the decoded response is typed by the module awaiting this seq
-  rspPbMsg(seq: number, resultCode: number, data: unknown): void {
+  rspPbMsg(seq: number, resultCode: number, data: WL_PbMsgResponse): void {
     this.pbDispatcher.rspPbMsg(seq, resultCode, data)
   }
 
   async executeCoreFunc<T = unknown>(funcName: string, ...argvs: unknown[]): Promise<T> {
     const method = isRecord(this) ? this[funcName] : undefined
 
-    if (isCallable(method)) {
-      // SAFETY: the caller names the function and every weila_* method keeps its promise contract for that name.
-      // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- a dynamic dispatch cannot restate T
-      return method.call(this, ...argvs) as Promise<T>
+    if (isCallable<Promise<T>>(method)) {
+      return method.call(this, ...argvs)
     }
 
     return Promise.reject(new Error('Not Support Function:' + funcName))
@@ -617,7 +613,7 @@ class WeilaCore implements WL_CoreInterface {
   }
 
   public weila_refreshSessionList(): void {
-    this.sendExtEvent(WL_ExtEventID.WL_EXT_SESSION_UPDATED_IND, {})
+    this.sendExtEvent(WL_ExtEventID.WL_EXT_SESSION_UPDATED_IND, undefined)
   }
 
   private async resolveSessionProfile(session: WL_IDbSession): Promise<void> {
