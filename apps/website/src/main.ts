@@ -1,6 +1,6 @@
 import type { UserModule } from './types'
 import { Notification } from '@arco-design/web-vue'
-import { createWeilaUi } from '@vois/weila-sdk-ui'
+import { createWeilaUi } from '@vois/weila-sdk-ui/i18n'
 import * as v from 'valibot'
 import { setupLayouts } from 'virtual:generated-layouts'
 import { createWebHashHistory } from 'vue-router'
@@ -41,10 +41,8 @@ setup(
 
     app.config.errorHandler = (error: any, instance, info) => {
       Notification.error({
-        title: (error.message || error.stack)
-          ? String(error?.message) + String(error?.stack)
-          : String(error),
-        content: info,
+        title: '页面发生错误，请刷新重试',
+        content: '请刷新页面后重新操作',
       })
 
       console.error('app error', [error, instance, info])
