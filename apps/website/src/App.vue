@@ -53,10 +53,10 @@ const weilaApi = useWeilaApi()
 weilaApi.value.hook('request:prepare', async (ctx) => {
   const { refreshToken, token, expiresIn, loginTime } = storeToRefs(authStore)
 
-  const handleRefreshFailure = (error: unknown) => {
+  const handleRefreshFailure = async (error: unknown) => {
     lastRefreshFailure = Date.now()
     console.error('refresh token failed', error)
-    authStore.clearAuth()
+    await authStore.clearAuth()
 
     if (Date.now() - lastRefreshNotice > 1000) {
       lastRefreshNotice = Date.now()
@@ -122,18 +122,18 @@ weilaApi.value.hook('request:prepare', async (ctx) => {
       await pending
     }
     catch (error) {
-      handleRefreshFailure(error)
+      await handleRefreshFailure(error)
     }
   }
   catch (error) {
-    handleRefreshFailure(error)
+    await handleRefreshFailure(error)
   }
 })
 weilaApi.value.hook('request:error', onError)
 weilaApi.value.hook('response:error', onError)
 
-weilaApi.value.hook('auth:error', () => {
-  authStore.clearAuth()
+weilaApi.value.hook('auth:error', async () => {
+  await authStore.clearAuth()
   window.location.reload()
 })
 

@@ -29,6 +29,6 @@ export const fileIconsMap = Object.fromEntries(
     }),
 ) as Record<string, { default: string }>
 
-export const autoLogin = useLocalStorage('auto_login', false)
+export const autoLogin = useLocalStorage('auto_login', false, { writeDefaults: false })
 
 export const tempAccount = useLocalCrypto('temp-account')

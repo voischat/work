@@ -28,7 +28,7 @@ const qc = useQueryClient()
 const authStore = useAuthStore()
 
 const { mutate, isPending } = useWeilaMutation('corp/user/unregist', {
-  onSuccess() {
+  async onSuccess() {
     open.value = false
     Message.success(t('message.success'))
     reset()
@@ -36,8 +36,7 @@ const { mutate, isPending } = useWeilaMutation('corp/user/unregist', {
       queryKey: ['corp/user/get-selfinfo'],
     })
 
-    authStore.logout()
-    window.location.reload()
+    await authStore.logout()
   },
 })
 

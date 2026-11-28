@@ -42,7 +42,7 @@ const { data: appGuideUrl } = useWeilaFetch<string>('common/guide', {
 })
 
 function tryLogout() {
-  logout()
+  void logout()
 }
 
 const buildTime = new Date(__BUILD_TIME__).toLocaleString()
