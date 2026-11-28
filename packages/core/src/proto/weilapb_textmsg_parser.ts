@@ -47,6 +47,26 @@ function ensureLocation(dbMsgData: ParsedTextMsgData): WL_IDbLocationShared {
   return dbMsgData.location
 }
 
+function ensureFileInfo(dbMsgData: ParsedTextMsgData): WL_IDbFileData {
+  if (!dbMsgData.fileInfo) {
+    dbMsgData.fileInfo = { fileSize: 0 }
+  }
+
+  return dbMsgData.fileInfo
+}
+
+function decodeParam(value: string): string {
+  if (!/%[0-9a-f]{2}/i.test(value)) {
+    return value
+  }
+
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
+
 function toMsgContent(parsed: ParsedTextMsgData): WL_MsgContent | undefined {
   switch (parsed.msgType) {
     case WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE:
@@ -410,122 +430,110 @@ const TextMsgDataParser = {
       this.EXTEND_MSG_PATTERN.exec('')
 
       if (result && result[1]) {
-        if (/\?/.test(result[1])) {
-          const params = result[1].match(/([^=&?]*=[^=&]*)/g)
+        const content = result[1]
+        const paramStart = content.lastIndexOf('?')
 
-          if (params && params.length) {
-            for (const p of params) {
-              const pair = p.split('=')
+        if (paramStart !== -1) {
+          const fileUrl = content.slice(0, paramStart)
+          const params = content.slice(paramStart + 1).split('&')
 
-              if (pair && pair.length === 2) {
-                switch (pair[0]) {
-                  case this.SERVICE_TYPE_KEY:
-                    {
-                      const urlPattern = /(http[s]?:\/\/.*)\?/
-                      let fileUrl: string
+          for (const param of params) {
+            const separator = param.indexOf('=')
 
-                      if (urlPattern.test(result[1])) {
-                        fileUrl = urlPattern.exec(result[1])![1]
-                      } else {
-                        fileUrl = ''
-                      }
+            if (separator <= 0) {
+              continue
+            }
 
-                      if (pair[1] === this.SERVICE_TYPE_LOCATION) {
-                        dbMsgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_LOCATION_TYPE
-                        dbMsgData.location = {
-                          locationType: '',
-                          latitude: 0,
-                          longitude: 0,
-                          mapUrl: fileUrl,
-                        }
-                      } else if (pair[1] === this.SERVICE_TYPE_VIDEO) {
-                        dbMsgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE
-                        dbMsgData.fileInfo = { fileSize: 0, fileUrl }
-                      } else if (pair[1] === this.SERVICE_TYPE_FILE) {
-                        dbMsgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE
-                        dbMsgData.fileInfo = { fileSize: 0, fileUrl }
-                      }
+            const key = param.slice(0, separator)
+            const value = param.slice(separator + 1)
+
+            switch (key) {
+              case this.SERVICE_TYPE_KEY:
+                {
+                  if (value === this.SERVICE_TYPE_LOCATION) {
+                    dbMsgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_LOCATION_TYPE
+                    dbMsgData.location = {
+                      locationType: '',
+                      latitude: 0,
+                      longitude: 0,
+                      mapUrl: fileUrl,
                     }
-
-                    break
-
-                  case this.LOCATION_TYPE_KEY:
-                    {
-                      ensureLocation(dbMsgData).locationType = pair[1]
-                    }
-
-                    break
-
-                  case this.LATITUDE_KEY:
-                    {
-                      try {
-                        ensureLocation(dbMsgData).latitude = parseFloat(pair[1])
-                      } catch {
-                        ensureLocation(dbMsgData).latitude = 0
-                      }
-                    }
-
-                    break
-
-                  case this.LONGITUDE_KEY:
-                    {
-                      try {
-                        ensureLocation(dbMsgData).longitude = parseFloat(pair[1])
-                      } catch {
-                        ensureLocation(dbMsgData).longitude = 0
-                      }
-                    }
-
-                    break
-
-                  case this.LOCATION_NAME_KEY:
-                    {
-                      ensureLocation(dbMsgData).name = getStringFromBase64(pair[1])
-                    }
-
-                    break
-
-                  case this.LOCATION_ADDRESS_KEY:
-                    {
-                      ensureLocation(dbMsgData).address = getStringFromBase64(pair[1])
-                    }
-
-                    break
-
-                  case this.FILE_URL_KEY:
-                    {
-                      dbMsgData.fileInfo!.fileUrl = pair[1]
-                    }
-
-                    break
-
-                  case this.FILE_NAME_KEY:
-                    {
-                      dbMsgData.fileInfo!.fileName = enc.Base64.parse(pair[1]).toString(enc.Utf8)
-                      dbMsgData.fileInfo!.fileThumbnail = this.getExtendFileFormatUrl(
-                        dbMsgData.fileInfo!.fileName,
-                      )
-                    }
-
-                    break
-
-                  case this.FILE_SIZE_KEY:
-                    {
-                      try {
-                        dbMsgData.fileInfo!.fileSize = parseInt(pair[1])
-                      } catch {
-                        dbMsgData.fileInfo!.fileSize = 0
-                      }
-                    }
-
-                    break
+                  } else if (value === this.SERVICE_TYPE_VIDEO) {
+                    dbMsgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE
+                    const fileInfo = ensureFileInfo(dbMsgData)
+                    fileInfo.fileUrl ||= fileUrl
+                  } else if (value === this.SERVICE_TYPE_FILE) {
+                    dbMsgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE
+                    const fileInfo = ensureFileInfo(dbMsgData)
+                    fileInfo.fileUrl ||= fileUrl
+                  }
                 }
-              }
+
+                break
+
+              case this.LOCATION_TYPE_KEY:
+                {
+                  ensureLocation(dbMsgData).locationType = value
+                }
+
+                break
+
+              case this.LATITUDE_KEY:
+                {
+                  ensureLocation(dbMsgData).latitude = Number.parseFloat(value) || 0
+                }
+
+                break
+
+              case this.LONGITUDE_KEY:
+                {
+                  ensureLocation(dbMsgData).longitude = Number.parseFloat(value) || 0
+                }
+
+                break
+
+              case this.LOCATION_NAME_KEY:
+                {
+                  ensureLocation(dbMsgData).name = getStringFromBase64(value)
+                }
+
+                break
+
+              case this.LOCATION_ADDRESS_KEY:
+                {
+                  ensureLocation(dbMsgData).address = getStringFromBase64(value)
+                }
+
+                break
+
+              case this.FILE_URL_KEY:
+                {
+                  ensureFileInfo(dbMsgData).fileUrl = decodeParam(value)
+                }
+
+                break
+
+              case this.FILE_NAME_KEY:
+                {
+                  const fileInfo = ensureFileInfo(dbMsgData)
+                  fileInfo.fileName = enc.Base64.parse(decodeParam(value)).toString(enc.Utf8)
+                  fileInfo.fileThumbnail = this.getExtendFileFormatUrl(fileInfo.fileName)
+                }
+
+                break
+
+              case this.FILE_SIZE_KEY:
+                {
+                  const size = Number.parseInt(value, 10)
+                  ensureFileInfo(dbMsgData).fileSize = Number.isFinite(size) ? size : 0
+                }
+
+                break
             }
           }
         } else {
           dbMsgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE
-          dbMsgData.fileInfo = { fileSize: 0, fileUrl: result[1], fileName: '' }
+          dbMsgData.fileInfo = { fileSize: 0, fileUrl: content, fileName: '' }
         }
       }
     } else if (this.CMD_MSG_PATTERN.test(extendText)) {

@@ -1060,71 +1060,75 @@ class WeilaDB extends Dexie {
 
       let content: WL_MsgContent | undefined
 
-      switch (raw.msgType) {
-        case WL.Session.MessageType.MSG_TYPE_TEXT:
-          content = TextMsgDataParser.decodeSessionTextMsg(raw.textData ?? '')
+      try {
+        switch (raw.msgType) {
+          case WL.Session.MessageType.MSG_TYPE_TEXT:
+            content = TextMsgDataParser.decodeSessionTextMsg(raw.textData ?? '')
 
-          break
+            break
 
-        case WL.Session.MessageType.MSG_TYPE_PTT:
-          if (raw.pttData) {
+          case WL.Session.MessageType.MSG_TYPE_PTT:
+            if (raw.pttData) {
+              content = {
+                msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE,
+                pttData: {
+                  data: raw.pttData.opusData?.payload ?? new Uint8Array(),
+                  frameCount: raw.pttData.opusData?.frameCount ?? 0,
+                  seq: raw.pttData.seq ?? 0,
+                  seqInPackage: raw.pttData.packageSeq ?? 0,
+                  mark: raw.pttData.marker ?? 0,
+                  sourceType: raw.pttData.source ?? 0,
+                },
+              }
+            }
+
+            break
+
+          case WL.Session.MessageType.MSG_TYPE_AUDIO:
+            {
+              base.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_NEW
+
+              const audioData: WL_IDbAudioData = { frameCount: 0 }
+              const audioRaw = raw.audioData
+
+              if (audioRaw?.payload && audioRaw.payload.length > 0) {
+                audioData.data = audioRaw.payload.slice(0)
+                audioData.audioUrl = undefined
+                audioData.frameCount = calculateOpusDataFrame(audioData.data)
+                content = { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE, audioData }
+              } else if (audioRaw?.url && audioRaw.url !== '') {
+                audioData.data = undefined
+                audioData.audioUrl = audioRaw.url
+                audioData.frameCount = 0
+                content = { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE, audioData }
+              }
+            }
+
+            break
+
+          case WL.Session.MessageType.MSG_TYPE_SERVICE:
+            content = parseSessionServiceMsg(raw.serviceData ?? '')
+
+            break
+
+          case WL.Session.MessageType.MSG_TYPE_SWITCH:
             content = {
-              msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE,
-              pttData: {
-                data: raw.pttData.opusData?.payload ?? new Uint8Array(),
-                frameCount: raw.pttData.opusData?.frameCount ?? 0,
-                seq: raw.pttData.seq ?? 0,
-                seqInPackage: raw.pttData.packageSeq ?? 0,
-                mark: raw.pttData.marker ?? 0,
-                sourceType: raw.pttData.source ?? 0,
-              },
+              msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_SWITCH_TYPE,
+              switchData: raw.switchData?.serviceData ?? undefined,
             }
-          }
 
-          break
+            break
 
-        case WL.Session.MessageType.MSG_TYPE_AUDIO:
-          {
-            base.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_NEW
-
-            const audioData: WL_IDbAudioData = { frameCount: 0 }
-            const audioRaw = raw.audioData
-
-            if (audioRaw?.payload && audioRaw.payload.length > 0) {
-              audioData.data = audioRaw.payload.slice(0)
-              audioData.audioUrl = undefined
-              audioData.frameCount = calculateOpusDataFrame(audioData.data)
-              content = { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE, audioData }
-            } else if (audioRaw?.url && audioRaw.url !== '') {
-              audioData.data = undefined
-              audioData.audioUrl = audioRaw.url
-              audioData.frameCount = 0
-              content = { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE, audioData }
+          case WL.Session.MessageType.MSG_TYPE_REVOCATION:
+            content = {
+              msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE,
+              withdrawMsgId: raw.revocationMsgId ?? undefined,
             }
-          }
 
-          break
-
-        case WL.Session.MessageType.MSG_TYPE_SERVICE:
-          content = parseSessionServiceMsg(raw.serviceData ?? '')
-
-          break
-
-        case WL.Session.MessageType.MSG_TYPE_SWITCH:
-          content = {
-            msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_SWITCH_TYPE,
-            switchData: raw.switchData?.serviceData ?? undefined,
-          }
-
-          break
-
-        case WL.Session.MessageType.MSG_TYPE_REVOCATION:
-          content = {
-            msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE,
-            withdrawMsgId: raw.revocationMsgId ?? undefined,
-          }
-
-          break
+            break
+        }
+      } catch (error) {
+        log.error('解析消息失败:', raw.msgId, error)
       }
 
       if (content !== undefined) {
