@@ -1,11 +1,4 @@
-import type { WL_IDbUserInfo } from '@vois/weila-sdk-core'
-import {
-  createWeilaAudioInitController,
-  setConfigData,
-  setLogLevel,
-  WeilaCore,
-  WL_ConfigID,
-} from '@vois/weila-sdk-core'
+import type { WeilaCore, WL_AudioInitController, WL_IDbUserInfo } from '@vois/weila-sdk-core'
 import { defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
 import { useWeilaApi } from '~/composables/useWeilaApi'
@@ -22,19 +15,19 @@ export const useWeilaStore = defineStore('weila', () => {
     const password = tempAccount.value.get('password')
     return Boolean(account && password)
   })
-  const audioInitController = createWeilaAudioInitController({
-    getCore: () => core.value,
-    onDeferredInitError: error => console.warn('[Weila] Deferred audio init failed:', error),
-    onInitialInitError: error =>
-      console.warn(
-        '[Weila] Audio init requires a user gesture, retrying on next interaction:',
-        error,
-      ),
-  })
+  let audioInitController: WL_AudioInitController | null = null
 
   async function init() {
     if (core.value)
       return core.value
+
+    const {
+      createWeilaAudioInitController,
+      setConfigData,
+      setLogLevel,
+      WeilaCore,
+      WL_ConfigID,
+    } = await import('@vois/weila-sdk-core')
 
     setLogLevel(
       import.meta.env.DEV
@@ -46,9 +39,40 @@ export const useWeilaStore = defineStore('weila', () => {
       {
         id: WL_ConfigID.WL_RES_DATA_OPUS_WASM_ID,
         url: `${import.meta.env.BASE_URL}opuslibs.wasm`,
-        version: 3,
+        version: 4,
+      },
+      {
+        id: WL_ConfigID.WL_RES_RING_START_PLAY_ID,
+        url: `${import.meta.env.BASE_URL}assets/start_player.wav`,
+        version: 4,
+      },
+      {
+        id: WL_ConfigID.WL_RES_RING_STOP_PLAY_ID,
+        url: `${import.meta.env.BASE_URL}assets/stop_player.wav`,
+        version: 4,
+      },
+      {
+        id: WL_ConfigID.WL_RES_RING_START_RECORD_ID,
+        url: `${import.meta.env.BASE_URL}assets/start_record.wav`,
+        version: 4,
+      },
+      {
+        id: WL_ConfigID.WL_RES_RING_STOP_RECORD_ID,
+        url: `${import.meta.env.BASE_URL}assets/stop_record.wav`,
+        version: 4,
       },
     ])
+
+    const controller = createWeilaAudioInitController({
+      getCore: () => core.value,
+      onDeferredInitError: error => console.warn('[Weila] Deferred audio init failed:', error),
+      onInitialInitError: error =>
+        console.warn(
+          '[Weila] Audio init requires a user gesture, retrying on next interaction:',
+          error,
+        ),
+    })
+    audioInitController = controller
 
     const instance = new WeilaCore()
     const bridgeProtocol = location.protocol === 'https:'
@@ -77,7 +101,7 @@ export const useWeilaStore = defineStore('weila', () => {
     })
 
     core.value = instance
-    audioInitController.initializeWithUserGestureRetry()
+    controller.initializeWithUserGestureRetry()
 
     return instance
   }
@@ -95,7 +119,7 @@ export const useWeilaStore = defineStore('weila', () => {
     if (core.value) {
       await core.value.weila_logout()
     }
-    audioInitController.reset()
+    audioInitController?.reset()
     core.value = null
     userInfo.value = null
     tempAccount.value.clear()

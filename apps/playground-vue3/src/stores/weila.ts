@@ -69,7 +69,27 @@ export const useWeilaStore = defineStore('weila', () => {
       {
         id: WL_ConfigID.WL_RES_DATA_OPUS_WASM_ID,
         url: `${import.meta.env.BASE_URL}opuslibs.wasm`,
-        version: 3,
+        version: 4,
+      },
+      {
+        id: WL_ConfigID.WL_RES_RING_START_PLAY_ID,
+        url: `${import.meta.env.BASE_URL}assets/start_player.wav`,
+        version: 4,
+      },
+      {
+        id: WL_ConfigID.WL_RES_RING_STOP_PLAY_ID,
+        url: `${import.meta.env.BASE_URL}assets/stop_player.wav`,
+        version: 4,
+      },
+      {
+        id: WL_ConfigID.WL_RES_RING_START_RECORD_ID,
+        url: `${import.meta.env.BASE_URL}assets/start_record.wav`,
+        version: 4,
+      },
+      {
+        id: WL_ConfigID.WL_RES_RING_STOP_RECORD_ID,
+        url: `${import.meta.env.BASE_URL}assets/stop_record.wav`,
+        version: 4,
       },
     ])
 
