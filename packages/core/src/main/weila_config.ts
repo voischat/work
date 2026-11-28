@@ -87,6 +87,16 @@ function validateWasmData(data: ArrayBuffer, url: string): void {
   }
 }
 
+async function validateAudioBlob(blob: Blob, url: string): Promise<void> {
+  const bytes = new Uint8Array(await blob.slice(0, 12).arrayBuffer())
+  const isRiff = bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46
+  const isWave = bytes[8] === 0x57 && bytes[9] === 0x41 && bytes[10] === 0x56 && bytes[11] === 0x45
+
+  if (!isRiff || !isWave) {
+    throw new Error(`获取音频资源失败:${url} 返回的不是 WAV 文件`)
+  }
+}
+
 function setConfigData(params: SetConfigDataParam[]) {
   for (let param of params) {
     log.info('setConfigData id:%d url:%s', param.id, param.url)
@@ -136,6 +146,8 @@ const WLConfig = {
           throw new Error('获取资源配置失败:' + item.url)
         }
 
+        await validateAudioBlob(resourceBlob, item.url)
+
         dbItem = await new Promise<IConfigItem>((resolve, reject) => {
           const reader = new FileReader()
           reader.onloadend = () => {
@@ -183,6 +195,12 @@ const WLConfig = {
         log.info('获取数据结束:', xhr.readyState)
 
         if (xhr.readyState === XMLHttpRequest.DONE) {
+          if (xhr.status < 200 || xhr.status >= 300) {
+            reject(new Error(`获取资源失败:${url} HTTP ${xhr.status}`))
+
+            return
+          }
+
           resolve(xhr.response)
         } else {
           reject(new Error('获取资源失败:' + xhr.statusText))

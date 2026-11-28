@@ -51,8 +51,35 @@ class WLRecorderWorklet extends AudioWorkletProcessor {
       this.opusModule._free(this.encodedData)
       this.encodedData = 0
     }
+  }
 
-    this.opusModule = null
+  initEncoder() {
+    this.encoder = this.opusModule._Opus_initEncoder(this.sampleRate, 1, this.bitRate)
+
+    if (!this.encoder) {
+      this.reset()
+      this.reportRspEvent(WLAudioRecorderEvent.WL_WORKLET_NODE_OPEN_RSP, false, '编码器初始化失败')
+      return
+    }
+
+    this.pcmBuffer = this.opusModule._malloc(this.processFrameCount * Int16Array.BYTES_PER_ELEMENT)
+
+    if (!this.pcmBuffer) {
+      this.reset()
+      this.reportRspEvent(WLAudioRecorderEvent.WL_WORKLET_NODE_OPEN_RSP, false, '申请内存失败')
+      return
+    }
+
+    this.encodedData = this.opusModule._malloc(256)
+
+    if (!this.encodedData) {
+      this.reset()
+      this.reportRspEvent(WLAudioRecorderEvent.WL_WORKLET_NODE_OPEN_RSP, false, '申请内存失败')
+      return
+    }
+
+    this.state = RECORD_OPENED
+    this.reportRspEvent(WLAudioRecorderEvent.WL_WORKLET_NODE_OPEN_RSP, true)
   }
 
   onMessage(event) {
@@ -69,62 +96,30 @@ class WLRecorderWorklet extends AudioWorkletProcessor {
           this.processFrameCount = Math.ceil(this.sampleRate / 50)
           this.pcmArray = new Int16Array(this.processFrameCount)
 
-          const Module = {}
-          Module['wasmBinary'] = this.wasmData
-          opus(Module)
-            .then(async (value) => {
-              if (this.state === RECORD_CLOSING) {
-                this.reset()
-                return
-              }
+          if (this.opusModule == null) {
+            const Module = {}
+            Module['wasmBinary'] = this.wasmData
+            opus(Module)
+              .then((value) => {
+                if (this.state === RECORD_CLOSING || this.state === RECORD_CLOSED) {
+                  this.reset()
+                  return
+                }
 
-              this.opusModule = value
-              this.encoder = this.opusModule._Opus_initEncoder(this.sampleRate, 1, this.bitRate)
-              if (!this.encoder) {
-                this.reset()
+                this.opusModule = value
+                this.initEncoder()
+              })
+              .catch((reason) => {
                 this.reportRspEvent(
                   WLAudioRecorderEvent.WL_WORKLET_NODE_OPEN_RSP,
                   false,
-                  '编码器初始化失败',
+                  '出现异常:' + reason,
                 )
-                return
-              }
-
-              this.pcmBuffer = this.opusModule._malloc(
-                this.processFrameCount * Int16Array.BYTES_PER_ELEMENT,
-              )
-              if (!this.pcmBuffer) {
                 this.reset()
-                this.reportRspEvent(
-                  WLAudioRecorderEvent.WL_WORKLET_NODE_OPEN_RSP,
-                  false,
-                  '申请内存失败',
-                )
-                return
-              }
-
-              this.encodedData = this.opusModule._malloc(256)
-              if (!this.encodedData) {
-                this.reset()
-                this.reportRspEvent(
-                  WLAudioRecorderEvent.WL_WORKLET_NODE_OPEN_RSP,
-                  false,
-                  '申请内存失败',
-                )
-                return
-              }
-
-              this.state = RECORD_OPENED
-              this.reportRspEvent(WLAudioRecorderEvent.WL_WORKLET_NODE_OPEN_RSP, true)
-            })
-            .catch((reason) => {
-              this.reportRspEvent(
-                WLAudioRecorderEvent.WL_WORKLET_NODE_OPEN_RSP,
-                false,
-                '出现异常:' + reason,
-              )
-              this.reset()
-            })
+              })
+          } else {
+            this.initEncoder()
+          }
         }
         break
 

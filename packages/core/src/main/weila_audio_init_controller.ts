@@ -62,7 +62,16 @@ export function createWeilaAudioInitController(
 
     if (!core) return false
 
-    if (initialized) return true
+    if (initialized) {
+      const result = await core.weila_audioInit()
+
+      if (!result) {
+        setInitialized(false)
+        armInitListener()
+      }
+
+      return result
+    }
 
     if (initPromise) return initPromise
 
@@ -72,6 +81,7 @@ export function createWeilaAudioInitController(
         setInitialized(result)
 
         if (initialized) disarmInitListener()
+        else armInitListener()
 
         return result
       })

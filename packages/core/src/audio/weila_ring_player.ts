@@ -13,10 +13,14 @@ const WeilaRingPlayer = {
     } else {
       const configData = await WLConfig.getConfigData(id)
 
-      if (configData) {
-        url = configData.resource_url ?? ''
-      } else {
-        return Promise.reject('没有对应的资源')
+      if (!configData) {
+        return false
+      }
+
+      url = configData.resource_url ?? ''
+
+      if (!url) {
+        return false
       }
 
       this.ringCache.set(id, url)
@@ -34,7 +38,7 @@ const WeilaRingPlayer = {
     return ringAudio
       .play()
       .then(() => true)
-      .catch(() => Promise.reject('播放铃声失败'))
+      .catch(() => false)
   },
 }
 
