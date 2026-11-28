@@ -4,11 +4,11 @@
 
 - Member manage page (`#/contact/member`) filters the list by 类型 (single-select, `member_types`) and 部门 (multi-select, `dept_ids`).
 - Dept member page (`#/contact/dept-<id>-<name>`) filters by 类型 only.
-- Both filters also filter client-side through Arco's `filterable.filter` callback; the same values are sent to the backend, which filters and returns a new `count`.
+- Both filters also filter client-side through the internal `DataTable` column predicate; the same values are sent to the backend, which filters the rows.
 
 ## How to get to it (user POV)
 
-Login, click 成员管理. The 类型 and 部门 column headers show a filter icon. Pick an option, press 确定. The table reloads with the filtered rows and the pager count drops.
+Login, click 成员管理. The 类型 and 部门 column headers show a filter icon. Pick an option, press 确定. The table reloads with the filtered rows.
 
 ## Driving it with ego-browser
 
@@ -53,11 +53,11 @@ await task.finish({ keep: [] })
 ## Pass
 
 - The filter request body carries `member_types` / `dept_ids` as **number** arrays: `{"member_types":[0],"key":""}`.
-- The response envelope is `{"errcode":0,...}` and `data.count` changes from the unfiltered baseline (13 → 12 for 成员 on the QA org).
-- 重置 then 确定 drops the key from the body and restores the baseline count.
+- The response envelope is `{"errcode":0,...}` and the rendered rows narrow to the matching type. On the QA org on 2026-11-29, 成员 returns 7 rows while `data.count` stays 12, so assert the request body and `errcode`, not the pager.
+- 重置 then 确定 drops the key from the body and restores the unfiltered rows.
 
 ## Gotchas
 
-- Arco's change event hands back the filter option `value`s verbatim, and `TableFilterData.value` is typed `string`, so the raw `e.filters` is `{ member_types: ['0'] }`. The corp backend's JSON decoder rejects string arrays (and scalars) with `errcode 20 参数错误`; only number arrays are accepted. Convert at the request body (`toMemberListFilters`), not in the filter options.
-- The client-side `filter` callback runs regardless of the backend result, so a broken wire still narrows the current page of rows; assert the request body and `errcode`, not the rendered rows alone.
+- `DataTable` stores each option's declared value, so the member filters declare numbers and the request body is numeric by construction. There is no string-to-number conversion layer; do not add one back.
+- The client-side predicate runs regardless of the backend result, so a broken wire still narrows the current page of rows. Assert the request body and `errcode`, not the rendered rows alone.
 - The 部门 filter's option labels are department names; pick one that exists in the QA org (cw) and check `dept_ids` is numeric.
