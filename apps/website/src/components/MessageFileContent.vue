@@ -6,13 +6,13 @@ import { openWindow } from '~/utils/index'
 const props = defineProps<{
   content: {
     image: string
-    file_url: string
+    file_url?: string
     file_size: number
     file_name: string
   }
 }>()
 
-const ext = computed(() => props.content.file_url.split('.').at(-1)!)
+const ext = computed(() => props.content.file_url?.split('.').at(-1) ?? '')
 
 const filesize = computed(() => {
   const sizeInMB = props.content.file_size / 1024 / 1024
@@ -21,7 +21,7 @@ const filesize = computed(() => {
 </script>
 
 <template>
-  <button flex gap2 p4 text-left @click="() => openWindow(content.file_url)">
+  <button flex gap2 p4 text-left @click="() => openWindow(content.file_url ?? '')">
     <section>
       <div max-w-80 break-words text-wrap text-lg>
         {{ content.file_name }}
@@ -30,6 +30,6 @@ const filesize = computed(() => {
         {{ filesize }}
       </div>
     </section>
-    <img :src="fileIconsMap[ext].default" :alt="content.file_name" w18>
+    <img :src="fileIconsMap[ext]?.default" :alt="content.file_name" w18>
   </button>
 </template>
