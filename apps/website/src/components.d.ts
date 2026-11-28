@@ -19,6 +19,7 @@ declare module 'vue' {
     CertificationTag: typeof import('./components/CertificationTag.vue')['default']
     ChannelAvatar: typeof import('./components/ChannelAvatar.vue')['default']
     CreateMemberModal: typeof import('./components/CreateMemberModal.vue')['default']
+    DataTable: typeof import('./components/DataTable.vue')['default']
     DeleteAccount: typeof import('./components/DeleteAccount.vue')['default']
     DeleteMemberModal: typeof import('./components/DeleteMemberModal.vue')['default']
     EditMemberModal: typeof import('./components/EditMemberModal.vue')['default']

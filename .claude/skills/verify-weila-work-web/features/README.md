@@ -20,7 +20,7 @@ await task.finish({ keep: [] })
 | Group list pagination            | `group-list-pagination.md`   | mapped, driven 2026-11-12         |
 | Member list pagination           | `member-list-pagination.md`  | mapped                            |
 | Chat session picker pager        | `chat-session-picker.md`     | mapped                            |
-| Dept list page                   | `dept-list.md`               | mapped; pager missing (known gap) |
+| Dept list page                   | `dept-list.md`               | mapped; pager wired 2026-11-29    |
 | Org tree department multi-select | `org-tree-multi-select.md`   | mapped, driven 2026-11-17         |
 | Member edit permissions          | `member-edit-permissions.md` | mapped, driven 2026-11-18         |
 | Member table filters             | `member-table-filters.md`    | mapped, driven 2026-11-27         |

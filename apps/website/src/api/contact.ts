@@ -8,6 +8,7 @@ type BurstMode = 0 | 1 | 2
 
 export interface GroupModel {
   id: number
+  dept_id: number
   name: string
   avatar: string
   creator: number

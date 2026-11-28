@@ -2,7 +2,7 @@
 
 ## Sub-features
 
-- Member manage page (`#/contact/member`) lists org members through `MemberTable`.
+- Member manage page (`#/contact/member`) lists org members through `MemberTable`, which renders the internal `DataTable`.
 - Dept member page (`#/contact/dept-<id>-<name>`) lists one dept's members, same table.
 - Pager clicks send 0-based wire indexes; a new search key resets the page to 0.
 
@@ -60,5 +60,5 @@ Pass: initial request `page=0&size=10`; pager click issues `page=1&size=10`.
 
 ## Gotchas
 
-- Seed org has only 5 members, so the pager is a single page and the click step cannot fire. The request check (`page=0`) still proves the wire contract. To prove multi-page, filter or add members until count > 10, or record the gap here.
+- The QA org has 12 members on 2026-11-29, so the pager click fires and the wire shows `page=1&size=10`. Update this count when the seed org changes.
 - Typing in the search box debounces 500ms and re-fetches with the `key` body field; the page resets to 0 with the new key (fixed 2026-11-17, see the search-on-page-2 repro).

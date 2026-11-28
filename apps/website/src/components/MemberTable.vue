@@ -1,49 +1,152 @@
 <script setup lang="ts">
 import type { Member } from '~/types/api'
+import type { TableColumn, TableFilters } from '~/utils/tableModel'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { TrackType } from '~/api/contact'
 import { useWeilaFetch } from '~/composables/useWeilaFetch'
 import { useWeilaMutation } from '~/composables/useWeilaMutation'
 import { useAppStore } from '~/stores/app'
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   members: Member[]
   count: number
-  actions?: boolean
-  filters?: Set<string>
+  deptFilter?: boolean
 }>(), {
-  actions: true,
-  filters: () => new Set(),
+  deptFilter: false,
 })
 
-const emits = defineEmits<{
-  (e: 'select', member: Member, _: PointerEvent): void
-  (e: 'change', ...args: any[]): void
+const emit = defineEmits<{
+  (e: 'filterChange', filters: TableFilters): void
 }>()
 
-const curPage = defineModel('page', { default: 0, required: true })
+const page = defineModel<number>('page', { required: true })
 
 const { t } = useI18n()
 const { themeColor } = useAppStore()
-
-const selected = defineModel<Member | undefined>('selected-item', { default: undefined })
-
-function onSelect(member: Member, e: PointerEvent) {
-  selected.value = member
-
-  const target = e.target
-  if (!(target instanceof HTMLElement) || !target.className.includes('arco-table')) {
-    return void 0
-  }
-
-  emits('select', member, e)
-}
 
 const { data: depts } = useWeilaFetch<{
   id: number
   name: string
   user_count: number
 }[]>('corp/address/get-my-manage-all-dept')
+
+const columns = computed<TableColumn<Member>[]>(() => [
+  {
+    key: 'state',
+    title: t('member.state'),
+  },
+  {
+    key: 'avatar',
+    title: t('avatar'),
+    width: 80,
+  },
+  {
+    key: 'online_status',
+    title: t('member.online-status'),
+    width: 100,
+  },
+  {
+    key: 'name',
+    title: t('name'),
+  },
+  {
+    key: 'user_num',
+    title: t('weila-number'),
+  },
+  {
+    key: 'member_types',
+    title: t('type'),
+    filter: {
+      options: [
+        {
+          label: t('user-type.member'),
+          value: 0,
+        },
+        {
+          label: t('user-type.device'),
+          value: 1,
+        },
+        {
+          label: t('manager'),
+          value: 2,
+        },
+        {
+          label: t('user-type.owner'),
+          value: 255,
+        },
+      ],
+      predicate: (values, member) => member.type === values[0],
+    },
+  },
+  {
+    key: 'grp_cnt',
+    title: t('group-count'),
+  },
+  {
+    key: 'job_num',
+    title: t('job-number'),
+  },
+  {
+    key: 'dept_ids',
+    title: t('dept.name'),
+    filter: props.deptFilter
+      ? {
+          multiple: true,
+          options: (depts.value ?? []).map(dept => ({ label: dept.name, value: dept.id })),
+          predicate: (values, member) => values.includes(member.dept_id),
+        }
+      : undefined,
+  },
+  {
+    key: 'created',
+    title: t('created'),
+  },
+  {
+    key: 'phone',
+    title: t('phone'),
+  },
+  {
+    key: 'track',
+    title: t('track'),
+  },
+  {
+    key: 'loc_share',
+    title: t('loc_share'),
+  },
+  {
+    key: 'actions',
+    title: t('controls'),
+    fixedRight: true,
+  },
+])
+
+function typeLabel(type: number): string {
+  const labels: Record<number, string> = {
+    0: t('user-type.member'),
+    1: t('user-type.device'),
+    2: t('manager'),
+    255: t('user-type.owner'),
+  }
+
+  return labels[type] ?? ''
+}
+
+function trackLabel(track: number): string {
+  const labels: Record<number, string> = {
+    [TrackType.Close]: t('track-type.close'),
+    [TrackType.High]: t('track-type.high'),
+    [TrackType.Medium]: t('track-type.medium'),
+    [TrackType.Low]: t('track-type.low'),
+    [TrackType.Fast]: t('track-type.fast'),
+  }
+
+  return labels[track] ?? ''
+}
+
+function deptName(deptId: number): string {
+  return depts.value?.find(dept => dept.id === deptId)?.name ?? ''
+}
 
 const { mutateAsync: changeMemberState } = useWeilaMutation<{ state: 0 | 1 }, {
   user_id: number
@@ -62,184 +165,80 @@ async function toggleMemberState(targetId: number, state: 0 | 1) {
 </script>
 
 <template>
-  <div>
-    <!-- @vue-expect-error type error when arco's row-click -->
-    <a-table
-      :data="members"
-      :pagination="{
-        pageSize: 10,
-        total: count || 0,
-        current: curPage + 1,
-      }"
-      :column-resizable="true"
-      :scrollbar="true"
-      @change="(...args) => emits('change', ...args) "
-      @page-change="(page) => curPage = page - 1"
-      @row-click="(...args) => onSelect(...args)"
-    >
-      <template #columns>
-        <a-table-column :title="t('member.state')">
-          <template #cell="{ record: { state, user_id, type } }">
-            <a-switch
-              :disabled="type === 255"
-              :default-checked="Boolean(!state)" :checked-value="0" :unchecked-value="1"
-              :checked-color="themeColor" unchecked-color="#ddd" :before-change="(state) => toggleMemberState(
-                user_id,
-                Number(state) ? 0 : 1,
-              )"
-            >
-              <template #checked>
-                {{ t('member-state.enabled') }}
-              </template>
-              <template #unchecked>
-                {{ t('member-state.paused') }}
-              </template>
-            </a-switch>
-          </template>
-        </a-table-column>
+  <DataTable
+    v-model:page="page"
+    :columns="columns"
+    :data="members"
+    :total="count"
+    size="large"
+    @filter-change="filters => emit('filterChange', filters)"
+  >
+    <template #cell-state="{ record }">
+      <a-switch
+        :disabled="record.type === 255"
+        :default-checked="Boolean(!record.state)"
+        :checked-value="0"
+        :unchecked-value="1"
+        :checked-color="themeColor"
+        unchecked-color="#ddd"
+        :before-change="value => toggleMemberState(record.user_id, Number(value) ? 0 : 1)"
+      >
+        <template #checked>
+          {{ t('member-state.enabled') }}
+        </template>
+        <template #unchecked>
+          {{ t('member-state.paused') }}
+        </template>
+      </a-switch>
+    </template>
 
-        <a-table-column :title="t('avatar')" :width="80">
-          <template #cell="{ record: { avatar } }">
-            <a-avatar :image-url="avatar">
-              <IconUser />
-            </a-avatar>
-          </template>
-        </a-table-column>
+    <template #cell-avatar="{ record }">
+      <a-avatar :image-url="record.avatar">
+        <IconUser />
+      </a-avatar>
+    </template>
 
-        <a-table-column :title="t('member.online-status')" :width="100">
-          <template #cell="{ record: { online_status } }">
-            <a-tag :color="online_status === 1 ? 'green' : 'gray'">
-              {{ online_status === 1 ? t('online') : t('offline') }}
-            </a-tag>
-          </template>
-        </a-table-column>
-        <a-table-column
-          :title="t('name')" :sortable="{
-            sortDirections: ['ascend', 'descend'],
-          }"
-        >
-          <template #cell="{ record: { name } }">
-            {{ name }}
-          </template>
-        </a-table-column>
-        <a-table-column :title="t('weila-number')">
-          <template #cell="{ record: { user_num } }">
-            {{ user_num }}
-          </template>
-        </a-table-column>
+    <template #cell-online_status="{ record }">
+      <a-tag :color="record.online_status === 1 ? 'green' : 'gray'">
+        {{ record.online_status === 1 ? t('online') : t('offline') }}
+      </a-tag>
+    </template>
 
-        <a-table-column
-          :title="t('type')"
-          data-index="member_types"
-          :filterable="filters.has('member_types') ? {
-            filters: [{
-              text: t('user-type.member'),
-              value: '0',
-            }, {
-              text: t('user-type.device'),
-              value: '1',
-            }, {
-              text: t('manager'),
-              value: '2',
-            }, {
-              text: t('user-type.owner'),
-              value: '255',
-            }],
-            filter: (values: string[], record: any) => Number(record.type) === Number(values?.[0]),
-            multiple: false,
-          } : undefined"
-        >
-          <template #cell="{ record: { type, is_dept_admin } }">
-            <a-tag :color="is_dept_admin ? 'orange' : ''">
-              {{ {
-                0: t('user-type.member'),
-                1: t('user-type.device'),
-                2: t('manager'),
-                255: t('user-type.owner'),
-              }[Number(type)] }}
-            </a-tag>
-          </template>
-        </a-table-column>
+    <template #cell-member_types="{ record }">
+      <a-tag :color="record.is_dept_admin ? 'orange' : ''">
+        {{ typeLabel(record.type) }}
+      </a-tag>
+    </template>
 
-        <a-table-column :title="t('group-count')">
-          <template #cell="{ record: { grp_cnt, grp_lmt } }">
-            <a-tag :color="grp_cnt >= grp_lmt ? 'magenta' : 'gray'">
-              {{ grp_cnt }} / {{ grp_lmt }}
-            </a-tag>
-          </template>
-        </a-table-column>
+    <template #cell-grp_cnt="{ record }">
+      <a-tag :color="record.grp_cnt >= record.grp_lmt ? 'magenta' : 'gray'">
+        {{ record.grp_cnt }} / {{ record.grp_lmt }}
+      </a-tag>
+    </template>
 
-        <a-table-column :title="t('job-number')">
-          <template #cell="{ record: { job_num } }">
-            {{ job_num }}
-          </template>
-        </a-table-column>
-        <a-table-column
-          :title="t('dept.name')" data-index="dept_ids"
-          :filterable="filters.has('dept_ids') ? {
-            filters: depts?.map((i) => ({
-              text: i.name,
-              value: String(i.id),
-            })),
-            filter: (values: string[], record: any) => values.some((i: string) => i === String(record.dept_id)),
-            multiple: true,
-          } : undefined"
-        >
-          <template #cell="{ record: { dept_id } }">
-            {{ depts?.find(d => d.id === dept_id)?.name || '' }}
-          </template>
-        </a-table-column>
+    <template #cell-dept_ids="{ record }">
+      {{ deptName(record.dept_id) }}
+    </template>
 
-        <a-table-column
-          :title="t('created')" :sortable="{
-            sortDirections: ['ascend', 'descend'],
-          }"
-        >
-          <template #cell="{ record: { created } }">
-            {{ new Date(created * 1000).toLocaleDateString() }}
-          </template>
-        </a-table-column>
+    <template #cell-created="{ record }">
+      {{ new Date(record.created * 1000).toLocaleDateString() }}
+    </template>
 
-        <a-table-column :title="t('phone')">
-          <template #cell="{ record: { phone } }">
-            {{ phone }}
-          </template>
-        </a-table-column>
-        <a-table-column :title="t('track')">
-          <template #cell="{ record: { track } }">
-            <a-tag>
-              <!-- @vue-expect-error type error -->
-              {{
-                {
-                  [TrackType.Close]: t('track-type.close'),
-                  [TrackType.High]: t('track-type.high'),
-                  [TrackType.Medium]: t('track-type.medium'),
-                  [TrackType.Low]: t('track-type.low'),
-                  [TrackType.Fast]: t('track-type.fast'),
-                }[track] }}
-            </a-tag>
-          </template>
-        </a-table-column>
+    <template #cell-track="{ record }">
+      <a-tag>{{ trackLabel(record.track) }}</a-tag>
+    </template>
 
-        <a-table-column :title="t('loc_share')">
-          <template #cell="{ record: { loc_share } }">
-            <a-tag v-if="loc_share" color="green">
-              {{ t('open') }}
-            </a-tag>
-            <a-tag v-else color="gray">
-              {{ t('close') }}
-            </a-tag>
-          </template>
-        </a-table-column>
+    <template #cell-loc_share="{ record }">
+      <a-tag v-if="record.loc_share" color="green">
+        {{ t('open') }}
+      </a-tag>
+      <a-tag v-else color="gray">
+        {{ t('close') }}
+      </a-tag>
+    </template>
 
-        <a-table-column v-if="actions" :title="t('controls')" fixed="right">
-          <template #cell="{ record }">
-            <slot name="actions" v-bind="{ record, selected }" />
-          </template>
-        </a-table-column>
-      </template>
-    </a-table>
-
-    <slot name="bottom" v-bind="{ selected }" />
-  </div>
+    <template #cell-actions="{ record }">
+      <slot name="actions" :record="record" />
+    </template>
+  </DataTable>
 </template>

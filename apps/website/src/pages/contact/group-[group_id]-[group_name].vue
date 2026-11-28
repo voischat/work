@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Member } from '~/types/api'
+import type { TableColumn } from '~/utils/tableModel'
 import Message from '@arco-design/web-vue/es/message'
 import { useQuery } from '@tanstack/vue-query'
 import { WL_IDbSessionType } from '@vois/weila-sdk-core'
@@ -34,6 +35,69 @@ const isDeptAdmin = computed(() => selfInfoStore.isDeptAdmin)
 const weilaApi = useWeilaApi()
 const groupId = computed(() => Number(route.params.group_id))
 const selfUserId = computed(() => Number(selfInfoStore.selfInfo?.user_id))
+
+const columns = computed<TableColumn<Member>[]>(() => [
+  {
+    key: 'avatar',
+    title: t('avatar'),
+  },
+  {
+    key: 'online_status',
+    title: t('member.online-status'),
+    width: 100,
+  },
+  {
+    key: 'name',
+    title: t('name'),
+  },
+  {
+    key: 'user_num',
+    title: t('weila-number'),
+  },
+  {
+    key: 'phone',
+    title: t('phone-number'),
+  },
+  {
+    key: 'dept_ids',
+    title: t('dept.name'),
+    filter: isDeptAdmin.value
+      ? undefined
+      : {
+          multiple: true,
+          options: (depts.value ?? []).map(dept => ({ label: dept.name, value: dept.id })),
+          predicate: (values, member) => values.includes(member.dept_id),
+        },
+  },
+  {
+    key: 'loc_share',
+    title: t('loc_share'),
+  },
+  {
+    key: 'track',
+    title: t('track'),
+  },
+  {
+    key: 'actions',
+    title: t('controls'),
+  },
+])
+
+function trackLabel(track: number): string {
+  const labels: Record<number, string> = {
+    [TrackType.Close]: t('track-type.close'),
+    [TrackType.High]: t('track-type.high'),
+    [TrackType.Medium]: t('track-type.medium'),
+    [TrackType.Low]: t('track-type.low'),
+    [TrackType.Fast]: t('track-type.fast'),
+  }
+
+  return labels[track] ?? ''
+}
+
+function deptName(deptId: number): string {
+  return depts.value?.find(dept => dept.id === deptId)?.name ?? ''
+}
 
 const weilaStore = useWeilaStore()
 const { core: weilaCore, userInfo } = storeToRefs(weilaStore)
@@ -95,7 +159,7 @@ async function handleSendMessage(member: Member) {
   }
 }
 
-const { data } = useWeilaFetch(() => `corp/group/get-group-member-list?page=${curPage.value}&size=${pageSize.value}`, {
+const { data } = useWeilaFetch<{ count: number, members: Member[] }>(() => `corp/group/get-group-member-list?page=${curPage.value}&size=${pageSize.value}`, {
   body: () => ({
     group_id: groupId.value,
   }),
@@ -130,13 +194,8 @@ function openGroupChat() {
   })
 }
 
-function onSelect(member: Member, e: PointerEvent) {
+function openMember(member: Member) {
   selectedItem.value = member
-  const target = e.target
-  if (!(target instanceof HTMLElement) || !target.className.includes('arco-table')) {
-    return void 0
-  }
-
   isEditModalVisible.value = true
 }
 </script>
@@ -169,112 +228,57 @@ function onSelect(member: Member, e: PointerEvent) {
         </a-space>
       </template>
 
-      <!-- @vue-expect-error type error when arco's row-click -->
-      <a-table
-        :columns="cols"
-        :pagination="{
-          pageSize: 10,
-          total: data?.count || 0,
-        }"
-        :data="data?.members"
-        size="medium" :column-resizable="true" :scroll="{
-          x: 1000,
-          y: 600,
-        }" :scrollbar="true"
-        @page-change="(page) => curPage = page - 1" @row-click="(...args) => onSelect(...args)"
+      <DataTable
+        v-model:page="curPage"
+        :columns="columns"
+        :data="data?.members ?? []"
+        :total="data?.count || 0"
+        fixed-layout
+        @row-click="openMember"
       >
-        <template #columns>
-          <a-table-column :title="t('avatar')">
-            <template #cell="{ record: { avatar } }">
-              <a-avatar :image-url="avatar?.replace(/^https?:/, '')">
-                <IconUser />
-              </a-avatar>
-            </template>
-          </a-table-column>
-
-          <a-table-column :title="t('member.online-status')" :width="100">
-            <template #cell="{ record: { online_status } }">
-              <a-tag :color="online_status === 1 ? 'green' : 'gray'">
-                {{ online_status === 1 ? t('online') : t('offline') }}
-              </a-tag>
-            </template>
-          </a-table-column>
-          <a-table-column :title="t('name')">
-            <template #cell="{ record: { name } }">
-              {{ name }}
-            </template>
-          </a-table-column>
-          <a-table-column :title="t('weila-number')">
-            <template #cell="{ record: { user_num } }">
-              {{ user_num }}
-            </template>
-          </a-table-column>
-          <a-table-column :title="t('phone-number')">
-            <template #cell="{ record: { phone } }">
-              {{ phone }}
-            </template>
-          </a-table-column>
-          <a-table-column
-            :title="t('dept.name')" data-index="dept_ids"
-            :filterable="!isDeptAdmin ? {
-              filters: depts?.map((i) => ({
-                text: i.name,
-                value: String(i.id),
-              })),
-              filter: (values: string[], record: any) => values.some((i: string) => i === String(record.dept_id)),
-              multiple: true,
-            } : undefined"
-          >
-            <template #cell="{ record: { dept_id } }">
-              {{ depts?.find(d => d.id === dept_id)?.name || '' }}
-            </template>
-          </a-table-column>
-          <a-table-column :title="t('loc_share')">
-            <template #cell="{ record: { loc_share } }">
-              <a-tag v-if="loc_share" color="green">
-                {{ t('open') }}
-              </a-tag>
-              <a-tag v-else color="gray">
-                {{ t('close') }}
-              </a-tag>
-            </template>
-          </a-table-column>
-          <a-table-column :title="t('track')">
-            <template #cell="{ record: { track } }">
-              <a-tag>
-                <!-- @vue-expect-error type error -->
-                {{ {
-                  [TrackType.Close]: t('track-type.close'),
-                  [TrackType.High]: t('track-type.high'),
-                  [TrackType.Medium]: t('track-type.medium'),
-                  [TrackType.Low]: t('track-type.low'),
-                  [TrackType.Fast]: t('track-type.fast'),
-                }[track] }}
-              </a-tag>
-            </template>
-          </a-table-column>
-          <a-table-column :title="t('controls')">
-            <template #cell="{ record }">
-              <div flex gap2>
-                <a-button
-                  v-if="!selfInfoStore.isCurrentUser(record.user_id)"
-                  :disabled="startingSessionUserId === record.user_id"
-                  @click="handleSendMessage(record)"
-                >
-                  {{ t('button.send-message') }}
-                </a-button>
-                <DeleteGroupMemberModal
-                  :group-id="groupId" :member="selectedItem"
-                >
-                  <a-button status="danger">
-                    {{ t('button.delete') }}
-                  </a-button>
-                </DeleteGroupMemberModal>
-              </div>
-            </template>
-          </a-table-column>
+        <template #cell-avatar="{ record }">
+          <a-avatar :image-url="record.avatar?.replace(/^https?:/, '')">
+            <IconUser />
+          </a-avatar>
         </template>
-      </a-table>
+        <template #cell-online_status="{ record }">
+          <a-tag :color="record.online_status === 1 ? 'green' : 'gray'">
+            {{ record.online_status === 1 ? t('online') : t('offline') }}
+          </a-tag>
+        </template>
+        <template #cell-dept_ids="{ record }">
+          {{ deptName(record.dept_id) }}
+        </template>
+        <template #cell-loc_share="{ record }">
+          <a-tag v-if="record.loc_share" color="green">
+            {{ t('open') }}
+          </a-tag>
+          <a-tag v-else color="gray">
+            {{ t('close') }}
+          </a-tag>
+        </template>
+        <template #cell-track="{ record }">
+          <a-tag>{{ trackLabel(record.track) }}</a-tag>
+        </template>
+        <template #cell-actions="{ record }">
+          <div flex gap2>
+            <a-button
+              v-if="!selfInfoStore.isCurrentUser(record.user_id)"
+              :disabled="startingSessionUserId === record.user_id"
+              @click="handleSendMessage(record)"
+            >
+              {{ t('button.send-message') }}
+            </a-button>
+            <DeleteGroupMemberModal
+              :group-id="groupId" :member="selectedItem"
+            >
+              <a-button status="danger">
+                {{ t('button.delete') }}
+              </a-button>
+            </DeleteGroupMemberModal>
+          </div>
+        </template>
+      </DataTable>
 
       <EditMemberModal v-model:open="isEditModalVisible" :member="selectedItem" />
     </a-card>
