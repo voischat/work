@@ -2,7 +2,7 @@
 import { useTemplateRef } from 'vue'
 import { Dropdown } from 'floating-vue'
 
-import WLEmojiPicker from '../Emoji/WLEmojiPicker.vue'
+import WLEmojiPicker from '../Emoji/WlEmojiPicker.vue'
 import WlPttButton from '../PttButton/WlPttButton.vue'
 import { useWeilaUiI18n } from '../../i18n'
 

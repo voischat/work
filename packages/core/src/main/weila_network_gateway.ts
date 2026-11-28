@@ -1,6 +1,6 @@
 import { WL } from 'proto/weilapb'
-import { fsmEvents } from 'fsm/weila_fsmScript'
-import type { MainFsmUserEvent } from 'fsm/weila_fsmScript'
+import { fsmEvents } from 'fsm/weila_fsm_script'
+import type { MainFsmUserEvent } from 'fsm/weila_fsm_script'
 import type WeilaPbDispatcher from 'main/weila_pb_dispatcher'
 import {
   WL_NetworkEvent,

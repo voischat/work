@@ -72,7 +72,7 @@ const userInfo = await weila.weila_login('account', 'password', '86')
 - `main/weila_user_module.ts`：用户信息查询。
 - `main/weila_business_module.ts`：客服会话与业务流转。
 - `main/weila_location_module.ts`：位置上报与共享。
-- `main/weila_pttFsm.ts`、`main/weila_main_fsm_host.ts`：XState 5 状态机驱动的对讲与主流程。
+- `main/weila_ptt_fsm.ts`、`main/weila_main_fsm_host.ts`：XState 5 状态机驱动的对讲与主流程。
 - `main/weila_network.worker.ts`、`main/weila_network_gateway.ts`：Web Worker 网络层。
 - `main/weila_audio_init_controller.ts`：音频初始化与用户手势重试。
 - `fsm/`、`database/`、`proto/`、`audio/`、`log/`：领域子目录。

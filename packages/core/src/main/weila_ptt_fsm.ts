@@ -1,4 +1,4 @@
-import { fsmEvents, pttFsm } from 'fsm/weila_fsmScript'
+import { fsmEvents, pttFsm } from 'fsm/weila_fsm_script'
 import type {
   PttFsmContext,
   PttFsmEvent,
@@ -7,7 +7,7 @@ import type {
   PttTalkBurst,
   StartPlaybackFamily,
   StartPlaybackInput,
-} from 'fsm/weila_fsmScript'
+} from 'fsm/weila_fsm_script'
 import {
   WL_PttAudioItem,
   WL_PttFsmListener,

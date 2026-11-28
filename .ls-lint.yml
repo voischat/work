@@ -1,0 +1,57 @@
+ls:
+  packages/core/src:
+    .dir: kebab-case | snake_case
+    .ts: snake_case
+    .spec.ts: snake_case
+    .js: snake_case
+    .worklet.js: snake_case
+    .d.ts: kebab-case
+  packages/core/tests:
+    .dir: kebab-case
+    .ts: kebab-case
+  packages/core/scripts:
+    .dir: kebab-case
+    .ts: kebab-case
+  packages/core/tools:
+    .dir: kebab-case
+    .ts: kebab-case
+  packages/ui/src:
+    .dir: PascalCase | kebab-case
+    .vue: PascalCase
+    .ts: camelCase | PascalCase
+    .spec.ts: camelCase | PascalCase
+    .stories.ts: camelCase | PascalCase
+    .json: kebab-case
+    .css: regex:^[a-z0-9]+(\.[a-z0-9]+)*$
+  apps/website/src:
+    .dir: kebab-case | PascalCase
+    .d.ts: kebab-case
+    .ts: camelCase | kebab-case
+    .test.ts: camelCase | kebab-case
+    .vue: PascalCase | kebab-case
+    .css: kebab-case
+  apps/website/src/pages:
+    .vue: kebab-case | regex:.*\[.*
+  apps/playground-vue3/src:
+    .dir: kebab-case | PascalCase
+    .ts: camelCase
+    .vue: PascalCase | kebab-case
+  packages/shared/src:
+    .dir: kebab-case
+    .ts: kebab-case
+  scripts:
+    .dir: kebab-case
+    .ts: kebab-case
+  infra:
+    .dir: kebab-case
+    .ts: kebab-case
+  tools:
+    .dir: kebab-case
+    .ts: kebab-case
+ignore:
+  - node_modules
+  - .git
+  - '**/dist'
+  - '**/assets'
+  - '**/.env*'
+  - apps/website/src/pages/**/components

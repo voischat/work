@@ -210,6 +210,9 @@ catalogs:
     '@kvoon/utils':
       specifier: latest
       version: 0.3.1
+    '@ls-lint/ls-lint':
+      specifier: ^2.3.2
+      version: 2.3.2
     '@modyfi/vite-plugin-yaml':
       specifier: ^1.1.1
       version: 1.1.1
@@ -583,6 +586,9 @@ importers:
       '@intlify/eslint-plugin-vue-i18n':
         specifier: 'catalog:'
         version: 4.5.1(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(jsonc-eslint-parser@3.3.0)(supports-color@10.2.2)(vue-eslint-parser@10.4.2(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2))(yaml-eslint-parser@2.1.0)
+      '@ls-lint/ls-lint':
+        specifier: 'catalog:'
+        version: 2.3.2
       '@oxlint/plugins':
         specifier: 'catalog:'
         version: 1.94.0
@@ -2294,6 +2300,12 @@ packages:
 
   '@kvoon/utils@0.3.1':
     resolution: {integrity: sha512-pX/mvLGulCsAjzXdHbTlHPCLknNmyt2VmuxpjGXcljn/ZRvJzI0G1T6idqZhVOYDAWMR1thECmoTA7jodnjvMA==}
+
+  '@ls-lint/ls-lint@2.3.2':
+    resolution: {integrity: sha512-8GPo2oRjpEEX/soVzWqb692mwrt9iKs3Z9xK7abSonyizmSVsdLwSQWS4OmqPIwwKdungwhNkzsmPwNFg9gSgg==}
+    cpu: [x64, arm64, s390x, ppc64le]
+    os: [darwin, linux, win32]
+    hasBin: true
 
   '@math.gl/core@3.6.3':
     resolution: {integrity: sha512-jBABmDkj5uuuE0dTDmwwss7Cup5ZwQ6Qb7h1pgvtkEutTrhkcv8SuItQNXmF45494yIHeoGue08NlyeY6wxq2A==}
@@ -11354,6 +11366,8 @@ snapshots:
       solid-js: 1.9.20
 
   '@kvoon/utils@0.3.1': {}
+
+  '@ls-lint/ls-lint@2.3.2': {}
 
   '@math.gl/core@3.6.3':
     dependencies:

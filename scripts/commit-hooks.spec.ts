@@ -9,23 +9,23 @@ void test('pre-commit runs nano-staged through simple-git-hooks', () => {
   assert.equal(manifest.scripts.prepare, 'simple-git-hooks')
 })
 
-void test('staged SDK code runs oxlint and oxfmt --check', () => {
+void test('staged SDK code runs ls-lint, oxlint and oxfmt --check', () => {
   const staged = manifest['nano-staged']
   for (const glob of [
     'packages/**/*.{js,jsx,ts,tsx,mjs,cjs,vue}',
     'apps/playground-vue3/**/*.{js,jsx,ts,tsx,mjs,cjs,vue}',
   ]) {
-    assert.deepEqual(staged[glob], ['oxlint --type-aware', 'oxfmt --check'])
+    assert.deepEqual(staged[glob], ['ls-lint', 'oxlint --type-aware', 'oxfmt --check'])
   }
   assert.equal(staged['packages/**/*.{json,jsonc,md,mdx,css,pcss,html,yml,yaml}'], 'oxfmt --check')
 })
 
-void test('staged website code runs eslint --fix', () => {
-  assert.equal(
+void test('staged website code runs ls-lint and eslint --fix', () => {
+  assert.deepEqual(
     manifest['nano-staged'][
       'apps/website/**/*.{js,jsx,ts,tsx,mjs,cjs,vue,md,mdx,css,pcss,html,json,jsonc,yml,yaml}'
     ],
-    'eslint --fix',
+    ['ls-lint', 'eslint --fix'],
   )
 })
 

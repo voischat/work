@@ -2,11 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { WLAudio } from 'audio/weila_audio'
 import { WLAudioEvent, WLPlayerType } from 'audio/weila_audio_data'
 import { WL_ConfigID } from 'main/weila_config'
-import WLPttFsm from 'main/weila_pttFsm'
+import WLPttFsm from 'main/weila_ptt_fsm'
 import { WL_AudioMsgData, WL_IDbMsgDataStatus, WL_IDbMsgDataType } from 'db/weila_db_data'
 import type { WL_PttAudioItem, WL_PttFsmListener, WL_PttPayload } from 'main/weila_internal_data'
 import { WL_PttAudioPlayState } from 'main/weila_external_data'
-import { fsmEvents } from 'fsm/weila_fsmScript'
+import { fsmEvents } from 'fsm/weila_fsm_script'
 
 function makeOpusPayload(): WL_PttPayload {
   return { frameCount: 1, data: new Uint8Array([0x00, 0x03, 0x11, 0x22, 0x33]) }

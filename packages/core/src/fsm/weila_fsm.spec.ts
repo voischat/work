@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createActor, fromCallback, fromPromise } from 'xstate'
 import type { Actor, AnyEventObject } from 'xstate'
-import { fsmEvents, mainFsm, pttFsm } from './weila_fsmScript'
+import { fsmEvents, mainFsm, pttFsm } from './weila_fsm_script'
 import type { WL_LoginParam, WL_PromiseCallback, WL_PttAudioItem } from 'main/weila_internal_data'
 import { WL_IDbMsgDataStatus, WL_IDbMsgDataType } from 'db/weila_db_data'
 import { WLPlayerType } from 'audio/weila_audio_data'

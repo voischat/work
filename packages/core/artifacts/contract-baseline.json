@@ -124,7 +124,7 @@
       "bytes": 12658,
       "sha256": "47a7391df0912c9d891c7ce8a693f0faf46e1da3fe7f19f933425d6449bd7806"
     },
-    "fsm/weila_fsmScript.d.ts": {
+    "fsm/weila_fsm_script.d.ts": {
       "bytes": 7640,
       "sha256": "a61e15eb78018f02e186557382b16c897e8b7a70417f98c3bdc2e3dc3fabcd05"
     },
@@ -192,7 +192,7 @@
       "bytes": 550,
       "sha256": "d58b566f73619256ee028892191a5ac7411d37c9a9470287ca3119c4b83f9589"
     },
-    "main/weila_pttFsm.d.ts": {
+    "main/weila_ptt_fsm.d.ts": {
       "bytes": 4788,
       "sha256": "d3899330cccd22d47590696e829bb0ab604d0062cbbee0a919d17116bbd6fc61"
     },

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { EMOJI_TOKENS } from '@weila/shared'
 import { Dropdown } from 'floating-vue'
-import WLEmoji from './WLEmoji.vue'
+import WLEmoji from './WlEmoji.vue'
 
 const emit = defineEmits<{
   select: [emoji: string]

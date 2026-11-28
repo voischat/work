@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto'
 import { describe, expect, it, vi } from 'vitest'
 import { createActor } from 'xstate'
-import { fsmEvents } from 'fsm/weila_fsmScript'
+import { fsmEvents } from 'fsm/weila_fsm_script'
 import { WL_NetworkEventID, type WL_LoginParam } from 'main/weila_internal_data'
 import { WL_ExtEventID } from 'main/weila_external_data'
 import type { WL_IDbUserInfo } from 'db/weila_db_data'
