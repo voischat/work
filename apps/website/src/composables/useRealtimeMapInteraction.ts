@@ -7,6 +7,7 @@ import { nextTick, shallowRef, triggerRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useUserInfoStore } from '~/composables/useUserInfoStore'
 import { useWeilaApi } from '~/composables/useWeilaApi'
+import { escapeHtml, safeImageUrl } from '~/utils/escapeHtml'
 
 export function useRealtimeMapInteraction(
   locations: Ref<RealtimeLocationModel[] | undefined>,
@@ -65,7 +66,7 @@ export function useRealtimeMapInteraction(
     try {
       return val.map(({ lng, lat, uid, ts, spd, dir }) => {
         const userInfo = userInfoStore.getUserInfo(uid)
-        const avatarUrl = userInfo?.avatar?.replace(/^https?:/, '') || ''
+        const avatarUrl = safeImageUrl(userInfo?.avatar)
 
         const content = avatarUrl
           ? `<div style="
@@ -185,23 +186,23 @@ export function useRealtimeMapInteraction(
 
     const content = `
       <div color-black>
-        <h3 class="text-lg font-semibold mb-2">${userInfo?.name || `用户${extData.uid}`}</h3>
+        <h3 class="text-lg font-semibold mb-2">${escapeHtml(userInfo?.name || `用户${extData.uid}`)}</h3>
         <div class="mb-2 ">
           ${info
-            ? (info.province + info.city + info.district + info.township + info.Address)
+            ? escapeHtml(info.province + info.city + info.district + info.township + info.Address)
             : t('loading')}
         </div>
         ${userInfo?.user_num
           ? `
         <div>
-          <span mr2>${t('weila-number')}</span> <span>${userInfo.user_num}</span>
+          <span mr2>${t('weila-number')}</span> <span>${escapeHtml(String(userInfo.user_num))}</span>
         </div>
         `
           : ''}
         ${userInfo?.phone
           ? `
         <div>
-          <span mr2>${t('phone')}</span> <span>${userInfo.phone}</span>
+          <span mr2>${t('phone')}</span> <span>${escapeHtml(userInfo.phone)}</span>
         </div>
         `
           : ''}
