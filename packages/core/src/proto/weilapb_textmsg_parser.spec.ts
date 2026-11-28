@@ -73,3 +73,36 @@ describe('TextMsgDataParser.decodeSessionTextMsg', () => {
     expect(decoded?.msgType).toBe(WL_IDbMsgDataType.WL_DB_MSG_DATA_UNKNOWN_TYPE)
   })
 })
+
+describe('TextMsgDataParser.getExtendFileFormatUrl', () => {
+  const KNOWN = {
+    '.txt': TextMsgDataParser.FILE_TYPE_TXT,
+    '.doc': TextMsgDataParser.FILE_TYPE_DOC,
+    '.docx': TextMsgDataParser.FILE_TYPE_DOC,
+    '.ppt': TextMsgDataParser.FILE_TYPE_PPT,
+    '.pdf': TextMsgDataParser.FILE_TYPE_PDF,
+    '.xls': TextMsgDataParser.FILE_TYPE_XLS,
+    '.mp3': TextMsgDataParser.FILE_TYPE_MP3,
+    '.wav': TextMsgDataParser.FILE_TYPE_WAV,
+    '.html': TextMsgDataParser.FILE_TYPE_HTML,
+    '.rar': TextMsgDataParser.FILE_TYPE_RAR,
+    '.zip': TextMsgDataParser.FILE_TYPE_ZIP,
+    '.raw': TextMsgDataParser.FILE_TYPE_RAW,
+  }
+
+  it('maps known extensions regardless of case', () => {
+    for (const [ext, fileType] of Object.entries(KNOWN)) {
+      const expected = TextMsgDataParser.BASE_FILE_TYPE_URL + fileType
+
+      expect(TextMsgDataParser.getExtendFileFormatUrl(`report${ext}`)).toBe(expected)
+      expect(TextMsgDataParser.getExtendFileFormatUrl(`report${ext.toUpperCase()}`)).toBe(expected)
+    }
+  })
+
+  it('falls back to the unknown icon', () => {
+    const expected = TextMsgDataParser.BASE_FILE_TYPE_URL + TextMsgDataParser.FILE_TYPE_UNKOWN
+
+    expect(TextMsgDataParser.getExtendFileFormatUrl('report.png')).toBe(expected)
+    expect(TextMsgDataParser.getExtendFileFormatUrl('report')).toBe(expected)
+  })
+})

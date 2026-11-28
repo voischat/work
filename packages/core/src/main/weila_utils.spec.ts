@@ -6,9 +6,11 @@ import {
   getErrorMsg,
   getOpusDataFrameCount,
   getOpusDataListFromPttData,
+  getPbResultCodeMessage,
   packPttPacket,
 } from './weila_utils'
 import { WL_PttPackType } from 'main/weila_internal_data'
+import { WL } from 'proto/weilapb'
 
 function buildFrames(): Uint8Array {
   const shortFrame = [0x00, 0x03, 0x11, 0x12, 0x13]
@@ -187,5 +189,41 @@ describe('getErrorMsg', () => {
 
   it('returns an empty message for an unknown result code', () => {
     expect(getErrorMsg('RET_CODE:999999-MESSAGE:ignored')).toBe('')
+  })
+})
+
+describe('getPbResultCodeMessage', () => {
+  const UNMAPPED = new Set<WL.Service.ResultCode>([
+    WL.Service.ResultCode.RESULT_CONTENT_AUDIT_BLOCK,
+    WL.Service.ResultCode.RESULT_BALANCE_INSUFFICIENT,
+    WL.Service.ResultCode.RESULT_GROUP_SUB_USER_GROUP_COUNT_LIMIT,
+    WL.Service.ResultCode.RESULT_SESSION_VOIP_BUSY,
+    WL.Service.ResultCode.RESULT_SESSION_VOIP_INTERRUPT,
+    WL.Service.ResultCode.RESULT_BUSINESS_STAFF_NOT_ADMIN,
+    WL.Service.ResultCode.RESULT_BUSINESS_STAFF_DUPLICATE,
+    WL.Service.ResultCode.RESULT_BUSINESS_SESSION_NOT_EXIST,
+    WL.Service.ResultCode.RESULT_BUSINESS_SESSION_PROCESSING,
+    WL.Service.ResultCode.RESULT_BUSINESS_SESSION_STAFF_INVALID,
+    WL.Service.ResultCode.RESULT_BUSINESS_SESSION_REMOVE_SELF_LIMIT,
+    WL.Service.ResultCode.RESULT_BUSINESS_ORDER_NOT_EXIST,
+    WL.Service.ResultCode.RESULT_BUSINESS_ORDER_INVALID,
+  ])
+
+  it('maps every other result code to a message', () => {
+    const codes = Object.values(WL.Service.ResultCode).filter(
+      (value): value is WL.Service.ResultCode => typeof value === 'number',
+    )
+
+    const missing = codes.filter(
+      (code) => !UNMAPPED.has(code) && getPbResultCodeMessage(code) === '',
+    )
+
+    expect(missing).toEqual([])
+  })
+
+  it('returns an empty message for codes without copy', () => {
+    for (const code of UNMAPPED) {
+      expect(getPbResultCodeMessage(code)).toBe('')
+    }
   })
 })
