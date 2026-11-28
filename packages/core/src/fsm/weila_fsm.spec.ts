@@ -363,7 +363,7 @@ describe('main state machine transitions', () => {
     expect(recording.fired).toContain('onReadyEntry')
   })
 
-  it('enters exception when data prepare fails', async () => {
+  it('returns to inited when data prepare fails', async () => {
     const recording: Recording = { fired: [], invoked: [] }
 
     const actor = startMainMachine(recording, {
@@ -374,10 +374,41 @@ describe('main state machine transitions', () => {
       },
     })
 
-    await reachReady(actor)
+    actor.send({ type: fsmEvents.FSM_LOAD_RESOURCE_EVT, data: promiseCallback() })
+    await vi.waitFor(() => {
+      if (!actor.getSnapshot().matches('inited')) throw new Error('not inited yet')
+    })
 
-    expect(actor.getSnapshot().matches('exception')).toBe(true)
-    expect(recording.fired).toContain('onDataPrepareFail')
+    actor.send({ type: fsmEvents.FSM_LOGIN_SERVER_EVT, data: loginParam() })
+    actor.send({ type: fsmEvents.FSM_NET_CONNECTED_IND_EVT })
+    actor.send({ type: fsmEvents.FSM_LOGIN_PROCEDURE_SUCC_EVT })
+    await vi.waitFor(() => {
+      expect(actor.getSnapshot().matches('inited'), JSON.stringify(actor.getSnapshot().value)).toBe(
+        true,
+      )
+      expect(recording.fired).toContain('onDataPrepareFail')
+    })
+  })
+
+  it('logs out from the login procedure', async () => {
+    const recording: Recording = { fired: [], invoked: [] }
+    const actor = startMainMachine(recording)
+
+    actor.send({ type: fsmEvents.FSM_LOAD_RESOURCE_EVT, data: promiseCallback() })
+    await vi.waitFor(() => {
+      if (!actor.getSnapshot().matches('inited')) throw new Error('not inited yet')
+    })
+
+    actor.send({ type: fsmEvents.FSM_LOGIN_SERVER_EVT, data: loginParam() })
+    actor.send({ type: fsmEvents.FSM_NET_CONNECTED_IND_EVT })
+    await settle()
+
+    actor.send({ type: fsmEvents.FSM_LOGOUT_EVT })
+    await vi.waitFor(() => {
+      expect(actor.getSnapshot().matches('inited')).toBe(true)
+    })
+
+    expect(recording.invoked).toContain('logout')
   })
 
   it('logs out from ready and returns to inited', async () => {

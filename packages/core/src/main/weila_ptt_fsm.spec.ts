@@ -99,6 +99,75 @@ function playIndStates(onPlayInd: ReturnType<typeof vi.fn>): number[] {
   return onPlayInd.mock.calls.map((call) => call[1].state)
 }
 
+describe('WLPttFsm talk lifecycle', () => {
+  it('resolves a talk request false when it is released while starting', async () => {
+    const { audio, fsm } = makePttFsm()
+    let finishOpen!: (value: boolean) => void
+
+    audio.openRecorder.mockImplementationOnce(
+      () =>
+        new Promise<boolean>((resolve) => {
+          finishOpen = resolve
+        }),
+    )
+
+    const request = fsm.requestTalk()
+    await vi.waitFor(() => expect(audio.openRecorder).toHaveBeenCalled())
+
+    await expect(fsm.releaseTalk()).resolves.toBe(true)
+    await expect(request).resolves.toBe(false)
+
+    finishOpen(true)
+    await vi.waitFor(() => expect(audio.closeRecorder).toHaveBeenCalledTimes(2))
+  })
+
+  it('rejects a talk request that arrives while the previous talk is stopping', async () => {
+    const { audio, fsm } = makePttFsm()
+    let finishStop!: (value: boolean) => void
+
+    audio.stopRecord.mockImplementationOnce(
+      () =>
+        new Promise<boolean>((resolve) => {
+          finishStop = resolve
+        }),
+    )
+
+    await expect(fsm.requestTalk()).resolves.toBe(true)
+
+    const stopping = fsm.releaseTalk()
+    await vi.waitFor(() => expect(audio.stopRecord).toHaveBeenCalled())
+
+    await expect(fsm.requestTalk()).rejects.toThrow('对讲请求已在进行中')
+
+    finishStop(true)
+    await expect(stopping).resolves.toBe(true)
+  })
+
+  it('closes a player whose open resolves after the playback stopped', async () => {
+    const { audio, fsm } = makePttFsm()
+    let finishOpen!: (value: boolean) => void
+
+    audio.openPlayer.mockImplementationOnce(
+      () =>
+        new Promise<boolean>((resolve) => {
+          finishOpen = resolve
+        }),
+    )
+
+    fsm.pttFsmService.send({
+      type: fsmEvents.FSM_PLAY_SINGLE_EVT,
+      data: makeItem(WLPlayerType.WL_PTT_SINGLE_PLAYER),
+    })
+
+    await vi.waitFor(() => expect(audio.openPlayer).toHaveBeenCalled())
+
+    fsm.pttFsmService.send({ type: fsmEvents.FSM_STOP_EVT })
+    finishOpen(true)
+
+    await vi.waitFor(() => expect(audio.closePlayer).toHaveBeenCalled())
+  })
+})
+
 describe('WLPttFsm playback-start chains', () => {
   beforeEach(() => {
     vi.useFakeTimers()

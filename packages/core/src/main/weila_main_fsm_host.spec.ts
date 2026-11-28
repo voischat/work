@@ -32,6 +32,7 @@ function makeDeps() {
     setLoginReady: vi.fn(),
     requestLogout: vi.fn(async () => true),
     checkWaitingTimeouts: vi.fn(),
+    rejectAll: vi.fn(),
     maxRetryLoginTimes: 2,
     loginModule: {
       loginReq: vi.fn(async () => testUserInfo()),

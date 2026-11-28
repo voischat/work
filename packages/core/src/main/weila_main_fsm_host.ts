@@ -13,6 +13,7 @@ import {
   WL_ExtEventPayload,
 } from 'main/weila_external_data'
 import { isServiceSessionType } from 'db/weila_db_data'
+import { WeilaDB } from 'db/weila_db'
 import { isString } from 'main/weila_type_guards'
 import { toError } from 'main/weila_utils'
 import type { WL_IDbSession, WL_IDbUserInfo } from 'db/weila_db_data'
@@ -41,6 +42,7 @@ export interface WeilaMainFsmHostDeps {
   setLoginReady: (ready: boolean) => void
   requestLogout: () => Promise<boolean>
   checkWaitingTimeouts: () => void
+  rejectAll: (reason: string) => void
   readonly maxRetryLoginTimes: number
   readonly loginModule: WeilaMainFsmLoginModule
   readonly friendModule: { initFriends: () => Promise<boolean> }
@@ -126,6 +128,7 @@ export default class WeilaMainFsmHost {
         onDataInit: () => this.onDataInit(),
         onDataInited: () => this.onDataInited(),
         onDataPrepareFail: () => this.onDataPrepareFail(),
+        onCoreInited: () => this.onCoreInited(),
         onLoginServerSucc: ({ event }) => {
           if ('output' in event && isLoginResult(event.output)) this.onLoginSucc(event.output)
         },
@@ -201,7 +204,16 @@ export default class WeilaMainFsmHost {
   }
 
   private async logout(): Promise<boolean> {
-    return this.deps.loginModule.logoutReq()
+    try {
+      return await this.deps.loginModule.logoutReq()
+    } finally {
+      this.deps.rejectAll('logout')
+      WeilaDB.close()
+    }
+  }
+
+  private onCoreInited() {
+    this.deps.rejectAll('core inited')
   }
 
   private async loginServer(context: MainFsmContext): Promise<WL_LoginResult> {

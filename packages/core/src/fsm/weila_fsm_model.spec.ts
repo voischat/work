@@ -82,6 +82,7 @@ const HANDLER_NAMES = [
   'appendBurstFrame',
   'emitBurstPacket',
   'onReleaseTalk',
+  'rejectTalkRequest',
 ]
 
 const MAIN_EVENT_NAMES = [

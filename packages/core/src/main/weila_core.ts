@@ -202,6 +202,7 @@ class WeilaCore implements WL_CoreInterface {
       },
       requestLogout: () => this.weila_logout(),
       checkWaitingTimeouts: () => this.pbDispatcher.checkTimeouts(),
+      rejectAll: (reason) => this.pbDispatcher.rejectAll(reason),
       maxRetryLoginTimes: this.maxRetryLoginTimes,
       loginModule: this.loginModule,
       friendModule: this.friendModule,
@@ -213,7 +214,7 @@ class WeilaCore implements WL_CoreInterface {
     this.mainFsmService = createActor(this.mainFsm, { input: { loginParam: null, core: this } })
 
     const previousState = { current: this.mainFsmService.getSnapshot() }
-    this.mainFsmService.subscribe((state: { value: unknown }) => {
+    this.mainFsmService.subscribe((state) => {
       log.info(
         '从状态:%s ===> 状态:%s',
         JSON.stringify(previousState.current.value),
@@ -291,6 +292,16 @@ class WeilaCore implements WL_CoreInterface {
       this.weila_setAuthInfo(appId, appKey)
     }
 
+    const snapshot = this.mainFsmService.getSnapshot()
+
+    if (snapshot.matches('exception')) {
+      return Promise.reject(new Error('初始化失败，请刷新页面重试'))
+    }
+
+    if (!snapshot.matches('uninit')) {
+      return Promise.resolve(true)
+    }
+
     return new Promise<boolean>((resolve, reject) => {
       const callback: WL_PromiseCallback<boolean> = { resolve, reject }
       this.mainFsmService.send({ type: fsmEvents.FSM_LOAD_RESOURCE_EVT, data: callback })
@@ -303,6 +314,12 @@ class WeilaCore implements WL_CoreInterface {
     countryCode: string,
     options: WL_LoginOptions = {},
   ): Promise<WL_IDbUserInfo> {
+    const snapshot = this.mainFsmService.getSnapshot()
+
+    if (!snapshot.matches('inited')) {
+      return Promise.reject(new Error('当前状态无法登录:' + JSON.stringify(snapshot.value)))
+    }
+
     return new Promise<WL_IDbUserInfo>((resolve, reject) => {
       const params: WL_LoginParam = {
         retryCount: 0,

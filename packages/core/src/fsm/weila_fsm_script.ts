@@ -44,6 +44,7 @@ const systemWatchdogActor = fromCallback<MainFsmUserEvent>(({ sendBack }) => {
 
 interface MainFsmSnapshot {
   value: unknown
+  matches: (state: string) => boolean
 }
 
 type MainActor = {
@@ -168,6 +169,12 @@ const mainFsm = createMachine({
   id: 'main',
   initial: 'uninit',
   context: ({ input }) => input ?? initialMainFsmContext,
+  on: {
+    FSM_LOGOUT_EVT: {
+      target: '.logoutProcedure',
+      actions: assign({ loginParam: () => null }),
+    },
+  },
   states: {
     uninit: {
       description: '此时系统未初始化，一些资源没有加载，例如wasm等。\n',
@@ -237,7 +244,7 @@ const mainFsm = createMachine({
           },
           onError: {
             actions: 'onDataPrepareFail',
-            target: 'exception',
+            target: 'inited',
           },
         },
       ],
@@ -283,10 +290,6 @@ const mainFsm = createMachine({
       on: {
         FSM_SYSTEM_WATCH_TIMEOUT_EVT: {
           actions: ['onSysTimeChecking'],
-        },
-
-        FSM_LOGOUT_EVT: {
-          target: 'logoutProcedure',
         },
 
         FSM_NET_DISCONNECT_IND_EVT: {
@@ -642,6 +645,15 @@ const pttFsm = createMachine({
           target: 'talkStop',
         },
       },
+      on: {
+        FSM_REL_TALK_EVT: {
+          actions: 'onReleaseTalk',
+          target: 'talkStop',
+        },
+        FSM_REQ_TALK_EVT: {
+          actions: 'rejectTalkRequest',
+        },
+      },
     },
     talking: {
       entry: 'onTalking',
@@ -672,6 +684,11 @@ const pttFsm = createMachine({
         input: ({ context }: { context: PttFsmContext }) => context.talk,
         onDone: 'idle',
         onError: 'idle',
+      },
+      on: {
+        FSM_REQ_TALK_EVT: {
+          actions: 'rejectTalkRequest',
+        },
       },
     },
     singlePlaying: {
