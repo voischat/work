@@ -1,4 +1,4 @@
-import type { WL_IDbMsgData, WL_IDbServicePayload } from '@vois/weila-sdk-core'
+import type { WL_ServiceMsgData, WL_IDbServicePayload } from '@vois/weila-sdk-core'
 import { WL_IDbMsgDataStatus, WL_IDbMsgDataType } from '@vois/weila-sdk-core'
 import { mount } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
@@ -8,7 +8,7 @@ import WlServiceBubble from './WlServiceBubble.vue'
 
 const QRCODE_URL = 'https://cdn.example.com/qr.png'
 
-function serviceMessage(payload: WL_IDbServicePayload): WL_IDbMsgData {
+function serviceMessage(payload: WL_IDbServicePayload): WL_ServiceMsgData {
   return {
     combo_id: '80001922_18_3_0',
     senderId: 1,
@@ -55,6 +55,16 @@ describe('WlServiceBubble', () => {
     await wrapper.get('img').trigger('click')
 
     expect(wrapper.emitted('image-click')?.[0]).toEqual([QRCODE_URL])
+  })
+
+  it('renders the unsupported fallback for an unknown service payload', () => {
+    const wrapper = mount(WlServiceBubble, {
+      props: {
+        msg: serviceMessage({ type: 'unknown', raw: '{"service_type":"future"}' }),
+      },
+    })
+
+    expect(wrapper.text()).toContain('[不支持的消息类型]')
   })
 
   it('renders a member join with the zh-CN separator', () => {

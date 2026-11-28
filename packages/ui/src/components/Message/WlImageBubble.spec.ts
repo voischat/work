@@ -1,4 +1,4 @@
-import type { WL_IDbMsgData } from '@vois/weila-sdk-core'
+import type { WL_ImageMsgData } from '@vois/weila-sdk-core'
 import { WL_IDbMsgDataStatus, WL_IDbMsgDataType } from '@vois/weila-sdk-core'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
@@ -7,7 +7,7 @@ import WlImageBubble from './WlImageBubble.vue'
 const FILE_URL = 'https://cdn.example.com/photo.jpg'
 const THUMBNAIL_URL = `${FILE_URL}?x-oss-process=style/hw320`
 
-function imageMessage(fileUrl: string = FILE_URL): WL_IDbMsgData {
+function imageMessage(fileUrl: string = FILE_URL): WL_ImageMsgData {
   return {
     combo_id: '80001922_18_1_0',
     senderId: 1,

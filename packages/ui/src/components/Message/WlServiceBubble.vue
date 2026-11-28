@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { WL_IDbMsgData, WL_IDbServicePayload, WL_IDbUserInfo } from '@vois/weila-sdk-core'
+import type { WL_ServiceMsgData, WL_IDbServicePayload, WL_IDbUserInfo } from '@vois/weila-sdk-core'
 import { computed, shallowRef, watch } from 'vue'
 import { useWeilaUiI18n } from '../../i18n'
 import { getMessageThumbnailUrl, isValidLocation } from '../../utils'
 
 export interface WlServiceBubbleProps {
-  msg: WL_IDbMsgData
+  msg: WL_ServiceMsgData
   isSelf?: boolean
   sender?: WL_IDbUserInfo
 }
@@ -217,5 +217,7 @@ function handleLocationClick() {
         {{ t('message.viewLocation') }}
       </button>
     </div>
+
+    <div v-else>{{ t('message.unsupported') }}</div>
   </div>
 </template>

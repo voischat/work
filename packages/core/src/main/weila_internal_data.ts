@@ -1,5 +1,5 @@
 import { WLBuildMsgRet, WLMsgHeader } from 'proto/weilapb_wrapper_data'
-import { WL_IDbUserInfo, WL_IDbMsgData } from 'db/weila_db_data'
+import { WL_IDbUserInfo, WL_AudioMsgData } from 'db/weila_db_data'
 import { WLPlayerType } from 'audio/weila_audio_data'
 import { WL } from 'proto/weilapb'
 import { WL_ExtEventID, WL_PttPlayIndData } from 'main/weila_external_data'
@@ -83,7 +83,7 @@ interface WL_PttPayload {
 
 interface WL_PttAudioItem {
   id: string
-  msgData: WL_IDbMsgData
+  msgData: WL_AudioMsgData
   payloadList: WL_PttPayload[]
   priority: number
   isCompleted: boolean

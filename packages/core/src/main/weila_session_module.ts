@@ -1,4 +1,5 @@
 import {
+  WL_AudioMsgData,
   WL_IDbAudioData,
   WL_IDbFileData,
   WL_IDbGroup,
@@ -13,7 +14,10 @@ import {
   WL_IDbSessionExtra,
   WL_IDbSessionStatus,
   WL_IDbSessionType,
+  WL_MsgBase,
+  WL_MsgContent,
   WL_SessionProfileUpdate,
+  WL_TextMsgData,
   WL_IDbSettingID,
   applySessionExtraProfile,
   isAudioData,
@@ -76,7 +80,7 @@ interface WL_BurstInfo {
   sessionType: number
   packetPayloadList: WL_PttPayload[]
   curMarker: WL_PttPackType
-  dbMsgData: WL_IDbMsgData | null
+  dbMsgData: WL_AudioMsgData | null
   dbMsgId: number
   created: number
 }
@@ -113,12 +117,18 @@ type MsgPayload =
   | WL_IDbLocationShared
   | WL_IDbPttData
 
+interface BuiltMsg {
+  content: WL_MsgContent
+  req: WLBuildMsgRet
+}
+
 type MsgBuilder = (
   sessionId: string,
   sessionType: number,
-  dbMsgData: WL_IDbMsgData,
+  senderId: number,
+  msgType: WL_IDbMsgDataType,
   data: MsgPayload,
-) => WLBuildMsgRet
+) => BuiltMsg | undefined
 
 const MSG_BUILDERS: Partial<Record<WL_IDbMsgDataType, MsgBuilder>> = {
   [WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE]: buildTextMsg,
@@ -134,137 +144,169 @@ const MSG_BUILDERS: Partial<Record<WL_IDbMsgDataType, MsgBuilder>> = {
 function buildTextMsg(
   sessionId: string,
   sessionType: number,
-  dbMsgData: WL_IDbMsgData,
+  senderId: number,
+  _msgType: WL_IDbMsgDataType,
   data: MsgPayload,
-): WLBuildMsgRet {
-  if (!isString(data)) return { resultCode: -1 }
+): BuiltMsg | undefined {
+  if (!isString(data)) return undefined
 
-  dbMsgData.textData = data
-
-  return WeilaPBSessionWrapper.buildTextSessionMsgReq(
-    Long.fromValue(sessionId),
-    sessionType,
-    dbMsgData.senderId,
-    false,
-    data,
-  )
+  return {
+    content: { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE, textData: data },
+    req: WeilaPBSessionWrapper.buildTextSessionMsgReq(
+      Long.fromValue(sessionId),
+      sessionType,
+      senderId,
+      false,
+      data,
+    ),
+  }
 }
 
 function buildFileOrVideoMsg(
   sessionId: string,
   sessionType: number,
-  dbMsgData: WL_IDbMsgData,
+  senderId: number,
+  msgType: WL_IDbMsgDataType,
   data: MsgPayload,
-): WLBuildMsgRet {
-  if (!isFileData(data)) return { resultCode: -1 }
+): BuiltMsg | undefined {
+  if (!isFileData(data)) return undefined
 
-  dbMsgData.fileInfo = data
+  if (msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE) {
+    return {
+      content: { msgType, fileInfo: data },
+      req: WeilaPBSessionWrapper.buildMediaInfoSessionMsgReq(
+        Long.fromValue(sessionId),
+        sessionType,
+        senderId,
+        false,
+        data,
+        true,
+      ),
+    }
+  }
 
-  return WeilaPBSessionWrapper.buildMediaInfoSessionMsgReq(
-    Long.fromValue(sessionId),
-    sessionType,
-    dbMsgData.senderId,
-    false,
-    data,
-    dbMsgData.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE,
-  )
+  if (msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE) {
+    return {
+      content: { msgType, fileInfo: data },
+      req: WeilaPBSessionWrapper.buildMediaInfoSessionMsgReq(
+        Long.fromValue(sessionId),
+        sessionType,
+        senderId,
+        false,
+        data,
+        false,
+      ),
+    }
+  }
+
+  return undefined
 }
 
 function buildImageMsg(
   sessionId: string,
   sessionType: number,
-  dbMsgData: WL_IDbMsgData,
+  senderId: number,
+  _msgType: WL_IDbMsgDataType,
   data: MsgPayload,
-): WLBuildMsgRet {
-  if (!isFileData(data)) return { resultCode: -1 }
+): BuiltMsg | undefined {
+  if (!isFileData(data)) return undefined
 
-  dbMsgData.fileInfo = data
-
-  return WeilaPBSessionWrapper.buildImageSessionMsgReq(
-    Long.fromValue(sessionId),
-    sessionType,
-    dbMsgData.senderId,
-    false,
-    data.fileUrl ?? '',
-  )
+  return {
+    content: { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE, fileInfo: data },
+    req: WeilaPBSessionWrapper.buildImageSessionMsgReq(
+      Long.fromValue(sessionId),
+      sessionType,
+      senderId,
+      false,
+      data.fileUrl ?? '',
+    ),
+  }
 }
 
 function buildLocationMsg(
   sessionId: string,
   sessionType: number,
-  dbMsgData: WL_IDbMsgData,
+  senderId: number,
+  _msgType: WL_IDbMsgDataType,
   data: MsgPayload,
-): WLBuildMsgRet {
-  if (!isLocationShared(data)) return { resultCode: -1 }
+): BuiltMsg | undefined {
+  if (!isLocationShared(data)) return undefined
 
-  dbMsgData.location = data
-
-  return WeilaPBSessionWrapper.buildLocationInfoSessionMsgReq(
-    Long.fromValue(sessionId),
-    sessionType,
-    dbMsgData.senderId,
-    false,
-    data,
-  )
+  return {
+    content: { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_LOCATION_TYPE, location: data },
+    req: WeilaPBSessionWrapper.buildLocationInfoSessionMsgReq(
+      Long.fromValue(sessionId),
+      sessionType,
+      senderId,
+      false,
+      data,
+    ),
+  }
 }
 
 function buildAudioMsg(
   sessionId: string,
   sessionType: number,
-  dbMsgData: WL_IDbMsgData,
+  senderId: number,
+  _msgType: WL_IDbMsgDataType,
   data: MsgPayload,
-): WLBuildMsgRet {
-  if (!isAudioData(data)) return { resultCode: -1 }
-
-  dbMsgData.audioData = data
+): BuiltMsg | undefined {
+  if (!isAudioData(data)) return undefined
 
   const payload = data.data && data.data.length > 0 ? data.data : (data.audioUrl ?? '')
 
-  return WeilaPBSessionWrapper.buildAudioSessionMsgReq(
-    Long.fromValue(sessionId),
-    sessionType,
-    dbMsgData.senderId,
-    false,
-    payload,
-  )
+  return {
+    content: { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE, audioData: data },
+    req: WeilaPBSessionWrapper.buildAudioSessionMsgReq(
+      Long.fromValue(sessionId),
+      sessionType,
+      senderId,
+      false,
+      payload,
+    ),
+  }
 }
 
 function buildPttMsg(
   sessionId: string,
   sessionType: number,
-  dbMsgData: WL_IDbMsgData,
+  senderId: number,
+  _msgType: WL_IDbMsgDataType,
   data: MsgPayload,
-): WLBuildMsgRet {
-  if (!isPttData(data)) return { resultCode: -1 }
+): BuiltMsg | undefined {
+  if (!isPttData(data)) return undefined
 
-  dbMsgData.pttData = data
-
-  return WeilaPBSessionWrapper.buildPttSessionMsgReq(
-    Long.fromValue(sessionId),
-    sessionType,
-    dbMsgData.senderId,
-    false,
-    data,
-  )
+  return {
+    content: { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE, pttData: data },
+    req: WeilaPBSessionWrapper.buildPttSessionMsgReq(
+      Long.fromValue(sessionId),
+      sessionType,
+      senderId,
+      false,
+      data,
+    ),
+  }
 }
 
 function buildWithdrawMsg(
   sessionId: string,
   sessionType: number,
-  dbMsgData: WL_IDbMsgData,
+  senderId: number,
+  _msgType: WL_IDbMsgDataType,
   data: MsgPayload,
-): WLBuildMsgRet {
-  if (!isNumber(data)) return { resultCode: -1 }
+): BuiltMsg | undefined {
+  if (!isNumber(data)) return undefined
 
-  dbMsgData.withdrawMsgId = data
-
-  return WeilaPBSessionWrapper.buildWithDrawMsgReq(
-    Long.fromValue(sessionId),
-    sessionType,
-    dbMsgData.senderId,
-    false,
-    data,
-  )
+  return {
+    content: { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE, withdrawMsgId: data },
+    req: WeilaPBSessionWrapper.buildWithDrawMsgReq(
+      Long.fromValue(sessionId),
+      sessionType,
+      senderId,
+      false,
+      data,
+    ),
+  }
 }
 
 type SessionResponseRoute = (
@@ -590,7 +632,7 @@ export default class WLSessionModule {
     }
   }
 
-  private async getAudioMsgDataFromTextMsgData(msgData: WL_IDbMsgData): Promise<WL_IDbMsgData> {
+  private async getAudioMsgDataFromTextMsgData(msgData: WL_TextMsgData): Promise<WL_AudioMsgData> {
     try {
       const weilaTokenItem = await WeilaDB.getInstance().getSettingItem(
         WL_IDbSettingID.SETTING_LOGIN_TOKEN,
@@ -681,7 +723,7 @@ export default class WLSessionModule {
                 frameCount: getOpusDataFrameCount(audioBytes),
               }
 
-              const audioMsgData: WL_IDbMsgData = {
+              const audioMsgData: WL_AudioMsgData = {
                 combo_id: '',
                 sessionId: msgData.sessionId,
                 sessionType: msgData.sessionType,
@@ -755,7 +797,7 @@ export default class WLSessionModule {
             msgData.combo_id = getMsgDataIdByCombo(msgData, 0)
             const isPttMsg = msgData.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE
 
-            if (isPttMsg) {
+            if (msgData.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE) {
               const { msgData: audioMsgData, isNewAudioItem } =
                 await this.pttFsm.putPttMsgData(msgData)
 
@@ -944,14 +986,13 @@ export default class WLSessionModule {
   }
 
   private async prefetchAudioMsgData(msgData: WL_IDbMsgData): Promise<void> {
-    const audioUrl = msgData.audioData?.audioUrl
+    if (msgData.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE) {
+      return
+    }
 
-    if (
-      msgData.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE ||
-      !audioUrl ||
-      msgData.audioData?.data ||
-      this.audioPrefetchInFlight.has(msgData.combo_id)
-    ) {
+    const audioUrl = msgData.audioData.audioUrl
+
+    if (!audioUrl || msgData.audioData.data || this.audioPrefetchInFlight.has(msgData.combo_id)) {
       return
     }
 
@@ -1163,6 +1204,12 @@ export default class WLSessionModule {
     msgType: WL_IDbMsgDataType,
     msgData?: WL_IDbMsgData,
   ): Promise<boolean> {
+    const builder = MSG_BUILDERS[msgType]
+
+    if (!builder) {
+      return Promise.reject('创建消息失败:不存在消息类型:' + msgType)
+    }
+
     const seqSetting = await WeilaDB.getInstance().getSettingItem(
       WL_IDbSettingID.SETTING_MSG_SENDING_SEQ,
     )
@@ -1175,23 +1222,31 @@ export default class WLSessionModule {
     })
 
     const lastMsgData = await WeilaDB.getInstance().getLastMsgData(sessionId, sessionType)
+    const senderId = msgData?.senderId ?? this.coreInterface.getLoginUserInfo().userId
+    const built = builder(sessionId, sessionType, senderId, msgType, data)
+
+    if (!built) {
+      return Promise.reject('创建消息失败:不存在消息类型:' + msgType)
+    }
 
     let dbMsgData: WL_IDbMsgData
 
     if (msgData) {
       dbMsgData = msgData
     } else {
-      dbMsgData = {
+      const base: WL_MsgBase = {
         combo_id: '',
-        msgType,
         sessionId,
         sessionType,
-        senderId: this.coreInterface.getLoginUserInfo().userId,
+        senderId,
         status: WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_UNSENT,
         created: new Date().getTime() / 1000,
         msgId: lastMsgData ? lastMsgData.msgId + 1 : 0,
         autoReply: 0,
       }
+
+      dbMsgData = { ...base, ...built.content }
+
       const sendSeq = isNumber(seqSetting?.data) ? seqSetting.data : 0
       dbMsgData.combo_id = getMsgDataIdByCombo(dbMsgData, sendSeq)
 
@@ -1201,13 +1256,7 @@ export default class WLSessionModule {
       }
     }
 
-    const builder = MSG_BUILDERS[msgType]
-
-    if (!builder) {
-      return Promise.reject('创建消息失败:不存在消息类型:' + msgType)
-    }
-
-    const buildResult = builder(sessionId, sessionType, dbMsgData, data)
+    const buildResult = built.req
 
     if (buildResult.resultCode === 0) {
       try {
@@ -1350,28 +1399,25 @@ export default class WLSessionModule {
     return this.pttFsm.initAudio()
   }
 
-  public async playSingleAudioItem(msgData: WL_IDbMsgData): Promise<boolean> {
+  public async playSingleAudioItem(msgData: WL_AudioMsgData): Promise<boolean> {
     return this.pttFsm.playSingle(msgData)
   }
 
-  public async prepareSinglePlayback(audioMsgData: WL_IDbMsgData): Promise<boolean> {
-    if (
-      audioMsgData.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE &&
-      audioMsgData.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE
-    ) {
-      return false
-    }
-
+  public async prepareSinglePlayback(
+    audioMsgData: WL_IDbMsgData,
+  ): Promise<WL_AudioMsgData | undefined> {
     if (audioMsgData.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE) {
       const audioData = audioMsgData.audioData
 
-      if (audioData && !audioData.data && audioData.audioUrl) {
+      if (!audioData.data && audioData.audioUrl) {
         const audioUrl = audioData.audioUrl.replace(/^http(?!s)/, 'https')
 
         try {
-          audioMsgData.audioData = await fetchAudioDataFromUrl(audioUrl)
+          const fetched = await fetchAudioDataFromUrl(audioUrl)
 
-          if (!audioMsgData.audioData) {
+          if (fetched) {
+            audioMsgData.audioData = fetched
+          } else {
             audioMsgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_ERR
             audioMsgData.audioData = {
               audioUrl: audioUrl,
@@ -1389,31 +1435,36 @@ export default class WLSessionModule {
         }
 
         if (audioMsgData.status === WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_ERR) {
-          return false
+          return undefined
         }
       }
 
-      return true
+      return audioMsgData
+    }
+
+    if (audioMsgData.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE) {
+      return undefined
     }
 
     const pttData = audioMsgData.pttData
 
-    if (!pttData) {
-      return false
+    const audioData: WL_AudioMsgData = {
+      ...audioMsgData,
+      msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE,
+      audioData: {
+        frameCount: pttData.frameCount,
+        data: pttData.data,
+      },
     }
 
-    audioMsgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE
-    audioMsgData.audioData = {
-      frameCount: pttData.frameCount,
-      data: pttData.data,
-    }
+    await WeilaDB.getInstance().putMsgData(audioData)
 
-    await WeilaDB.getInstance().putMsgData(audioMsgData)
-
-    return audioMsgData.status !== WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_ERR
+    return audioData.status === WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_ERR
+      ? undefined
+      : audioData
   }
 
-  public async playHistoryAudioItems(msgDatas: WL_IDbMsgData[]): Promise<boolean> {
+  public async playHistoryAudioItems(msgDatas: WL_AudioMsgData[]): Promise<boolean> {
     return this.pttFsm.playHistory(msgDatas)
   }
 
@@ -1485,7 +1536,7 @@ export default class WLSessionModule {
         frameCount: pttData.frameCount,
       }
 
-      const dbMsgData: WL_IDbMsgData = {
+      const dbMsgData: WL_AudioMsgData = {
         combo_id: '',
         audioData,
         msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE,

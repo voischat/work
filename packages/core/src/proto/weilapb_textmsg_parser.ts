@@ -6,6 +6,8 @@ import {
   uint8Array2Utf8Str,
 } from './weilapb_utils'
 import { WL_IDbFileData, WL_IDbLocationShared, WL_IDbMsgDataType } from 'db/weila_db_data'
+import type { WL_MsgContent } from 'db/weila_db_data'
+import { createMediaMsgContent } from 'main/weila_msg_content'
 
 interface ParsedTextMsgData {
   msgType: WL_IDbMsgDataType
@@ -43,6 +45,33 @@ function ensureLocation(dbMsgData: ParsedTextMsgData): WL_IDbLocationShared {
   }
 
   return dbMsgData.location
+}
+
+function toMsgContent(parsed: ParsedTextMsgData): WL_MsgContent | undefined {
+  switch (parsed.msgType) {
+    case WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE:
+      return parsed.textData === undefined
+        ? undefined
+        : { msgType: parsed.msgType, textData: parsed.textData }
+    case WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE:
+    case WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE:
+    case WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE:
+      return parsed.fileInfo === undefined
+        ? undefined
+        : createMediaMsgContent(parsed.msgType, parsed.fileInfo)
+    case WL_IDbMsgDataType.WL_DB_MSG_DATA_LOCATION_TYPE:
+      return parsed.location === undefined
+        ? undefined
+        : { msgType: parsed.msgType, location: parsed.location }
+    case WL_IDbMsgDataType.WL_DB_MSG_DATA_COMMAND_TYPE:
+      return parsed.command === undefined
+        ? undefined
+        : { msgType: parsed.msgType, command: parsed.command }
+    case WL_IDbMsgDataType.WL_DB_MSG_DATA_UNKNOWN_TYPE:
+      return { msgType: parsed.msgType }
+    default:
+      return undefined
+  }
 }
 
 const TextMsgDataParser = {
@@ -345,7 +374,7 @@ const TextMsgDataParser = {
     return undefined
   },
 
-  decodeSessionTextMsg(data: string): ParsedTextMsgData | undefined {
+  decodeSessionTextMsg(data: string): WL_MsgContent | undefined {
     const dbMsgData: ParsedTextMsgData = {
       msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_UNKNOWN_TYPE,
     }
@@ -512,7 +541,7 @@ const TextMsgDataParser = {
       dbMsgData.textData = extendText
     }
 
-    return dbMsgData
+    return toMsgContent(dbMsgData)
   },
 }
 

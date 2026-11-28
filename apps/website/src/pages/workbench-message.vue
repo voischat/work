@@ -541,15 +541,12 @@ async function forwardMessageContent(msg: WL_IDbMsgData, target: SessionSelectPa
     throw new Error('SDK 未初始化')
 
   const { sessionId, sessionType } = target
-  const fileName = msg.fileInfo?.fileName
 
   switch (msg.msgType) {
     case WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE:
-      return core.weila_sendTextMsg(sessionId, sessionType, msg.textData || '')
+      return core.weila_sendTextMsg(sessionId, sessionType, msg.textData)
 
     case WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE: {
-      if (!msg.audioData)
-        throw new Error('该音频不支持转发')
       if (msg.audioData.data && msg.audioData.data.length > 0) {
         return core.weila_sendAudioMsgByData(sessionId, sessionType, msg.audioData)
       }
@@ -559,32 +556,30 @@ async function forwardMessageContent(msg: WL_IDbMsgData, target: SessionSelectPa
     }
 
     case WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE: {
-      const url = msg.fileInfo?.fileUrl
+      const url = msg.fileInfo.fileUrl
       if (!url)
         throw new Error('图片链接不存在')
-      const file = await urlToFile(url, fileName)
+      const file = await urlToFile(url, msg.fileInfo.fileName)
       return core.weila_sendImage(sessionId, sessionType, file.name, file)
     }
 
     case WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE: {
-      const url = msg.fileInfo?.fileUrl
+      const url = msg.fileInfo.fileUrl
       if (!url)
         throw new Error('视频链接不存在')
-      const file = await urlToFile(url, fileName)
+      const file = await urlToFile(url, msg.fileInfo.fileName)
       return core.weila_sendVideo(sessionId, sessionType, file.name, file)
     }
 
     case WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE: {
-      const url = msg.fileInfo?.fileUrl
+      const url = msg.fileInfo.fileUrl
       if (!url)
         throw new Error('文件链接不存在')
-      const file = await urlToFile(url, fileName)
+      const file = await urlToFile(url, msg.fileInfo.fileName)
       return core.weila_sendFile(sessionId, sessionType, file.name, file)
     }
 
     case WL_IDbMsgDataType.WL_DB_MSG_DATA_LOCATION_TYPE:
-      if (!msg.location)
-        throw new Error('位置信息不存在')
       return core.weila_sendPosition(sessionId, sessionType, msg.location)
 
     default:

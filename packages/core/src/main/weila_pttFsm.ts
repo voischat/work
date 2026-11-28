@@ -15,10 +15,12 @@ import {
   WL_PttPayload,
 } from 'main/weila_internal_data'
 import {
+  WL_AudioMsgData,
   WL_IDbAudioData,
   WL_IDbMsgData,
   WL_IDbMsgDataStatus,
   WL_IDbMsgDataType,
+  WL_PttMsgData,
 } from 'db/weila_db_data'
 import { WeilaDB } from 'db/weila_db'
 import { createLogger } from 'log/weila_log'
@@ -45,7 +47,7 @@ import {
 const log = createLogger('FSM')
 
 interface WL_PttMsgDataResult {
-  msgData: WL_IDbMsgData
+  msgData: WL_AudioMsgData
   isNewAudioItem: boolean
 }
 
@@ -77,6 +79,14 @@ function delay(ms: number): Promise<void> {
   })
 }
 
+function toLiveAudioMsgData(msgData: WL_PttMsgData): WL_AudioMsgData {
+  return {
+    ...msgData,
+    msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE,
+    audioData: { frameCount: 0, data: new Uint8Array(0) },
+  }
+}
+
 export default class WLPttFsm {
   readonly PLAY_DELAY = 200
   private static readonly RECENT_COMPLETED_PTT_LIMIT = 100
@@ -87,7 +97,7 @@ export default class WLPttFsm {
   playingAudioList: string[]
   playingAudioMap: Map<string, WL_PttAudioItem>
   waitingAudioMap: Map<string, WL_PttAudioItem>
-  recentCompletedAudioMap: Map<string, WL_IDbMsgData>
+  recentCompletedAudioMap: Map<string, WL_AudioMsgData>
   audioManager: WLAudio
   ringPlayer: WLRingPlayer
   streamPttPlayItem: WL_PttAudioItem | null = null
@@ -104,7 +114,7 @@ export default class WLPttFsm {
     this.playingAudioList = []
     this.playingAudioMap = new Map<string, WL_PttAudioItem>()
     this.waitingAudioMap = new Map<string, WL_PttAudioItem>()
-    this.recentCompletedAudioMap = new Map<string, WL_IDbMsgData>()
+    this.recentCompletedAudioMap = new Map<string, WL_AudioMsgData>()
     this.audioManager = audioManager ?? new WLAudio()
     this.audioManager.onAudioEvent(this.onAudioMessage.bind(this))
     this.ringPlayer = ringPlayer ?? WeilaRingPlayer
@@ -170,17 +180,11 @@ export default class WLPttFsm {
     this.pttFsmService.start()
   }
 
-  private getPttAudioItemId(msgData: WL_IDbMsgData): string {
-    if (msgData.pttData) {
-      return [msgData.sessionId, msgData.sessionType, msgData.senderId, msgData.pttData.seq].join(
-        '_',
-      )
-    }
-
-    return msgData.combo_id
+  private getPttAudioItemId(msgData: WL_PttMsgData): string {
+    return [msgData.sessionId, msgData.sessionType, msgData.senderId, msgData.pttData.seq].join('_')
   }
 
-  private rememberCompletedAudio(id: string, msgData: WL_IDbMsgData): void {
+  private rememberCompletedAudio(id: string, msgData: WL_AudioMsgData): void {
     this.recentCompletedAudioMap.set(id, msgData)
 
     if (this.recentCompletedAudioMap.size > WLPttFsm.RECENT_COMPLETED_PTT_LIMIT) {
@@ -654,24 +658,16 @@ export default class WLPttFsm {
     }
   }
 
-  private fillPttAudioData(audioItem: WL_PttAudioItem, msgData: WL_IDbMsgData) {
-    if (audioItem.msgData.audioData === undefined) {
-      audioItem.msgData.audioData = { frameCount: 0, data: new Uint8Array(0) }
-    }
-
-    if (msgData.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE) {
-      const pttData = msgData.pttData
-      const audioData = audioItem.msgData.audioData
-
-      if (!pttData || !audioData?.data) return
-
-      const newBufferLength = audioData.data.length + pttData.data.length
-      const newBuffer = new Uint8Array(newBufferLength)
-      newBuffer.set(audioData.data, 0)
-      newBuffer.set(pttData.data, audioData.data.length)
-      audioData.data = newBuffer
-      audioData.frameCount += pttData.frameCount
-    }
+  private fillPttAudioData(audioItem: WL_PttAudioItem, msgData: WL_PttMsgData) {
+    const pttData = msgData.pttData
+    const audioData = audioItem.msgData.audioData
+    const currentData = audioData.data ?? new Uint8Array(0)
+    const newBufferLength = currentData.length + pttData.data.length
+    const newBuffer = new Uint8Array(newBufferLength)
+    newBuffer.set(currentData, 0)
+    newBuffer.set(pttData.data, currentData.length)
+    audioData.data = newBuffer
+    audioData.frameCount += pttData.frameCount
   }
 
   getAudioMsgDataPriority(_msgData: WL_IDbMsgData): number {
@@ -835,14 +831,13 @@ export default class WLPttFsm {
     }
   }
 
-  async putPttMsgData(msgData: WL_IDbMsgData): Promise<WL_PttMsgDataResult> {
+  async putPttMsgData(msgData: WL_PttMsgData): Promise<WL_PttMsgDataResult> {
     log.info('消息类型:', msgData.msgType)
 
     const setAudioMsgWaitTimer = (audioItem: WL_PttAudioItem) => {
       audioItem.recvWaitTimerId = setTimeout(async () => {
         audioItem.isCompleted = true
         audioItem.msgData.pttData = undefined
-        audioItem.msgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE
         this.rememberCompletedAudio(audioItem.id, audioItem.msgData)
 
         try {
@@ -856,140 +851,126 @@ export default class WLPttFsm {
       }, 30000)
     }
 
-    if (msgData.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE) {
-      const pttData = msgData.pttData
+    const pttData = msgData.pttData
+    const id = this.getPttAudioItemId(msgData)
+    const recentMsgData = this.recentCompletedAudioMap.get(id)
 
-      if (!pttData) {
-        return { msgData, isNewAudioItem: false }
-      }
-
-      const id = this.getPttAudioItemId(msgData)
-      const recentMsgData = this.recentCompletedAudioMap.get(id)
-
-      if (recentMsgData && !this.waitingAudioMap.has(id) && !this.playingAudioMap.has(id)) {
-        return {
-          msgData: recentMsgData,
-          isNewAudioItem: false,
-        }
-      }
-
-      if (this.waitingAudioMap.has(id)) {
-        log.info('等待队列拥有消息:', id)
-        const audioItem: WL_PttAudioItem = this.waitingAudioMap.get(id)!
-        audioItem.msgData.msgId = Math.max(audioItem.msgData.msgId || 0, msgData.msgId || 0)
-        audioItem.msgData.created = Math.max(audioItem.msgData.created || 0, msgData.created || 0)
-
-        if (audioItem.recvWaitTimerId) {
-          clearTimeout(audioItem.recvWaitTimerId)
-          audioItem.recvWaitTimerId = null
-        }
-
-        this.fillPttAudioData(audioItem, msgData)
-        audioItem.msgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE
-        audioItem.isCompleted = pttData.mark === 0x02 || pttData.mark === 0x03
-        log.info('消息是完整的？', audioItem.isCompleted, pttData.mark)
-
-        if (audioItem.isCompleted) {
-          audioItem.msgData.pttData = undefined
-          audioItem.msgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE
-          this.waitingAudioMap.delete(id)
-          this.rememberCompletedAudio(id, audioItem.msgData)
-        } else {
-          log.info('设置消息超时时间')
-          setAudioMsgWaitTimer(audioItem)
-        }
-
-        try {
-          audioItem.msgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_NEW
-          await WeilaDB.getInstance().putMsgData(audioItem.msgData)
-          log.info('保存音频消息成功')
-        } catch (e) {
-          log.error('保存音频消息异常:', e)
-        }
-
-        return {
-          msgData: audioItem.msgData,
-          isNewAudioItem: false,
-        }
-      } else {
-        log.info('消息不在等待队列中', id)
-        const existingItem = this.playingAudioMap.get(id)
-        const payload: WL_PttPayload = { data: pttData.data, frameCount: pttData.frameCount }
-        let audioItem: WL_PttAudioItem
-        let isNewAudioItem = false
-
-        log.info('处理音频消息:', this.playingAudioList, this.playingAudioMap)
-
-        if (existingItem) {
-          log.info('消息在播放队列中', id)
-          audioItem = existingItem
-          audioItem.msgData.msgId = Math.max(audioItem.msgData.msgId || 0, msgData.msgId || 0)
-          audioItem.msgData.created = Math.max(audioItem.msgData.created || 0, msgData.created || 0)
-
-          if (audioItem.recvWaitTimerId) {
-            clearTimeout(audioItem.recvWaitTimerId)
-            audioItem.recvWaitTimerId = null
-          }
-
-          this.fillPttAudioData(audioItem, msgData)
-          audioItem.msgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE
-          audioItem.isCompleted = pttData.mark === 0x02 || pttData.mark === 0x03
-        } else {
-          log.info('消息不在播放队列中', id)
-          this.playingAudioList.push(id)
-          isNewAudioItem = true
-          audioItem = {
-            playerType: WLPlayerType.WL_PTT_STREAM_PLAYER,
-            shouldSave: true,
-            msgData,
-            id,
-            priority: this.getAudioMsgDataPriority(msgData),
-            payloadList: [],
-            playIndex: 0,
-            isCompleted: pttData.mark === 0x02 || pttData.mark === 0x03,
-            recvWaitTimerId: null,
-          }
-          audioItem.msgData.combo_id = id
-          audioItem.msgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_NEW
-          this.fillPttAudioData(audioItem, msgData)
-          audioItem.msgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE
-        }
-
-        if (audioItem.shouldSave) {
-          try {
-            await WeilaDB.getInstance().putMsgData(audioItem.msgData)
-            log.info('保存音频消息成功')
-          } catch (e) {
-            log.error('保存音频消息异常:', e)
-          }
-        }
-
-        audioItem.payloadList.push(payload)
-
-        if (audioItem.isCompleted) {
-          log.info('音频消息是完整的')
-          audioItem.msgData.pttData = undefined
-          audioItem.msgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE
-          this.rememberCompletedAudio(id, audioItem.msgData)
-        } else {
-          log.info('音频消息是不完整的')
-          setAudioMsgWaitTimer(audioItem)
-        }
-
-        this.playingAudioMap.set(id, audioItem)
-        log.info('通知播放')
-        this.notifyPttDataReady().catch((reason) => {
-          log.error('播放异常:', reason)
-        })
-
-        return {
-          msgData: audioItem.msgData,
-          isNewAudioItem,
-        }
+    if (recentMsgData && !this.waitingAudioMap.has(id) && !this.playingAudioMap.has(id)) {
+      return {
+        msgData: recentMsgData,
+        isNewAudioItem: false,
       }
     }
 
-    return { msgData, isNewAudioItem: false }
+    if (this.waitingAudioMap.has(id)) {
+      log.info('等待队列拥有消息:', id)
+      const audioItem: WL_PttAudioItem = this.waitingAudioMap.get(id)!
+      audioItem.msgData.msgId = Math.max(audioItem.msgData.msgId || 0, msgData.msgId || 0)
+      audioItem.msgData.created = Math.max(audioItem.msgData.created || 0, msgData.created || 0)
+
+      if (audioItem.recvWaitTimerId) {
+        clearTimeout(audioItem.recvWaitTimerId)
+        audioItem.recvWaitTimerId = null
+      }
+
+      this.fillPttAudioData(audioItem, msgData)
+      audioItem.isCompleted = pttData.mark === 0x02 || pttData.mark === 0x03
+      log.info('消息是完整的？', audioItem.isCompleted, pttData.mark)
+
+      if (audioItem.isCompleted) {
+        audioItem.msgData.pttData = undefined
+        this.waitingAudioMap.delete(id)
+        this.rememberCompletedAudio(id, audioItem.msgData)
+      } else {
+        log.info('设置消息超时时间')
+        setAudioMsgWaitTimer(audioItem)
+      }
+
+      try {
+        audioItem.msgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_NEW
+        await WeilaDB.getInstance().putMsgData(audioItem.msgData)
+        log.info('保存音频消息成功')
+      } catch (e) {
+        log.error('保存音频消息异常:', e)
+      }
+
+      return {
+        msgData: audioItem.msgData,
+        isNewAudioItem: false,
+      }
+    }
+
+    log.info('消息不在等待队列中', id)
+    const existingItem = this.playingAudioMap.get(id)
+    const payload: WL_PttPayload = { data: pttData.data, frameCount: pttData.frameCount }
+    let audioItem: WL_PttAudioItem
+    let isNewAudioItem = false
+
+    log.info('处理音频消息:', this.playingAudioList, this.playingAudioMap)
+
+    if (existingItem) {
+      log.info('消息在播放队列中', id)
+      audioItem = existingItem
+      audioItem.msgData.msgId = Math.max(audioItem.msgData.msgId || 0, msgData.msgId || 0)
+      audioItem.msgData.created = Math.max(audioItem.msgData.created || 0, msgData.created || 0)
+
+      if (audioItem.recvWaitTimerId) {
+        clearTimeout(audioItem.recvWaitTimerId)
+        audioItem.recvWaitTimerId = null
+      }
+
+      this.fillPttAudioData(audioItem, msgData)
+      audioItem.isCompleted = pttData.mark === 0x02 || pttData.mark === 0x03
+    } else {
+      log.info('消息不在播放队列中', id)
+      this.playingAudioList.push(id)
+      isNewAudioItem = true
+      audioItem = {
+        playerType: WLPlayerType.WL_PTT_STREAM_PLAYER,
+        shouldSave: true,
+        msgData: toLiveAudioMsgData(msgData),
+        id,
+        priority: this.getAudioMsgDataPriority(msgData),
+        payloadList: [],
+        playIndex: 0,
+        isCompleted: pttData.mark === 0x02 || pttData.mark === 0x03,
+        recvWaitTimerId: null,
+      }
+      audioItem.msgData.combo_id = id
+      audioItem.msgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_NEW
+      this.fillPttAudioData(audioItem, msgData)
+    }
+
+    if (audioItem.shouldSave) {
+      try {
+        await WeilaDB.getInstance().putMsgData(audioItem.msgData)
+        log.info('保存音频消息成功')
+      } catch (e) {
+        log.error('保存音频消息异常:', e)
+      }
+    }
+
+    audioItem.payloadList.push(payload)
+
+    if (audioItem.isCompleted) {
+      log.info('音频消息是完整的')
+      audioItem.msgData.pttData = undefined
+      this.rememberCompletedAudio(id, audioItem.msgData)
+    } else {
+      log.info('音频消息是不完整的')
+      setAudioMsgWaitTimer(audioItem)
+    }
+
+    this.playingAudioMap.set(id, audioItem)
+    log.info('通知播放')
+    this.notifyPttDataReady().catch((reason) => {
+      log.error('播放异常', reason)
+    })
+
+    return {
+      msgData: audioItem.msgData,
+      isNewAudioItem,
+    }
   }
 
   async initAudio(): Promise<boolean> {

@@ -18,8 +18,10 @@ import {
   WL_PbMsgHandler,
   WL_PromiseCallback,
 } from 'main/weila_internal_data'
+import { createMediaMsgContent } from 'main/weila_msg_content'
 import { WLBuildMsgRet } from 'proto/weilapb_wrapper_data'
 import {
+  WL_AudioMsgData,
   WL_IDbAudioData,
   WL_IDbExtension,
   WL_IDbExtensionInfo,
@@ -35,6 +37,8 @@ import {
   WL_IDbMsgData,
   WL_IDbMsgDataStatus,
   WL_IDbMsgDataType,
+  WL_MediaMsgType,
+  WL_MsgBase,
   WL_IDbNotification,
   WL_IDbServiceSessionInfo,
   WL_IDbServiceStaffInfo,
@@ -326,15 +330,15 @@ class WeilaCore implements WL_CoreInterface {
   }
 
   public async weila_playSingle(audioMsgData: WL_IDbMsgData): Promise<boolean> {
-    const ready = await this.sessionModule.prepareSinglePlayback(audioMsgData)
+    const playable = await this.sessionModule.prepareSinglePlayback(audioMsgData)
 
-    if (!ready) {
+    if (!playable) {
       this.notifySinglePlayFailed(audioMsgData)
 
       return false
     }
 
-    return this.sessionModule.playSingleAudioItem(audioMsgData)
+    return this.sessionModule.playSingleAudioItem(playable)
   }
 
   private notifySinglePlayFailed(msgData: WL_IDbMsgData): void {
@@ -364,21 +368,22 @@ class WeilaCore implements WL_CoreInterface {
   }
 
   public async weila_playHistoryList(audioMsgDatas: WL_IDbMsgData[]): Promise<boolean> {
-    audioMsgDatas = audioMsgDatas.filter((value) => {
-      return (
+    const audioMessages = audioMsgDatas.filter(
+      (value): value is WL_AudioMsgData =>
         value.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE &&
-        value.status !== WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_ERR
-      )
-    })
+        value.status !== WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_ERR,
+    )
 
-    for (let msgData of audioMsgDatas) {
+    for (const msgData of audioMessages) {
       const audioData = msgData.audioData
 
-      if (audioData && !audioData.data && audioData.audioUrl) {
+      if (!audioData.data && audioData.audioUrl) {
         const audioUrl = audioData.audioUrl.replace(/^http(?!s)/, 'https')
-        msgData.audioData = await this.weila_fetchAudioData(audioUrl)
+        const fetched = await this.weila_fetchAudioData(audioUrl)
 
-        if (!msgData.audioData) {
+        if (fetched) {
+          msgData.audioData = fetched
+        } else {
           msgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_ERR
         }
 
@@ -386,11 +391,11 @@ class WeilaCore implements WL_CoreInterface {
       }
     }
 
-    audioMsgDatas = audioMsgDatas.filter((value) => {
-      return value.status !== WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_ERR
-    })
+    const playable = audioMessages.filter(
+      (value) => value.status !== WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_ERR,
+    )
 
-    return this.sessionModule.playHistoryAudioItems(audioMsgDatas)
+    return this.sessionModule.playHistoryAudioItems(playable)
   }
 
   public async weila_getMsgData(comboId: string): Promise<WL_IDbMsgData | undefined> {
@@ -918,7 +923,7 @@ class WeilaCore implements WL_CoreInterface {
     sessionType: number,
     filename: string,
     data: File,
-    msgType: WL_IDbMsgDataType,
+    msgType: WL_MediaMsgType,
   ): Promise<boolean> {
     if (!this.isLoginReady) {
       return Promise.reject('微喇状态不正确')
@@ -945,10 +950,8 @@ class WeilaCore implements WL_CoreInterface {
       fileSize: data.size,
     }
 
-    const msgData: WL_IDbMsgData = {
+    const base: WL_MsgBase = {
       combo_id: '',
-      fileInfo,
-      msgType,
       msgId: lastMsgData ? lastMsgData.msgId + 1 : 0,
       sessionType,
       sessionId,
@@ -957,6 +960,10 @@ class WeilaCore implements WL_CoreInterface {
       created: new Date().getTime() / 1000,
       autoReply: 0,
     }
+
+    const content = createMediaMsgContent(msgType, fileInfo)
+
+    const msgData: WL_IDbMsgData = { ...base, ...content }
 
     const sendSeq = isNumber(seqSetting?.data) ? seqSetting.data : 0
     msgData.combo_id = getMsgDataIdByCombo(msgData, sendSeq)

@@ -119,11 +119,24 @@ function makeServiceRaw(
   }
 }
 
+interface LegacyServiceRow {
+  combo_id: string
+  senderId: number
+  sessionId: string
+  sessionType: number
+  msgId: number
+  msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE
+  created: number
+  autoReply: number
+  status: WL_IDbMsgDataStatus
+  serviceData: string
+}
+
 function makeLegacyServiceMessage(
   sessionId: string,
   msgId: number,
   serviceData: string,
-): WL_IDbMsgData {
+): LegacyServiceRow {
   return {
     combo_id: `${sessionId}_${WL.Common.SessionType.SESSION_TYPE_SINGLE}_${msgId}`,
     senderId: 7,
@@ -190,9 +203,11 @@ describe('WeilaDB service messages', () => {
     )
 
     expect(messages).toHaveLength(1)
-    expect(messages[0].msgType).toBe(WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE)
-    expect(messages[0].fileInfo?.fileUrl).toBe(CAPTURED_IMAGE_URL)
-    expect(messages[0].serviceData).toBeUndefined()
+    expect(messages[0]).toMatchObject({
+      msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE,
+      fileInfo: { fileUrl: CAPTURED_IMAGE_URL },
+    })
+    expect(messages[0]).not.toHaveProperty('serviceData')
   })
 
   it('converts a video service message into a video message', async () => {
@@ -201,14 +216,16 @@ describe('WeilaDB service messages', () => {
     const messages = db.convertFromMsgDataRaws([makeServiceRaw('4750', 25, VIDEO_SERVICE_DATA)], 7)
 
     expect(messages).toHaveLength(1)
-    expect(messages[0].msgType).toBe(WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE)
-    expect(messages[0].fileInfo).toEqual({
-      fileUrl: 'https://cdn.example.com/clip.mp4',
-      fileThumbnail: 'https://cdn.example.com/clip.jpg',
-      fileName: 'clip.mp4',
-      fileSize: 2048,
+    expect(messages[0]).toMatchObject({
+      msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE,
+      fileInfo: {
+        fileUrl: 'https://cdn.example.com/clip.mp4',
+        fileThumbnail: 'https://cdn.example.com/clip.jpg',
+        fileName: 'clip.mp4',
+        fileSize: 2048,
+      },
     })
-    expect(messages[0].serviceData).toBeUndefined()
+    expect(messages[0]).not.toHaveProperty('serviceData')
   })
 
   it('migrates a legacy service session extra into the serviceSession key', async () => {
@@ -279,7 +296,7 @@ describe('WeilaDB service messages', () => {
   it('repairs service messages already stored as legacy rows', async () => {
     const db = await openDb(nextUserId(), CURRENT_DB_VERSION)
 
-    const legacyMessage: WL_IDbMsgData = {
+    const legacyMessage: LegacyServiceRow = {
       combo_id: '4800_1_22',
       senderId: 7,
       sessionId: '4800',
@@ -294,22 +311,29 @@ describe('WeilaDB service messages', () => {
 
     const session = makeSession('4800')
     session.lastMsgId = legacyMessage.msgId
-    session.lastMsgData = { ...legacyMessage }
 
-    await db.msgDatas.put(legacyMessage)
-    await db.sessions.put(session)
+    await db.table<LegacyServiceRow, string>('msgDatas').put(legacyMessage)
+    await db
+      .table<Omit<WL_IDbSession, 'lastMsgData'> & { lastMsgData: LegacyServiceRow }, string>(
+        'sessions',
+      )
+      .put({ ...session, lastMsgData: { ...legacyMessage } })
 
     await expect(db.repairLegacyServiceMsgDatas()).resolves.toBe(1)
 
     const repairedMessage = await db.getMsgData(legacyMessage.combo_id)
-    expect(repairedMessage?.msgType).toBe(WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE)
-    expect(repairedMessage?.fileInfo?.fileUrl).toBe(CAPTURED_IMAGE_URL)
-    expect(repairedMessage?.serviceData).toBeUndefined()
+    expect(repairedMessage).toMatchObject({
+      msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE,
+      fileInfo: { fileUrl: CAPTURED_IMAGE_URL },
+    })
+    expect(repairedMessage).not.toHaveProperty('serviceData')
 
     const repairedSession = await db.getSession(session.sessionId, session.sessionType)
-    expect(repairedSession?.lastMsgData?.msgType).toBe(WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE)
-    expect(repairedSession?.lastMsgData?.fileInfo?.fileUrl).toBe(CAPTURED_IMAGE_URL)
-    expect(repairedSession?.lastMsgData?.serviceData).toBeUndefined()
+    expect(repairedSession?.lastMsgData).toMatchObject({
+      msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE,
+      fileInfo: { fileUrl: CAPTURED_IMAGE_URL },
+    })
+    expect(repairedSession?.lastMsgData).not.toHaveProperty('serviceData')
 
     await expect(db.repairLegacyServiceMsgDatas()).resolves.toBe(0)
   })
@@ -320,31 +344,35 @@ describe('WeilaDB service messages', () => {
     const legacyVideo = makeLegacyServiceMessage('4810', 31, VIDEO_SERVICE_DATA)
     const legacyQrcode = makeLegacyServiceMessage('4810', 32, QRCODE_SERVICE_DATA)
 
-    await db.msgDatas.bulkPut([legacyVideo, legacyQrcode])
+    await db.table<LegacyServiceRow, string>('msgDatas').bulkPut([legacyVideo, legacyQrcode])
 
     await expect(db.repairLegacyServiceMsgDatas()).resolves.toBe(2)
 
     const repairedVideo = await db.getMsgData(legacyVideo.combo_id)
-    expect(repairedVideo?.msgType).toBe(WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE)
-    expect(repairedVideo?.fileInfo).toEqual({
-      fileUrl: 'https://cdn.example.com/clip.mp4',
-      fileThumbnail: 'https://cdn.example.com/clip.jpg',
-      fileName: 'clip.mp4',
-      fileSize: 2048,
+    expect(repairedVideo).toMatchObject({
+      msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE,
+      fileInfo: {
+        fileUrl: 'https://cdn.example.com/clip.mp4',
+        fileThumbnail: 'https://cdn.example.com/clip.jpg',
+        fileName: 'clip.mp4',
+        fileSize: 2048,
+      },
     })
-    expect(repairedVideo?.serviceData).toBeUndefined()
+    expect(repairedVideo).not.toHaveProperty('serviceData')
 
     const repairedQrcode = await db.getMsgData(legacyQrcode.combo_id)
-    expect(repairedQrcode?.msgType).toBe(WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE)
-    expect(repairedQrcode?.servicePayload).toEqual({
-      type: 'qrcode',
-      url: 'https://cdn.example.com/qr.png',
-      name: 'My Card',
-      desc: 'Scan me',
-      sessionId: '80001922',
-      sessionType: 1,
+    expect(repairedQrcode).toMatchObject({
+      msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE,
+      servicePayload: {
+        type: 'qrcode',
+        url: 'https://cdn.example.com/qr.png',
+        name: 'My Card',
+        desc: 'Scan me',
+        sessionId: '80001922',
+        sessionType: 1,
+      },
     })
-    expect(repairedQrcode?.serviceData).toBeUndefined()
+    expect(repairedQrcode).not.toHaveProperty('serviceData')
 
     await expect(db.repairLegacyServiceMsgDatas()).resolves.toBe(0)
   })

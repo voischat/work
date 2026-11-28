@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { WL_IDbMsgData, WL_IDbUserInfo } from '@vois/weila-sdk-core'
+import type { WL_TextMsgData, WL_IDbUserInfo } from '@vois/weila-sdk-core'
 import WLEmoji from '@/components/Emoji/WLEmoji.vue'
 import { parseTextWithEmoji } from '@/utils'
 
 export interface WlTextBubbleProps {
-  msg: WL_IDbMsgData
+  msg: WL_TextMsgData
   isSelf?: boolean
   sender?: WL_IDbUserInfo
 }
@@ -14,7 +14,7 @@ const props = withDefaults(defineProps<WlTextBubbleProps>(), {
   isSelf: false,
 })
 
-const parsedText = computed(() => parseTextWithEmoji(props.msg.textData || ''))
+const parsedText = computed(() => parseTextWithEmoji(props.msg.textData))
 </script>
 
 <template>

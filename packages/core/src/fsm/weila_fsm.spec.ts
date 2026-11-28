@@ -198,6 +198,7 @@ function audioItem(): WL_PttAudioItem {
       created: 0,
       autoReply: 0,
       status: WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_NEW,
+      audioData: { frameCount: 0 },
     },
     payloadList: [],
     playIndex: 0,

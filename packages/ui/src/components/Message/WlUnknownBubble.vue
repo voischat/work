@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { WL_IDbMsgData, WL_IDbUserInfo } from '@vois/weila-sdk-core'
+import { WL_IDbMsgDataStatus } from '@vois/weila-sdk-core'
 import { useWeilaUiI18n } from '../../i18n'
 
 export interface WlUnknownBubbleProps {
@@ -20,7 +21,7 @@ const { t } = useWeilaUiI18n()
     class="rounded-xl px-3 py-2 text-sm overflow-hidden break-all"
     :class="isSelf ? 'bg-blue-500 text-blue-100' : 'bg-white text-neutral-400'"
   >
-    <div v-if="msg.status === 5 || msg.msgType === 10" class="italic">
+    <div v-if="msg.status === WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_WITHDRAW" class="italic">
       {{ isSelf ? t('message.withdrawnByMe') : t('message.withdrawnByOther') }}
     </div>
     <div v-else>{{ t('message.unsupported') }}</div>

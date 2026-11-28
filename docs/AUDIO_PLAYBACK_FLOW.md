@@ -154,12 +154,12 @@ public async weila_playSingle(audioMsgData: WL_IDbMsgData): Promise<boolean> {
 
 ```typescript
 // packages/core/src/main/weila_session_module.ts:788
-public async playSingleAudioItem(msgData: WL_IDbMsgData): Promise<boolean> {
+public async playSingleAudioItem(msgData: WL_AudioMsgData): Promise<boolean> {
   return this.pttFsm.playSingle(msgData)
 }
 
 // packages/core/src/main/weila_pttFsm.ts:815
-async playSingle(msgData: WL_IDbMsgData): Promise<boolean> {
+async playSingle(msgData: WL_AudioMsgData): Promise<boolean> {
   const audioItem = {} as WL_PttAudioItem
   audioItem.msgData = msgData
   audioItem.playerType = WLPlayerType.WL_PTT_SINGLE_PLAYER

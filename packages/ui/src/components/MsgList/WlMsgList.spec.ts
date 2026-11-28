@@ -1,10 +1,10 @@
-import type { WL_IDbMsgData } from '@vois/weila-sdk-core'
+import type { WL_TextMsgData } from '@vois/weila-sdk-core'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { WL_IDbMsgDataStatus, WL_IDbMsgDataType } from '@vois/weila-sdk-core'
 import WlMsgList from './WlMsgList.vue'
 
-function textMessage(overrides: Partial<WL_IDbMsgData> = {}): WL_IDbMsgData {
+function textMessage(overrides: Partial<WL_TextMsgData> = {}): WL_TextMsgData {
   return {
     combo_id: '80001922_18_1_0',
     senderId: 1875437,

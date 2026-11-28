@@ -34,6 +34,8 @@ import {
   WL_IDbSetting,
   WL_IDbSettingID,
   WL_IDbUserInfo,
+  WL_MsgBase,
+  WL_MsgContent,
   WL_ServiceStatus,
   applySessionExtraProfile,
   inheritSessionProfile,
@@ -41,7 +43,7 @@ import {
   isIndividualSessionType,
   isServiceSessionType,
 } from './weila_db_data'
-import { isNumber, isRecord } from 'main/weila_type_guards'
+import { isNumber, isRecord, isString } from 'main/weila_type_guards'
 import { dbEnum } from './db_enum'
 import { createLogger } from 'log/weila_log'
 import TinyPinyin from 'tiny-pinyin'
@@ -116,34 +118,28 @@ function readInstalledSchemaVersion(dbName: string): Promise<number> {
   })
 }
 
-function normalizeServiceMsgData(
-  target: Pick<
-    WL_IDbMsgData,
-    'msgType' | 'serviceData' | 'fileInfo' | 'location' | 'servicePayload'
-  >,
-): boolean {
-  if (target.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE || !target.serviceData) {
-    return false
+function toMsgBase(row: WL_MsgBase): WL_MsgBase {
+  const { combo_id, senderId, sessionId, sessionType, msgId, created, autoReply, status, tag } = row
+
+  return { combo_id, senderId, sessionId, sessionType, msgId, created, autoReply, status, tag }
+}
+
+function readLegacyServiceData(row: WL_MsgBase & { serviceData?: unknown }): string | undefined {
+  return isString(row.serviceData) ? row.serviceData : undefined
+}
+
+function normalizeLegacyServiceMsgData(row: WL_IDbMsgData): WL_IDbMsgData | undefined {
+  if (row.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE) {
+    return undefined
   }
 
-  const parsed = parseSessionServiceMsg(target.serviceData)
+  const serviceData = readLegacyServiceData(row)
 
-  if (parsed === undefined) {
-    return false
+  if (serviceData === undefined) {
+    return undefined
   }
 
-  target.msgType = parsed.msgType
-
-  if (parsed.msgType === WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE) {
-    target.servicePayload = parsed.servicePayload
-  } else {
-    target.fileInfo = parsed.fileInfo
-    target.location = parsed.location
-  }
-
-  delete target.serviceData
-
-  return true
+  return { ...toMsgBase(row), ...parseSessionServiceMsg(serviceData) }
 }
 
 class WeilaDB extends Dexie {
@@ -1048,7 +1044,7 @@ class WeilaDB extends Dexie {
       const isIndividualMsg =
         isIndividualSessionType(raw.sessionType ?? 0) && raw.senderId !== myUserId
 
-      const msgData: WL_IDbMsgData = {
+      const base: WL_MsgBase = {
         combo_id: '',
         senderId,
         sessionId: isIndividualMsg
@@ -1056,47 +1052,32 @@ class WeilaDB extends Dexie {
           : Long.fromValue(raw.sessionId ?? 0).toString(10),
         sessionType: raw.sessionType ?? 0,
         msgId: raw.msgId ?? 0,
-        msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_UNKNOWN_TYPE,
         created: Long.fromValue(raw.created ?? 0).toNumber(),
         autoReply: raw.autoReply ?? 0,
         status: WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_READ,
+        tag: raw.tag ?? undefined,
       }
 
-      msgData.tag = raw.tag ?? undefined
+      let content: WL_MsgContent | undefined
 
       switch (raw.msgType) {
         case WL.Session.MessageType.MSG_TYPE_TEXT:
-          {
-            const textMsgData = TextMsgDataParser.decodeSessionTextMsg(raw.textData!)
-
-            if (textMsgData !== undefined) {
-              msgData.msgType = textMsgData.msgType
-              msgData.textData = textMsgData.textData
-              msgData.location = textMsgData.location
-              msgData.fileInfo = textMsgData.fileInfo
-              msgData.command = textMsgData.command
-            } else {
-              msgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_ERR
-            }
-          }
+          content = TextMsgDataParser.decodeSessionTextMsg(raw.textData ?? '')
 
           break
 
         case WL.Session.MessageType.MSG_TYPE_PTT:
-          {
-            msgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE
-
-            if (raw.pttData) {
-              msgData.pttData = {
+          if (raw.pttData) {
+            content = {
+              msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE,
+              pttData: {
                 data: raw.pttData.opusData?.payload ?? new Uint8Array(),
                 frameCount: raw.pttData.opusData?.frameCount ?? 0,
                 seq: raw.pttData.seq ?? 0,
                 seqInPackage: raw.pttData.packageSeq ?? 0,
                 mark: raw.pttData.marker ?? 0,
                 sourceType: raw.pttData.source ?? 0,
-              }
-            } else {
-              msgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_ERR
+              },
             }
           }
 
@@ -1104,63 +1085,50 @@ class WeilaDB extends Dexie {
 
         case WL.Session.MessageType.MSG_TYPE_AUDIO:
           {
-            msgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE
-            msgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_NEW
+            base.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_NEW
 
             const audioData: WL_IDbAudioData = { frameCount: 0 }
-            msgData.audioData = audioData
             const audioRaw = raw.audioData
 
             if (audioRaw?.payload && audioRaw.payload.length > 0) {
               audioData.data = audioRaw.payload.slice(0)
               audioData.audioUrl = undefined
               audioData.frameCount = calculateOpusDataFrame(audioData.data)
+              content = { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE, audioData }
             } else if (audioRaw?.url && audioRaw.url !== '') {
               audioData.data = undefined
               audioData.audioUrl = audioRaw.url
               audioData.frameCount = 0
-            } else {
-              msgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_ERR
+              content = { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE, audioData }
             }
           }
 
           break
 
         case WL.Session.MessageType.MSG_TYPE_SERVICE:
-          {
-            msgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE
-            msgData.serviceData = raw.serviceData ?? undefined
-            normalizeServiceMsgData(msgData)
-          }
+          content = parseSessionServiceMsg(raw.serviceData ?? '')
 
           break
 
         case WL.Session.MessageType.MSG_TYPE_SWITCH:
-          {
-            msgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_SWITCH_TYPE
-            msgData.switchData = raw.switchData?.serviceData ?? undefined
+          content = {
+            msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_SWITCH_TYPE,
+            switchData: raw.switchData?.serviceData ?? undefined,
           }
 
           break
 
         case WL.Session.MessageType.MSG_TYPE_REVOCATION:
-          {
-            msgData.msgType = WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE
-            msgData.withdrawMsgId = raw.revocationMsgId ?? undefined
-          }
-
-          break
-
-        default:
-          {
-            msgData.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_ERR
+          content = {
+            msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE,
+            withdrawMsgId: raw.revocationMsgId ?? undefined,
           }
 
           break
       }
 
-      if (msgData.status !== WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_ERR) {
-        msgDatas.push(msgData)
+      if (content !== undefined) {
+        msgDatas.push({ ...base, ...content })
       }
     }
 
@@ -1191,7 +1159,11 @@ class WeilaDB extends Dexie {
       .equals(WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE)
       .toArray()
 
-    const repairedMsgDatas = msgRows.filter((row) => normalizeServiceMsgData(row))
+    const repairedMsgDatas = msgRows.flatMap((row) => {
+      const repaired = normalizeLegacyServiceMsgData(row)
+
+      return repaired ? [repaired] : []
+    })
 
     if (repairedMsgDatas.length > 0) {
       await this.msgDatas.bulkPut(repairedMsgDatas)
@@ -1199,10 +1171,15 @@ class WeilaDB extends Dexie {
 
     const sessions = await this.sessions.toArray()
 
-    const repairedSessions = sessions.filter(
-      (session) =>
-        session.lastMsgData !== undefined && normalizeServiceMsgData(session.lastMsgData),
-    )
+    const repairedSessions = sessions.flatMap((session) => {
+      if (session.lastMsgData === undefined) {
+        return []
+      }
+
+      const repaired = normalizeLegacyServiceMsgData(session.lastMsgData)
+
+      return repaired ? [{ ...session, lastMsgData: repaired }] : []
+    })
 
     if (repairedSessions.length > 0) {
       await this.sessions.bulkPut(repairedSessions)
@@ -1323,13 +1300,18 @@ class WeilaDB extends Dexie {
 
     await this.transaction('rw', this.msgDatas, async () => {
       for (const control of controls) {
-        if (control.withdrawMsgId) {
-          const target = await this.getMsgDataByMsgId(sessionId, sessionType, control.withdrawMsgId)
+        if (
+          control.msgType !== WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE ||
+          !control.withdrawMsgId
+        ) {
+          continue
+        }
 
-          if (target) {
-            target.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_WITHDRAW
-            await this.msgDatas.put(target)
-          }
+        const target = await this.getMsgDataByMsgId(sessionId, sessionType, control.withdrawMsgId)
+
+        if (target) {
+          target.status = WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_WITHDRAW
+          await this.msgDatas.put(target)
         }
 
         await this.msgDatas.delete(control.combo_id)

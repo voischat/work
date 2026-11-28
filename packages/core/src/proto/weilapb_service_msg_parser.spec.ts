@@ -8,6 +8,13 @@ const CAPTURED_IMAGE_URL =
 const CAPTURED_IMAGE_SERVICE_DATA =
   '{"service_type":"image","content":{"url":"http://weilacache.oss-cn-shenzhen.aliyuncs.com/media/cg/80001922/20261125/1875437_142130_1.jpg"}}'
 
+function expectUnknownService(serviceData: string) {
+  expect(parseSessionServiceMsg(serviceData)).toEqual({
+    msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE,
+    servicePayload: { type: 'unknown', raw: serviceData },
+  })
+}
+
 describe('parseSessionServiceMsg', () => {
   it('parses the captured image service message', () => {
     expect(parseSessionServiceMsg(CAPTURED_IMAGE_SERVICE_DATA)).toEqual({
@@ -260,89 +267,61 @@ describe('parseSessionServiceMsg', () => {
     })
   })
 
-  it('returns undefined for malformed JSON', () => {
-    expect(parseSessionServiceMsg('{"service_type":')).toBeUndefined()
+  it('keeps malformed JSON as an unknown service payload', () => {
+    expectUnknownService('{"service_type":')
   })
 
-  it('returns undefined for an unknown service type', () => {
-    expect(
-      parseSessionServiceMsg(
-        '{"service_type":"not-a-service","content":{"url":"https://example.com/a"}}',
-      ),
-    ).toBeUndefined()
+  it('keeps an unknown service type as an unknown service payload', () => {
+    expectUnknownService(
+      '{"service_type":"not-a-service","content":{"url":"https://example.com/a"}}',
+    )
   })
 
-  it('returns undefined when content.url is missing', () => {
-    expect(parseSessionServiceMsg('{"service_type":"image","content":{}}')).toBeUndefined()
+  it('keeps an image without a url as an unknown service payload', () => {
+    expectUnknownService('{"service_type":"image","content":{}}')
   })
 
-  it('returns undefined for a non-http url', () => {
-    expect(
-      parseSessionServiceMsg('{"service_type":"image","content":{"url":"javascript:alert(1)"}}'),
-    ).toBeUndefined()
+  it('keeps a non-http url as an unknown service payload', () => {
+    expectUnknownService('{"service_type":"image","content":{"url":"javascript:alert(1)"}}')
   })
 
-  it('returns undefined when content.url is not a string', () => {
-    expect(parseSessionServiceMsg('{"service_type":"image","content":{"url":42}}')).toBeUndefined()
+  it('keeps a non-string url as an unknown service payload', () => {
+    expectUnknownService('{"service_type":"image","content":{"url":42}}')
   })
 
-  it('returns undefined for a video without a url', () => {
-    expect(
-      parseSessionServiceMsg('{"service_type":"video","content":{"name":"clip.mp4"}}'),
-    ).toBeUndefined()
+  it('keeps a video without a url as an unknown service payload', () => {
+    expectUnknownService('{"service_type":"video","content":{"name":"clip.mp4"}}')
   })
 
-  it('returns undefined for a file without a name', () => {
-    expect(
-      parseSessionServiceMsg(
-        '{"service_type":"file","content":{"url":"https://cdn.example.com/doc.pdf"}}',
-      ),
-    ).toBeUndefined()
+  it('keeps a file without a name as an unknown service payload', () => {
+    expectUnknownService(
+      '{"service_type":"file","content":{"url":"https://cdn.example.com/doc.pdf"}}',
+    )
   })
 
-  it('returns undefined for a location with out-of-range coordinates', () => {
-    expect(
-      parseSessionServiceMsg(
-        '{"service_type":"location","content":{"latitude":91,"longitude":120}}',
-      ),
-    ).toBeUndefined()
-    expect(
-      parseSessionServiceMsg(
-        '{"service_type":"location","content":{"latitude":30,"longitude":181}}',
-      ),
-    ).toBeUndefined()
+  it('keeps out-of-range location coordinates as an unknown service payload', () => {
+    expectUnknownService('{"service_type":"location","content":{"latitude":91,"longitude":120}}')
+    expectUnknownService('{"service_type":"location","content":{"latitude":30,"longitude":181}}')
   })
 
-  it('returns undefined for a location without coordinates', () => {
-    expect(
-      parseSessionServiceMsg('{"service_type":"location","content":{"name":"Office"}}'),
-    ).toBeUndefined()
+  it('keeps a location without coordinates as an unknown service payload', () => {
+    expectUnknownService('{"service_type":"location","content":{"name":"Office"}}')
   })
 
-  it('returns undefined for a qrcode without a url', () => {
-    expect(
-      parseSessionServiceMsg('{"service_type":"qrcode","content":{"name":"My Card"}}'),
-    ).toBeUndefined()
+  it('keeps a qrcode without a url as an unknown service payload', () => {
+    expectUnknownService('{"service_type":"qrcode","content":{"name":"My Card"}}')
   })
 
-  it('returns undefined for a member change without members', () => {
-    expect(
-      parseSessionServiceMsg(
-        '{"service_type":"session-member-change","content":{"action":"join","members":[]}}',
-      ),
-    ).toBeUndefined()
-    expect(
-      parseSessionServiceMsg(
-        '{"service_type":"session-member-change","content":{"action":"join"}}',
-      ),
-    ).toBeUndefined()
+  it('keeps a member change without members as an unknown service payload', () => {
+    expectUnknownService(
+      '{"service_type":"session-member-change","content":{"action":"join","members":[]}}',
+    )
+    expectUnknownService('{"service_type":"session-member-change","content":{"action":"join"}}')
   })
 
-  it('returns undefined for a member change with an unknown action', () => {
-    expect(
-      parseSessionServiceMsg(
-        '{"service_type":"session-member-change","content":{"action":"invite","members":[{"user_id":1,"nick":"张三"}]}}',
-      ),
-    ).toBeUndefined()
+  it('keeps a member change with an unknown action as an unknown service payload', () => {
+    expectUnknownService(
+      '{"service_type":"session-member-change","content":{"action":"invite","members":[{"user_id":1,"nick":"张三"}]}}',
+    )
   })
 })

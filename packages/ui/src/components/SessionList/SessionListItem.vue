@@ -98,13 +98,13 @@ const messagePreview = computed(() => {
     case WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE:
       return t('session.preview.video')
     case WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE:
-      return `${t('session.preview.file')} ${msg.fileInfo?.fileName || ''}`.trim()
+      return `${t('session.preview.file')} ${msg.fileInfo.fileName || ''}`.trim()
     case WL_IDbMsgDataType.WL_DB_MSG_DATA_LOCATION_TYPE:
       return t('session.preview.location')
     case WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE:
       return t('session.preview.ptt')
     case WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE:
-      switch (msg.servicePayload?.type) {
+      switch (msg.servicePayload.type) {
         case 'qrcode':
           return t('session.preview.qrcode')
         case 'session-member-change':

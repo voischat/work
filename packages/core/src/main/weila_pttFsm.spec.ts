@@ -3,7 +3,7 @@ import { WLAudio } from 'audio/weila_audio'
 import { WLAudioEvent, WLPlayerType } from 'audio/weila_audio_data'
 import { WL_ConfigID } from 'main/weila_config'
 import WLPttFsm from 'main/weila_pttFsm'
-import { WL_IDbMsgData, WL_IDbMsgDataStatus, WL_IDbMsgDataType } from 'db/weila_db_data'
+import { WL_AudioMsgData, WL_IDbMsgDataStatus, WL_IDbMsgDataType } from 'db/weila_db_data'
 import type { WL_PttAudioItem, WL_PttFsmListener, WL_PttPayload } from 'main/weila_internal_data'
 import { WL_PttAudioPlayState } from 'main/weila_external_data'
 import { fsmEvents } from 'fsm/weila_fsmScript'
@@ -12,7 +12,7 @@ function makeOpusPayload(): WL_PttPayload {
   return { frameCount: 1, data: new Uint8Array([0x00, 0x03, 0x11, 0x22, 0x33]) }
 }
 
-function makeMsgData(): WL_IDbMsgData {
+function makeMsgData(): WL_AudioMsgData {
   return {
     combo_id: 'combo-1',
     senderId: 7,
@@ -23,6 +23,7 @@ function makeMsgData(): WL_IDbMsgData {
     created: 1732300000,
     autoReply: 0,
     status: WL_IDbMsgDataStatus.WL_DB_MSG_DATA_STATUS_NEW,
+    audioData: { frameCount: 0 },
   }
 }
 

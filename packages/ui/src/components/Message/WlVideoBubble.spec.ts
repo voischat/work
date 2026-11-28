@@ -1,4 +1,4 @@
-import type { WL_IDbMsgData } from '@vois/weila-sdk-core'
+import type { WL_VideoMsgData } from '@vois/weila-sdk-core'
 import { WL_IDbMsgDataStatus, WL_IDbMsgDataType } from '@vois/weila-sdk-core'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
@@ -7,7 +7,7 @@ import WlVideoBubble from './WlVideoBubble.vue'
 const FILE_URL = 'https://cdn.example.com/clip.mp4'
 const THUMBNAIL_URL = `${FILE_URL}?x-oss-process=video/snapshot,t_0,f_jpg,m_fast,w_320,ar_auto`
 
-function videoMessage(fileUrl: string = FILE_URL): WL_IDbMsgData {
+function videoMessage(fileUrl: string = FILE_URL): WL_VideoMsgData {
   return {
     combo_id: '80001922_18_2_0',
     senderId: 1,

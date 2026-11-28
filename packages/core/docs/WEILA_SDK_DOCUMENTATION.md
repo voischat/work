@@ -932,28 +932,63 @@ interface WL_IDbGroup {
 ### 18.3 消息数据
 
 ```typescript
-interface WL_IDbMsgData {
+interface WL_MsgBase {
   combo_id: string
   senderId: number
   sessionId: string
   sessionType: number
   msgId: number
-  msgType: WL_IDbMsgDataType
   created: number
   autoReply: number
   status: WL_IDbMsgDataStatus
   tag?: string
-  textData?: string
-  audioData?: WL_IDbAudioData
-  fileInfo?: WL_IDbFileData
-  command?: string
-  location?: WL_IDbLocationShared
-  switchData?: string
-  serviceData?: string
-  withdrawMsgId?: number
-  pttData?: WL_IDbPttData
 }
 
+type WL_MsgContent =
+  | { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE; textData: string }
+  | {
+      msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE
+      audioData: WL_IDbAudioData
+      pttData?: WL_IDbPttData
+    }
+  | { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE; fileInfo: WL_IDbFileData }
+  | { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_VIDEO_TYPE; fileInfo: WL_IDbFileData }
+  | { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_FILE_TYPE; fileInfo: WL_IDbFileData }
+  | { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_LOCATION_TYPE; location: WL_IDbLocationShared }
+  | { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_COMMAND_TYPE; command: string }
+  | { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_PTT_TYPE; pttData: WL_IDbPttData }
+  | {
+      msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE
+      servicePayload: WL_IDbServicePayload
+    }
+  | { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_SWITCH_TYPE; switchData?: string }
+  | { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_WITHDRAW_TYPE; withdrawMsgId?: number }
+  | { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_UNKNOWN_TYPE }
+
+type WL_MsgWithEnvelope<T> = T extends unknown ? WL_MsgBase & T : never
+type WL_IDbMsgData = WL_MsgWithEnvelope<WL_MsgContent>
+
+type WL_TextMsgData = Extract<
+  WL_IDbMsgData,
+  { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE }
+>
+type WL_AudioMsgData = Extract<
+  WL_IDbMsgData,
+  { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_AUDIO_TYPE }
+>
+type WL_ImageMsgData = Extract<
+  WL_IDbMsgData,
+  { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_IMAGE_TYPE }
+>
+type WL_ServiceMsgData = Extract<
+  WL_IDbMsgData,
+  { msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_SERVICE_TYPE }
+>
+```
+
+`msgType` 是判别字段，载荷字段只在对应分支里存在。例如 `WL_TextMsgData` 一定有 `textData`，`WL_ImageMsgData` 一定有 `fileInfo`。`servicePayload` 的 `type: 'unknown'` 分支保留服务端未知类型的原始 JSON。
+
+```typescript
 interface WL_IDbAudioData {
   frameCount: number
   data?: Uint8Array
