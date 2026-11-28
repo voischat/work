@@ -3,7 +3,7 @@ import { execSync } from 'node:child_process'
 import Vue from 'unplugin-vue/rolldown'
 
 export default defineConfig({
-  entry: ['./src/index.ts'],
+  entry: ['./src/index.ts', './src/i18n.ts'],
   format: ['esm', 'cjs'],
   platform: 'neutral',
   dts: { vue: true },
