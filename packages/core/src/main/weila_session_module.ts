@@ -45,7 +45,7 @@ import { WeilaPBSessionWrapper } from 'proto/weilapb_session_wrapper'
 import { WeilaDB } from 'db/weila_db'
 import { WLBuildMsgRet } from 'proto/weilapb_wrapper_data'
 import { createLogger } from 'log/weila_log'
-import WLPttFsm from 'main/weila_pttFsm'
+import WLPttFsm from 'main/weila_ptt_fsm'
 import { isRecord, type JsonValue } from 'main/weila_type_guards'
 import {
   decompositionAudioData,

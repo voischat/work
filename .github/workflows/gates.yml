@@ -35,6 +35,7 @@ jobs:
       - run: pnpm run typecheck:parity
       - run: pnpm run typecheck:strict-budget
       - run: pnpm knip
+      - run: pnpm run lint:names
       - run: pnpm run lint:sdk
       - run: pnpm run lint:comments
       - run: pnpm run test:scripts

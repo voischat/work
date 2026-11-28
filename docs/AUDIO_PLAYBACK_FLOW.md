@@ -158,7 +158,7 @@ public async playSingleAudioItem(msgData: WL_AudioMsgData): Promise<boolean> {
   return this.pttFsm.playSingle(msgData)
 }
 
-// packages/core/src/main/weila_pttFsm.ts:815
+// packages/core/src/main/weila_ptt_fsm.ts:815
 async playSingle(msgData: WL_AudioMsgData): Promise<boolean> {
   const audioItem = {} as WL_PttAudioItem
   audioItem.msgData = msgData
@@ -172,7 +172,7 @@ async playSingle(msgData: WL_AudioMsgData): Promise<boolean> {
 #### 步骤 7: FSM Entry Action - 打开播放器
 
 ```typescript
-// packages/core/src/main/weila_pttFsm.ts:211
+// packages/core/src/main/weila_ptt_fsm.ts:211
 onSinglePlayEntry(context: any, event: any, actionMeta: any) {
   // 打开播放器
   this.audioManager.openPlayer(WLPlayerType.WL_PTT_SINGLE_PLAYER, 16000)
@@ -388,7 +388,7 @@ worklet 依赖 Emscripten 的 Opus glue。IIFE 把依赖全部内联，所以 Bl
 | SDK 入口       | `packages/core/src/weilasdk.ts`                      |
 | 播放 API       | `packages/core/src/main/weila_core.ts:621`           |
 | 会话模块       | `packages/core/src/main/weila_session_module.ts:788` |
-| FSM 状态机     | `packages/core/src/main/weila_pttFsm.ts:815`         |
+| FSM 状态机     | `packages/core/src/main/weila_ptt_fsm.ts:815`        |
 | 音频管理器     | `packages/core/src/audio/weila_audio.ts`             |
 | Player Worklet | `packages/core/src/audio/weila_player.worklet.js`    |
 | 配置加载       | `packages/core/src/main/weila_config.ts:96`          |

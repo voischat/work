@@ -68,6 +68,7 @@ catalog:
   '@iconify/tailwind4': ^1.2.3
   '@intlify/eslint-plugin-vue-i18n': ^4.5.1
   '@kvoon/utils': latest
+  '@ls-lint/ls-lint': ^2.3.2
   '@modyfi/vite-plugin-yaml': ^1.1.1
   '@oxlint/plugins': 1.94.0
   '@pinia/colada': ^1.4.9

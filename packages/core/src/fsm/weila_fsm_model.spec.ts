@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createActor, fromCallback, fromPromise } from 'xstate'
-import { fsmEvents, mainFsm, pttFsm } from './weila_fsmScript'
+import { fsmEvents, mainFsm, pttFsm } from './weila_fsm_script'
 
 interface ModelSnapshot {
   value: unknown

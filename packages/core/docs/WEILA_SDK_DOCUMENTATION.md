@@ -55,7 +55,7 @@ weilasdk/
 │   ├── weila_db.ts            # 数据库操作
 │   └── weila_db_data.ts       # 数据类型定义
 ├── fsm/                # 状态机模块 (XState)
-│   └── weila_fsmScript.ts     # 状态机定义
+│   └── weila_fsm_script.ts     # 状态机定义
 ├── audio/              # 音频处理模块
 ├── log/                # 日志模块
 └── proto/              # Protobuf 消息模块

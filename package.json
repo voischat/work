@@ -25,7 +25,8 @@
     "test": "turbo run test",
     "test:run": "turbo run test:run",
     "test:scripts": "node --test packages/core/scripts/*.spec.ts scripts/*.spec.ts scripts/release/*.spec.ts",
-    "lint": "pnpm run lint:web && pnpm run lint:sdk && pnpm run lint:comments",
+    "lint": "pnpm run lint:names && pnpm run lint:web && pnpm run lint:sdk && pnpm run lint:comments",
+    "lint:names": "ls-lint",
     "lint:web": "eslint apps/website --max-warnings 0",
     "lint:sdk": "node packages/core/scripts/lint-budget.ts",
     "lint:fix": "eslint --fix apps/website",
@@ -58,6 +59,7 @@
   "devDependencies": {
     "@antfu/eslint-config": "catalog:",
     "@intlify/eslint-plugin-vue-i18n": "catalog:",
+    "@ls-lint/ls-lint": "catalog:",
     "@oxlint/plugins": "catalog:",
     "@tanstack/eslint-plugin-query": "catalog:",
     "bumpp": "catalog:",
@@ -90,15 +92,20 @@
   },
   "nano-staged": {
     "packages/**/*.{js,jsx,ts,tsx,mjs,cjs,vue}": [
+      "ls-lint",
       "oxlint --type-aware",
       "oxfmt --check"
     ],
     "packages/**/*.{json,jsonc,md,mdx,css,pcss,html,yml,yaml}": "oxfmt --check",
     "apps/playground-vue3/**/*.{js,jsx,ts,tsx,mjs,cjs,vue}": [
+      "ls-lint",
       "oxlint --type-aware",
       "oxfmt --check"
     ],
-    "apps/website/**/*.{js,jsx,ts,tsx,mjs,cjs,vue,md,mdx,css,pcss,html,json,jsonc,yml,yaml}": "eslint --fix"
+    "apps/website/**/*.{js,jsx,ts,tsx,mjs,cjs,vue,md,mdx,css,pcss,html,json,jsonc,yml,yaml}": [
+      "ls-lint",
+      "eslint --fix"
+    ]
   },
   "engines": {
     "node": ">=22.18",

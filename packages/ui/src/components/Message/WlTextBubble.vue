@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { WL_TextMsgData, WL_IDbUserInfo } from '@vois/weila-sdk-core'
-import WLEmoji from '@/components/Emoji/WLEmoji.vue'
+import WLEmoji from '@/components/Emoji/WlEmoji.vue'
 import { parseTextWithEmoji } from '@/utils'
 
 export interface WlTextBubbleProps {
