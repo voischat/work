@@ -33,6 +33,8 @@ type BusinessResponseRoute = (
   businessMessage: WL.Business.IBusinessMessage | null | undefined,
 ) => void
 
+type BusinessNotificationRoute = (businessMessage: WL.Business.IBusinessMessage) => void
+
 export default class WLBusinessModule {
   private readonly responseRoutes = new Map<number, BusinessResponseRoute>([
     [
@@ -133,6 +135,57 @@ export default class WLBusinessModule {
     ],
   ])
 
+  private readonly notificationRoutes = new Map<number, BusinessNotificationRoute>([
+    [
+      WL.Business.BusinessCommandId.BUSINESS_COMMAND_COMMON_SESSION_CHANGE,
+      (businessMessage) => this.onNtfCommonSessionChange(businessMessage),
+    ],
+    [
+      WL.Business.BusinessCommandId.BUSINESS_COMMAND_COMMON_STAFF_INVITE,
+      (businessMessage) => this.onNtfCommonStaffInvite(businessMessage),
+    ],
+    [
+      WL.Business.BusinessCommandId.BUSINESS_COMMAND_COMMON_ANSWER_STAFF_INVITE,
+      (businessMessage) => this.onNtfCommonAnswerStaffInvite(businessMessage),
+    ],
+    [
+      WL.Business.BusinessCommandId.BUSINESS_COMMAND_STAFF_ACCEPT_SESSION,
+      (businessMessage) =>
+        this.onNtfStaffSessionState(
+          businessMessage.ntfStaffAcceptSession,
+          WL_ExtEventID.WL_EXT_STAFF_ACCEPT_SESSION_IND,
+        ),
+    ],
+    [
+      WL.Business.BusinessCommandId.BUSINESS_COMMAND_STAFF_EXIT_SESSION,
+      (businessMessage) =>
+        this.onNtfStaffSessionState(
+          businessMessage.ntfStaffExitSession,
+          WL_ExtEventID.WL_EXT_STAFF_EXIT_SESSION_IND,
+        ),
+    ],
+    [
+      WL.Business.BusinessCommandId.BUSINESS_COMMAND_STAFF_CLOSE_SESSION,
+      (businessMessage) =>
+        this.onNtfStaffSessionState(
+          businessMessage.ntfStaffCloseSession,
+          WL_ExtEventID.WL_EXT_STAFF_CLOSE_SESSION_IND,
+        ),
+    ],
+    [
+      WL.Business.BusinessCommandId.BUSINESS_COMMAND_STAFF_SESSION_INVITE,
+      (businessMessage) => this.onNtfStaffSessionInvite(businessMessage),
+    ],
+    [
+      WL.Business.BusinessCommandId.BUSINESS_COMMAND_STAFF_ANSWER_SESSION_INVITE,
+      (businessMessage) => this.onNtfStaffAnswerSessionInvite(businessMessage),
+    ],
+    [
+      WL.Business.BusinessCommandId.BUSINESS_COMMAND_STAFF_REMOVE_SESSION_STAFFS,
+      (businessMessage) => this.onNtfStaffRemoveSessionStaff(businessMessage),
+    ],
+  ])
+
   constructor(private coreInterface: WL_CoreInterface) {
     this.coreInterface.registerPbMsgHandler(
       WL.Service.ServiceID.SERVICE_BUSINESS,
@@ -141,251 +194,194 @@ export default class WLBusinessModule {
   }
 
   private onPbMsgHandler(data: WL.Service.IServiceMessage): void {
-    const serverMessage = data
-    const serviceHead = serverMessage.serviceHead
+    const serviceHead = data.serviceHead
 
     if (!serviceHead) return
 
-    const businessMessage = serverMessage.businessMessage
+    const businessMessage = data.businessMessage
+    const commandId = serviceHead.commandId
+
+    if (commandId === undefined || commandId === null) return
 
     if (serviceHead.commandType === WL.Service.CommandType.COMMAND_RESPONSE) {
-      const commandId = serviceHead.commandId
+      const route = this.responseRoutes.get(commandId)
 
-      if (commandId !== undefined && commandId !== null) {
-        const route = this.responseRoutes.get(commandId)
-
-        if (route) route(serviceHead, businessMessage)
-      }
+      if (route) route(serviceHead, businessMessage)
     } else if (serviceHead.commandType === WL.Service.CommandType.COMMAND_NOTIFY) {
       if (!businessMessage) return
 
-      switch (serviceHead.commandId) {
-        case WL.Business.BusinessCommandId.BUSINESS_COMMAND_COMMON_SESSION_CHANGE:
-          {
-            const ntf = businessMessage.ntfCommonSessionChange
+      const route = this.notificationRoutes.get(commandId)
 
-            if (!ntf) return
-
-            const session = ntf.session
-
-            if (!session) return
-
-            const serviceSessionInfo = WeilaDB.getInstance().convertFromServiceSessionRaw(session)
-            this.coreInterface.sendExtEvent(
-              WL_ExtEventID.WL_EXT_COMMON_SESSION_CHANGE_IND,
-              serviceSessionInfo,
-            )
-
-            if (
-              serviceSessionInfo.serviceSession.serviceStatus ===
-              WL_ServiceStatus.SERVICE_STATUS_INIT
-            ) {
-              void (async () => {
-                await WeilaDB.getInstance().putService(serviceSessionInfo.service)
-                await WeilaDB.getInstance().putServiceStaffs(
-                  WeilaDB.getInstance().convertFromStaffRaws(session.staffAttributes ?? []),
-                )
-                await WeilaDB.getInstance().putUserInfos(
-                  serviceSessionInfo.staffs.map((value) => {
-                    return value.userData
-                  }),
-                )
-                const customer = serviceSessionInfo.customer
-
-                if (customer) {
-                  await WeilaDB.getInstance().putUserInfo(customer)
-                }
-              })()
-            }
-          }
-
-          break
-
-        case WL.Business.BusinessCommandId.BUSINESS_COMMAND_COMMON_STAFF_INVITE:
-          {
-            const ntf = businessMessage.ntfCommonStaffInvite
-
-            if (!ntf) return
-
-            const inviteInfo = ntf.inviteInfo
-
-            if (!inviteInfo) return
-
-            const invitor = inviteInfo.invitor
-
-            if (!invitor) return
-
-            const invitorUserInfo = invitor.userInfo
-
-            if (!invitorUserInfo) return
-
-            const serviceAttribute = inviteInfo.serviceAttribute
-
-            if (!serviceAttribute) return
-
-            const staffInvite: WL_StaffInvite = {
-              invitorInfo: {
-                staff: WeilaDB.getInstance().convertFromStaffRaws([invitor])[0],
-                userData: WeilaDB.getInstance().convertFromUserRaw([invitorUserInfo])[0],
-              },
-              content: inviteInfo.content ?? undefined,
-              service: WeilaDB.getInstance().convertFromServiceRaw(serviceAttribute),
-            }
-
-            this.coreInterface.sendExtEvent(
-              WL_ExtEventID.WL_EXT_COMMON_STAFF_INVITE_IND,
-              staffInvite,
-            )
-          }
-
-          break
-
-        case WL.Business.BusinessCommandId.BUSINESS_COMMAND_COMMON_ANSWER_STAFF_INVITE:
-          {
-            const ntf = businessMessage.ntfCommonAnswerStaffInvite
-
-            if (!ntf) return
-
-            const commonAnswerStaffInvite: WL_CommonAnswerStaffInvite = {
-              serviceId: ntf.serviceId ?? 0,
-              userId: ntf.userId ?? 0,
-              status: dbEnum<WL_AnswerStatus>(ntf.status),
-            }
-
-            this.coreInterface.sendExtEvent(
-              WL_ExtEventID.WL_EXT_COMMON_ANSWER_INVITE_IND,
-              commonAnswerStaffInvite,
-            )
-          }
-
-          break
-
-        case WL.Business.BusinessCommandId.BUSINESS_COMMAND_STAFF_ACCEPT_SESSION:
-          {
-            const ntf = businessMessage.ntfStaffAcceptSession
-
-            if (!ntf) return
-
-            const staffSessionInfo: WL_StaffSessionInfo = {
-              sessionId: Long.fromValue(ntf.sessionId ?? 0).toString(10),
-              staffId: ntf.staffId ?? 0,
-            }
-
-            this.coreInterface.sendExtEvent(
-              WL_ExtEventID.WL_EXT_STAFF_ACCEPT_SESSION_IND,
-              staffSessionInfo,
-            )
-          }
-
-          break
-
-        case WL.Business.BusinessCommandId.BUSINESS_COMMAND_STAFF_EXIT_SESSION:
-          {
-            const ntf = businessMessage.ntfStaffExitSession
-
-            if (!ntf) return
-
-            const staffSessionInfo: WL_StaffSessionInfo = {
-              sessionId: Long.fromValue(ntf.sessionId ?? 0).toString(10),
-              staffId: ntf.staffId ?? 0,
-            }
-
-            this.coreInterface.sendExtEvent(
-              WL_ExtEventID.WL_EXT_STAFF_EXIT_SESSION_IND,
-              staffSessionInfo,
-            )
-          }
-
-          break
-
-        case WL.Business.BusinessCommandId.BUSINESS_COMMAND_STAFF_CLOSE_SESSION:
-          {
-            const ntf = businessMessage.ntfStaffCloseSession
-
-            if (!ntf) return
-
-            const staffSessionInfo: WL_StaffSessionInfo = {
-              sessionId: Long.fromValue(ntf.sessionId ?? 0).toString(10),
-              staffId: ntf.staffId ?? 0,
-            }
-
-            this.coreInterface.sendExtEvent(
-              WL_ExtEventID.WL_EXT_STAFF_CLOSE_SESSION_IND,
-              staffSessionInfo,
-            )
-          }
-
-          break
-
-        case WL.Business.BusinessCommandId.BUSINESS_COMMAND_STAFF_SESSION_INVITE:
-          {
-            const ntf = businessMessage.ntfStaffSessionInvite
-
-            if (!ntf) return
-
-            const session = ntf.session
-
-            if (!session) return
-
-            const staffSessionInvite: WL_ServiceSessionInvite = {
-              session: WeilaDB.getInstance().convertFromServiceSessionRaw(session),
-              content: ntf.content ?? undefined,
-            }
-
-            this.coreInterface.sendExtEvent(
-              WL_ExtEventID.WL_EXT_STAFF_SESSION_INVITE_IND,
-              staffSessionInvite,
-            )
-          }
-
-          break
-
-        case WL.Business.BusinessCommandId.BUSINESS_COMMAND_STAFF_ANSWER_SESSION_INVITE:
-          {
-            const ntf = businessMessage.ntfStaffAnswerSessionInvite
-
-            if (!ntf) return
-
-            const invitee = ntf.invitee
-
-            if (!invitee) return
-
-            const inviteeUserInfo = invitee.userInfo
-
-            if (!inviteeUserInfo) return
-
-            const staffAnswerSessionInvite: WL_StaffAnswerSessionInvite = {
-              sessionId: Long.fromValue(ntf.sessionId ?? 0).toString(10),
-              status: dbEnum<WL_AnswerStatus>(ntf.status),
-              invitee: {
-                staff: WeilaDB.getInstance().convertFromStaffRaws([invitee])[0],
-                userData: WeilaDB.getInstance().convertFromUserRaw([inviteeUserInfo])[0],
-              },
-            }
-
-            this.coreInterface.sendExtEvent(
-              WL_ExtEventID.WL_EXT_STAFF_ANSWER_INVITE_IND,
-              staffAnswerSessionInvite,
-            )
-          }
-
-          break
-
-        case WL.Business.BusinessCommandId.BUSINESS_COMMAND_STAFF_REMOVE_SESSION_STAFFS:
-          {
-            const ntf = businessMessage.ntfStaffRemoveSessionStaff
-
-            if (!ntf) return
-
-            this.coreInterface.sendExtEvent(
-              WL_ExtEventID.WL_EXT_STAFF_REMOVED_SESSION_IND,
-              Long.fromValue(ntf.sessionId ?? 0).toString(10),
-            )
-          }
-
-          break
-      }
+      if (route) route(businessMessage)
     }
+  }
+
+  private onNtfCommonSessionChange(businessMessage: WL.Business.IBusinessMessage): void {
+    const ntf = businessMessage.ntfCommonSessionChange
+
+    if (!ntf) return
+
+    const session = ntf.session
+
+    if (!session) return
+
+    const db = WeilaDB.getInstance()
+    const serviceSessionInfo = db.convertFromServiceSessionRaw(session)
+
+    this.coreInterface.sendExtEvent(
+      WL_ExtEventID.WL_EXT_COMMON_SESSION_CHANGE_IND,
+      serviceSessionInfo,
+    )
+
+    if (serviceSessionInfo.serviceSession.serviceStatus === WL_ServiceStatus.SERVICE_STATUS_INIT) {
+      void (async () => {
+        await db.putService(serviceSessionInfo.service)
+        await db.putServiceStaffs(db.convertFromStaffRaws(session.staffAttributes ?? []))
+        await db.putUserInfos(
+          serviceSessionInfo.staffs.map((value) => {
+            return value.userData
+          }),
+        )
+
+        const customer = serviceSessionInfo.customer
+
+        if (customer) {
+          await db.putUserInfo(customer)
+        }
+      })()
+    }
+  }
+
+  private onNtfCommonStaffInvite(businessMessage: WL.Business.IBusinessMessage): void {
+    const ntf = businessMessage.ntfCommonStaffInvite
+
+    if (!ntf) return
+
+    const inviteInfo = ntf.inviteInfo
+
+    if (!inviteInfo) return
+
+    const invitor = inviteInfo.invitor
+
+    if (!invitor) return
+
+    const invitorUserInfo = invitor.userInfo
+
+    if (!invitorUserInfo) return
+
+    const serviceAttribute = inviteInfo.serviceAttribute
+
+    if (!serviceAttribute) return
+
+    const db = WeilaDB.getInstance()
+
+    const staffInvite: WL_StaffInvite = {
+      invitorInfo: {
+        staff: db.convertFromStaffRaws([invitor])[0],
+        userData: db.convertFromUserRaw([invitorUserInfo])[0],
+      },
+      content: inviteInfo.content ?? undefined,
+      service: db.convertFromServiceRaw(serviceAttribute),
+    }
+
+    this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_COMMON_STAFF_INVITE_IND, staffInvite)
+  }
+
+  private onNtfCommonAnswerStaffInvite(businessMessage: WL.Business.IBusinessMessage): void {
+    const ntf = businessMessage.ntfCommonAnswerStaffInvite
+
+    if (!ntf) return
+
+    const commonAnswerStaffInvite: WL_CommonAnswerStaffInvite = {
+      serviceId: ntf.serviceId ?? 0,
+      userId: ntf.userId ?? 0,
+      status: dbEnum<WL_AnswerStatus>(ntf.status),
+    }
+
+    this.coreInterface.sendExtEvent(
+      WL_ExtEventID.WL_EXT_COMMON_ANSWER_INVITE_IND,
+      commonAnswerStaffInvite,
+    )
+  }
+
+  private onNtfStaffSessionState(
+    ntf:
+      | WL.Business.INtfStaffAcceptSession
+      | WL.Business.INtfStaffExitSession
+      | WL.Business.INtfStaffCloseSession
+      | null
+      | undefined,
+    eventId: WL_ExtEventID,
+  ): void {
+    if (!ntf) return
+
+    const staffSessionInfo: WL_StaffSessionInfo = {
+      sessionId: Long.fromValue(ntf.sessionId ?? 0).toString(10),
+      staffId: ntf.staffId ?? 0,
+    }
+
+    this.coreInterface.sendExtEvent(eventId, staffSessionInfo)
+  }
+
+  private onNtfStaffSessionInvite(businessMessage: WL.Business.IBusinessMessage): void {
+    const ntf = businessMessage.ntfStaffSessionInvite
+
+    if (!ntf) return
+
+    const session = ntf.session
+
+    if (!session) return
+
+    const staffSessionInvite: WL_ServiceSessionInvite = {
+      session: WeilaDB.getInstance().convertFromServiceSessionRaw(session),
+      content: ntf.content ?? undefined,
+    }
+
+    this.coreInterface.sendExtEvent(
+      WL_ExtEventID.WL_EXT_STAFF_SESSION_INVITE_IND,
+      staffSessionInvite,
+    )
+  }
+
+  private onNtfStaffAnswerSessionInvite(businessMessage: WL.Business.IBusinessMessage): void {
+    const ntf = businessMessage.ntfStaffAnswerSessionInvite
+
+    if (!ntf) return
+
+    const invitee = ntf.invitee
+
+    if (!invitee) return
+
+    const inviteeUserInfo = invitee.userInfo
+
+    if (!inviteeUserInfo) return
+
+    const db = WeilaDB.getInstance()
+
+    const staffAnswerSessionInvite: WL_StaffAnswerSessionInvite = {
+      sessionId: Long.fromValue(ntf.sessionId ?? 0).toString(10),
+      status: dbEnum<WL_AnswerStatus>(ntf.status),
+      invitee: {
+        staff: db.convertFromStaffRaws([invitee])[0],
+        userData: db.convertFromUserRaw([inviteeUserInfo])[0],
+      },
+    }
+
+    this.coreInterface.sendExtEvent(
+      WL_ExtEventID.WL_EXT_STAFF_ANSWER_INVITE_IND,
+      staffAnswerSessionInvite,
+    )
+  }
+
+  private onNtfStaffRemoveSessionStaff(businessMessage: WL.Business.IBusinessMessage): void {
+    const ntf = businessMessage.ntfStaffRemoveSessionStaff
+
+    if (!ntf) return
+
+    this.coreInterface.sendExtEvent(
+      WL_ExtEventID.WL_EXT_STAFF_REMOVED_SESSION_IND,
+      Long.fromValue(ntf.sessionId ?? 0).toString(10),
+    )
   }
 
   public async getSessionServiceFromServer(
