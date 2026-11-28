@@ -69,6 +69,7 @@ const emit = defineEmits<{
 
 const messageInput = ref('')
 const pttStatus = ref<'idle' | 'recording' | 'processing'>('idle')
+const pttStopping = ref(false)
 const playingAudioId = ref<string | null>(null)
 const pausedAudioId = ref<string | null>(null)
 const playProgressMs = ref<number | null>(null)
@@ -188,6 +189,7 @@ const {
   senderInfos,
   hasMore,
   loading: messagesLoading,
+  error: messagesError,
   loadMore,
 } = useMessageHistory(
   () => props.core,
@@ -540,13 +542,14 @@ async function handlePttStart() {
   if (!(await checkSendAllowed())) return
 
   const session = toRaw(selectedSession.value)
+  pttStopping.value = false
   pttStatus.value = 'processing'
 
   try {
     const success = await props.core.weila_requestTalk(session.sessionId, session.sessionType)
 
     pttStatus.value = success ? 'recording' : 'idle'
-    if (!success) {
+    if (!success && !pttStopping.value) {
       emit('ptt-error', { session })
     }
   } catch (err) {
@@ -557,8 +560,9 @@ async function handlePttStart() {
 }
 
 async function handlePttStop() {
-  if (!props.core || pttStatus.value !== 'recording') return
+  if (!props.core || pttStatus.value === 'idle') return
 
+  pttStopping.value = true
   pttStatus.value = 'processing'
 
   try {
@@ -567,6 +571,7 @@ async function handlePttStop() {
     console.error('[WlChatPanel] Failed to stop PTT:', err)
   } finally {
     pttStatus.value = 'idle'
+    pttStopping.value = false
   }
 }
 </script>
@@ -650,7 +655,10 @@ async function handlePttStop() {
             :can-forward="canForward"
             :show-withdraw="showWithdraw"
             :can-withdraw="canWithdraw"
-            :warning="isSelectedSessionInvalid ? t('chat.sessionUnavailable') : undefined"
+            :warning="
+              messagesError?.message ||
+              (isSelectedSessionInvalid ? t('chat.sessionUnavailable') : undefined)
+            "
             @audio-play="handleAudioPlay"
             @audio-pause="handleAudioPause"
             @load-more="loadMore()"

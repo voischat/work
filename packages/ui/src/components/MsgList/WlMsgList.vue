@@ -225,11 +225,20 @@ function onScroll() {
 
 watch(
   () => props.messages.length,
-  (newLen, oldLen) => {
-    if (oldLen === 0 && newLen > 0 && !hasLoadedMessages.value) {
-      hasLoadedMessages.value = true
-      nextTick(() => scrollToBottom('instant'))
-    }
+  (newLen) => {
+    if (newLen === 0 || hasLoadedMessages.value) return
+    hasLoadedMessages.value = true
+    nextTick(() => scrollToBottom('instant'))
+  },
+  { immediate: true },
+)
+
+watch(
+  () => props.messages.at(-1)?.combo_id,
+  () => {
+    if (!hasLoadedMessages.value || showScrollButton.value) return
+
+    nextTick(() => scrollToBottom())
   },
 )
 </script>
