@@ -1,5 +1,5 @@
 import { createLogger } from 'log/weila_log'
-import { getPbResultCodeMassage } from 'main/weila_utils'
+import { getPbResultCodeMessage } from 'main/weila_utils'
 import { dbEnum } from 'db/db_enum'
 import { WL } from 'proto/weilapb'
 import type { WLBuildMsgRet } from 'proto/weilapb_wrapper_data'
@@ -55,7 +55,7 @@ export default class WeilaPbDispatcher {
           sendingItem.resolve(data)
         } else {
           let errorMessage = 'RET_CODE:' + resultCode + '-MESSAGE:'
-          const msg = getPbResultCodeMassage(dbEnum<WL.Service.ResultCode>(resultCode))
+          const msg = getPbResultCodeMessage(dbEnum<WL.Service.ResultCode>(resultCode))
           errorMessage += msg ? msg : '未知错误码'
           errorMessage += ':END'
           sendingItem.reject(new Error(errorMessage))

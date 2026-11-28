@@ -164,103 +164,10 @@ const TextMsgDataParser = {
   },
 
   getExtendFileFormatUrl(filePath: string): string {
-    let extStr = this.getFileExt(filePath)
-    let fileFormatUrl = this.BASE_FILE_TYPE_URL
+    const ext = this.getFileExt(filePath)?.toLowerCase() ?? ''
+    const fileType = FILE_TYPE_BY_EXT.get(ext) ?? this.FILE_TYPE_UNKOWN
 
-    if (extStr === undefined) {
-      extStr = ''
-    }
-
-    extStr = extStr.toLowerCase()
-
-    switch (extStr) {
-      case '.txt':
-        {
-          fileFormatUrl += this.FILE_TYPE_TXT
-        }
-
-        break
-
-      case '.doc':
-      case '.docx':
-        {
-          fileFormatUrl += this.FILE_TYPE_DOC
-        }
-
-        break
-
-      case '.ppt':
-        {
-          fileFormatUrl += this.FILE_TYPE_PPT
-        }
-
-        break
-
-      case '.pdf':
-        {
-          fileFormatUrl += this.FILE_TYPE_PDF
-        }
-
-        break
-
-      case '.xls':
-        {
-          fileFormatUrl += this.FILE_TYPE_XLS
-        }
-
-        break
-
-      case '.mp3':
-        {
-          fileFormatUrl += this.FILE_TYPE_MP3
-        }
-
-        break
-
-      case '.wav':
-        {
-          fileFormatUrl += this.FILE_TYPE_WAV
-        }
-
-        break
-
-      case '.html':
-        {
-          fileFormatUrl += this.FILE_TYPE_HTML
-        }
-
-        break
-
-      case '.rar':
-        {
-          fileFormatUrl += this.FILE_TYPE_RAR
-        }
-
-        break
-
-      case '.zip':
-        {
-          fileFormatUrl += this.FILE_TYPE_ZIP
-        }
-
-        break
-
-      case '.raw':
-        {
-          fileFormatUrl += this.FILE_TYPE_RAW
-        }
-
-        break
-
-      default:
-        {
-          fileFormatUrl += this.FILE_TYPE_UNKOWN
-        }
-
-        break
-    }
-
-    return fileFormatUrl
+    return this.BASE_FILE_TYPE_URL + fileType
   },
 
   getExtendFileInfo(
@@ -552,5 +459,20 @@ const TextMsgDataParser = {
     return toMsgContent(dbMsgData)
   },
 }
+
+const FILE_TYPE_BY_EXT = new Map([
+  ['.txt', TextMsgDataParser.FILE_TYPE_TXT],
+  ['.doc', TextMsgDataParser.FILE_TYPE_DOC],
+  ['.docx', TextMsgDataParser.FILE_TYPE_DOC],
+  ['.ppt', TextMsgDataParser.FILE_TYPE_PPT],
+  ['.pdf', TextMsgDataParser.FILE_TYPE_PDF],
+  ['.xls', TextMsgDataParser.FILE_TYPE_XLS],
+  ['.mp3', TextMsgDataParser.FILE_TYPE_MP3],
+  ['.wav', TextMsgDataParser.FILE_TYPE_WAV],
+  ['.html', TextMsgDataParser.FILE_TYPE_HTML],
+  ['.rar', TextMsgDataParser.FILE_TYPE_RAR],
+  ['.zip', TextMsgDataParser.FILE_TYPE_ZIP],
+  ['.raw', TextMsgDataParser.FILE_TYPE_RAW],
+])
 
 export { TextMsgDataParser }
