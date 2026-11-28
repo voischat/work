@@ -7,15 +7,15 @@ import { WL_PbMsgData, WL_PbMsgResponse } from 'main/weila_internal_data'
 
 const log = createLogger('CORE')
 
-interface WL_WaitingRspPbMsgInfo {
-  resolve(value: unknown): void
+interface WL_WaitingRspPbMsgInfo<Response extends WL_PbMsgResponse = WL_PbMsgResponse> {
+  resolve(value: Response): void
   reject(reason: Error): void
   pbMsgData: WL_PbMsgData
   timeout: number
 }
 
-interface WL_SendingPbMsgInfo {
-  resolve(value: unknown): void
+interface WL_SendingPbMsgInfo<Response extends WL_PbMsgResponse = WL_PbMsgResponse> {
+  resolve(value: Response): void
   reject(reason: Error): void
   buildPbMsg: WLBuildMsgRet
   timeout?: number
@@ -27,9 +27,12 @@ export default class WeilaPbDispatcher {
 
   constructor(private readonly sendNetworkData: (reqData: WLBuildMsgRet['reqData']) => void) {}
 
-  sendPbMsg<T = unknown>(buildPbMsg: WLBuildMsgRet, timeout?: number): Promise<T> {
+  sendPbMsg<T extends WL_PbMsgResponse = WL_PbMsgResponse>(
+    buildPbMsg: WLBuildMsgRet,
+    timeout?: number,
+  ): Promise<T> {
     return new Promise<T>((resolve, reject) => {
-      const sendingItem: WL_SendingPbMsgInfo = {
+      const sendingItem: WL_SendingPbMsgInfo<T> = {
         resolve,
         reject,
         buildPbMsg,

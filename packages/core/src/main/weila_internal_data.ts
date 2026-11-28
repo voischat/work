@@ -101,7 +101,10 @@ type WL_PbMsgResponse =
 
 interface WL_CoreInterface {
   sendExtEvent(event: WL_ExtEventID, data: WL_ExtEventPayload): void
-  sendPbMsg<T = WL_PbMsgResponse>(buildPbMsg: WLBuildMsgRet, timeout?: number): Promise<T>
+  sendPbMsg<T extends WL_PbMsgResponse = WL_PbMsgResponse>(
+    buildPbMsg: WLBuildMsgRet,
+    timeout?: number,
+  ): Promise<T>
   rspPbMsg(seq: number, resultCode: number, data: WL_PbMsgResponse): void
   registerPbMsgHandler(serviceId: number, handler: WL_PbMsgHandler): void
   executeCoreFunc<T = unknown>(funcName: string, ...argvs: unknown[]): Promise<T>
