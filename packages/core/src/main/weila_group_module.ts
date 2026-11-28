@@ -295,7 +295,9 @@ export default class WLGroupModule {
       }
 
       this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_NEW_NOTIFICATION_IND, savedNotification)
-    })()
+    })().catch((reason) => {
+      log.error('保存群邀请通知失败', reason)
+    })
   }
 
   private onNtfGroupJoin(groupMessage: WL.Group.IGroupMessage | null | undefined): void {
@@ -336,7 +338,9 @@ export default class WLGroupModule {
       }
 
       this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_NEW_NOTIFICATION_IND, savedNotification)
-    })()
+    })().catch((reason) => {
+      log.error('保存群加入通知失败', reason)
+    })
   }
 
   private onNtfChangeGroupAttribute(groupMessage: WL.Group.IGroupMessage | null | undefined): void {
@@ -618,7 +622,9 @@ export default class WLGroupModule {
       }
 
       this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_NEW_NOTIFICATION_IND, savedNotification)
-    })()
+    })().catch((reason) => {
+      log.error('保存群同意加入通知失败', reason)
+    })
   }
 
   private onNtfAnswerGroupInvite(groupMessage: WL.Group.IGroupMessage | null | undefined): void {
@@ -651,7 +657,9 @@ export default class WLGroupModule {
       }
 
       this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_NEW_NOTIFICATION_IND, savedNotification)
-    })()
+    })().catch((reason) => {
+      log.error('保存群同意邀请通知失败', reason)
+    })
   }
 
   public async getGroupFromServer(groupId: string): Promise<WL_IDbGroup | undefined> {
