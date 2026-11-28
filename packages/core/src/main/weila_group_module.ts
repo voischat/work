@@ -40,6 +40,8 @@ type GroupResponseRoute = (
   groupMessage: WL.Group.IGroupMessage | null | undefined,
 ) => void
 
+type GroupNotificationRoute = (groupMessage: WL.Group.IGroupMessage | null | undefined) => void
+
 export default class WLGroupModule {
   private readonly responseRoutes = new Map<number, GroupResponseRoute>([
     [
@@ -188,6 +190,45 @@ export default class WLGroupModule {
     ],
   ])
 
+  private readonly notificationRoutes = new Map<number, GroupNotificationRoute>([
+    [
+      WL.Group.GroupCommandId.GROUP_COMMAND_GROUP_INVITE,
+      (groupMessage) => this.onNtfGroupInvite(groupMessage),
+    ],
+    [
+      WL.Group.GroupCommandId.GROUP_COMMAND_GROUP_JOIN,
+      (groupMessage) => this.onNtfGroupJoin(groupMessage),
+    ],
+    [
+      WL.Group.GroupCommandId.GROUP_COMMAND_CHANGE_GROUPATTRIBUTE,
+      (groupMessage) => this.onNtfChangeGroupAttribute(groupMessage),
+    ],
+    [
+      WL.Group.GroupCommandId.GROUP_COMMAND_CHANGE_MEMBERINFO,
+      (groupMessage) => this.onNtfChangeMemberInfo(groupMessage),
+    ],
+    [
+      WL.Group.GroupCommandId.GROUP_COMMAND_DELETE_GROUP,
+      (groupMessage) => this.onNtfDeleteGroup(groupMessage),
+    ],
+    [
+      WL.Group.GroupCommandId.GROUP_COMMAND_DELETE_MEMBER,
+      (groupMessage) => this.onNtfDeleteMember(groupMessage),
+    ],
+    [
+      WL.Group.GroupCommandId.GROUP_COMMAND_NEW_MEMBER,
+      (groupMessage) => this.onNtfNewMember(groupMessage),
+    ],
+    [
+      WL.Group.GroupCommandId.GROUP_COMMAND_ANSWER_GROUP_JOIN,
+      (groupMessage) => this.onNtfAnswerGroupJoin(groupMessage),
+    ],
+    [
+      WL.Group.GroupCommandId.GROUP_COMMAND_ANSWER_GROUP_INVITE,
+      (groupMessage) => this.onNtfAnswerGroupInvite(groupMessage),
+    ],
+  ])
+
   constructor(private coreInterface: WL_CoreInterface) {
     this.coreInterface.registerPbMsgHandler(
       WL.Service.ServiceID.SERVICE_GROUP,
@@ -196,469 +237,421 @@ export default class WLGroupModule {
   }
 
   private onPbMsgHandler(data: WL.Service.IServiceMessage): void {
-    const serverMessage = data
-    const serviceHead = serverMessage.serviceHead
+    const serviceHead = data.serviceHead
 
     if (!serviceHead) return
 
+    const commandId = serviceHead.commandId
+
+    if (commandId === undefined || commandId === null) return
+
     if (serviceHead.commandType === WL.Service.CommandType.COMMAND_RESPONSE) {
-      const commandId = serviceHead.commandId
+      const route = this.responseRoutes.get(commandId)
 
-      if (commandId !== undefined && commandId !== null) {
-        const route = this.responseRoutes.get(commandId)
-
-        if (route) route(serviceHead, serverMessage.groupMessage)
-      }
+      if (route) route(serviceHead, data.groupMessage)
     } else if (serviceHead.commandType === WL.Service.CommandType.COMMAND_NOTIFY) {
-      log.info('WLGroupModule', serverMessage)
+      log.info('WLGroupModule', data)
 
-      switch (serviceHead.commandId) {
-        case WL.Group.GroupCommandId.GROUP_COMMAND_GROUP_INVITE:
-          {
-            const ntfGroupInvite = serverMessage.groupMessage?.ntfGroupInvite
+      const route = this.notificationRoutes.get(commandId)
 
-            if (!ntfGroupInvite) break
-
-            void (async () => {
-              const groupId = Long.fromValue(ntfGroupInvite.groupId ?? 0).toString(10)
-              const groupInfo = await this.getGroupAttribute(groupId)
-              const invitorUserInfo = ntfGroupInvite.userInfo
-
-              if (!invitorUserInfo) return
-
-              const userInfos = WeilaDB.getInstance().convertFromUserRaw([invitorUserInfo])
-              await WeilaDB.getInstance().putUserInfo(userInfos[0])
-
-              const groupInviteInfo: WL_GroupInviteInfo = {
-                groupInfo,
-                invitorUserInfo: userInfos[0],
-                status: WL_AnswerStatus.ANSWER_NORMAL,
-              }
-
-              const notification = {
-                notificationType: WL_IDbNotificationType.GROUP_INVITE_NOTIFICATION,
-                data: groupInviteInfo,
-                createTime: new Date().getTime() / 1000,
-              }
-
-              const notificationId = await WeilaDB.getInstance().putNotification(notification)
-
-              const savedNotification: WL_IDbNotification = {
-                ...notification,
-                id: notificationId,
-              }
-
-              this.coreInterface.sendExtEvent(
-                WL_ExtEventID.WL_EXT_NEW_NOTIFICATION_IND,
-                savedNotification,
-              )
-            })()
-          }
-
-          break
-
-        case WL.Group.GroupCommandId.GROUP_COMMAND_GROUP_JOIN:
-          {
-            const ntfGroupJoin = serverMessage.groupMessage?.ntfGroupJoin
-
-            if (!ntfGroupJoin) break
-
-            void (async () => {
-              const joinUserInfo = ntfGroupJoin.userInfo
-
-              if (!joinUserInfo) return
-
-              const userInfos = WeilaDB.getInstance().convertFromUserRaw([joinUserInfo])
-              await WeilaDB.getInstance().putUserInfo(userInfos[0])
-
-              const groupInfo = await WeilaDB.getInstance().getGroup(
-                Long.fromValue(ntfGroupJoin.groupId ?? 0).toString(10),
-              )
-
-              const groupJoinInfo: WL_GroupJoinInfo = {
-                detail: ntfGroupJoin.detail ?? '',
-                status: WL_AnswerStatus.ANSWER_NORMAL,
-                joinUserInfo: userInfos[0],
-                groupInfo,
-              }
-
-              const notification = {
-                notificationType: WL_IDbNotificationType.GROUP_JOIN_NOTIFICATION,
-                data: groupJoinInfo,
-                createTime: new Date().getTime() / 1000,
-              }
-
-              const notificationId = await WeilaDB.getInstance().putNotification(notification)
-
-              const savedNotification: WL_IDbNotification = {
-                ...notification,
-                id: notificationId,
-              }
-
-              this.coreInterface.sendExtEvent(
-                WL_ExtEventID.WL_EXT_NEW_NOTIFICATION_IND,
-                savedNotification,
-              )
-            })()
-          }
-
-          break
-
-        case WL.Group.GroupCommandId.GROUP_COMMAND_CHANGE_GROUPATTRIBUTE:
-          {
-            const ntfChangeGroupAttribute = serverMessage.groupMessage?.ntfChangeGroupAttribute
-
-            if (!ntfChangeGroupAttribute) break
-
-            const ntfChangeGroupAttr = ntfChangeGroupAttribute.groupAttribute
-
-            if (!ntfChangeGroupAttr) break
-
-            const groupId = Long.fromValue(ntfChangeGroupAttr.groupId ?? 0).toString(10)
-            WeilaDB.getInstance()
-              .getGroup(groupId)
-              .then(async (value) => {
-                const groupInfo = value!
-
-                if (ntfChangeGroupAttr.version !== undefined) {
-                  groupInfo.version = ntfChangeGroupAttr.version ?? 0
-                }
-
-                if (ntfChangeGroupAttr.memberVersion !== undefined) {
-                  groupInfo.memberVersion = ntfChangeGroupAttr.memberVersion ?? 0
-                }
-
-                if (ntfChangeGroupAttr.name !== undefined) {
-                  groupInfo.name = ntfChangeGroupAttr.name ?? ''
-                }
-
-                if (ntfChangeGroupAttr.avatar !== undefined) {
-                  groupInfo.avatar = ntfChangeGroupAttr.avatar ?? ''
-                }
-
-                if (ntfChangeGroupAttr.ownerId !== undefined) {
-                  groupInfo.ownerId = ntfChangeGroupAttr.ownerId ?? 0
-                }
-
-                if (ntfChangeGroupAttr.type !== undefined) {
-                  groupInfo.groupType = dbEnum<WL_IDbGroupType>(ntfChangeGroupAttr.type)
-                }
-
-                if (ntfChangeGroupAttr.desc !== undefined) {
-                  groupInfo.desc = ntfChangeGroupAttr.desc ?? ''
-                }
-
-                if (ntfChangeGroupAttr.home !== undefined) {
-                  groupInfo.home = ntfChangeGroupAttr.home ?? ''
-                }
-
-                if (ntfChangeGroupAttr.latitude !== undefined) {
-                  groupInfo.latitude = ntfChangeGroupAttr.latitude ?? ''
-                }
-
-                if (ntfChangeGroupAttr.longitude !== undefined) {
-                  groupInfo.longitude = ntfChangeGroupAttr.longitude ?? ''
-                }
-
-                if (ntfChangeGroupAttr.publicType !== undefined) {
-                  groupInfo.publicType = dbEnum<WL_IDbGroupPublicType>(
-                    ntfChangeGroupAttr.publicType,
-                  )
-                }
-
-                if (ntfChangeGroupAttr.authType !== undefined) {
-                  groupInfo.authType = dbEnum<WL_IDbGroupAuthType>(ntfChangeGroupAttr.authType)
-                }
-
-                if (ntfChangeGroupAttr.class !== undefined) {
-                  groupInfo.groupClass = ntfChangeGroupAttr.class ?? 0
-                }
-
-                if (ntfChangeGroupAttr.memberLimit !== undefined) {
-                  groupInfo.memberLimit = ntfChangeGroupAttr.memberLimit ?? 0
-                }
-
-                if (ntfChangeGroupAttr.memberCount !== undefined) {
-                  groupInfo.memberCount = ntfChangeGroupAttr.memberCount ?? 0
-                }
-
-                if (ntfChangeGroupAttr.audioQuality !== undefined) {
-                  groupInfo.audioQuality = ntfChangeGroupAttr.audioQuality ?? 0
-                }
-
-                if (ntfChangeGroupAttr.burstType !== undefined) {
-                  groupInfo.burstType = ntfChangeGroupAttr.burstType ?? 0
-                }
-
-                if (ntfChangeGroupAttr.shutupStatus !== undefined) {
-                  groupInfo.speechEnable = ntfChangeGroupAttr.shutupStatus === 0
-                }
-
-                await WeilaDB.getInstance().putGroup(groupInfo)
-                log.info('群属性变更了:', groupId)
-                this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_GROUP_MODIFIED_IND, groupInfo)
-              })
-              .catch((reason) => {
-                log.error('保存群属性异常:' + reason)
-              })
-          }
-
-          break
-
-        case WL.Group.GroupCommandId.GROUP_COMMAND_CHANGE_MEMBERINFO:
-          {
-            const ntfChangeMemberInfo = serverMessage.groupMessage?.ntfChangeMemberInfo
-
-            if (!ntfChangeMemberInfo) break
-
-            const ntfMemberInfo = ntfChangeMemberInfo.memberInfo
-
-            if (!ntfMemberInfo) break
-
-            const groupId = Long.fromValue(ntfChangeMemberInfo.groupId ?? 0).toString(10)
-
-            WeilaDB.getInstance()
-              .getGroupMemberInfo(groupId, ntfMemberInfo.userId ?? 0)
-              .then(async (value) => {
-                const memberInfo = value
-
-                if (memberInfo) {
-                  if (ntfMemberInfo.status !== undefined) {
-                    memberInfo.status = dbEnum<WL_IDbMemberStatus>(ntfMemberInfo.status)
-                  }
-
-                  if (ntfMemberInfo.type !== undefined) {
-                    memberInfo.memberType = dbEnum<WL_IDbMemberType>(ntfMemberInfo.type)
-                  }
-
-                  if (ntfMemberInfo.remark !== undefined) {
-                    memberInfo.remark = ntfMemberInfo.remark ?? ''
-                  }
-
-                  if (ntfMemberInfo.prority !== undefined) {
-                    memberInfo.priority = ntfMemberInfo.prority ?? 0
-                  }
-
-                  if (ntfMemberInfo.shutupStatus !== undefined) {
-                    memberInfo.speechEnable = ntfMemberInfo.shutupStatus === 0
-                  }
-
-                  if (ntfMemberInfo.shutupTimeout !== undefined) {
-                    memberInfo.speechDisableTimeout = Long.fromValue(
-                      ntfMemberInfo.shutupTimeout ?? 0,
-                    ).toNumber()
-                  }
-
-                  if (ntfMemberInfo.shieldStatus !== undefined) {
-                    memberInfo.blockedStatus = ntfMemberInfo.shieldStatus === 1
-                  }
-
-                  if (ntfMemberInfo.tts !== undefined) {
-                    memberInfo.tts = ntfMemberInfo.tts === 1
-                  }
-
-                  if (ntfMemberInfo.locationShare !== undefined) {
-                    memberInfo.locationShared = ntfMemberInfo.locationShare === 1
-                  }
-
-                  await WeilaDB.getInstance().putMemberInfo(memberInfo)
-                  log.info('群成员变更了')
-                  this.coreInterface.sendExtEvent(
-                    WL_ExtEventID.WL_EXT_GROUP_MEMBERS_MODIFIED_IND,
-                    memberInfo,
-                  )
-                }
-              })
-              .catch((reason) => {
-                log.error('保存群成员异常:' + reason)
-              })
-          }
-
-          break
-
-        case WL.Group.GroupCommandId.GROUP_COMMAND_DELETE_GROUP:
-          {
-            const ntfDeleteGroup = serverMessage.groupMessage?.ntfDeleteGroup
-
-            if (!ntfDeleteGroup) break
-
-            const groupId = Long.fromValue(ntfDeleteGroup.groupId ?? 0).toString(10)
-
-            log.info('群被删除的通知，群ID:', groupId)
-
-            WeilaDB.getInstance()
-              .delGroups([groupId])
-              .then(() => {
-                this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_GROUP_DELETED_IND, groupId)
-              })
-              .catch((reason) => {
-                log.error('删除群失败', reason)
-              })
-          }
-
-          break
-
-        case WL.Group.GroupCommandId.GROUP_COMMAND_DELETE_MEMBER:
-          {
-            const ntfDeleteMember = serverMessage.groupMessage?.ntfDeleteMember
-
-            if (!ntfDeleteMember) break
-
-            const groupId = Long.fromValue(ntfDeleteMember.groupId ?? 0).toString(10)
-            const userIdList = ntfDeleteMember.userIdList ?? []
-            WeilaDB.getInstance()
-              .delMemberInfos(groupId, userIdList)
-              .then((_value) => {
-                log.info('删除了群成员成功')
-
-                const info: WL_GroupMemberDeleteInfo = {
-                  groupId,
-                  initiatorId: ntfDeleteMember.initiatorId ?? 0,
-                  userIdList,
-                }
-
-                this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_GROUP_MEMBER_DELETED_IND, info)
-              })
-              .catch((reason) => {
-                log.error('删除群成员异常:' + reason)
-              })
-          }
-
-          break
-
-        case WL.Group.GroupCommandId.GROUP_COMMAND_NEW_MEMBER:
-          {
-            const ntfNewMember = serverMessage.groupMessage?.ntfNewMember
-
-            if (!ntfNewMember) break
-
-            log.info('有新成员消息:', ntfNewMember)
-            ;(async () => {
-              const groupId = Long.fromValue(ntfNewMember.groupId ?? 0).toString(10)
-              const groupInfo = await WeilaDB.getInstance().getGroup(groupId)
-
-              if (groupInfo) {
-                const memberInfoList = ntfNewMember.memberInfoList ?? []
-                const userInfoList = ntfNewMember.userInfoList ?? []
-
-                const memberInfos = WeilaDB.getInstance().convertFromMemberRaw(
-                  groupId,
-                  memberInfoList,
-                )
-
-                const userInfos = WeilaDB.getInstance().convertFromUserRaw(userInfoList)
-
-                if (memberInfos.length) {
-                  await WeilaDB.getInstance().putMemberInfos(memberInfos)
-                }
-
-                if (userInfos.length) {
-                  await WeilaDB.getInstance().putUserInfos(userInfos)
-                }
-              }
-
-              log.info('保存群成员信息')
-
-              this.coreInterface.sendExtEvent(
-                WL_ExtEventID.WL_EXT_GROUP_NEW_MEMBER_JOINED_IND,
-                ntfNewMember.memberInfoList,
-              )
-            })().catch((reason) => {
-              log.error('保存信息出错!', reason)
-            })
-          }
-
-          break
-
-        case WL.Group.GroupCommandId.GROUP_COMMAND_ANSWER_GROUP_JOIN:
-          {
-            const ntfAnswerJoin = serverMessage.groupMessage?.ntfAnswerGroupJoin
-
-            if (!ntfAnswerJoin) break
-
-            void (async () => {
-              const answerGroupJoin: WL_GroupAnswerJoinInfo = {
-                status: dbEnum<WL_AnswerStatus>(ntfAnswerJoin.status),
-                groupInfo: await WeilaDB.getInstance().getGroup(
-                  Long.fromValue(ntfAnswerJoin.groupId ?? 0).toString(10),
-                ),
-                joinUserInfo: await WeilaDB.getInstance().getUser(ntfAnswerJoin.joinId ?? 0),
-                answerUserInfo: await WeilaDB.getInstance().getUser(ntfAnswerJoin.answerId ?? 0),
-                updated: Long.fromValue(ntfAnswerJoin.updated ?? 0).toNumber(),
-              }
-
-              const notification = {
-                notificationType: WL_IDbNotificationType.GROUP_ANSWER_JOIN_NOTIFICATION,
-                data: answerGroupJoin,
-                createTime: new Date().getTime() / 1000,
-              }
-
-              const notificationId = await WeilaDB.getInstance().putNotification(notification)
-
-              const savedNotification: WL_IDbNotification = {
-                ...notification,
-                id: notificationId,
-              }
-
-              this.coreInterface.sendExtEvent(
-                WL_ExtEventID.WL_EXT_NEW_NOTIFICATION_IND,
-                savedNotification,
-              )
-            })()
-          }
-
-          break
-
-        case WL.Group.GroupCommandId.GROUP_COMMAND_ANSWER_GROUP_INVITE:
-          {
-            const ntfAnswerInvite = serverMessage.groupMessage?.ntfAnswerGroupInvite
-
-            if (!ntfAnswerInvite) break
-
-            void (async () => {
-              const answerGroupInvite: WL_GroupAnswerInviteInfo = {
-                groupInfo: await WeilaDB.getInstance().getGroup(
-                  Long.fromValue(ntfAnswerInvite.groupId ?? 0).toString(10),
-                ),
-                invitorUserInfo: await WeilaDB.getInstance().getUser(
-                  ntfAnswerInvite.inviterId ?? 0,
-                ),
-                inviteeUserInfo: await WeilaDB.getInstance().getUser(
-                  ntfAnswerInvite.inviteeId ?? 0,
-                ),
-                status: dbEnum<WL_AnswerStatus>(ntfAnswerInvite.status),
-                updated: Long.fromValue(ntfAnswerInvite.updated ?? 0).toNumber(),
-              }
-
-              const notification = {
-                notificationType: WL_IDbNotificationType.GROUP_ANSWER_INVITE_NOTIFICATION,
-                data: answerGroupInvite,
-                createTime: new Date().getTime() / 1000,
-              }
-
-              const notificationId = await WeilaDB.getInstance().putNotification(notification)
-
-              const savedNotification: WL_IDbNotification = {
-                ...notification,
-                id: notificationId,
-              }
-
-              this.coreInterface.sendExtEvent(
-                WL_ExtEventID.WL_EXT_NEW_NOTIFICATION_IND,
-                savedNotification,
-              )
-            })()
-          }
-
-          break
-
-        case WL.Group.GroupCommandId.GROUP_COMMAND_BROADCAST:
-          {
-          }
-
-          break
-      }
+      if (route) route(data.groupMessage)
     }
+  }
+
+  private onNtfGroupInvite(groupMessage: WL.Group.IGroupMessage | null | undefined): void {
+    const ntfGroupInvite = groupMessage?.ntfGroupInvite
+
+    if (!ntfGroupInvite) return
+
+    void (async () => {
+      const groupId = Long.fromValue(ntfGroupInvite.groupId ?? 0).toString(10)
+      const groupInfo = await this.getGroupAttribute(groupId)
+      const invitorUserInfo = ntfGroupInvite.userInfo
+
+      if (!invitorUserInfo) return
+
+      const db = WeilaDB.getInstance()
+      const userInfos = db.convertFromUserRaw([invitorUserInfo])
+
+      await db.putUserInfo(userInfos[0])
+
+      const groupInviteInfo: WL_GroupInviteInfo = {
+        groupInfo,
+        invitorUserInfo: userInfos[0],
+        status: WL_AnswerStatus.ANSWER_NORMAL,
+      }
+
+      const notification = {
+        notificationType: WL_IDbNotificationType.GROUP_INVITE_NOTIFICATION,
+        data: groupInviteInfo,
+        createTime: new Date().getTime() / 1000,
+      }
+
+      const notificationId = await db.putNotification(notification)
+
+      const savedNotification: WL_IDbNotification = {
+        ...notification,
+        id: notificationId,
+      }
+
+      this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_NEW_NOTIFICATION_IND, savedNotification)
+    })()
+  }
+
+  private onNtfGroupJoin(groupMessage: WL.Group.IGroupMessage | null | undefined): void {
+    const ntfGroupJoin = groupMessage?.ntfGroupJoin
+
+    if (!ntfGroupJoin) return
+
+    void (async () => {
+      const joinUserInfo = ntfGroupJoin.userInfo
+
+      if (!joinUserInfo) return
+
+      const db = WeilaDB.getInstance()
+      const userInfos = db.convertFromUserRaw([joinUserInfo])
+
+      await db.putUserInfo(userInfos[0])
+
+      const groupInfo = await db.getGroup(Long.fromValue(ntfGroupJoin.groupId ?? 0).toString(10))
+
+      const groupJoinInfo: WL_GroupJoinInfo = {
+        detail: ntfGroupJoin.detail ?? '',
+        status: WL_AnswerStatus.ANSWER_NORMAL,
+        joinUserInfo: userInfos[0],
+        groupInfo,
+      }
+
+      const notification = {
+        notificationType: WL_IDbNotificationType.GROUP_JOIN_NOTIFICATION,
+        data: groupJoinInfo,
+        createTime: new Date().getTime() / 1000,
+      }
+
+      const notificationId = await db.putNotification(notification)
+
+      const savedNotification: WL_IDbNotification = {
+        ...notification,
+        id: notificationId,
+      }
+
+      this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_NEW_NOTIFICATION_IND, savedNotification)
+    })()
+  }
+
+  private onNtfChangeGroupAttribute(groupMessage: WL.Group.IGroupMessage | null | undefined): void {
+    const ntfChangeGroupAttribute = groupMessage?.ntfChangeGroupAttribute
+
+    if (!ntfChangeGroupAttribute) return
+
+    const ntfChangeGroupAttr = ntfChangeGroupAttribute.groupAttribute
+
+    if (!ntfChangeGroupAttr) return
+
+    const groupId = Long.fromValue(ntfChangeGroupAttr.groupId ?? 0).toString(10)
+    const db = WeilaDB.getInstance()
+
+    db.getGroup(groupId)
+      .then(async (value) => {
+        const groupInfo = value!
+
+        if (ntfChangeGroupAttr.version !== undefined) {
+          groupInfo.version = ntfChangeGroupAttr.version ?? 0
+        }
+
+        if (ntfChangeGroupAttr.memberVersion !== undefined) {
+          groupInfo.memberVersion = ntfChangeGroupAttr.memberVersion ?? 0
+        }
+
+        if (ntfChangeGroupAttr.name !== undefined) {
+          groupInfo.name = ntfChangeGroupAttr.name ?? ''
+        }
+
+        if (ntfChangeGroupAttr.avatar !== undefined) {
+          groupInfo.avatar = ntfChangeGroupAttr.avatar ?? ''
+        }
+
+        if (ntfChangeGroupAttr.ownerId !== undefined) {
+          groupInfo.ownerId = ntfChangeGroupAttr.ownerId ?? 0
+        }
+
+        if (ntfChangeGroupAttr.type !== undefined) {
+          groupInfo.groupType = dbEnum<WL_IDbGroupType>(ntfChangeGroupAttr.type)
+        }
+
+        if (ntfChangeGroupAttr.desc !== undefined) {
+          groupInfo.desc = ntfChangeGroupAttr.desc ?? ''
+        }
+
+        if (ntfChangeGroupAttr.home !== undefined) {
+          groupInfo.home = ntfChangeGroupAttr.home ?? ''
+        }
+
+        if (ntfChangeGroupAttr.latitude !== undefined) {
+          groupInfo.latitude = ntfChangeGroupAttr.latitude ?? ''
+        }
+
+        if (ntfChangeGroupAttr.longitude !== undefined) {
+          groupInfo.longitude = ntfChangeGroupAttr.longitude ?? ''
+        }
+
+        if (ntfChangeGroupAttr.publicType !== undefined) {
+          groupInfo.publicType = dbEnum<WL_IDbGroupPublicType>(ntfChangeGroupAttr.publicType)
+        }
+
+        if (ntfChangeGroupAttr.authType !== undefined) {
+          groupInfo.authType = dbEnum<WL_IDbGroupAuthType>(ntfChangeGroupAttr.authType)
+        }
+
+        if (ntfChangeGroupAttr.class !== undefined) {
+          groupInfo.groupClass = ntfChangeGroupAttr.class ?? 0
+        }
+
+        if (ntfChangeGroupAttr.memberLimit !== undefined) {
+          groupInfo.memberLimit = ntfChangeGroupAttr.memberLimit ?? 0
+        }
+
+        if (ntfChangeGroupAttr.memberCount !== undefined) {
+          groupInfo.memberCount = ntfChangeGroupAttr.memberCount ?? 0
+        }
+
+        if (ntfChangeGroupAttr.audioQuality !== undefined) {
+          groupInfo.audioQuality = ntfChangeGroupAttr.audioQuality ?? 0
+        }
+
+        if (ntfChangeGroupAttr.burstType !== undefined) {
+          groupInfo.burstType = ntfChangeGroupAttr.burstType ?? 0
+        }
+
+        if (ntfChangeGroupAttr.shutupStatus !== undefined) {
+          groupInfo.speechEnable = ntfChangeGroupAttr.shutupStatus === 0
+        }
+
+        await db.putGroup(groupInfo)
+        log.info('群属性变更了:', groupId)
+        this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_GROUP_MODIFIED_IND, groupInfo)
+      })
+      .catch((reason) => {
+        log.error('保存群属性异常:' + reason)
+      })
+  }
+
+  private onNtfChangeMemberInfo(groupMessage: WL.Group.IGroupMessage | null | undefined): void {
+    const ntfChangeMemberInfo = groupMessage?.ntfChangeMemberInfo
+
+    if (!ntfChangeMemberInfo) return
+
+    const ntfMemberInfo = ntfChangeMemberInfo.memberInfo
+
+    if (!ntfMemberInfo) return
+
+    const groupId = Long.fromValue(ntfChangeMemberInfo.groupId ?? 0).toString(10)
+    const db = WeilaDB.getInstance()
+
+    db.getGroupMemberInfo(groupId, ntfMemberInfo.userId ?? 0)
+      .then(async (value) => {
+        const memberInfo = value
+
+        if (memberInfo) {
+          if (ntfMemberInfo.status !== undefined) {
+            memberInfo.status = dbEnum<WL_IDbMemberStatus>(ntfMemberInfo.status)
+          }
+
+          if (ntfMemberInfo.type !== undefined) {
+            memberInfo.memberType = dbEnum<WL_IDbMemberType>(ntfMemberInfo.type)
+          }
+
+          if (ntfMemberInfo.remark !== undefined) {
+            memberInfo.remark = ntfMemberInfo.remark ?? ''
+          }
+
+          if (ntfMemberInfo.prority !== undefined) {
+            memberInfo.priority = ntfMemberInfo.prority ?? 0
+          }
+
+          if (ntfMemberInfo.shutupStatus !== undefined) {
+            memberInfo.speechEnable = ntfMemberInfo.shutupStatus === 0
+          }
+
+          if (ntfMemberInfo.shutupTimeout !== undefined) {
+            memberInfo.speechDisableTimeout = Long.fromValue(
+              ntfMemberInfo.shutupTimeout ?? 0,
+            ).toNumber()
+          }
+
+          if (ntfMemberInfo.shieldStatus !== undefined) {
+            memberInfo.blockedStatus = ntfMemberInfo.shieldStatus === 1
+          }
+
+          if (ntfMemberInfo.tts !== undefined) {
+            memberInfo.tts = ntfMemberInfo.tts === 1
+          }
+
+          if (ntfMemberInfo.locationShare !== undefined) {
+            memberInfo.locationShared = ntfMemberInfo.locationShare === 1
+          }
+
+          await db.putMemberInfo(memberInfo)
+          log.info('群成员变更了')
+          this.coreInterface.sendExtEvent(
+            WL_ExtEventID.WL_EXT_GROUP_MEMBERS_MODIFIED_IND,
+            memberInfo,
+          )
+        }
+      })
+      .catch((reason) => {
+        log.error('保存群成员异常:' + reason)
+      })
+  }
+
+  private onNtfDeleteGroup(groupMessage: WL.Group.IGroupMessage | null | undefined): void {
+    const ntfDeleteGroup = groupMessage?.ntfDeleteGroup
+
+    if (!ntfDeleteGroup) return
+
+    const groupId = Long.fromValue(ntfDeleteGroup.groupId ?? 0).toString(10)
+
+    log.info('群被删除的通知，群ID:', groupId)
+
+    WeilaDB.getInstance()
+      .delGroups([groupId])
+      .then(() => {
+        this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_GROUP_DELETED_IND, groupId)
+      })
+      .catch((reason) => {
+        log.error('删除群失败', reason)
+      })
+  }
+
+  private onNtfDeleteMember(groupMessage: WL.Group.IGroupMessage | null | undefined): void {
+    const ntfDeleteMember = groupMessage?.ntfDeleteMember
+
+    if (!ntfDeleteMember) return
+
+    const groupId = Long.fromValue(ntfDeleteMember.groupId ?? 0).toString(10)
+    const userIdList = ntfDeleteMember.userIdList ?? []
+
+    WeilaDB.getInstance()
+      .delMemberInfos(groupId, userIdList)
+      .then((_value) => {
+        log.info('删除了群成员成功')
+
+        const info: WL_GroupMemberDeleteInfo = {
+          groupId,
+          initiatorId: ntfDeleteMember.initiatorId ?? 0,
+          userIdList,
+        }
+
+        this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_GROUP_MEMBER_DELETED_IND, info)
+      })
+      .catch((reason) => {
+        log.error('删除群成员异常:' + reason)
+      })
+  }
+
+  private onNtfNewMember(groupMessage: WL.Group.IGroupMessage | null | undefined): void {
+    const ntfNewMember = groupMessage?.ntfNewMember
+
+    if (!ntfNewMember) return
+
+    log.info('有新成员消息:', ntfNewMember)
+
+    void (async () => {
+      const groupId = Long.fromValue(ntfNewMember.groupId ?? 0).toString(10)
+      const db = WeilaDB.getInstance()
+      const groupInfo = await db.getGroup(groupId)
+
+      if (groupInfo) {
+        const memberInfoList = ntfNewMember.memberInfoList ?? []
+        const userInfoList = ntfNewMember.userInfoList ?? []
+
+        const memberInfos = db.convertFromMemberRaw(groupId, memberInfoList)
+        const userInfos = db.convertFromUserRaw(userInfoList)
+
+        if (memberInfos.length) {
+          await db.putMemberInfos(memberInfos)
+        }
+
+        if (userInfos.length) {
+          await db.putUserInfos(userInfos)
+        }
+      }
+
+      log.info('保存群成员信息')
+
+      this.coreInterface.sendExtEvent(
+        WL_ExtEventID.WL_EXT_GROUP_NEW_MEMBER_JOINED_IND,
+        ntfNewMember.memberInfoList,
+      )
+    })().catch((reason) => {
+      log.error('保存信息出错!', reason)
+    })
+  }
+
+  private onNtfAnswerGroupJoin(groupMessage: WL.Group.IGroupMessage | null | undefined): void {
+    const ntfAnswerJoin = groupMessage?.ntfAnswerGroupJoin
+
+    if (!ntfAnswerJoin) return
+
+    void (async () => {
+      const db = WeilaDB.getInstance()
+
+      const answerGroupJoin: WL_GroupAnswerJoinInfo = {
+        status: dbEnum<WL_AnswerStatus>(ntfAnswerJoin.status),
+        groupInfo: await db.getGroup(Long.fromValue(ntfAnswerJoin.groupId ?? 0).toString(10)),
+        joinUserInfo: await db.getUser(ntfAnswerJoin.joinId ?? 0),
+        answerUserInfo: await db.getUser(ntfAnswerJoin.answerId ?? 0),
+        updated: Long.fromValue(ntfAnswerJoin.updated ?? 0).toNumber(),
+      }
+
+      const notification = {
+        notificationType: WL_IDbNotificationType.GROUP_ANSWER_JOIN_NOTIFICATION,
+        data: answerGroupJoin,
+        createTime: new Date().getTime() / 1000,
+      }
+
+      const notificationId = await db.putNotification(notification)
+
+      const savedNotification: WL_IDbNotification = {
+        ...notification,
+        id: notificationId,
+      }
+
+      this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_NEW_NOTIFICATION_IND, savedNotification)
+    })()
+  }
+
+  private onNtfAnswerGroupInvite(groupMessage: WL.Group.IGroupMessage | null | undefined): void {
+    const ntfAnswerInvite = groupMessage?.ntfAnswerGroupInvite
+
+    if (!ntfAnswerInvite) return
+
+    void (async () => {
+      const db = WeilaDB.getInstance()
+
+      const answerGroupInvite: WL_GroupAnswerInviteInfo = {
+        groupInfo: await db.getGroup(Long.fromValue(ntfAnswerInvite.groupId ?? 0).toString(10)),
+        invitorUserInfo: await db.getUser(ntfAnswerInvite.inviterId ?? 0),
+        inviteeUserInfo: await db.getUser(ntfAnswerInvite.inviteeId ?? 0),
+        status: dbEnum<WL_AnswerStatus>(ntfAnswerInvite.status),
+        updated: Long.fromValue(ntfAnswerInvite.updated ?? 0).toNumber(),
+      }
+
+      const notification = {
+        notificationType: WL_IDbNotificationType.GROUP_ANSWER_INVITE_NOTIFICATION,
+        data: answerGroupInvite,
+        createTime: new Date().getTime() / 1000,
+      }
+
+      const notificationId = await db.putNotification(notification)
+
+      const savedNotification: WL_IDbNotification = {
+        ...notification,
+        id: notificationId,
+      }
+
+      this.coreInterface.sendExtEvent(WL_ExtEventID.WL_EXT_NEW_NOTIFICATION_IND, savedNotification)
+    })()
   }
 
   public async getGroupFromServer(groupId: string): Promise<WL_IDbGroup | undefined> {
