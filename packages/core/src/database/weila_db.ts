@@ -23,7 +23,9 @@ import {
   WL_IDbNotification,
   WL_IDbNotificationType,
   WL_IDbService,
+  WL_IDbServiceSession,
   WL_IDbServiceSessionInfo,
+  WL_IDbServiceSessionRecord,
   WL_IDbServiceStaff,
   WL_IDbServiceStaffInfo,
   WL_IDbSession,
@@ -142,6 +144,29 @@ function normalizeLegacyServiceMsgData(row: WL_IDbMsgData): WL_IDbMsgData | unde
   return { ...toMsgBase(row), ...parseSessionServiceMsg(serviceData) }
 }
 
+const SERVICE_SESSION_KEYS = [
+  'serviceId',
+  'customerId',
+  'staffIds',
+  'serviceStatus',
+  'createdTime',
+  'updatedTime',
+] as const
+
+function isServiceSession(value: unknown): value is WL_IDbServiceSession {
+  if (!isRecord(value)) return false
+
+  return (
+    isNumber(value.serviceId) &&
+    isNumber(value.customerId) &&
+    Array.isArray(value.staffIds) &&
+    value.staffIds.every(isNumber) &&
+    isNumber(value.serviceStatus) &&
+    isNumber(value.createdTime) &&
+    isNumber(value.updatedTime)
+  )
+}
+
 class WeilaDB extends Dexie {
   sessions: Dexie.Table<WL_IDbSession, string>
   session_setting: Dexie.Table<WL_IDbSessionSetting, string>
@@ -155,6 +180,7 @@ class WeilaDB extends Dexie {
   extensions: Dexie.Table<WL_IDbExtensionInfo, number>
   service: Dexie.Table<WL_IDbService, number>
   service_staffs: Dexie.Table<WL_IDbServiceStaff, number>
+  service_sessions: Dexie.Table<WL_IDbServiceSessionRecord, string>
   loginUserId: number
   private cleanedWithdrawSessions: Set<string> = new Set()
   static appAuthInfo?: { appKey: string; appId: string }
@@ -207,9 +233,9 @@ class WeilaDB extends Dexie {
     }
 
     try {
-      await this.instance.migrateServiceSessionExtra()
+      await this.instance.migrateServiceSessionsToTable()
     } catch (error) {
-      log.error('迁移客服会话 extra 失败:', dbName, error)
+      log.error('迁移客服会话到独立表失败:', dbName, error)
     }
   }
 
@@ -260,6 +286,7 @@ class WeilaDB extends Dexie {
       extensions: 'userId, supervisorId, extensionType',
       service: 'serviceId, serviceNum, serviceType, serviceClass',
       service_staffs: 'userId, staffType, admin, staffClass',
+      service_sessions: 'sessionId',
     })
 
     this.sessions = this.table('sessions')
@@ -274,6 +301,7 @@ class WeilaDB extends Dexie {
     this.extensions = this.table('extensions')
     this.service = this.table('service')
     this.service_staffs = this.table('service_staffs')
+    this.service_sessions = this.table('service_sessions')
     log.info('create db name:%s version:%d', dbName, version, this)
 
     this.settings
@@ -555,6 +583,22 @@ class WeilaDB extends Dexie {
     const session = await this.sessions.get(id)
 
     return session
+  }
+
+  @AsyncTime()
+  public async getServiceSession(sessionId: string): Promise<WL_IDbServiceSession | undefined> {
+    return this.service_sessions.get(sessionId)
+  }
+
+  public async putServiceSession(
+    sessionId: string,
+    serviceSession: WL_IDbServiceSession,
+  ): Promise<string> {
+    return this.service_sessions.put({ sessionId, ...serviceSession })
+  }
+
+  public async putServiceSessions(records: WL_IDbServiceSessionRecord[]): Promise<string> {
+    return this.service_sessions.bulkPut(records)
   }
 
   @SyncTime()
@@ -1201,66 +1245,53 @@ class WeilaDB extends Dexie {
   }
 
   @AsyncTime()
-  public async migrateServiceSessionExtra(): Promise<number> {
+  public async migrateServiceSessionsToTable(): Promise<number> {
     const sessions = await this.sessions.toArray()
+    const records: WL_IDbServiceSessionRecord[] = []
+    const updated: WL_IDbSession[] = []
 
-    const migrated = sessions.filter((session) => {
-      if (!isServiceSessionType(session.sessionType) || !isRecord(session.extra)) {
-        return false
-      }
+    for (const session of sessions) {
+      if (!isServiceSessionType(session.sessionType) || !isRecord(session.extra)) continue
 
-      if (session.extra.serviceSession !== undefined) {
-        return false
-      }
+      const nested = session.extra.serviceSession
 
-      const { serviceId, customerId, staffIds, serviceStatus, createdTime, updatedTime } =
-        session.extra
+      const source = isServiceSession(nested)
+        ? nested
+        : isServiceSession(session.extra)
+          ? session.extra
+          : undefined
 
-      const isLegacyServiceSession =
-        isNumber(serviceId) &&
-        isNumber(customerId) &&
-        Array.isArray(staffIds) &&
-        staffIds.every(isNumber) &&
-        isNumber(serviceStatus) &&
-        isNumber(createdTime) &&
-        isNumber(updatedTime)
+      if (!source) continue
 
-      if (!isLegacyServiceSession) {
-        return false
-      }
+      records.push({
+        sessionId: session.sessionId,
+        serviceId: source.serviceId,
+        customerId: source.customerId,
+        staffIds: source.staffIds,
+        serviceStatus: source.serviceStatus,
+        createdTime: source.createdTime,
+        updatedTime: source.updatedTime,
+      })
 
       const rest = { ...session.extra }
-      delete rest.serviceId
-      delete rest.customerId
-      delete rest.staffIds
-      delete rest.serviceStatus
-      delete rest.createdTime
-      delete rest.updatedTime
 
-      const extra = {
-        ...rest,
-        serviceSession: {
-          serviceId,
-          customerId,
-          staffIds,
-          serviceStatus,
-          createdTime,
-          updatedTime,
-        },
-      }
+      for (const key of SERVICE_SESSION_KEYS) delete rest[key]
 
-      session.extra = extra
+      delete rest.serviceSession
 
-      return true
-    })
+      if (Object.keys(rest).length > 0) session.extra = rest
+      else delete session.extra
 
-    if (migrated.length > 0) {
-      await this.sessions.bulkPut(migrated)
+      updated.push(session)
     }
 
-    log.info('迁移客服会话 extra %d 条', migrated.length)
+    if (records.length > 0) await this.service_sessions.bulkPut(records)
 
-    return migrated.length
+    if (updated.length > 0) await this.sessions.bulkPut(updated)
+
+    log.info('迁移客服会话到独立表 %d 条', records.length)
+
+    return records.length
   }
 
   @AsyncTime()

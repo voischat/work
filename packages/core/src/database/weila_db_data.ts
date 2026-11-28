@@ -131,7 +131,6 @@ type WL_IDbSessionExtra = {
   sessionName?: string
   sessionAvatar?: string
   memberCount?: number
-  serviceSession?: WL_IDbServiceSession
 } & Record<string, JsonValue>
 
 interface WL_IDbSession {
@@ -605,6 +604,10 @@ type WL_IDbServiceSession = {
   updatedTime: number
 }
 
+type WL_IDbServiceSessionRecord = WL_IDbServiceSession & {
+  sessionId: string
+}
+
 interface WL_IDbServiceSessionInfo {
   service: WL_IDbService
   customer: WL_IDbUserInfo | undefined
@@ -713,6 +716,7 @@ export {
   WL_IDbService,
   WL_IDbServiceStaff,
   WL_IDbServiceSession,
+  WL_IDbServiceSessionRecord,
   WL_ServiceStatus,
   WL_IDbServiceStaffInfo,
   WL_IDbServiceSessionInfo,

@@ -4,6 +4,7 @@ import { createLogger } from 'log/weila_log'
 import {
   WL_IDbService,
   WL_IDbServiceSessionInfo,
+  WL_IDbServiceSessionRecord,
   WL_IDbServiceStaff,
   WL_IDbServiceStaffInfo,
   WL_IDbSession,
@@ -446,6 +447,7 @@ export default class WLBusinessModule {
       const rsp: WL.Business.IRspCommonGetSessions = await this.coreInterface.sendPbMsg(buildMsgRet)
 
       const services: WL_IDbService[] = []
+      const serviceSessions: WL_IDbServiceSessionRecord[] = []
       let dbUserInfos: WL_IDbUserInfo[] = []
       let allStaffs: WL_IDbServiceStaff[] = []
 
@@ -489,10 +491,10 @@ export default class WLBusinessModule {
           dbSession.latestUpdate = serviceSessionInfo.serviceSession.updatedTime
           dbSession.sessionName = serviceSessionInfo.service.name
           dbSession.sessionAvatar = serviceSessionInfo.service.avatar
-          dbSession.extra = {
-            ...dbSession.extra,
-            serviceSession: serviceSessionInfo.serviceSession,
-          }
+          serviceSessions.push({
+            sessionId: dbSession.sessionId,
+            ...serviceSessionInfo.serviceSession,
+          })
         } else {
           dbSession.status = WL_IDbSessionStatus.SESSION_INVALID
           dbSession.extra = {
@@ -520,6 +522,7 @@ export default class WLBusinessModule {
       })
       await WeilaDB.getInstance().putServiceStaffs(allStaffs)
       await WeilaDB.getInstance().putServices(services)
+      await WeilaDB.getInstance().putServiceSessions(serviceSessions)
       await WeilaDB.getInstance().putSessions(dbSessionList)
 
       return true

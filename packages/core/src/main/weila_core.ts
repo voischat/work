@@ -1246,25 +1246,18 @@ class WeilaCore implements WL_CoreInterface {
   public async weila_getServiceSession(
     sessionId: string,
   ): Promise<WL_IDbServiceSessionInfo | undefined> {
-    const session: WL_IDbSession | undefined = await WeilaDB.getInstance().getSession(
-      sessionId,
-      WL_IDbSessionType.SESSION_SERVICE_TYPE,
-    )
+    const db = WeilaDB.getInstance()
+    const serviceSession = await db.getServiceSession(sessionId)
 
-    if (session) {
-      const serviceId = Long.fromValue(session.sessionId).high
-      const service = await WeilaDB.getInstance().getService(serviceId)
+    if (serviceSession) {
+      const service = await db.getService(serviceSession.serviceId)
 
       if (service) {
-        const serviceSession = session.extra?.serviceSession
-
-        if (serviceSession) {
-          return {
-            service,
-            serviceSession,
-            staffs: await WeilaDB.getInstance().getServiceStaffs(serviceSession.staffIds),
-            customer: await WeilaDB.getInstance().getUser(serviceSession.customerId),
-          }
+        return {
+          service,
+          serviceSession,
+          staffs: await db.getServiceStaffs(serviceSession.staffIds),
+          customer: await db.getUser(serviceSession.customerId),
         }
       }
     }
