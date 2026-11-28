@@ -37,6 +37,10 @@ source ~/.voischat/env.sh
 
 Ego TaskSpaces share one profile's localStorage. Every `loginFresh` empties the origin's storage and signs in as its pool account, so a run signs out whatever else was active on that origin (a person's manual session included) and leaves the last pool account signed in. The other skills are unaffected: their `ensureLogin` reuses a kept session only when it is the account they asked for and replaces any other.
 
+To drive two pool accounts at the same time, use two origins: run two dev servers on different ports and log one account into each. localStorage is per origin and the console keeps its token there rather than in cookies, so the accounts stay isolated inside the same Ego profile.
+
+The four accounts are one per tier corp (free, standard, professional, flagship); they do not share groups or friends. That is enough for edition gating, but a two-party PTT run needs two accounts provisioned inside one corp with a shared group.
+
 ## Usage
 
 ```bash
