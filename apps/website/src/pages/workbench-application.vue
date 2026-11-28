@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AppItem, AppListResponse } from '~/api/application'
+import type { TableColumn } from '~/utils/tableModel'
 import Message from '@arco-design/web-vue/es/message'
 
 import { useClipboard } from '@vueuse/core'
@@ -27,6 +28,30 @@ const curPage = shallowRef(0)
 const pageSize = shallowRef(10)
 
 const { data, refetch } = useWeilaFetch<AppListResponse>(() => `corp/api/manage/get-app-list?page=${curPage.value}&size=${pageSize.value}`)
+
+const columns: TableColumn<AppItem>[] = [
+  {
+    key: 'name',
+    title: t('name'),
+  },
+  {
+    key: 'app_id',
+    title: t('application.app-id'),
+  },
+  {
+    key: 'app_key',
+    title: t('application.app-key'),
+    width: 360,
+  },
+  {
+    key: 'created',
+    title: t('created'),
+  },
+  {
+    key: 'actions',
+    title: t('controls'),
+  },
+]
 
 const revealedAppId = shallowRef<string>()
 const { copy } = useClipboard()
@@ -95,59 +120,38 @@ function confirmDelete() {
         status="403"
         :subtitle="t('application.no-permission')"
       />
-      <a-table
+      <DataTable
         v-else
-        :data="data?.apps"
-        row-key="app_id"
-        :pagination="{
-          current: curPage + 1,
-          pageSize,
-          total: data?.count ?? 0,
-        }"
-        @page-change="(page: number) => curPage = page - 1"
+        v-model:page="curPage"
+        :columns="columns"
+        :data="data?.apps ?? []"
+        :total="data?.count ?? 0"
+        size="large"
       >
-        <template #columns>
-          <a-table-column :title="t('name')">
-            <template #cell="{ record: { name } }">
-              {{ name }}
-            </template>
-          </a-table-column>
-          <a-table-column :title="t('application.app-id')">
-            <template #cell="{ record: { app_id } }">
-              {{ app_id }}
-            </template>
-          </a-table-column>
-          <a-table-column :title="t('application.app-key')" :width="360">
-            <template #cell="{ record }">
-              <div flex items-center gap2>
-                <span font-mono block w-56 break-all>
-                  {{ revealedAppId === record.app_id ? record.app_key : maskedKey(record.app_key) }}
-                </span>
-                <a-button size="mini" @click="toggleKey(record)">
-                  <template #icon>
-                    <i :class="revealedAppId === record.app_id ? 'i-carbon-view-off' : 'i-carbon-view'" />
-                  </template>
-                </a-button>
-                <a-button size="mini" :disabled="!record.app_key" @click="copyKey(record.app_key)">
-                  {{ t('button.copy') }}
-                </a-button>
-              </div>
-            </template>
-          </a-table-column>
-          <a-table-column :title="t('created')">
-            <template #cell="{ record: { created } }">
-              {{ new Date(created * 1000).toLocaleDateString() }}
-            </template>
-          </a-table-column>
-          <a-table-column :title="t('controls')">
-            <template #cell="{ record }">
-              <a-button @click="selectedForDelete = record; isDeleteModalOpen = true">
-                {{ t('button.delete') }}
-              </a-button>
-            </template>
-          </a-table-column>
+        <template #cell-app_key="{ record }">
+          <div flex items-center gap2>
+            <span font-mono block w-56 break-all>
+              {{ revealedAppId === record.app_id ? record.app_key : maskedKey(record.app_key) }}
+            </span>
+            <a-button size="mini" @click="toggleKey(record)">
+              <template #icon>
+                <i :class="revealedAppId === record.app_id ? 'i-carbon-view-off' : 'i-carbon-view'" />
+              </template>
+            </a-button>
+            <a-button size="mini" :disabled="!record.app_key" @click="copyKey(record.app_key)">
+              {{ t('button.copy') }}
+            </a-button>
+          </div>
         </template>
-      </a-table>
+        <template #cell-created="{ record }">
+          {{ new Date(record.created * 1000).toLocaleDateString() }}
+        </template>
+        <template #cell-actions="{ record }">
+          <a-button @click="selectedForDelete = record; isDeleteModalOpen = true">
+            {{ t('button.delete') }}
+          </a-button>
+        </template>
+      </DataTable>
 
       <a-modal v-model:visible="isDeleteModalOpen" :title="t('button.delete')">
         <p>{{ t('delete.modal.hint') }} {{ t('delete.modal.content') }}</p>

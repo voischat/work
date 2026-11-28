@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { GroupModel } from '~/api/contact'
+import type { TableColumn } from '~/utils/tableModel'
 import Message from '@arco-design/web-vue/es/message'
 
 import { computed, ref as deepRef, shallowRef } from 'vue'
@@ -46,6 +47,58 @@ const selfUserId = computed(() => Number(selfInfoStore.selfInfo?.user_id))
 const groupMembership = shallowRef<Record<number, boolean>>({})
 const membershipPending = new Set<number>()
 
+const columns = computed<TableColumn<GroupModel>[]>(() => [
+  {
+    key: 'avatar',
+    title: t('avatar'),
+  },
+  {
+    key: 'name',
+    title: t('name'),
+  },
+  {
+    key: 'user_count',
+    title: t('user-count'),
+  },
+  {
+    key: 'burst_mode',
+    title: t('burst-mode'),
+  },
+  {
+    key: 'dept_ids',
+    title: t('dept.name'),
+    filter: isDeptAdmin.value
+      ? undefined
+      : {
+          multiple: true,
+          options: (depts.value ?? []).map(dept => ({ label: dept.name, value: dept.id })),
+          predicate: (values, group) => values.includes(group.dept_id),
+        },
+  },
+  {
+    key: 'created',
+    title: t('created'),
+  },
+  {
+    key: 'actions',
+    title: t('controls'),
+  },
+])
+
+function burstLabel(mode: number): string {
+  const labels: Record<number, string> = {
+    0: t('burst-mode-0'),
+    1: t('burst-mode-1'),
+    2: t('burst-mode-2'),
+  }
+
+  return labels[mode] ?? ''
+}
+
+function deptName(deptId: number): string {
+  return depts.value?.find(dept => dept.id === deptId)?.name ?? ''
+}
+
 async function ensureGroupMembership(groupId: number): Promise<void> {
   if (selfInfoStore.isOwner || selfInfoStore.isAdmin)
     return
@@ -87,13 +140,7 @@ const { mutate: deleteGroup, isPending: isDeleteGroupPending } = useWeilaMutatio
 
 $inspect(checkedGroupIds)
 
-function onSelect(group: GroupModel, e: PointerEvent) {
-  selectedGroup.value = group
-  const target = e.target
-  if (!(target instanceof HTMLElement) || !target.className.includes('arco-table')) {
-    return void 0
-  }
-
+function openGroup(group: GroupModel) {
   router.push(`/contact/group-${group.id}-${group.name}`)
 }
 
@@ -131,100 +178,55 @@ function openGroupChat(group: GroupModel) {
         </a-space>
       </template>
 
-      <!-- @vue-expect-error type error when arco's row-click -->
-      <a-table
-        :pagination="{
-          pageSize: 10,
-          total: data?.count || 0,
-        }"
-        :data="data?.groups" size="medium" :column-resizable="true" :scroll="{
-          x: 1000,
-          y: 600,
-        }" :scrollbar="true" @row-click="(...args) => onSelect(...args)"
-
-        @page-change="(page) => curPage = page - 1"
+      <DataTable
+        v-model:page="curPage"
+        :columns="columns"
+        :data="data?.groups ?? []"
+        :total="data?.count || 0"
+        fixed-layout
+        @row-click="openGroup"
       >
-        <template #columns>
-          <a-table-column :title="t('avatar')">
-            <template #cell="{ record: { avatar } }">
-              <a-avatar :image-url="avatar?.replace(/^https?:/, '')">
-                <IconUser />
-              </a-avatar>
-            </template>
-          </a-table-column>
-          <a-table-column :title="t('name')">
-            <template #cell="{ record: { name } }">
-              {{ name }}
-            </template>
-          </a-table-column>
-          <a-table-column :title="t('user-count')">
-            <template #cell="{ record: { user_count } }">
-              {{ user_count }}
-            </template>
-          </a-table-column>
-          <a-table-column :title="t('burst-mode')">
-            <template #cell="{ record: { burst_mode } }">
-              <a-tag>
-                {{
-                  {
-                    0: t('burst-mode-0'),
-                    1: t('burst-mode-1'),
-                    2: t('burst-mode-2'),
-                  }[burst_mode as number]
-                }}
-              </a-tag>
-            </template>
-          </a-table-column>
-          <a-table-column
-            :title="t('dept.name')" data-index="dept_ids"
-            :filterable="!isDeptAdmin ? {
-              filters: depts?.map((i) => ({
-                text: i.name,
-                value: String(i.id),
-              })),
-              filter: (values: string[], record: any) => values.some((i: string) => i === String(record.dept_id)),
-              multiple: true,
-            } : undefined"
-          >
-            <template #cell="{ record: { dept_id } }">
-              {{ depts?.find(d => d.id === dept_id)?.name || '' }}
-            </template>
-          </a-table-column>
-          <a-table-column :title="t('created')">
-            <template #cell="{ record: { created } }">
-              {{ new Date(created * 1000).toLocaleDateString() }}
-            </template>
-          </a-table-column>
-          <a-table-column :title="t('controls')">
-            <template #cell="{ record }">
-              <div flex gap2>
-                <EditGroupModal :group="selectedGroup" @success="refetch">
-                  <a-button @click="() => selectedGroup = record">
-                    {{ t('button.edit') }}
-                  </a-button>
-                </EditGroupModal>
-                <a-dropdown :hide-on-select="false">
-                  <a-button @click="ensureGroupMembership(record.id)">
-                    <template #icon>
-                      <icon-down />
-                    </template>
-                  </a-button>
-                  <template #content>
-                    <div flex="~ col" p0>
-                      <a-doption v-if="canSendGroupMessage(record)" @click="openGroupChat(record)">
-                        {{ t('button.send-message') }}
-                      </a-doption>
-                      <a-doption type="warning" @click="selectedGroup = record; isDeleteGroupModalOpen = true">
-                        {{ t('button.delete') }}
-                      </a-doption>
-                    </div>
-                  </template>
-                </a-dropdown>
-              </div>
-            </template>
-          </a-table-column>
+        <template #cell-avatar="{ record }">
+          <a-avatar :image-url="record.avatar?.replace(/^https?:/, '')">
+            <IconUser />
+          </a-avatar>
         </template>
-      </a-table>
+        <template #cell-burst_mode="{ record }">
+          <a-tag>{{ burstLabel(record.burst_mode) }}</a-tag>
+        </template>
+        <template #cell-dept_ids="{ record }">
+          {{ deptName(record.dept_id) }}
+        </template>
+        <template #cell-created="{ record }">
+          {{ new Date(record.created * 1000).toLocaleDateString() }}
+        </template>
+        <template #cell-actions="{ record }">
+          <div flex gap2>
+            <EditGroupModal :group="selectedGroup" @success="refetch">
+              <a-button @click="() => selectedGroup = record">
+                {{ t('button.edit') }}
+              </a-button>
+            </EditGroupModal>
+            <a-dropdown :hide-on-select="false">
+              <a-button @click="ensureGroupMembership(record.id)">
+                <template #icon>
+                  <icon-down />
+                </template>
+              </a-button>
+              <template #content>
+                <div flex="~ col" p0>
+                  <a-doption v-if="canSendGroupMessage(record)" @click="openGroupChat(record)">
+                    {{ t('button.send-message') }}
+                  </a-doption>
+                  <a-doption type="warning" @click="selectedGroup = record; isDeleteGroupModalOpen = true">
+                    {{ t('button.delete') }}
+                  </a-doption>
+                </div>
+              </template>
+            </a-dropdown>
+          </div>
+        </template>
+      </DataTable>
       <a-modal v-model:visible="isDeleteGroupModalOpen" :title="t('delete.modal.title')">
         <p>{{ t('delete.modal.hint') }} {{ t('delete.modal.content') }}</p>
         <template #footer>
