@@ -36,6 +36,7 @@ Vue 3 + TS 企业管理台（`apps/website`）。企业通讯：通讯录、消�
 - Explicit imports only: Vue/VueUse/Pinia/Router APIs and project composables/stores/utils are imported where used
 - Components auto-imported from `src/components/`, Arco/Radix/AMap resolved automatically
 - Naming: components PascalCase, composables `use*` camelCase, utils camelCase
+- **密码持久化是有意保留的**：`temp-account` 和 `account-history-record` 继续把密码加密后存进 localStorage，密钥在包内可见；刷新后的自动登录依赖它。负责人在 2026-11-28 明确选择了这个取舍，不要把它当漏洞再改掉，要改先找产品决策。对应的缓解是堵住 XSS 入口：不可信文本进 HTML 前用 `~/utils/escapeHtml` 的 `escapeHtml`，头像一类的 URL 用 `safeImageUrl`。
 
 ## Testing
 
