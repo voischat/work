@@ -11,6 +11,9 @@ function getUnsupportedNames(vip: VipInfo | undefined): VipFlag[] {
 }
 
 export function isPathVipGated(path: string, vip: VipInfo | undefined, flag?: VipFlag): boolean {
+  if (!vip)
+    return Boolean(flag)
+
   const unsupported = getUnsupportedNames(vip)
   if (flag)
     return unsupported.includes(flag)

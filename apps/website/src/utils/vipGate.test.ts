@@ -50,8 +50,9 @@ describe('isPathVipGated', () => {
     expect(isPathVipGated('/workbench/application', vip, 'api')).toBe(false)
   })
 
-  it('treats a missing vip payload as ungated', () => {
-    expect(isPathVipGated('/workbench/application', undefined, 'api')).toBe(false)
+  it('gates an explicit flag when the vip payload is missing', () => {
+    expect(isPathVipGated('/workbench/application', undefined, 'api')).toBe(true)
+    expect(isPathVipGated('/workbench/application', undefined)).toBe(false)
   })
 
   it('treats a payload without supports as ungated', () => {

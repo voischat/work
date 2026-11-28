@@ -572,3 +572,4 @@ tooltips:
     power-warning: This frequency consumes high device power, please use with caution
     flagship-feature: Flagship feature
   vip-unsupported: Requires a higher VIP level
+  vip-load-failed: Failed to load membership info. Refresh the page and retry
