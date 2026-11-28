@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { AuthModel } from '~/stores/auth'
 import en from '@arco-design/web-vue/es/locale/lang/en-us'
 import zhCN from '@arco-design/web-vue/es/locale/lang/zh-cn'
 import Message from '@arco-design/web-vue/es/message'
@@ -13,6 +12,7 @@ import { onBeforeRouteUpdate } from 'vue-router'
 import { useBundleInfo } from '~/composables/useBundleInfo'
 import { appname, useWeilaApi } from '~/composables/useWeilaApi'
 import { useAuthStore } from '~/stores/auth'
+import { isDefinitiveRefreshFailure, refreshAuth } from '~/utils/authRefresh'
 import { toastError } from '~/utils/errorToast'
 import { getApiBaseUrl } from './composables/useWeilaApi'
 import { appid, appkey } from './shared/const'
@@ -44,7 +44,7 @@ const PUBLIC_PATH_KEYWORDS = [
   'common/guide',
 ]
 
-let refreshing: Promise<AuthModel | undefined> | null = null
+let refreshing: Promise<unknown> | null = null
 let lastRefreshFailure = 0
 let lastRefreshNotice = 0
 
@@ -53,7 +53,7 @@ const weilaApi = useWeilaApi()
 weilaApi.value.hook('request:prepare', async (ctx) => {
   const { refreshToken, token, expiresIn, loginTime } = storeToRefs(authStore)
 
-  const handleRefreshFailure = async (error: unknown) => {
+  const failAuth = async (error: unknown) => {
     lastRefreshFailure = Date.now()
     console.error('refresh token failed', error)
     await authStore.clearAuth()
@@ -87,29 +87,16 @@ weilaApi.value.hook('request:prepare', async (ctx) => {
     if (Date.now() - lastRefreshFailure < REFRESH_COOLDOWN_MS)
       return
 
-    const pending = (async () => {
-      const query = await v2Query(appname, appid.value, appkey.value)
-      const res = await fetch(`${getApiBaseUrl()}/corp/auth/refresh?${stringifyQuery(query as unknown as Record<string, string | undefined>)}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refresh_token: refreshToken.value }),
-      })
-
-      if (!res.ok)
-        throw new Error(`refresh failed with HTTP ${res.status}`)
-
-      const { data: auth, errcode }: { data: AuthModel, errcode: number } = await res.json()
-      if (errcode !== 0 || !auth)
-        throw new Error(`refresh failed with errcode ${errcode}`)
-
-      token.value = auth.access_token
-      refreshToken.value = auth.refresh_token
-      expiresIn.value = auth.expires_in
-      loginTime.value = Date.now()
-      return auth
-    })()
+    const pending = refreshAuth({
+      storage: localStorage,
+      fetch: (input, init) => fetch(input, init),
+      now: () => Date.now(),
+      locks: navigator.locks,
+      buildUrl: async () => {
+        const query = await v2Query(appname, appid.value, appkey.value)
+        return `${getApiBaseUrl()}/corp/auth/refresh?${stringifyQuery(query as unknown as Record<string, string | undefined>)}`
+      },
+    })
 
     refreshing = pending
     const settle = () => {
@@ -118,15 +105,18 @@ weilaApi.value.hook('request:prepare', async (ctx) => {
     }
     void pending.then(settle, settle)
 
-    try {
-      await pending
-    }
-    catch (error) {
-      await handleRefreshFailure(error)
-    }
+    const result = await pending
+
+    token.value = result.tokens.access_token
+    refreshToken.value = result.tokens.refresh_token
+    expiresIn.value = result.tokens.expires_in
+    loginTime.value = result.loginTime
   }
   catch (error) {
-    await handleRefreshFailure(error)
+    if (!isDefinitiveRefreshFailure(error))
+      throw error
+
+    await failAuth(error)
   }
 })
 weilaApi.value.hook('request:error', onError)
