@@ -105,7 +105,9 @@
     "apps/website/**/*.{js,jsx,ts,tsx,mjs,cjs,vue,md,mdx,css,pcss,html,json,jsonc,yml,yaml}": [
       "ls-lint",
       "eslint --fix"
-    ]
+    ],
+    "**/*.{vue,css,less,pcss,html}": "pnpm run lint:comments",
+    "**/{package.json,pnpm-workspace.yaml}": "pnpm run manifests"
   },
   "engines": {
     "node": ">=22.18",

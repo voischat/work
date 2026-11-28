@@ -29,6 +29,17 @@ void test('staged website code runs ls-lint and eslint --fix', () => {
   )
 })
 
+void test('staged Vue and style files run the no-comments check', () => {
+  assert.equal(manifest['nano-staged']['**/*.{vue,css,less,pcss,html}'], 'pnpm run lint:comments')
+})
+
+void test('staged manifests run the catalog policy check', () => {
+  assert.equal(
+    manifest['nano-staged']['**/{package.json,pnpm-workspace.yaml}'],
+    'pnpm run manifests',
+  )
+})
+
 void test('lint-staged is fully removed', () => {
   assert.equal(manifest['lint-staged'], undefined)
   assert.equal(manifest.devDependencies['lint-staged'], undefined)
