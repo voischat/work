@@ -28,6 +28,10 @@ export default defineConfig(() => {
   return {
     base: './',
 
+    css: {
+      preprocessorMaxWorkers: 0,
+    },
+
     build: {
       rollupOptions: {
         input: {
