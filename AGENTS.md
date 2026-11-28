@@ -19,7 +19,6 @@ You own this codebase and will keep working in it over time. Leave each area bet
 │   ├── playground-vue3/ # SDK playground, Vue 3 + Vite
 │   └── mock/            # Void app serving website API fixtures in development
 ├── docs/                # VitePress user manual (and the audio flow docs)
-├── qa/                  # manual QA runs and test cases
 ├── scripts/             # repo scripts, including the commit-hook spec
 └── .claude/skills/      # agent skills (SDK integration, verifications)
 ```
