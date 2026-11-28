@@ -1,8 +1,11 @@
 import 'fake-indexeddb/auto'
 import { afterEach, describe, expect, it } from 'vitest'
+import { AES, enc, mode, pad } from 'crypto-js'
 import { Dexie } from 'dexie'
 import Long from 'long'
 import { WL } from 'proto/weilapb'
+import { TextMsgDataParser } from 'proto/weilapb_textmsg_parser'
+import { uint8Array2HexStr } from 'proto/weilapb_utils'
 import { WeilaDB } from './weila_db'
 import {
   WL_IDbMsgDataStatus,
@@ -119,6 +122,45 @@ function makeServiceRaw(
   }
 }
 
+function encryptExtendText(extendText: string): string {
+  const textWordArray = enc.Utf8.parse(extendText)
+  const bufferLen = textWordArray.sigBytes + 4
+  const left = bufferLen % 16 > 0 ? 16 - (bufferLen % 16) : 0
+  const lenDataBuffer = new ArrayBuffer(4 + left)
+  const lenDataView = new DataView(lenDataBuffer)
+  lenDataView.setInt32(lenDataBuffer.byteLength - 4, textWordArray.sigBytes)
+  const lenDataWordArray = enc.Hex.parse(uint8Array2HexStr(new Uint8Array(lenDataBuffer)))
+
+  return AES.encrypt(textWordArray.concat(lenDataWordArray), TextMsgDataParser.getCK(), {
+    mode: mode.ECB,
+    padding: pad.ZeroPadding,
+  }).toString()
+}
+
+function makeTextRaw(sessionId: string, msgId: number, text: string): WL.Session.IMsgData {
+  return {
+    senderId: 7,
+    sessionId: Long.fromString(sessionId),
+    sessionType: WL.Common.SessionType.SESSION_TYPE_SINGLE,
+    msgId,
+    created: Long.fromNumber(2000 + msgId),
+    msgType: WL.Session.MessageType.MSG_TYPE_TEXT,
+    textData: encryptExtendText(text),
+  }
+}
+
+function makeExtendRaw(
+  sessionId: string,
+  msgId: number,
+  extendContent: string,
+): WL.Session.IMsgData {
+  return makeTextRaw(
+    sessionId,
+    msgId,
+    TextMsgDataParser.EXTEND_START_FLAG + extendContent + TextMsgDataParser.EXTEND_END_FLAG,
+  )
+}
+
 interface LegacyServiceRow {
   combo_id: string
   senderId: number
@@ -190,6 +232,24 @@ describe('WeilaDB messages', () => {
 
     await expect(db.getSession(session.sessionId, session.sessionType)).resolves.toBeUndefined()
     await expect(db.getMsgData(message.combo_id)).resolves.toBeUndefined()
+  })
+
+  it('keeps decodable messages when one payload cannot be decoded', async () => {
+    const db = await openDb(nextUserId(), CURRENT_DB_VERSION)
+
+    const messages = db.convertFromMsgDataRaws(
+      [
+        makeTextRaw('4300', 31, 'first'),
+        makeExtendRaw('4300', 32, 'https://cdn.example.com/a.png?fileName=//8=&serviceType=file'),
+        makeTextRaw('4300', 33, 'third'),
+      ],
+      7,
+    )
+
+    expect(messages).toMatchObject([
+      { msgId: 31, msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE, textData: 'first' },
+      { msgId: 33, msgType: WL_IDbMsgDataType.WL_DB_MSG_DATA_TEXT_TYPE, textData: 'third' },
+    ])
   })
 })
 
