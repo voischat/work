@@ -27,6 +27,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run fmt:check
       - run: pnpm run manifests
+      - run: pnpm run lint:workflows
       - run: pnpm knip
       - run: pnpm run lint:names
       - run: pnpm run lint:sdk
